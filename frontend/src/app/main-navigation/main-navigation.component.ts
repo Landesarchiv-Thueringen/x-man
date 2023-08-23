@@ -24,7 +24,6 @@ export class MainNavigationComponent {
   logout(): void {}
 
   onFileSelected(fileSelectEvent: Event): void {
-    console.log(fileSelectEvent);
     const fileList = (fileSelectEvent.target as HTMLInputElement).files;
     if (fileList) {
       const messageContainer = fileList[0];
@@ -40,7 +39,6 @@ export class MainNavigationComponent {
         })
         if (xdomeaMessageFileList.length === 1) {
           xdomeaMessageFileList[0].async('text').then((messageText) => {
-            console.log(messageText);
             this.messageText = messageText;
           })
         } else {
