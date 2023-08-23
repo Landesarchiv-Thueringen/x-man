@@ -1,0 +1,9 @@
+# whitelist init (prohibit everything, allow all directories)
+*
+!*/
+
+# allow gitginore files
+!.gitignore
+
+# allow database creation script
+!/mariaDB/create_database.sql
