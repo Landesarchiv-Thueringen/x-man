@@ -16,6 +16,26 @@
     background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
   }
 
+  .node {
+    display: flex;
+    flex-direction: row;
+    align-items:center;
+
+    .mat-icon {
+      // important icons shrink when overflow occurs
+      flex-shrink: 0;
+    }
+
+    .node-title {
+      display: flex;
+      flex-direction: column;
+
+      .node-subtitle-line {
+        font-weight: 500;
+      }
+    }
+  }
+
   /*
   * This padding sets alignment of the nested nodes.
   */
@@ -26,6 +46,7 @@
 
   .mat-tree-node {
     border-radius: 30px;
+    margin-bottom: 0.8em;
      &:hover {
       background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
     }

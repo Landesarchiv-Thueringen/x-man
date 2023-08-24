@@ -12,8 +12,13 @@ type StructureNodeType =
   | 'process'
   | 'document';
 
+export interface DisplayText {
+  title: string;
+  subtitle?: string;
+}
+
 export interface StructureNode {
-  displayText: string;
+  displayText: DisplayText;
   type: StructureNodeType;
   routerLink: string;
   xmlNode: Node;
@@ -82,29 +87,50 @@ export class MessageService {
     return uuidv4();
   }
 
-  private getDisplayText(type: StructureNodeType, xmlNode: Node): string {
+  private getDisplayText(type: StructureNodeType, xmlNode: Node): DisplayText {
+    switch (type) {
+      case 'message':
+        return { title: 'Anbietungsverzeichnis' };
+      case 'recordObjectList':
+        return { title: 'Schriftgutobjekte' };
+      case 'messageHead':
+        return { title: 'Nachrichtenkopf' };
+      case 'file':
+        return this.getRecorcObjectDisplayText(type, xmlNode);
+      case 'process':
+        return this.getRecorcObjectDisplayText(type, xmlNode);
+      case 'document':
+        return this.getRecorcObjectDisplayText(type, xmlNode);
+    }
+  }
+
+  private getRecorcObjectDisplayText(
+    type: StructureNodeType,
+    xmlNode: Node
+  ): DisplayText {
     if (type === 'file' || type === 'process' || type === 'document') {
       const recordNumberXmlNode: Node = this.getXmlNodes(
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
         xmlNode
       ).snapshotItem(0)!;
+      const subjectXmlNode: Node | null = this.getXmlNodes(
+        'xdomea:AllgemeineMetadaten/xdomea:Betreff',
+        xmlNode
+      ).snapshotItem(0);
+      const subtitle: string | undefined = subjectXmlNode?.textContent
+        ? subjectXmlNode.textContent
+        : undefined;
+      let recordObjectTitle = recordNumberXmlNode.textContent;
       switch (type) {
         case 'file':
-          return 'Akte: ' + recordNumberXmlNode.textContent;
+          return { title: 'Akte: ' + recordObjectTitle, subtitle: subtitle };
         case 'process':
-          return 'Vorgang:' + recordNumberXmlNode.textContent;
+          return { title: 'Vorgang: ' + recordObjectTitle, subtitle: subtitle };
         case 'document':
-          return 'Dokument:' + recordNumberXmlNode.textContent;
+          return { title: 'Dokument: ' + recordObjectTitle, subtitle: subtitle };
       }
     }
-    switch (type) {
-      case 'message':
-        return 'Anbietungsverzeichnis';
-      case 'recordObjectList':
-        return 'Schriftgutobjekte';
-      case 'messageHead':
-        return 'Nachrichtenkopf';
-    }
+    throw new Error('no record object');
   }
 
   private getRouterLink(nodeType: StructureNodeType, nodeId: string): string {
