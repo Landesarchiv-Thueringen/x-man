@@ -24,10 +24,25 @@ export interface StructureNode {
   providedIn: 'root',
 })
 export class MessageService {
+  parser: DOMParser;
+  messageDom?: Document;
   nodes: Map<string, StructureNode>;
 
   constructor() {
+    this.parser = new DOMParser();
     this.nodes = new Map<string, StructureNode>();
+  }
+
+  parseMessage(message: string): Document {
+    this.messageDom = this.parser.parseFromString(message, 'application/xml');
+    return this.messageDom;
+  }
+
+  getMessageDom(): Document {
+    if (!this.messageDom) {
+      throw new Error('message dom not initialized');
+    }
+    return this.messageDom;
   }
 
   /**
@@ -40,7 +55,7 @@ export class MessageService {
     xmlNode: Node,
     children?: StructureNode[]
   ): StructureNode {
-    const nodeId = uuidv4();
+    const nodeId = this.getNodeId(type, xmlNode);
     const node: StructureNode = {
       displayText: displayText,
       type: type,
@@ -57,8 +72,18 @@ export class MessageService {
     return this.nodes.get(id);
   }
 
+  getNodeId(type: StructureNodeType, xmlNode: Node): string {
+    if (type === 'file' || type === 'process' || type === 'document') {
+      const idXmlNode: Node = this.getXmlNodes(
+        'xdomea:Identifikation/xdomea:ID',
+        xmlNode
+      ).snapshotItem(0)!;
+      return idXmlNode.textContent!;
+    }
+    return uuidv4();
+  }
+
   private getRouterLink(nodeType: StructureNodeType, nodeId: string): string {
-    let routerLink = '';
     switch (nodeType) {
       case 'message':
         return 'nachricht/' + nodeId;
@@ -73,6 +98,20 @@ export class MessageService {
       case 'document':
         return 'dokument/' + nodeId;
     }
-    return routerLink;
+  }
+
+  getXmlNodes(xpath: string, node?: Node): XPathResult {
+    if (!this.messageDom) {
+      throw new Error('message dom not initialized');
+    }
+    return this.messageDom!.evaluate(
+      xpath,
+      node ? node : this.messageDom,
+      (namespace) => {
+        return 'urn:xoev-de:xdomea:schema:2.3.0';
+      },
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
   }
 }
