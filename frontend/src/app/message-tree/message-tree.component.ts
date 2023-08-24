@@ -48,7 +48,6 @@ export class MessageTreeComponent {
     const messageHeadNode = this.getMessageHeadNode(messageXmlNode);
     const recordObjectNode = this.getRecordObjectsNode(messageXmlNode);
     const node = this.messageService.addNode(
-      'Anbietungsverzeichnis',
       'message',
       messageXmlNode,
       [messageHeadNode, recordObjectNode]
@@ -61,12 +60,8 @@ export class MessageTreeComponent {
       '//xdomea:Kopf',
       messageXmlNode
     );
-    if (messageHeadXmlNodes.snapshotLength !== 1) {
-      console.error('alarm');
-    }
     const messageHeadXmlNode: Node = messageHeadXmlNodes.snapshotItem(0)!;
     const node = this.messageService.addNode(
-      'Nachrichtenkopf',
       'messageHead',
       messageHeadXmlNode
     );
@@ -75,7 +70,6 @@ export class MessageTreeComponent {
 
   getRecordObjectsNode(messageXmlNode: Node): StructureNode {
     const node = this.messageService.addNode(
-      'Schriftgutobjekte',
       'recordObjectList',
       messageXmlNode,
       this.getFileObjectNodes(messageXmlNode)
@@ -91,14 +85,7 @@ export class MessageTreeComponent {
     );
     for (let index = 0; index < fileXmlNodes.snapshotLength; ++index) {
       const fileXmlNode: Node = fileXmlNodes.snapshotItem(index)!;
-      const recordNumberXmlNode = this.messageService
-        .getXmlNodes(
-          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-          fileXmlNode
-        )
-        .snapshotItem(0);
       const node = this.messageService.addNode(
-        'Akte: ' + recordNumberXmlNode!.textContent,
         'file',
         fileXmlNode,
         this.getProcessObjectNodes(fileXmlNode)
@@ -116,14 +103,7 @@ export class MessageTreeComponent {
     );
     for (let index = 0; index < processXmlNodes.snapshotLength; ++index) {
       const processXmlNode: Node = processXmlNodes.snapshotItem(index)!;
-      const recordNumberXmlNode = this.messageService
-        .getXmlNodes(
-          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-          processXmlNode
-        )
-        .snapshotItem(0);
       const node = this.messageService.addNode(
-        'Vorgang: ' + recordNumberXmlNode!.textContent,
         'process',
         processXmlNode,
         this.getDocumentObjectNodes(processXmlNode)
@@ -141,14 +121,7 @@ export class MessageTreeComponent {
     );
     for (let index = 0; index < documentXmlNodes.snapshotLength; ++index) {
       const documentXmlNode: Node = documentXmlNodes.snapshotItem(index)!;
-      const recordNumberXmlNode = this.messageService
-        .getXmlNodes(
-          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-          documentXmlNode
-        )
-        .snapshotItem(0);
       const node = this.messageService.addNode(
-        'Dokument: ' + recordNumberXmlNode!.textContent,
         'document',
         documentXmlNode
       );

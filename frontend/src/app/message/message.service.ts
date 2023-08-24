@@ -50,14 +50,13 @@ export class MessageService {
    * storage concerns because in the node in the component is a shallow copy.
    */
   addNode(
-    displayText: string,
     type: StructureNodeType,
     xmlNode: Node,
     children?: StructureNode[]
   ): StructureNode {
     const nodeId = this.getNodeId(type, xmlNode);
     const node: StructureNode = {
-      displayText: displayText,
+      displayText: this.getDisplayText(type, xmlNode),
       type: type,
       xmlNode: xmlNode,
       children: children,
@@ -81,6 +80,31 @@ export class MessageService {
       return idXmlNode.textContent!;
     }
     return uuidv4();
+  }
+
+  private getDisplayText(type: StructureNodeType, xmlNode: Node): string {
+    if (type === 'file' || type === 'process' || type === 'document') {
+      const recordNumberXmlNode: Node = this.getXmlNodes(
+        'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
+        xmlNode
+      ).snapshotItem(0)!;
+      switch (type) {
+        case 'file':
+          return 'Akte: ' + recordNumberXmlNode.textContent;
+        case 'process':
+          return 'Vorgang:' + recordNumberXmlNode.textContent;
+        case 'document':
+          return 'Dokument:' + recordNumberXmlNode.textContent;
+      }
+    }
+    switch (type) {
+      case 'message':
+        return 'Anbietungsverzeichnis';
+      case 'recordObjectList':
+        return 'Schriftgutobjekte';
+      case 'messageHead':
+        return 'Nachrichtenkopf';
+    }
   }
 
   private getRouterLink(nodeType: StructureNodeType, nodeId: string): string {
