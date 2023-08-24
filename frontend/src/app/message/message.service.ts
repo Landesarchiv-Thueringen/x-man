@@ -30,7 +30,7 @@ export class MessageService {
   }
 
   /**
-   * Structure node is stored in map service and tree component for fast access. There are no 
+   * Structure node is stored in map service and tree component for fast access. There are no
    * storage concerns because in the node in the component is a shallow copy.
    */
   addNode(
@@ -45,19 +45,30 @@ export class MessageService {
       children: children,
       routerLink: this.getRouterLink(type, nodeId),
     };
-    
+
     this.nodes.set(nodeId, node);
     return node;
+  }
+
+  getNode(id: string): StructureNode | undefined {
+    return this.nodes.get(id);
   }
 
   private getRouterLink(nodeType: StructureNodeType, nodeId: string): string {
     let routerLink = '';
     switch (nodeType) {
-      case 'message': return 'nachricht/' + nodeId;
-      case 'messageHead': return 'nachrichtenkopf/' + nodeId;
-      case 'file': return 'akte/' + nodeId;
-      case 'process': return 'vorgang/' + nodeId;
-      case 'document': return 'dokument/' + nodeId;
+      case 'message':
+        return 'nachricht/' + nodeId;
+      case 'recordObject':
+        return 'schriftgutobjekte' + nodeId;
+      case 'messageHead':
+        return 'nachrichtenkopf/' + nodeId;
+      case 'file':
+        return 'akte/' + nodeId;
+      case 'process':
+        return 'vorgang/' + nodeId;
+      case 'document':
+        return 'dokument/' + nodeId;
     }
     return routerLink;
   }

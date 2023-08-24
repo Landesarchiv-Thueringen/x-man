@@ -1,1 +1,10 @@
-<p>xdomea-file-view works!</p>
+<form [formGroup]="form">
+
+  <h2 class="mat-h2">Metdaten Akte</h2>
+
+  <mat-form-field class="subject-input" appearance="outline">
+    <mat-label>Behördlicher Aktentitel</mat-label>
+    <input matInput formControlName="subject" readonly>
+  </mat-form-field>
+
+</form>
