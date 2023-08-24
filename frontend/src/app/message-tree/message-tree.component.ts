@@ -5,19 +5,8 @@ import { Component, Input } from '@angular/core';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 
-type StrctureNodeType =
-  | 'message'
-  | 'messageHead'
-  | 'recordObject'
-  | 'file'
-  | 'process'
-  | 'document';
-
-export interface StructureNode {
-  displayText: string;
-  type: StrctureNodeType;
-  children?: StructureNode[];
-}
+// project
+import { MessageService, StructureNode } from '../message/message.service';
 
 @Component({
   selector: 'app-message-tree',
@@ -28,7 +17,7 @@ export class MessageTreeComponent {
   treeControl: NestedTreeControl<StructureNode>;
   dataSource: MatTreeNestedDataSource<StructureNode>;
 
-  constructor() {
+  constructor(private messageService: MessageService) {
     this.treeControl = new NestedTreeControl<StructureNode>(
       (node) => node.children
     );
@@ -42,20 +31,20 @@ export class MessageTreeComponent {
     if (message) {
       console.log(message);
       const treeData: StructureNode[] = [];
-      const messageNode: StructureNode = {
-        displayText: 'Anbietungsverzeichnis',
-        type: 'message',
-      };
-      const headNode: StructureNode = {
-        displayText: 'Nachrichtenkopf',
-        type: 'messageHead',
-      };
-      const recordObjectListNode: StructureNode = {
-        displayText: 'Schriftgutobjekte',
-        type: 'recordObject',
-        children: this.getRecordObjectNodes(message),
-      };
-      messageNode.children = [headNode, recordObjectListNode];
+      const headNode: StructureNode = this.messageService.addNode(
+        'Nachrichtenkopf',
+        'messageHead',
+      );
+      const recordObjectListNode: StructureNode = this.messageService.addNode(
+        'Schriftgutobjekte',
+        'recordObject',
+        this.getRecordObjectNodes(message)
+      );
+      const messageNode: StructureNode = this.messageService.addNode(
+        'Anbietungsverzeichnis',
+        'message',
+        [headNode, recordObjectListNode]
+      );
       treeData.push(messageNode);
       this.dataSource.data = treeData;
     }
@@ -64,10 +53,6 @@ export class MessageTreeComponent {
   getRecordObjectNodes(message: string): StructureNode[] {
     const parser = new DOMParser();
     const doc: Document = parser.parseFromString(message, 'application/xml');
-    const fileObjects = this.getObjects(
-      doc,
-      '//xdomea:Schriftgutobjekt/xdomea:Akte'
-    );
     const recordObjectNodes: StructureNode[] = this.getFileObjectNodes(doc);
     return recordObjectNodes;
   }
@@ -85,11 +70,12 @@ export class MessageTreeComponent {
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
         fileEl
       ).snapshotItem(0);
-      nodes.push({
-        displayText: 'Akte: ' + recordNumberEl!.textContent,
-        type: 'file',
-        children: this.getProcessObjectNodes(doc, fileEl)
-      });
+      const node = this.messageService.addNode(
+        'Akte: ' + recordNumberEl!.textContent,
+        'file',
+        this.getProcessObjectNodes(doc, fileEl),
+      )
+      nodes.push(node);
     }
     return nodes;
   }
@@ -108,11 +94,12 @@ export class MessageTreeComponent {
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
         processEl
       ).snapshotItem(0);
-      nodes.push({
-        displayText: 'Vorgang: ' + recordNumberEl!.textContent,
-        type: 'process',
-        children: this.getDocumentObjectNodes(doc, processEl)
-      });
+      const node = this.messageService.addNode(
+        'Vorgang: ' + recordNumberEl!.textContent,
+        'process',
+        this.getDocumentObjectNodes(doc, processEl),
+      )
+      nodes.push(node);
     }
     return nodes;
   }
@@ -131,10 +118,11 @@ export class MessageTreeComponent {
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
         documentEl
       ).snapshotItem(0);
-      nodes.push({
-        displayText: 'Dokument: ' + recordNumberEl!.textContent,
-        type: 'document',
-      });
+      const node = this.messageService.addNode(
+        'Dokument: ' + recordNumberEl!.textContent,
+        'document',
+      )
+      nodes.push(node);
     }
     return nodes;
   }
