@@ -3,7 +3,7 @@ import { Component, Input } from '@angular/core';
 
 // angular material
 import { NestedTreeControl } from '@angular/cdk/tree';
-import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { MatTreeNestedDataSource, MatTree } from '@angular/material/tree';
 
 // project
 import { MessageService, StructureNode } from '../message/message.service';
@@ -34,6 +34,11 @@ export class MessageTreeComponent {
       const messageNode = this.getMessageNode(message);
       treeData.push(messageNode);
       this.dataSource.data = treeData;
+      this.treeControl.dataNodes = treeData;
+      this.treeControl.expand(messageNode);
+      this.treeControl.expand(
+        messageNode.children!.find((node) => node.type === 'recordObjectList')!
+      );
     }
   }
 
@@ -52,7 +57,10 @@ export class MessageTreeComponent {
   }
 
   getMessageHeadNode(messageXmlNode: Node): StructureNode {
-    const messageHeadXmlNodes = this.messageService.getXmlNodes('//xdomea:Kopf', messageXmlNode);
+    const messageHeadXmlNodes = this.messageService.getXmlNodes(
+      '//xdomea:Kopf',
+      messageXmlNode
+    );
     if (messageHeadXmlNodes.snapshotLength !== 1) {
       console.error('alarm');
     }
@@ -60,8 +68,8 @@ export class MessageTreeComponent {
     const node = this.messageService.addNode(
       'Nachrichtenkopf',
       'messageHead',
-      messageHeadXmlNode,
-    )
+      messageHeadXmlNode
+    );
     return node;
   }
 
@@ -70,8 +78,8 @@ export class MessageTreeComponent {
       'Schriftgutobjekte',
       'recordObjectList',
       messageXmlNode,
-      this.getFileObjectNodes(messageXmlNode),
-    )
+      this.getFileObjectNodes(messageXmlNode)
+    );
     return node;
   }
 
@@ -79,20 +87,22 @@ export class MessageTreeComponent {
     const nodes: StructureNode[] = [];
     const fileXmlNodes = this.messageService.getXmlNodes(
       '//xdomea:Schriftgutobjekt/xdomea:Akte',
-      messageXmlNode,
+      messageXmlNode
     );
     for (let index = 0; index < fileXmlNodes.snapshotLength; ++index) {
       const fileXmlNode: Node = fileXmlNodes.snapshotItem(index)!;
-      const recordNumberXmlNode = this.messageService.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        fileXmlNode
-      ).snapshotItem(0);
+      const recordNumberXmlNode = this.messageService
+        .getXmlNodes(
+          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
+          fileXmlNode
+        )
+        .snapshotItem(0);
       const node = this.messageService.addNode(
         'Akte: ' + recordNumberXmlNode!.textContent,
         'file',
         fileXmlNode,
-        this.getProcessObjectNodes(fileXmlNode),
-      )
+        this.getProcessObjectNodes(fileXmlNode)
+      );
       nodes.push(node);
     }
     return nodes;
@@ -106,16 +116,18 @@ export class MessageTreeComponent {
     );
     for (let index = 0; index < processXmlNodes.snapshotLength; ++index) {
       const processXmlNode: Node = processXmlNodes.snapshotItem(index)!;
-      const recordNumberXmlNode = this.messageService.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        processXmlNode
-      ).snapshotItem(0);
+      const recordNumberXmlNode = this.messageService
+        .getXmlNodes(
+          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
+          processXmlNode
+        )
+        .snapshotItem(0);
       const node = this.messageService.addNode(
         'Vorgang: ' + recordNumberXmlNode!.textContent,
         'process',
         processXmlNode,
-        this.getDocumentObjectNodes(processXmlNode),
-      )
+        this.getDocumentObjectNodes(processXmlNode)
+      );
       nodes.push(node);
     }
     return nodes;
@@ -129,18 +141,19 @@ export class MessageTreeComponent {
     );
     for (let index = 0; index < documentXmlNodes.snapshotLength; ++index) {
       const documentXmlNode: Node = documentXmlNodes.snapshotItem(index)!;
-      const recordNumberXmlNode = this.messageService.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        documentXmlNode
-      ).snapshotItem(0);
+      const recordNumberXmlNode = this.messageService
+        .getXmlNodes(
+          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
+          documentXmlNode
+        )
+        .snapshotItem(0);
       const node = this.messageService.addNode(
         'Dokument: ' + recordNumberXmlNode!.textContent,
         'document',
-        documentXmlNode,
-      )
+        documentXmlNode
+      );
       nodes.push(node);
     }
     return nodes;
   }
-
 }

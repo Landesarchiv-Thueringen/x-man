@@ -1,10 +1,36 @@
-<form [formGroup]="form">
+<form *ngIf="structureNode" [formGroup]="form">
 
-  <h2 class="mat-h2">Metdaten Akte</h2>
+  <h2>{{structureNode.displayText}}</h2>
 
-  <mat-form-field class="subject-input" appearance="outline">
-    <mat-label>Behördlicher Aktentitel</mat-label>
-    <input matInput formControlName="subject" readonly>
-  </mat-form-field>
+  <mat-card class="general-metadata">
+
+    <mat-card-header>
+      <mat-card-title>Allgemeine Metadaten</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+
+      <div class="file-identification-section">
+
+        <mat-form-field class="record-plan-id-input" appearance="outline">
+          <mat-label>Aktenplanschlüssel</mat-label>
+          <input matInput formControlName="recordPlanId" readonly>
+        </mat-form-field>
+
+        <mat-form-field class="file-id-input" appearance="outline">
+          <mat-label>Aktenzeichen</mat-label>
+          <input matInput formControlName="fileId" readonly>
+        </mat-form-field>
+
+      </div>
+
+      <mat-form-field class="subject-input" appearance="outline">
+        <mat-label>Behördlicher Aktentitel</mat-label>
+        <input matInput formControlName="subject" readonly>
+      </mat-form-field>
+
+    </mat-card-content>
+
+  </mat-card>
 
 </form>

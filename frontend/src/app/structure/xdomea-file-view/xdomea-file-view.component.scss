@@ -1,8 +1,33 @@
 :host {
   padding: 2em;
   display: block;
+  width: 60em;
 
-  .subject-input {
-    width: 30em;
+  .general-metadata {
+    mat-card-header {
+      margin-bottom: 3em;
+    }
+    mat-card-content {
+      display: flex;
+      flex-direction: column;
+
+      .file-identification-section {
+        display: flex;
+        flex-direction: row;
+        column-gap: 1em;
+  
+        .record-plan-id-input {
+          width: 10em;
+        }
+  
+        .file-id-input {
+          flex-grow: 1;
+        }
+      }
+      
+      .subject-input {
+        flex-grow: 1;
+      }
+    }
   }
 }
