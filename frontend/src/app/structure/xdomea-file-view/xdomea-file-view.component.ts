@@ -1,5 +1,6 @@
 // angular
 import { OnInit, Component } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -18,6 +19,7 @@ export class XdomeaFileViewComponent implements OnInit {
   structureNode?: StructureNode;
 
   constructor(
+    private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private notificationService: NotificationService,
@@ -28,6 +30,9 @@ export class XdomeaFileViewComponent implements OnInit {
       recordPlanId: new FormControl<string | null>(''),
       fileId: new FormControl<string | null>(''),
       subject: new FormControl<string | null>(''),
+      fileType: new FormControl<string | null>(''),
+      lifeStart: new FormControl<string | null>(null),
+      lifeEnd: new FormControl<string | null>(null),
     });
   }
 
@@ -53,11 +58,25 @@ export class XdomeaFileViewComponent implements OnInit {
         'xdomea:AllgemeineMetadaten/xdomea:Aktenplaneinheit/xdomea:Kennzeichen',
         node.xmlNode,
       ).snapshotItem(0);
+      const fileTypeIdXmlNode = this.messageService.getXmlNodes(
+        'xdomea:Typ',
+        node.xmlNode,
+      ).snapshotItem(0);
+      const lifeStartXmlNode = this.messageService.getXmlNodes(
+        'xdomea:Laufzeit/xdomea:Beginn',
+        node.xmlNode,
+      ).snapshotItem(0);
+      const lifeEndXmlNode = this.messageService.getXmlNodes(
+        'xdomea:Laufzeit/xdomea:Ende',
+        node.xmlNode,
+      ).snapshotItem(0);
       this.form.patchValue({
         recordPlanId: recordPlanIdXmlNode?.textContent,
         fileId: fileIdXmlNode?.textContent,
         subject: subjectXmlNode?.textContent,
-
+        fileType: fileTypeIdXmlNode?.textContent,
+        lifeStart: this.datePipe.transform(lifeStartXmlNode?.textContent),
+        lifeEnd: this.datePipe.transform(lifeEndXmlNode?.textContent),
       });
     });
   }

@@ -1,7 +1,9 @@
 // angular
-import { NgModule } from '@angular/core';
+import { DatePipe, registerLocaleData } from '@angular/common';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
+import localeDE from '@angular/common/locales/de';
 
 // material
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +22,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message-tree/message-tree.component';
 import { XdomeaFileViewComponent } from './structure/xdomea-file-view/xdomea-file-view.component';
+
+registerLocaleData(localeDE);
 
 @NgModule({
   declarations: [
@@ -43,7 +47,7 @@ import { XdomeaFileViewComponent } from './structure/xdomea-file-view/xdomea-fil
     MatTreeModule,
     ReactiveFormsModule,
   ],
-  providers: [],
+  providers: [{ provide: LOCALE_ID, useValue: 'de-DE' }, DatePipe],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
