@@ -3,9 +3,15 @@ import { RouterModule, Routes } from '@angular/router';
 
 //project
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
+import { XdomeaFileViewComponent } from './structure/xdomea-file-view/xdomea-file-view.component';
 
 const routes: Routes = [
-  { path: '',  component: MainNavigationComponent}
+  { 
+    path: 'detail',  component: MainNavigationComponent,
+    children: [
+      { path: 'akte/:nodeId',  component: XdomeaFileViewComponent},
+    ],
+  }
 ];
 
 @NgModule({

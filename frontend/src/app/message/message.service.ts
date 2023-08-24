@@ -15,6 +15,7 @@ type StructureNodeType =
 export interface StructureNode {
   displayText: string;
   type: StructureNodeType;
+  routerLink: string;
   children?: StructureNode[];
 }
 
@@ -37,13 +38,27 @@ export class MessageService {
     type: StructureNodeType,
     children?: StructureNode[]
   ): StructureNode {
+    const nodeId = uuidv4();
     const node: StructureNode = {
       displayText: displayText,
       type: type,
       children: children,
+      routerLink: this.getRouterLink(type, nodeId),
     };
-    const nodeId = uuidv4();
+    
     this.nodes.set(nodeId, node);
     return node;
+  }
+
+  private getRouterLink(nodeType: StructureNodeType, nodeId: string): string {
+    let routerLink = '';
+    switch (nodeType) {
+      case 'message': return 'nachricht/' + nodeId;
+      case 'messageHead': return 'nachrichtenkopf/' + nodeId;
+      case 'file': return 'akte/' + nodeId;
+      case 'process': return 'vorgang/' + nodeId;
+      case 'document': return 'dokument/' + nodeId;
+    }
+    return routerLink;
   }
 }

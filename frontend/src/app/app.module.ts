@@ -14,12 +14,14 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message-tree/message-tree.component';
+import { XdomeaFileViewComponent } from './structure/xdomea-file-view/xdomea-file-view.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     MainNavigationComponent,
-    MessageTreeComponent
+    MessageTreeComponent,
+    XdomeaFileViewComponent
   ],
   imports: [
     BrowserModule,
