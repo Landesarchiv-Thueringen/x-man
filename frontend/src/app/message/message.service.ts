@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 type StructureNodeType =
   | 'message'
   | 'messageHead'
-  | 'recordObject'
+  | 'recordObjectList'
   | 'file'
   | 'process'
   | 'document';
@@ -16,6 +16,7 @@ export interface StructureNode {
   displayText: string;
   type: StructureNodeType;
   routerLink: string;
+  xmlNode: Node;
   children?: StructureNode[];
 }
 
@@ -36,12 +37,14 @@ export class MessageService {
   addNode(
     displayText: string,
     type: StructureNodeType,
+    xmlNode: Node,
     children?: StructureNode[]
   ): StructureNode {
     const nodeId = uuidv4();
     const node: StructureNode = {
       displayText: displayText,
       type: type,
+      xmlNode: xmlNode,
       children: children,
       routerLink: this.getRouterLink(type, nodeId),
     };
@@ -59,7 +62,7 @@ export class MessageService {
     switch (nodeType) {
       case 'message':
         return 'nachricht/' + nodeId;
-      case 'recordObject':
+      case 'recordObjectList':
         return 'schriftgutobjekte' + nodeId;
       case 'messageHead':
         return 'nachrichtenkopf/' + nodeId;

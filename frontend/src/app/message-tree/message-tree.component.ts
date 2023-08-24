@@ -31,103 +31,125 @@ export class MessageTreeComponent {
     if (message) {
       console.log(message);
       const treeData: StructureNode[] = [];
-      const headNode: StructureNode = this.messageService.addNode(
-        'Nachrichtenkopf',
-        'messageHead',
-      );
-      const recordObjectListNode: StructureNode = this.messageService.addNode(
-        'Schriftgutobjekte',
-        'recordObject',
-        this.getRecordObjectNodes(message)
-      );
-      const messageNode: StructureNode = this.messageService.addNode(
-        'Anbietungsverzeichnis',
-        'message',
-        [headNode, recordObjectListNode]
-      );
+      const messageNode = this.getMessageNode(message);
       treeData.push(messageNode);
       this.dataSource.data = treeData;
     }
   }
 
-  getRecordObjectNodes(message: string): StructureNode[] {
+  getMessageNode(message: string) {
     const parser = new DOMParser();
     const doc: Document = parser.parseFromString(message, 'application/xml');
-    const recordObjectNodes: StructureNode[] = this.getFileObjectNodes(doc);
-    return recordObjectNodes;
+    const messageXmlNode: Node = doc.firstChild!;
+    const messageHeadNode = this.getMessageHeadNode(doc);
+    const recordObjectNode = this.getRecordObjectsNode(doc, messageXmlNode);
+    const node = this.messageService.addNode(
+      'Anbietungsverzeichnis',
+      'message',
+      messageXmlNode,
+      [messageHeadNode, recordObjectNode]
+    );
+    return node;
+  }
+
+  getMessageHeadNode(doc: Document): StructureNode {
+    const messageHeadXmlNodes = this.getXmlNodes(doc, '//xdomea:Kopf');
+    if (messageHeadXmlNodes.snapshotLength !== 1) {
+      console.error('alarm');
+    }
+    const messageHeadXmlNode: Node = messageHeadXmlNodes.snapshotItem(0)!;
+    const node = this.messageService.addNode(
+      'Nachrichtenkopf',
+      'messageHead',
+      messageHeadXmlNode,
+    )
+    return node;
+  }
+
+  getRecordObjectsNode(doc: Document, messageXmlNode: Node): StructureNode {
+    const node = this.messageService.addNode(
+      'Schriftgutobjekte',
+      'recordObjectList',
+      messageXmlNode,
+      this.getFileObjectNodes(doc),
+    )
+    return node;
   }
 
   getFileObjectNodes(doc: Document): StructureNode[] {
     const nodes: StructureNode[] = [];
-    const fileObjects = this.getObjects(
+    const fileXmlNodes = this.getXmlNodes(
       doc,
       '//xdomea:Schriftgutobjekt/xdomea:Akte'
     );
-    for (let index = 0; index < fileObjects.snapshotLength; ++index) {
-      const fileEl: Node = fileObjects.snapshotItem(index)!;
-      const recordNumberEl = this.getObjects(
+    for (let index = 0; index < fileXmlNodes.snapshotLength; ++index) {
+      const fileXmlNode: Node = fileXmlNodes.snapshotItem(index)!;
+      const recordNumberXmlNode = this.getXmlNodes(
         doc,
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        fileEl
+        fileXmlNode
       ).snapshotItem(0);
       const node = this.messageService.addNode(
-        'Akte: ' + recordNumberEl!.textContent,
+        'Akte: ' + recordNumberXmlNode!.textContent,
         'file',
-        this.getProcessObjectNodes(doc, fileEl),
+        fileXmlNode,
+        this.getProcessObjectNodes(doc, fileXmlNode),
       )
       nodes.push(node);
     }
     return nodes;
   }
 
-  getProcessObjectNodes(doc: Document, fileNode: Node): StructureNode[] {
+  getProcessObjectNodes(doc: Document, fileXmlNode: Node): StructureNode[] {
     const nodes: StructureNode[] = [];
-    const processObjects = this.getObjects(
+    const processXmlNodes = this.getXmlNodes(
       doc,
       'xdomea:Akteninhalt/xdomea:Vorgang',
-      fileNode
+      fileXmlNode
     );
-    for (let index = 0; index < processObjects.snapshotLength; ++index) {
-      const processEl: Node = processObjects.snapshotItem(index)!;
-      const recordNumberEl = this.getObjects(
+    for (let index = 0; index < processXmlNodes.snapshotLength; ++index) {
+      const processXmlNode: Node = processXmlNodes.snapshotItem(index)!;
+      const recordNumberXmlNode = this.getXmlNodes(
         doc,
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        processEl
+        processXmlNode
       ).snapshotItem(0);
       const node = this.messageService.addNode(
-        'Vorgang: ' + recordNumberEl!.textContent,
+        'Vorgang: ' + recordNumberXmlNode!.textContent,
         'process',
-        this.getDocumentObjectNodes(doc, processEl),
+        processXmlNode,
+        this.getDocumentObjectNodes(doc, processXmlNode),
       )
       nodes.push(node);
     }
     return nodes;
   }
 
-  getDocumentObjectNodes(doc: Document, processNode: Node): StructureNode[] {
+  getDocumentObjectNodes(doc: Document, processXmlNode: Node): StructureNode[] {
     const nodes: StructureNode[] = [];
-    const documentObjects = this.getObjects(
+    const documentXmlNodes = this.getXmlNodes(
       doc,
       'xdomea:Dokument',
-      processNode
+      processXmlNode
     );
-    for (let index = 0; index < documentObjects.snapshotLength; ++index) {
-      const documentEl: Node = documentObjects.snapshotItem(index)!;
-      const recordNumberEl = this.getObjects(
+    for (let index = 0; index < documentXmlNodes.snapshotLength; ++index) {
+      const documentXmlNode: Node = documentXmlNodes.snapshotItem(index)!;
+      const recordNumberXmlNode = this.getXmlNodes(
         doc,
         'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        documentEl
+        documentXmlNode
       ).snapshotItem(0);
       const node = this.messageService.addNode(
-        'Dokument: ' + recordNumberEl!.textContent,
+        'Dokument: ' + recordNumberXmlNode!.textContent,
         'document',
+        documentXmlNode,
       )
       nodes.push(node);
     }
     return nodes;
   }
 
-  getObjects(doc: Document, xpath: string, node?: Node): XPathResult {
+  getXmlNodes(doc: Document, xpath: string, node?: Node): XPathResult {
     return doc.evaluate(
       xpath,
       node ? node : doc,
