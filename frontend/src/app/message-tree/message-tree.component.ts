@@ -16,8 +16,10 @@ import { MessageService, StructureNode } from '../message/message.service';
 export class MessageTreeComponent {
   treeControl: NestedTreeControl<StructureNode>;
   dataSource: MatTreeNestedDataSource<StructureNode>;
+  treeExtractionInProgress: boolean;
 
   constructor(private messageService: MessageService) {
+    this.treeExtractionInProgress = false;
     this.treeControl = new NestedTreeControl<StructureNode>(
       (node) => node.children
     );
@@ -29,7 +31,9 @@ export class MessageTreeComponent {
 
   @Input() set messageText(message: string | undefined) {
     if (message) {
-      console.log(message);
+      this.treeExtractionInProgress = true;
+      
+      this.clearTreeData();
       const treeData: StructureNode[] = [];
       const messageNode = this.getMessageNode(message);
       treeData.push(messageNode);
@@ -39,7 +43,13 @@ export class MessageTreeComponent {
       this.treeControl.expand(
         messageNode.children!.find((node) => node.type === 'recordObjectList')!
       );
+      this.treeExtractionInProgress = false;
     }
+  }
+
+  private clearTreeData(): void {
+    this.dataSource.data = [];
+    this.treeControl.dataNodes = [];
   }
 
   getMessageNode(message: string) {

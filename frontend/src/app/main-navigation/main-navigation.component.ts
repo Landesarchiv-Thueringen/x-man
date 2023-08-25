@@ -13,12 +13,10 @@ export class MainNavigationComponent {
   userDisplayName: string;
   messageRegex: RegExp;
   messageText?: string;
-  zipLib: JSZip;
 
   constructor() {
     this.userDisplayName = 'LATh Grochow, Tony';
-    this.messageRegex = new RegExp('xml$');
-    this.zipLib = new JSZip();
+    this.messageRegex = new RegExp('_Aussonderung\.Anbieteverzeichnis\.0501\.xml$');
   }
 
   logout(): void {}
@@ -33,7 +31,8 @@ export class MainNavigationComponent {
 
   readXdomeaMessage(messageContainer: File): void {
     if (messageContainer) {
-      this.zipLib.loadAsync(messageContainer).then((zip) => {
+      const zipLib = new JSZip();
+      zipLib.loadAsync(messageContainer).then((zip) => {
         const xdomeaMessageFileList = zip.filter((relativePath, zipEntry) => {
           return this.messageRegex.test(relativePath);
         })

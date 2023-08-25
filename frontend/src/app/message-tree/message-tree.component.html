@@ -1,3 +1,7 @@
+<div class="tree-loading-section" *ngIf="treeExtractionInProgress">
+  <h2>Nachrichtenstruktur wird geladen...</h2>
+  <mat-spinner [diameter]="40"></mat-spinner>
+</div>
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="message-tree">
 
   <!-- This is the tree node template for leaf nodes -->
@@ -61,7 +65,7 @@
     <div [class.message-tree-invisible]="!treeControl.isExpanded(node)" role="group">
       <ng-container matTreeNodeOutlet></ng-container>
     </div>
-    
+
   </mat-nested-tree-node>
   
 </mat-tree>
