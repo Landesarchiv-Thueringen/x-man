@@ -10,7 +10,7 @@ export class ValidationService {
 
   getDateValidator(): ValidatorFn {
     return Validators.pattern(
-      '^s*(3[01]|[12][0-9]|0?[1-9]).(1[012]|0?[1-9]).((?:19|20)d{2})s*$'
+      '^(0?[1-9]|[12][0-9]|3[0-1])\\.(0?[1-9]|1[0-2])\\.(\\d{4})$'
     );
   }
 }
