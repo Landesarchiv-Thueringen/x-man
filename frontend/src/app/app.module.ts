@@ -7,10 +7,12 @@ import localeDE from '@angular/common/locales/de';
 
 // material
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card'; 
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion'; 
 import { MatFormFieldModule } from '@angular/material/form-field'; 
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select'; 
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -38,9 +40,11 @@ registerLocaleData(localeDE);
     BrowserAnimationsModule,
     MatButtonModule,
     MatCardModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatSelectModule,
     MatSidenavModule,
     MatSnackBarModule,
     MatToolbarModule,

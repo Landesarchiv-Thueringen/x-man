@@ -3,41 +3,41 @@
   display: block;
   width: 60em;
 
-  .general-metadata {
-    mat-card-header {
-      margin-bottom: 3em;
-    }
-    mat-card-content {
+  .metadata {
+
+    display: flex;
+    flex-direction: column;
+
+    .file-identification-section {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      column-gap: 1em;
 
-      .file-identification-section {
-        display: flex;
-        flex-direction: row;
-        column-gap: 1em;
-  
-        .record-plan-id-input {
-          width: 10em;
-        }
-  
-        .file-id-input {
-          flex-grow: 1;
-        }
+      .record-plan-id-input {
+        width: 10em;
       }
 
-      .file-additional-info-section {
-        display: flex;
-        flex-direction: row;
-        column-gap: 1em;
-
-        mat-form-field {
-          flex-grow: 1;
-        }
-      }
-      
-      .subject-input {
+      .file-id-input {
         flex-grow: 1;
       }
+    }
+
+    .subject-input {
+      flex-grow: 1;
+    }
+
+    .file-additional-info-section {
+      display: flex;
+      flex-direction: row;
+      column-gap: 1em;
+
+      mat-form-field {
+        flex-grow: 1;
+      }
+    }
+
+    .appraisal-input {
+      width: 10em;
     }
   }
 }

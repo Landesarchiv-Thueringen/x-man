@@ -1,5 +1,6 @@
 // angular
 import { Injectable } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 // utility
 import { v4 as uuidv4 } from 'uuid';
@@ -33,7 +34,7 @@ export class MessageService {
   messageDom?: Document;
   nodes: Map<string, StructureNode>;
 
-  constructor() {
+  constructor(private datePipe: DatePipe,) {
     this.parser = new DOMParser();
     this.nodes = new Map<string, StructureNode>();
   }
@@ -150,18 +151,37 @@ export class MessageService {
     }
   }
 
-  getXmlNodes(xpath: string, node?: Node): XPathResult {
+  getXmlNodes(xpath: string, xmlNode?: Node): XPathResult {
     if (!this.messageDom) {
       throw new Error('message dom not initialized');
     }
     return this.messageDom!.evaluate(
       xpath,
-      node ? node : this.messageDom,
+      xmlNode ? xmlNode : this.messageDom,
       (namespace) => {
         return 'urn:xoev-de:xdomea:schema:2.3.0';
       },
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     );
+  }
+
+  /** 
+   * Returns null if the xml node or its text contents are null, because that means the date was not
+   * provided in the message. Returns the text content of the xml node if the text content is no 
+   * parsable date to show the malformed date in the ui. Returns formatted date string if text 
+   * content is parsable.
+   */
+  getDateText(xmlNode: Node|null): string|null {
+    if (xmlNode?.textContent) {
+      const timestamp: number = Date.parse(xmlNode?.textContent);
+      if (Number.isNaN(timestamp)) {
+        return xmlNode?.textContent;
+      } else {
+        const date: Date = new Date(timestamp);
+        return this.datePipe.transform(date);
+      }
+    }
+    return null;
   }
 }

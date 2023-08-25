@@ -1,6 +1,5 @@
 // angular
 import { OnInit, Component } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -8,6 +7,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'src/app/message/message.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { StructureNode } from 'src/app/message/message.service';
+import { ValidationService } from 'src/app/utility/validation/validation.service';
+
+export interface Appraisal {
+  id: number;
+  designation: string;
+}
 
 @Component({
   selector: 'app-xdomea-file-view',
@@ -18,22 +23,41 @@ export class XdomeaFileViewComponent implements OnInit {
   form: FormGroup;
   structureNode?: StructureNode;
 
+  dateParserErrorMessage: string;
+
+  appraisalList: Appraisal[] = [
+    {
+      id: 1,
+      designation: 'archivieren',
+    },
+    {
+      id: 2,
+      designation: 'kassieren',
+    },
+  ];
+
   constructor(
-    private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private validationService: ValidationService
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(''),
       fileId: new FormControl<string | null>(''),
       subject: new FormControl<string | null>(''),
       fileType: new FormControl<string | null>(''),
-      lifeStart: new FormControl<string | null>(null),
-      lifeEnd: new FormControl<string | null>(null),
+      lifeStart: new FormControl<string | null>(null, [
+        this.validationService.getDateValidator(),
+      ]),
+      lifeEnd: new FormControl<string | null>(null, [
+        this.validationService.getDateValidator(),
+      ]),
+      appraisal: new FormControl<number | null>(null),
     });
+    this.dateParserErrorMessage = 'ungültiges Datumsformat';
   }
 
   ngOnInit(): void {
@@ -46,38 +70,39 @@ export class XdomeaFileViewComponent implements OnInit {
         throw new Error(errorMessage);
       }
       this.structureNode = node;
-      const subjectXmlNode = this.messageService.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Betreff',
-        node.xmlNode
-      ).snapshotItem(0);
-      const fileIdXmlNode = this.messageService.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        node.xmlNode
-      ).snapshotItem(0);
-      const recordPlanIdXmlNode = this.messageService.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Aktenplaneinheit/xdomea:Kennzeichen',
-        node.xmlNode,
-      ).snapshotItem(0);
-      const fileTypeIdXmlNode = this.messageService.getXmlNodes(
-        'xdomea:Typ',
-        node.xmlNode,
-      ).snapshotItem(0);
-      const lifeStartXmlNode = this.messageService.getXmlNodes(
-        'xdomea:Laufzeit/xdomea:Beginn',
-        node.xmlNode,
-      ).snapshotItem(0);
-      const lifeEndXmlNode = this.messageService.getXmlNodes(
-        'xdomea:Laufzeit/xdomea:Ende',
-        node.xmlNode,
-      ).snapshotItem(0);
+      const subjectXmlNode = this.messageService
+        .getXmlNodes('xdomea:AllgemeineMetadaten/xdomea:Betreff', node.xmlNode)
+        .snapshotItem(0);
+      const fileIdXmlNode = this.messageService
+        .getXmlNodes(
+          'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
+          node.xmlNode
+        )
+        .snapshotItem(0);
+      const recordPlanIdXmlNode = this.messageService
+        .getXmlNodes(
+          'xdomea:AllgemeineMetadaten/xdomea:Aktenplaneinheit/xdomea:Kennzeichen',
+          node.xmlNode
+        )
+        .snapshotItem(0);
+      const fileTypeIdXmlNode = this.messageService
+        .getXmlNodes('xdomea:Typ', node.xmlNode)
+        .snapshotItem(0);
+      const lifeStartXmlNode = this.messageService
+        .getXmlNodes('xdomea:Laufzeit/xdomea:Beginn', node.xmlNode)
+        .snapshotItem(0);
+      const lifeEndXmlNode = this.messageService
+        .getXmlNodes('xdomea:Laufzeit/xdomea:Ende', node.xmlNode)
+        .snapshotItem(0);
       this.form.patchValue({
         recordPlanId: recordPlanIdXmlNode?.textContent,
         fileId: fileIdXmlNode?.textContent,
         subject: subjectXmlNode?.textContent,
         fileType: fileTypeIdXmlNode?.textContent,
-        lifeStart: this.datePipe.transform(lifeStartXmlNode?.textContent),
-        lifeEnd: this.datePipe.transform(lifeEndXmlNode?.textContent),
+        lifeStart: this.messageService.getDateText(lifeStartXmlNode),
+        lifeEnd: this.messageService.getDateText(lifeEndXmlNode),
       });
+      this.form.markAllAsTouched();
     });
   }
 }

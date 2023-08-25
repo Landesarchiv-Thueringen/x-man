@@ -2,54 +2,74 @@
 
   <h2>{{structureNode.displayText.title}} - {{structureNode.displayText.subtitle}}</h2>
 
-  <mat-card class="general-metadata" appearance="outlined">
+  <mat-accordion multi>
 
-    <mat-card-header>
-      <mat-card-title>Allgemeine Metadaten</mat-card-title>
-    </mat-card-header>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          Allgemeine Metadaten
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-    <mat-card-content>
+      <div class="metadata">
+        <div class="file-identification-section">
+          <mat-form-field class="record-plan-id-input" appearance="outline">
+            <mat-label>Aktenplanschlüssel</mat-label>
+            <input matInput formControlName="recordPlanId" readonly>
+          </mat-form-field>
 
-      <div class="file-identification-section">
+          <mat-form-field class="file-id-input" appearance="outline">
+            <mat-label>Aktenzeichen</mat-label>
+            <input matInput formControlName="fileId" readonly>
+          </mat-form-field>
+        </div>
 
-        <mat-form-field class="record-plan-id-input" appearance="outline">
-          <mat-label>Aktenplanschlüssel</mat-label>
-          <input matInput formControlName="recordPlanId" readonly>
+        <mat-form-field class="subject-input" appearance="outline">
+          <mat-label>Behördlicher Aktentitel</mat-label>
+          <input matInput formControlName="subject" readonly>
         </mat-form-field>
 
-        <mat-form-field class="file-id-input" appearance="outline">
-          <mat-label>Aktenzeichen</mat-label>
-          <input matInput formControlName="fileId" readonly>
-        </mat-form-field>
+        <div class="file-additional-info-section">
+          <mat-form-field class="file-Type-input" appearance="outline">
+            <mat-label>Aktentyp</mat-label>
+            <input matInput formControlName="fileType" readonly>
+          </mat-form-field>
 
+          <mat-form-field class="life-start-input" appearance="outline">
+            <mat-label>Laufzeit Beginn</mat-label>
+            <input matInput formControlName="lifeStart">
+            <mat-error>{{dateParserErrorMessage}}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="life-end-input" appearance="outline">
+            <mat-label>Laufzeit Ende</mat-label>
+            <input matInput formControlName="lifeEnd" >
+            <mat-error>{{dateParserErrorMessage}}</mat-error>
+          </mat-form-field>
+        </div>
       </div>
 
-      <mat-form-field class="subject-input" appearance="outline">
-        <mat-label>Behördlicher Aktentitel</mat-label>
-        <input matInput formControlName="subject" readonly>
-      </mat-form-field>
+    </mat-expansion-panel>
 
-      <div class="file-additional-info-section">
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          Archivspezifische Metadaten
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-        <mat-form-field class="file-Type-input" appearance="outline">
-          <mat-label>Aktentyp</mat-label>
-          <input matInput formControlName="fileType" readonly>
+      <div class="metadata">
+        <mat-form-field class="appraisal-input" appearance="outline">
+          <mat-label>Bewertung</mat-label>
+          <mat-select formControlName="appraisal">
+            <mat-option *ngFor="let appraisal of appraisalList" [value]="appraisal.id">
+              {{ appraisal.designation }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
-
-        <mat-form-field class="life-start-input" appearance="outline">
-          <mat-label>Laufzeit Beginn</mat-label>
-          <input matInput formControlName="lifeStart" readonly>
-        </mat-form-field>
-
-        <mat-form-field class="life-end-input" appearance="outline">
-          <mat-label>Laufzeit Ende</mat-label>
-          <input matInput formControlName="lifeEnd" readonly>
-        </mat-form-field>
-
       </div>
+    </mat-expansion-panel>
 
-    </mat-card-content>
-
-  </mat-card>
+  </mat-accordion>
 
 </form>
