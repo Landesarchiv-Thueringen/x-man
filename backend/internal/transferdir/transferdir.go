@@ -1,6 +1,8 @@
 package transferdir
 
 import (
+	"lath/xdomea/internal/temporarystorage"
+	"lath/xdomea/internal/xdomea"
 	"log"
 	"math"
 	"sync"
@@ -44,6 +46,13 @@ func Watch(paths ...string) {
 	<-make(chan struct{}) // Block forever
 }
 
+// Checks if a file event represents the creation of a new processable xdomea message.
+// The corresponding file must match the xdomea naming conventions.
+// The event must be a create event. It could be necessarry to add write events.
+func isProcessableMessage(event fsnotify.Event) bool {
+	return xdomea.IsMessage(event.Name) && event.Has(fsnotify.Create)
+}
+
 func watchLoop(watcher *fsnotify.Watcher) {
 	var (
 		// Wait 100ms for new events; each new event resets the timer.
@@ -54,8 +63,10 @@ func watchLoop(watcher *fsnotify.Watcher) {
 		timers = make(map[string]*time.Timer)
 
 		// Callback we run.
-		printEvent = func(event fsnotify.Event) {
-			log.Print(event)
+		processEvent = func(event fsnotify.Event) {
+			if isProcessableMessage(event) {
+				go temporarystorage.StoreMessage(event.Name)
+			}
 
 			// Don't need to remove the timer if you don't have a lot of files.
 			mutex.Lock()
@@ -91,7 +102,7 @@ func watchLoop(watcher *fsnotify.Watcher) {
 
 			// No timer yet, so create one.
 			if !ok {
-				timer = time.AfterFunc(math.MaxInt64, func() { printEvent(event) })
+				timer = time.AfterFunc(math.MaxInt64, func() { processEvent(event) })
 				timer.Stop()
 
 				mutex.Lock()
