@@ -1,7 +1,6 @@
 package xdomea
 
 import (
-	"log"
 	filepath "path/filepath"
 	"regexp"
 )
@@ -20,6 +19,5 @@ func IsMessage(path string) bool {
 
 func GetMessageID(path string) string {
 	fileName := filepath.Base(path)
-	log.Print(uuidRegex.MatchString(fileName))
 	return uuidRegex.FindString(fileName)
 }
