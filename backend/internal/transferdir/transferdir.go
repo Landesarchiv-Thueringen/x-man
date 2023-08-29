@@ -2,9 +2,21 @@ package transferdir
 
 import (
 	"log"
+	"math"
+	"sync"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
+
+// example: https://github.com/fsnotify/fsnotify/blob/main/cmd/fsnotify/dedup.go
+
+// Depending on the system, a single "write" can generate many Write events; for
+// example compiling a large Go program can generate hundreds of Write events on
+// the binary.
+//
+// The general strategy to deal with this is to wait a short time for more write
+// events, resetting the wait period for every new event.
 
 func Watch(paths ...string) {
 	if len(paths) < 1 {
@@ -33,6 +45,25 @@ func Watch(paths ...string) {
 }
 
 func watchLoop(watcher *fsnotify.Watcher) {
+	var (
+		// Wait 100ms for new events; each new event resets the timer.
+		waitFor = 100 * time.Millisecond
+
+		// Keep track of the timers, as path → timer.
+		mutex  sync.Mutex
+		timers = make(map[string]*time.Timer)
+
+		// Callback we run.
+		printEvent = func(event fsnotify.Event) {
+			log.Print(event)
+
+			// Don't need to remove the timer if you don't have a lot of files.
+			mutex.Lock()
+			delete(timers, event.Name)
+			mutex.Unlock()
+		}
+	)
+
 	for {
 		select {
 		// Read from Errors.
@@ -46,8 +77,30 @@ func watchLoop(watcher *fsnotify.Watcher) {
 			if !ok { // Channel was closed (i.e. Watcher.Close() was called).
 				return
 			}
-			// Just print the event
-			log.Print(event)
+
+			// We just want to watch for file creation, so ignore everything
+			// outside of Create and Write.
+			if !event.Has(fsnotify.Create) && !event.Has(fsnotify.Write) {
+				continue
+			}
+
+			// Get timer.
+			mutex.Lock()
+			timer, ok := timers[event.Name]
+			mutex.Unlock()
+
+			// No timer yet, so create one.
+			if !ok {
+				timer = time.AfterFunc(math.MaxInt64, func() { printEvent(event) })
+				timer.Stop()
+
+				mutex.Lock()
+				timers[event.Name] = timer
+				mutex.Unlock()
+			}
+
+			// Reset the timer for this path, so it will start from 100ms again.
+			timer.Reset(waitFor)
 		}
 	}
 }
