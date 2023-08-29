@@ -1,7 +1,7 @@
 package transferdir
 
 import (
-	"lath/xdomea/internal/temporarystorage"
+	"lath/xdomea/internal/messagestore"
 	"lath/xdomea/internal/xdomea"
 	"log"
 	"math"
@@ -65,7 +65,7 @@ func watchLoop(watcher *fsnotify.Watcher) {
 		// Callback we run.
 		processEvent = func(event fsnotify.Event) {
 			if isProcessableMessage(event) {
-				go temporarystorage.StoreMessage(event.Name)
+				go messagestore.StoreMessage(event.Name)
 			}
 
 			// Don't need to remove the timer if you don't have a lot of files.

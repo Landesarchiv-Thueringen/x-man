@@ -1,14 +1,17 @@
-package temporarystorage
+package messagestore
 
 import (
+	"archive/zip"
 	"io"
 	"io/ioutil"
 	"lath/xdomea/internal/xdomea"
 	"log"
 	"os"
 	"path"
-	filepath "path/filepath"
+	"path/filepath"
 )
+
+var storagePath = "message_storage"
 
 func StoreMessage(messagePath string) {
 	id := xdomea.GetMessageID(messagePath)
@@ -37,4 +40,12 @@ func StoreMessage(messagePath string) {
 	if (err) != nil {
 		log.Fatal(err)
 	}
+}
+
+func extractMessage(path string, id string) {
+	archive, err := zip.OpenReader(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer archive.Close()
 }
