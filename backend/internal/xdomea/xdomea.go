@@ -67,11 +67,11 @@ func GetMessageName(id string, messageType db.MessageType) string {
 	return id + messageSuffix + ".xml"
 }
 
-func AddMessage(id string, messageType db.MessageType, storePath string) {
-	log.Println(id)
+func AddMessage(xdomeaID string, messageType db.MessageType, storePath string) {
+	log.Println(xdomeaID)
 	log.Println(messageType.Code)
 	log.Println(storePath)
-	messageName := GetMessageName(id, messageType)
+	messageName := GetMessageName(xdomeaID, messageType)
 	log.Println(messageName)
 	messagePath := path.Join(storePath, messageName)
 	_, err := os.Stat(messagePath)
@@ -79,5 +79,8 @@ func AddMessage(id string, messageType db.MessageType, storePath string) {
 		log.Fatal("message doesn't exist")
 	}
 	message := db.Message{MessageType: messageType, StoreDir: storePath, MessagePath: messagePath}
-	db.AddMessage(message)
+	_, err = db.AddMessage(xdomeaID, message)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

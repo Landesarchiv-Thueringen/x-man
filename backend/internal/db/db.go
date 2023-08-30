@@ -9,7 +9,8 @@ import (
 
 type Process struct {
 	gorm.Model
-	ID       uint      `gorm:"primaryKey"`
+	ID       uint `gorm:"primaryKey"`
+	XdomeaID string
 	Messages []Message `gorm:"many2many:process_messages;"`
 }
 
@@ -49,15 +50,8 @@ func Migrate() {
 	if db == nil {
 		log.Fatal("database wasn't initialized")
 	}
-	// Migrate the schema
+	// Migrate the complete schema.
 	db.AutoMigrate(&Process{}, &Message{}, &MessageType{})
-	// type0501 := MessageType{Code: "0501"}
-	// db.Create(&type0501)
-	// message := Message{MessageType: type0501}
-	// db.Create(&message)
-	// messages := []Message{message}
-	// process := Process{Messages: messages}
-	// db.Create(&process)
 }
 
 func InitMessageTypes(messageTypes []*MessageType) {
@@ -76,7 +70,29 @@ func GetMessageTypeByCode(code string) MessageType {
 	return messageType
 }
 
-func AddMessage(message Message) {
+func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
+	process := Process{XdomeaID: xdomeaID}
+	result := db.Model(&Process{}).Preload("Messages").Where(&process).Limit(1).Find(&process)
+	return process, result.Error
+}
+
+func AddMessage(xdomeaID string, message Message) (Message, error) {
 	result := db.Create(&message)
-	log.Println(result)
+	// The Database failed to create the message.
+	if result.Error != nil {
+		return message, result.Error
+	}
+	process, err := GetProcessByXdomeaID(xdomeaID)
+	// The process was not found. Create a new process.
+	if err != nil {
+		process = Process{XdomeaID: xdomeaID}
+		result = db.Create(&process)
+		// The Database failed to create the process for the message.
+		if result.Error != nil {
+			return message, result.Error
+		}
+	}
+	process.Messages = append(process.Messages, message)
+	db.Save(&process)
+	return message, result.Error
 }
