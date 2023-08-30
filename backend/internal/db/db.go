@@ -18,6 +18,8 @@ type Message struct {
 	ID            uint `gorm:"primaryKey"`
 	MessageTypeID uint
 	MessageType   MessageType `gorm:"foreignKey:MessageTypeID;references:ID"`
+	StoreDir      string
+	MessagePath   string
 }
 
 type MessageType struct {
@@ -63,4 +65,18 @@ func InitMessageTypes(messageTypes []*MessageType) {
 	if result.Error != nil {
 		log.Fatal("Failed to initialize message types!")
 	}
+}
+
+func GetMessageTypeByCode(code string) MessageType {
+	messageType := MessageType{Code: code}
+	result := db.Where(&messageType).First(&messageType)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return messageType
+}
+
+func AddMessage(message Message) {
+	result := db.Create(&message)
+	log.Println(result)
 }

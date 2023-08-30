@@ -73,5 +73,10 @@ func extractMessage(messagePath string, id string) {
 			log.Fatal(err)
 		}
 	}
-
+	messageType, err := xdomea.GetMessageTypeImpliedByPath(messagePath)
+	// The error should never happen because the message filter should prevent the pross
+	if err != nil {
+		log.Fatal("failed extracting message: unknown message type")
+	}
+	xdomea.AddMessage(id, messageType, messageStorePath)
 }
