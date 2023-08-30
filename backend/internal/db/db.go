@@ -40,20 +40,27 @@ func Init() {
 	if err != nil {
 		log.Fatal("Failed to connect to database!")
 	}
-	// Migrate the schema
-	database.AutoMigrate(&Process{}, &Message{}, &MessageType{})
-	type0501 := MessageType{Code: "0501"}
-	database.Create(&type0501)
-	message := Message{MessageType: type0501}
-	database.Create(&message)
-	messages := []Message{message}
-	process := Process{Messages: messages}
-	database.Create(&process)
-	// database.Create(&MessageType{ID: 2, Code: "0502"})
-	// database.Create(&MessageType{ID: 3, Code: "0503"})
-	// database.Create(&MessageType{ID: 4, Code: "0504"})
-	// database.Create(&MessageType{ID: 5, Code: "0505"})
-	// database.Create(&MessageType{ID: 6, Code: "0506"})
-	// database.Create(&MessageType{ID: 7, Code: "0507"})
 	db = database
+}
+
+func Migrate() {
+	if db == nil {
+		log.Fatal("database wasn't initialized")
+	}
+	// Migrate the schema
+	db.AutoMigrate(&Process{}, &Message{}, &MessageType{})
+	// type0501 := MessageType{Code: "0501"}
+	// db.Create(&type0501)
+	// message := Message{MessageType: type0501}
+	// db.Create(&message)
+	// messages := []Message{message}
+	// process := Process{Messages: messages}
+	// db.Create(&process)
+}
+
+func InitMessageTypes(messageTypes []*MessageType) {
+	result := db.Create(messageTypes)
+	if result.Error != nil {
+		log.Fatal("Failed to initialize message types!")
+	}
 }

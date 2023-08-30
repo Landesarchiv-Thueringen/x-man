@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"lath/xdomea/internal/db"
 	"lath/xdomea/internal/transferdir"
+	"lath/xdomea/internal/xdomea"
 	"log"
 	"net/http"
 
@@ -23,9 +25,20 @@ func main() {
 func initServer() {
 	log.Println(defaultResponse)
 	db.Init()
+	// It's important to process the flags after the database initialization.
+	processFlags()
 	go transferdir.Watch("transfer/lpd", "transfer/aaj")
 }
 
 func getDefaultResponse(context *gin.Context) {
 	context.String(http.StatusOK, defaultResponse)
+}
+
+func processFlags() {
+	initFlag := flag.Bool("init", false, "initialize database")
+	flag.Parse()
+	if *initFlag {
+		db.Migrate()
+		xdomea.InitMessageTypes()
+	}
 }

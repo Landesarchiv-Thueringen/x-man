@@ -1,7 +1,8 @@
 package xdomea
 
 import (
-	filepath "path/filepath"
+	"lath/xdomea/internal/db"
+	"path/filepath"
 	"regexp"
 )
 
@@ -11,6 +12,19 @@ var message0503RegexString = uuidRegexString + "_Aussonderung.Aussonderung.0503.
 var uuidRegex = regexp.MustCompile(uuidRegexString)
 var message0501Regex = regexp.MustCompile(message0501RegexString)
 var message0503Regex = regexp.MustCompile(message0503RegexString)
+
+func InitMessageTypes() {
+	messageTypes := []*db.MessageType{
+		{Code: "0501"},
+		{Code: "0502"},
+		{Code: "0503"},
+		{Code: "0504"},
+		{Code: "0505"},
+		{Code: "0506"},
+		{Code: "0507"},
+	}
+	db.InitMessageTypes(messageTypes)
+}
 
 func IsMessage(path string) bool {
 	fileName := filepath.Base(path)
