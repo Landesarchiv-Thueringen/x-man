@@ -87,4 +87,6 @@ func AddMessage(
 	if err != nil {
 		log.Fatal(err)
 	}
+	// TODO: xsd validation
+	ParseMessage(message)
 }
