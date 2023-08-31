@@ -3,46 +3,10 @@ package db
 import (
 	"errors"
 	"log"
-	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-type Process struct {
-	gorm.Model
-	ID       uint `gorm:"primaryKey"`
-	XdomeaID string
-	StoreDir string
-	Messages []Message `gorm:"many2many:process_messages;"`
-}
-
-type Message struct {
-	gorm.Model
-	ID                 uint `gorm:"primaryKey"`
-	MessageTypeID      uint
-	MessageType        MessageType `gorm:"foreignKey:MessageTypeID;references:ID"`
-	StoreDir           string
-	MessagePath        string
-	MessageFileObjects []MessageFileObject `gorm:"many2many:message_file_objects;"`
-}
-
-type MessageType struct {
-	gorm.Model
-	ID   uint `gorm:"primaryKey"`
-	Code string
-}
-
-type MessageFileObject struct {
-	gorm.Model
-	ID           uint `gorm:"primaryKey"`
-	Subject      string
-	XdomeaID     string
-	RecordPlanID string
-	FileType     string
-	LifeStart    time.Time
-	LifeEnd      time.Time
-}
 
 var db *gorm.DB
 
@@ -66,7 +30,11 @@ func Migrate() {
 		log.Fatal("database wasn't initialized")
 	}
 	// Migrate the complete schema.
-	db.AutoMigrate(&Process{}, &Message{}, &MessageType{}, &MessageFileObject{})
+	db.AutoMigrate(
+		Process{},
+		Message{},
+		MessageType{},
+	)
 }
 
 func InitMessageTypes(messageTypes []*MessageType) {
