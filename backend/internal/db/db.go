@@ -137,7 +137,6 @@ func AddMessage(
 		}
 	}
 	process.Messages = append(process.Messages, message)
-	db.Save(&process)
-	GetMessageOfProcessByCode(process, "0501")
+	result = db.Save(&process)
 	return message, result.Error
 }
