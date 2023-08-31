@@ -56,16 +56,18 @@ type FileRecordObject struct {
 	ID                uint     `gorm:"primaryKey"`
 	GeneralMetadataID uint
 	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten"`
-	Lifetime          Lifetime
+	LifetimeID        uint
+	Lifetime          Lifetime `gorm:"foreignKey:LifetimeID;references:ID"`
 }
 
 type GeneralMetadata struct {
 	gorm.Model
-	XMLName  xml.Name `gorm:"-" xml:"AllgemeineMetadaten"`
-	ID       uint     `gorm:"primaryKey"`
-	Subject  string   `xml:"Betreff"`
-	XdomeaID string   `xml:"Kennzeichen"`
-	FilePlan FilePlan `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit"`
+	XMLName    xml.Name `gorm:"-" xml:"AllgemeineMetadaten"`
+	ID         uint     `gorm:"primaryKey"`
+	Subject    string   `xml:"Betreff"`
+	XdomeaID   string   `xml:"Kennzeichen"`
+	FilePlanID uint
+	FilePlan   FilePlan `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit"`
 }
 
 type FilePlan struct {

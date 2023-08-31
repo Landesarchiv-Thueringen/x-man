@@ -31,9 +31,15 @@ func Migrate() {
 	}
 	// Migrate the complete schema.
 	db.AutoMigrate(
-		Process{},
-		Message{},
-		MessageType{},
+		&Process{},
+		&Message{},
+		&MessageType{},
+		&MessageHead{},
+		&RecordObject{},
+		&FileRecordObject{},
+		&GeneralMetadata{},
+		&FilePlan{},
+		&Lifetime{},
 	)
 }
 
