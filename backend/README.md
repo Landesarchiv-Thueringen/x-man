@@ -13,3 +13,4 @@
 - Nutzer: lath_xdomea (kein Passwort, Besitzer der Datenbank)
 - Name: lath_xdomea
 - Passwort muss für Produktiveinsatz neu vergeben werden
+- Migration der Datenbank muss bei der ersten Ausführung mit der Flag -init durchgeführt werden

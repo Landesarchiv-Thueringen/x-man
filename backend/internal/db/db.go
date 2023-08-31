@@ -1,8 +1,8 @@
 package db
 
 import (
+	"errors"
 	"log"
-
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -85,6 +85,24 @@ func GetMessageTypeByCode(code string) MessageType {
 	return messageType
 }
 
+func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
+	result := db.Model(&Process{}).
+		Preload("Messages").
+		Preload("Messages.MessageType").
+		Where(&process).
+		First(&process)
+	if result.Error != nil {
+		log.Fatal("process not found")
+	}
+	var message Message
+	for _, m := range process.Messages {
+		if m.MessageType.Code == code {
+			return message, nil
+		}
+	}
+	return Message{}, errors.New("no message with type found")
+}
+
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
 	result := db.Model(&Process{}).Preload("Messages").Where(&process).First(&process)
@@ -110,8 +128,16 @@ func AddMessage(
 		if result.Error != nil {
 			return message, result.Error
 		}
+	} else {
+		// Check if the process has already a message with the type of the given message.
+		_, err = GetMessageOfProcessByCode(process, message.MessageType.Code)
+		if err == nil {
+			// The process has already a message with the type of the parameter.
+			log.Fatal("process has already message with type")
+		}
 	}
 	process.Messages = append(process.Messages, message)
 	db.Save(&process)
+	GetMessageOfProcessByCode(process, "0501")
 	return message, result.Error
 }
