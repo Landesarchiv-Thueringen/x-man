@@ -17,10 +17,13 @@ type Process struct {
 type Message struct {
 	gorm.Model
 	ID            uint `gorm:"primaryKey"`
-	MessageTypeID uint
-	MessageType   MessageType `gorm:"foreignKey:MessageTypeID;references:ID"`
 	StoreDir      string
 	MessagePath   string
+	MessageHeadID uint
+	MessageTypeID uint
+	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID"`
+	MessageHead   MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID"`
+	RecordObjects []RecordObject `gorm:"many2many:message_record_objects;"`
 }
 
 type MessageType struct {

@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func ParseMessage(message db.Message) {
+func ParseMessage(message db.Message) db.Message {
 	xmlFile, err := os.Open(message.MessagePath)
 	if err != nil {
 		log.Fatal(err)
@@ -19,10 +19,12 @@ func ParseMessage(message db.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var messageEl db.Message0501
-	err = xml.Unmarshal(xmlBytes, &messageEl)
+	var m db.Message0501
+	err = xml.Unmarshal(xmlBytes, &m)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(messageEl)
+	message.MessageHead = m.MessageHead
+	message.RecordObjects = m.RecordObjects
+	return message
 }
