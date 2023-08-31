@@ -40,7 +40,6 @@ func IsMessage(path string) bool {
 
 func GetMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	fileName := filepath.Base(path)
-	log.Println(path)
 	if message0501Regex.MatchString(fileName) {
 		return db.GetMessageTypeByCode("0501"), nil
 	} else if message0503Regex.MatchString(fileName) {
@@ -67,19 +66,24 @@ func GetMessageName(id string, messageType db.MessageType) string {
 	return id + messageSuffix + ".xml"
 }
 
-func AddMessage(xdomeaID string, messageType db.MessageType, storePath string) {
-	log.Println(xdomeaID)
-	log.Println(messageType.Code)
-	log.Println(storePath)
+func AddMessage(
+	xdomeaID string,
+	messageType db.MessageType,
+	processStoreDir string,
+	messageStoreDir string,
+) {
 	messageName := GetMessageName(xdomeaID, messageType)
-	log.Println(messageName)
-	messagePath := path.Join(storePath, messageName)
+	messagePath := path.Join(messageStoreDir, messageName)
 	_, err := os.Stat(messagePath)
 	if err != nil {
 		log.Fatal("message doesn't exist")
 	}
-	message := db.Message{MessageType: messageType, StoreDir: storePath, MessagePath: messagePath}
-	_, err = db.AddMessage(xdomeaID, message)
+	message := db.Message{
+		MessageType: messageType,
+		StoreDir:    messageStoreDir,
+		MessagePath: messagePath,
+	}
+	_, err = db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}

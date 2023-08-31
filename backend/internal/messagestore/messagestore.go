@@ -44,9 +44,15 @@ func StoreMessage(messagePath string) {
 }
 
 func extractMessage(messagePath string, id string) {
+	messageType, err := xdomea.GetMessageTypeImpliedByPath(messagePath)
+	// The error should never happen because the message filter should prevent the pross
+	if err != nil {
+		log.Fatal("failed extracting message: unknown message type")
+	}
+	processStoreDir := path.Join(storeDir, id)
 	// Create the message store directory if necessarry.
-	messageStorePath := path.Join(storeDir, id)
-	err := os.MkdirAll(messageStorePath, 0700)
+	messageStoreDir := path.Join(processStoreDir, messageType.Code)
+	err = os.MkdirAll(messageStoreDir, 0700)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +68,7 @@ func extractMessage(messagePath string, id string) {
 			log.Fatal(err)
 		}
 		defer fileInArchive.Close()
-		fileStorePath := path.Join(messageStorePath, f.Name)
+		fileStorePath := path.Join(messageStoreDir, f.Name)
 		fileInStore, err := os.Create(fileStorePath)
 		if err != nil {
 			log.Fatal(err)
@@ -73,10 +79,5 @@ func extractMessage(messagePath string, id string) {
 			log.Fatal(err)
 		}
 	}
-	messageType, err := xdomea.GetMessageTypeImpliedByPath(messagePath)
-	// The error should never happen because the message filter should prevent the pross
-	if err != nil {
-		log.Fatal("failed extracting message: unknown message type")
-	}
-	xdomea.AddMessage(id, messageType, messageStorePath)
+	xdomea.AddMessage(id, messageType, processStoreDir, messageStoreDir)
 }
