@@ -3,7 +3,6 @@ package messagestore
 import (
 	"archive/zip"
 	"io"
-	"io/ioutil"
 	"lath/xdomea/internal/xdomea"
 	"log"
 	"os"
@@ -17,7 +16,7 @@ func StoreMessage(messagePath string) {
 	id := xdomea.GetMessageID(messagePath)
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := ioutil.TempDir("", id)
+	tempDir, err := os.MkdirTemp("", id)
 	if err != nil {
 		log.Fatal(err)
 	}

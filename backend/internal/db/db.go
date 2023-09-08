@@ -77,6 +77,23 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 	return Message{}, errors.New("no message with type found")
 }
 
+func GetMessagesByCode(code string) ([]Message, error) {
+	var messages []Message
+	messageType := GetMessageTypeByCode(code)
+	log.Println(messageType)
+	result := db.Model(&Message{}).
+		Preload("MessageType").
+		Preload("MessageHead").
+		Preload("RecordObjects").
+		Preload("RecordObjects.FileRecordObject").
+		Preload("RecordObjects.FileRecordObject.GeneralMetadata").
+		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
+		Preload("RecordObjects.FileRecordObject.Lifetime").
+		Where("message_type_id = ?", messageType.ID).
+		Find(&messages)
+	return messages, result.Error
+}
+
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
 	result := db.Model(&Process{}).Preload("Messages").Where(&process).First(&process)

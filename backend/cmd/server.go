@@ -19,6 +19,8 @@ func main() {
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"127.0.0.1"})
 	router.GET("", getDefaultResponse)
+	router.GET("messages/0501", get0501Messages)
+	router.GET("messages/0503", get0503Messages)
 	router.Run("localhost:3000")
 }
 
@@ -32,6 +34,22 @@ func initServer() {
 
 func getDefaultResponse(context *gin.Context) {
 	context.String(http.StatusOK, defaultResponse)
+}
+
+func get0501Messages(context *gin.Context) {
+	messages, err := db.GetMessagesByCode("0501")
+	if err != nil {
+		log.Fatal(err)
+	}
+	context.JSON(200, messages)
+}
+
+func get0503Messages(context *gin.Context) {
+	messages, err := db.GetMessagesByCode("0503")
+	if err != nil {
+		log.Fatal(err)
+	}
+	context.JSON(200, messages)
 }
 
 func processFlags() {
