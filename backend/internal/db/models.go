@@ -6,6 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type Code struct {
+	gorm.Model
+	ID   uint   `gorm:"primaryKey"`
+	Code string `xml:"code"`
+	Name string `xml:"name"`
+}
+
 type Process struct {
 	gorm.Model
 	ID       uint `gorm:"primaryKey"`
@@ -46,9 +53,38 @@ type Message0503 struct {
 
 type MessageHead struct {
 	gorm.Model
-	XMLName   xml.Name `gorm:"-" xml:"Kopf"`
-	ID        uint     `gorm:"primaryKey"`
-	ProcessID string   `xml:"ProzessID"`
+	XMLName    xml.Name `gorm:"-" xml:"Kopf"`
+	ID         uint     `gorm:"primaryKey"`
+	ProcessID  string   `xml:"ProzessID"`
+	SenderID   uint
+	Sender     Contact `gorm:"foreignKey:SenderID;references:ID" xml:"Absender"`
+	ReceiverID uint
+	Receiver   Contact `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger"`
+}
+
+type Contact struct {
+	gorm.Model
+	ID                     uint `gorm:"primaryKey"`
+	AgencyIdentificationID uint
+	AgencyIdentification   AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung"`
+	InstitutionID          uint
+	Institution            Institution `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution"`
+}
+
+type AgencyIdentification struct {
+	gorm.Model
+	ID       uint `gorm:"primaryKey"`
+	CodeID   uint
+	Code     Code `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel"`
+	PrefixID uint
+	Prefix   Code `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix"`
+}
+
+type Institution struct {
+	gorm.Model
+	ID           uint   `gorm:"primaryKey"`
+	Name         string `xml:"Name"`
+	Abbreviation string `xml:"Kurzbezeichnung"`
 }
 
 type RecordObject struct {
