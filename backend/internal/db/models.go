@@ -38,6 +38,12 @@ type Message0501 struct {
 	RecordObjects []RecordObject `xml:"Schriftgutobjekt"`
 }
 
+type Message0503 struct {
+	XMLName       xml.Name       `xml:"Aussonderung.Aussonderung.0503"`
+	MessageHead   MessageHead    `xml:"Kopf"`
+	RecordObjects []RecordObject `xml:"Schriftgutobjekt"`
+}
+
 type MessageHead struct {
 	gorm.Model
 	XMLName   xml.Name `gorm:"-" xml:"Kopf"`

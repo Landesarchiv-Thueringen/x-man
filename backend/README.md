@@ -14,3 +14,9 @@
 - Name: lath_xdomea
 - Passwort muss für Produktiveinsatz neu vergeben werden
 - Migration der Datenbank muss bei der ersten Ausführung mit der Flag -init durchgeführt werden
+- Datenbank und Nutzer erstellen:
+  - `create user lath_xdomea;`
+  - `create database lath_xdomea owner lath_xdomea;`
+  - `grant all privileges on database lath_xdomea to postgres;`
+- als postgres root Nutzer anmelden
+  - `sudo -u postgres psql`

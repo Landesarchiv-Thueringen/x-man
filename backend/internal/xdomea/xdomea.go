@@ -83,10 +83,11 @@ func AddMessage(
 		StoreDir:    messageStoreDir,
 		MessagePath: messagePath,
 	}
-	_, err = db.AddMessage(xdomeaID, processStoreDir, message)
+	// TODO: xsd validation
+	message = ParseMessage(message)
+	message, err = db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// TODO: xsd validation
-	message = ParseMessage(message)
+	log.Println(message)
 }
