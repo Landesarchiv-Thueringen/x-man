@@ -9,6 +9,7 @@ const routes: Routes = [
     path: '',  component: MainNavigationComponent,
     children: [
       { path: 'anbietungen',  component: MessageTableComponent},
+      { path: 'abgaben',  component: MessageTableComponent},
     ],
   },
 ];
