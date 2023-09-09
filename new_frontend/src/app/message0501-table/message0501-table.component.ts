@@ -15,11 +15,11 @@ const DATA: Message[] = [
 ]
 
 @Component({
-  selector: 'app-message-table',
-  templateUrl: './message-table.component.html',
-  styleUrls: ['./message-table.component.scss']
+  selector: 'app-message0501-table',
+  templateUrl: './message0501-table.component.html',
+  styleUrls: ['./message0501-table.component.scss']
 })
-export class MessageTableComponent {
+export class Message0501TableComponent {
   dataSource: MatTableDataSource<Message>;
   displayedColumns: string[] = ['processID', 'agency'];
 

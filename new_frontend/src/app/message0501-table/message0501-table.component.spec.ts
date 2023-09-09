@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MessageTableComponent } from './message-table.component';
+import { Message0501TableComponent } from './message0501-table.component';
 
 describe('MessageTableComponent', () => {
-  let component: MessageTableComponent;
-  let fixture: ComponentFixture<MessageTableComponent>;
+  let component: Message0501TableComponent;
+  let fixture: ComponentFixture<Message0501TableComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [MessageTableComponent]
+      declarations: [Message0501TableComponent]
     });
-    fixture = TestBed.createComponent(MessageTableComponent);
+    fixture = TestBed.createComponent(Message0501TableComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

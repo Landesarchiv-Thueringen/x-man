@@ -12,13 +12,15 @@ import { MatPaginatorModule} from '@angular/material/paginator';
 import { MatSortModule} from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table'; 
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MessageTableComponent } from './message-table/message-table.component';
+import { Message0501TableComponent } from './message0501-table/message0501-table.component';
+import { Message0503TableComponent } from './message0503-table/message0503-table.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     MainNavigationComponent,
-    MessageTableComponent
+    Message0501TableComponent,
+    Message0503TableComponent,
   ],
   imports: [
     BrowserModule,
