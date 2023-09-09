@@ -8,12 +8,17 @@ import { MainNavigationComponent } from './main-navigation/main-navigation.compo
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule} from '@angular/material/paginator';
+import { MatSortModule} from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table'; 
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MessageTableComponent } from './message-table/message-table.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    MainNavigationComponent
+    MainNavigationComponent,
+    MessageTableComponent
   ],
   imports: [
     BrowserModule,
@@ -21,6 +26,9 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     BrowserAnimationsModule,
     MatButtonModule,
     MatIconModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatTableModule,
     MatToolbarModule,
   ],
   providers: [],

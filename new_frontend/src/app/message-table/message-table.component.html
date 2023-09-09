@@ -1,0 +1,24 @@
+<div class="message-section">
+    <div class="message-table mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" matSort>
+    
+        <!-- process ID Column -->
+        <ng-container matColumnDef="processID">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Prozess-ID </th>
+            <td mat-cell *matCellDef="let row"> {{row.processID}} </td>
+        </ng-container>
+    
+        <!-- agency Column -->
+        <ng-container matColumnDef="agency">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Behörde </th>
+            <td mat-cell *matCellDef="let row"> {{row.agency}} </td>
+        </ng-container>
+    
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    
+        </table>
+    
+        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Anbietung auswählen"></mat-paginator>
+    </div>
+</div>

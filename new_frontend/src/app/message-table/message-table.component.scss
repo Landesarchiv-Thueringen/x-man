@@ -1,0 +1,10 @@
+.message-section {
+    display: flex;
+    flex-direction: column;
+
+    .message-table {
+        margin: 3em;
+        min-width: 80em;
+        max-width: 100em;
+    }
+}
