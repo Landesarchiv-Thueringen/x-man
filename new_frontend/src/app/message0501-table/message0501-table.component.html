@@ -5,13 +5,13 @@
         <!-- process ID Column -->
         <ng-container matColumnDef="processID">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Prozess-ID </th>
-            <td mat-cell *matCellDef="let row"> {{row.processID}} </td>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.processID}} </td>
         </ng-container>
     
         <!-- agency Column -->
         <ng-container matColumnDef="agency">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Behörde </th>
-            <td mat-cell *matCellDef="let row"> {{row.agency}} </td>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.sender.institution.name}} </td>
         </ng-container>
     
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

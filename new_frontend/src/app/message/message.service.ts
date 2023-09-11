@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
 
 export interface Message {
   id: number;
@@ -77,5 +79,13 @@ export interface Code {
 })
 export class MessageService {
 
-  constructor(private httpClient: HttpClient) { }
+  apiEndpoint: string;
+
+  constructor(private httpClient: HttpClient) {
+    this.apiEndpoint = environment.endpoint;
+  }
+
+  get0501Messages(): Observable<Message[]> {
+    return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0501');
+  }
 }
