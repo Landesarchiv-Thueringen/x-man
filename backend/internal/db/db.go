@@ -54,6 +54,30 @@ func InitMessageTypes(messageTypes []*MessageType) {
 	}
 }
 
+func GetMessageByID(id uint) (Message, error) {
+	var message Message
+	result := db.
+		Preload("MessageType").
+		Preload("MessageHead").
+		Preload("MessageHead.Sender").
+		Preload("MessageHead.Sender.Institution").
+		Preload("MessageHead.Sender.AgencyIdentification").
+		Preload("MessageHead.Sender.AgencyIdentification.Code").
+		Preload("MessageHead.Sender.AgencyIdentification.Prefix").
+		Preload("MessageHead.Receiver").
+		Preload("MessageHead.Receiver.Institution").
+		Preload("MessageHead.Receiver.AgencyIdentification").
+		Preload("MessageHead.Receiver.AgencyIdentification.Code").
+		Preload("MessageHead.Receiver.AgencyIdentification.Prefix").
+		Preload("RecordObjects").
+		Preload("RecordObjects.FileRecordObject").
+		Preload("RecordObjects.FileRecordObject.GeneralMetadata").
+		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
+		Preload("RecordObjects.FileRecordObject.Lifetime").
+		First(&message, id)
+	return message, result.Error
+}
+
 func GetMessageTypeByCode(code string) MessageType {
 	messageType := MessageType{Code: code}
 	result := db.Where(&messageType).First(&messageType)

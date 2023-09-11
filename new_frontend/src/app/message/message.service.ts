@@ -86,6 +86,10 @@ export class MessageService {
     this.apiEndpoint = environment.endpoint;
   }
 
+  getMessage(id: number): Observable<Message> {
+    return this.httpClient.get<Message>(this.apiEndpoint + '/message/' + id);
+  }
+
   get0501Messages(): Observable<Message[]> {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0501');
   }
