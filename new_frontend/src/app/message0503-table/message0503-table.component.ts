@@ -16,7 +16,7 @@ import { Message, MessageService } from '../message/message.service';
 })
 export class Message0503TableComponent {
   dataSource: MatTableDataSource<Message>;
-  displayedColumns: string[] = ['creationTime', 'agency', 'processID'];
+  displayedColumns: string[] = ['creationTime', 'agency', 'processID', 'actions'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -48,4 +48,6 @@ export class Message0503TableComponent {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
+
+  showMessage(messageID: number) {}
 }

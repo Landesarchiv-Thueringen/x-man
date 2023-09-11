@@ -13,6 +13,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu'; 
 import { MatPaginatorModule} from '@angular/material/paginator';
 import { MatSortModule} from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table'; 
@@ -34,6 +35,7 @@ import { Message0503TableComponent } from './message0503-table/message0503-table
     HttpClientModule,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
     MatPaginatorModule,
     MatSortModule,
     MatTableModule,
