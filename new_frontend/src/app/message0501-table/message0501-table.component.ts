@@ -39,13 +39,13 @@ export class Message0501TableComponent implements AfterViewInit, OnDestroy {
           throw new Error('sorting error: unhandled column');
       }
     }
-    this.messageSubscription = this.messageService.get0501Messages().subscribe(
+    this.messageService.get0501Messages().subscribe(
       (messages: Message[]) => {
         this.dataSource.data = messages;
       }
     );
     // refetch messages every minute
-    interval(60000)
+    this.messageSubscription = interval(60000)
       .pipe(
         switchMap(() => this.messageService.get0501Messages())
       ).subscribe(

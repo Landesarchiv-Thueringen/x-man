@@ -46,13 +46,13 @@ export class Message0503TableComponent implements AfterViewInit, OnDestroy {
     );
     // refetch messages every minute
     this.messageSubscription = interval(60000)
-    .pipe(
-      switchMap(() => this.messageService.get0501Messages())
-    ).subscribe(
-      (messages: Message[]) => {
-        this.dataSource.data = messages;
-      }
-    )
+      .pipe(
+        switchMap(() => this.messageService.get0501Messages())
+      ).subscribe(
+        (messages: Message[]) => {
+          this.dataSource.data = messages;
+        }
+      )
   }
 
   ngAfterViewInit() {
