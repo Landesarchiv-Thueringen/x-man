@@ -2,130 +2,157 @@ package db
 
 import (
 	"encoding/xml"
+	"time"
 
 	"gorm.io/gorm"
 )
 
 type Code struct {
-	gorm.Model
-	ID   uint   `gorm:"primaryKey"`
-	Code string `xml:"code"`
-	Name string `xml:"name"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Code      string         `xml:"code" json:"code"`
+	Name      string         `xml:"name" json:"name"`
 }
 
 type Process struct {
-	gorm.Model
-	ID       uint `gorm:"primaryKey"`
-	XdomeaID string
-	StoreDir string
-	Messages []Message `gorm:"many2many:process_messages;"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	XdomeaID  string         `json:"xdomeaID"`
+	StoreDir  string         `json:"-"`
+	Messages  []Message      `gorm:"many2many:process_messages;" json:"messages"`
 }
 
 type Message struct {
-	gorm.Model
-	ID            uint `gorm:"primaryKey"`
-	StoreDir      string
-	MessagePath   string
-	MessageHeadID uint
-	MessageTypeID uint
-	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID"`
-	MessageHead   MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID"`
-	RecordObjects []RecordObject `gorm:"many2many:message_record_objects;"`
+	ID            uint           `gorm:"primaryKey"`
+	CreatedAt     time.Time      `json:"-"`
+	UpdatedAt     time.Time      `json:"-"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	StoreDir      string         `json:"-"`
+	MessagePath   string         `json:"-"`
+	MessageHeadID uint           `json:"-"`
+	MessageTypeID uint           `json:"-"`
+	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
+	MessageHead   MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
+	RecordObjects []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
 }
 
 type MessageType struct {
-	gorm.Model
-	ID   uint `gorm:"primaryKey"`
-	Code string
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Code      string         `json:"code"`
 }
 
 type Message0501 struct {
-	XMLName       xml.Name       `xml:"Aussonderung.Anbieteverzeichnis.0501"`
-	MessageHead   MessageHead    `xml:"Kopf"`
-	RecordObjects []RecordObject `xml:"Schriftgutobjekt"`
+	XMLName       xml.Name       `gorm:"-" xml:"Aussonderung.Anbieteverzeichnis.0501" json:"-"`
+	MessageHead   MessageHead    `xml:"Kopf" json:"messageHead"`
+	RecordObjects []RecordObject `xml:"Schriftgutobjekt" json:"recordObjects"`
 }
 
 type Message0503 struct {
-	XMLName       xml.Name       `xml:"Aussonderung.Aussonderung.0503"`
-	MessageHead   MessageHead    `xml:"Kopf"`
-	RecordObjects []RecordObject `xml:"Schriftgutobjekt"`
+	XMLName       xml.Name       `gorm:"-" xml:"Aussonderung.Aussonderung.0503" json:"-"`
+	MessageHead   MessageHead    `xml:"Kopf" json:"messageHead"`
+	RecordObjects []RecordObject `xml:"Schriftgutobjekt" json:"recordObjects"`
 }
 
 type MessageHead struct {
-	gorm.Model
-	XMLName    xml.Name `gorm:"-" xml:"Kopf"`
-	ID         uint     `gorm:"primaryKey"`
-	ProcessID  string   `xml:"ProzessID"`
-	SenderID   uint
-	Sender     Contact `gorm:"foreignKey:SenderID;references:ID" xml:"Absender"`
-	ReceiverID uint
-	Receiver   Contact `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger"`
+	XMLName    xml.Name       `gorm:"-" xml:"Kopf" json:"-"`
+	ID         uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt  time.Time      `json:"-"`
+	UpdatedAt  time.Time      `json:"-"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
+	ProcessID  string         `xml:"ProzessID" json:"processID"`
+	SenderID   uint           `json:"-"`
+	Sender     Contact        `gorm:"foreignKey:SenderID;references:ID" xml:"Absender" json:"sender"`
+	ReceiverID uint           `json:"-"`
+	Receiver   Contact        `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger" json:"receiver"`
 }
 
 type Contact struct {
-	gorm.Model
-	ID                     uint `gorm:"primaryKey"`
-	AgencyIdentificationID uint
-	AgencyIdentification   AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung"`
-	InstitutionID          uint
-	Institution            Institution `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution"`
+	ID                     uint                 `gorm:"primaryKey" json:"id"`
+	CreatedAt              time.Time            `json:"-"`
+	UpdatedAt              time.Time            `json:"-"`
+	DeletedAt              gorm.DeletedAt       `gorm:"index" json:"-"`
+	AgencyIdentificationID uint                 `json:"-"`
+	AgencyIdentification   AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung" json:"agencyIdentification"`
+	InstitutionID          uint                 `json:"-"`
+	Institution            Institution          `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution" json:"institution"`
 }
 
 type AgencyIdentification struct {
-	gorm.Model
-	ID       uint `gorm:"primaryKey"`
-	CodeID   uint
-	Code     Code `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel"`
-	PrefixID uint
-	Prefix   Code `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	CodeID    uint           `json:"-"`
+	Code      Code           `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel" json:"code"`
+	PrefixID  uint           `json:"-"`
+	Prefix    Code           `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix" json:"prefix"`
 }
 
 type Institution struct {
-	gorm.Model
-	ID           uint   `gorm:"primaryKey"`
-	Name         string `xml:"Name"`
-	Abbreviation string `xml:"Kurzbezeichnung"`
+	ID           uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt    time.Time      `json:"-"`
+	UpdatedAt    time.Time      `json:"-"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	Name         string         `xml:"Name"  json:"name"`
+	Abbreviation string         `xml:"Kurzbezeichnung" json:"abbreviation"`
 }
 
 type RecordObject struct {
-	gorm.Model
-	XMLName            xml.Name `gorm:"-" xml:"Schriftgutobjekt"`
-	ID                 uint     `gorm:"primaryKey"`
-	FileRecordObjectID uint
-	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte"`
+	XMLName            xml.Name         `gorm:"-" xml:"Schriftgutobjekt" json:"-"`
+	ID                 uint             `gorm:"primaryKey" json:"id"`
+	CreatedAt          time.Time        `json:"-"`
+	UpdatedAt          time.Time        `json:"-"`
+	DeletedAt          gorm.DeletedAt   `gorm:"index" json:"-"`
+	FileRecordObjectID uint             `json:"-"`
+	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
 }
 
 type FileRecordObject struct {
-	gorm.Model
-	XMLName           xml.Name `gorm:"-" xml:"Akte"`
-	ID                uint     `gorm:"primaryKey"`
-	GeneralMetadataID uint
-	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten"`
-	LifetimeID        uint
-	Lifetime          Lifetime `gorm:"foreignKey:LifetimeID;references:ID"`
+	XMLName           xml.Name        `gorm:"-" xml:"Akte" json:"-"`
+	ID                uint            `gorm:"primaryKey" json:"id"`
+	CreatedAt         time.Time       `json:"-"`
+	UpdatedAt         time.Time       `json:"-"`
+	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
+	GeneralMetadataID uint            `json:"-"`
+	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	LifetimeID        uint            `json:"-"`
+	Lifetime          Lifetime        `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 }
 
 type GeneralMetadata struct {
-	gorm.Model
-	XMLName    xml.Name `gorm:"-" xml:"AllgemeineMetadaten"`
-	ID         uint     `gorm:"primaryKey"`
-	Subject    string   `xml:"Betreff"`
-	XdomeaID   string   `xml:"Kennzeichen"`
-	FilePlanID uint
-	FilePlan   FilePlan `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit"`
+	XMLName    xml.Name       `gorm:"-" xml:"AllgemeineMetadaten" json:"-"`
+	ID         uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt  time.Time      `json:"-"`
+	UpdatedAt  time.Time      `json:"-"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
+	Subject    string         `xml:"Betreff" json:"subject"`
+	XdomeaID   string         `xml:"Kennzeichen" json:"xdomeaID"`
+	FilePlanID uint           `json:"-"`
+	FilePlan   FilePlan       `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
 }
 
 type FilePlan struct {
-	gorm.Model
-	XMLName  xml.Name `gorm:"-" xml:"Aktenplaneinheit"`
-	ID       uint     `gorm:"primaryKey"`
-	XdomeaID string   `xml:"Kennzeichen"`
+	XMLName   xml.Name       `gorm:"-" xml:"Aktenplaneinheit" json:"-"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	XdomeaID  string         `xml:"Kennzeichen" json:"xdomeaID"`
 }
 
 type Lifetime struct {
-	gorm.Model
-	XMLName xml.Name `gorm:"-" xml:"Laufzeit"`
-	ID      uint     `gorm:"primaryKey"`
-	Start   string   `xml:"Beginn"`
-	End     string   `xml:"Ende"`
+	XMLName   xml.Name       `gorm:"-" xml:"Laufzeit" json:"-"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Start     string         `xml:"Beginn" json:"start"`
+	End       string         `xml:"Ende" json:"end"`
 }

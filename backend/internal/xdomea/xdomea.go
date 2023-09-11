@@ -85,9 +85,8 @@ func AddMessage(
 	}
 	// TODO: xsd validation
 	message = ParseMessage(message)
-	message, err = db.AddMessage(xdomeaID, processStoreDir, message)
+	_, err = db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(message)
 }
