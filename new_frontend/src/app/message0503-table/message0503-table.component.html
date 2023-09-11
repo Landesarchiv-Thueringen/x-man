@@ -1,1 +1,31 @@
-<p>message0503-table works!</p>
+<h2>E-Akten - Abgaben</h2>
+<div class="message-section">
+    <div class="message-table mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" matSort matSortActive="creationTime" matSortDirection="desc">
+    
+        <!-- creation time Column -->
+        <ng-container matColumnDef="creationTime">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Erstellungszeitpunkt </th>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.creationTime | date}} </td>
+        </ng-container>
+    
+        <!-- agency Column -->
+        <ng-container matColumnDef="agency">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Institution </th>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.sender.institution.name}} </td>
+        </ng-container>
+
+        <!-- process ID Column -->
+        <ng-container matColumnDef="processID">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Prozess-ID </th>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.processID}} </td>
+        </ng-container>
+    
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    
+        </table>
+    
+        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Anbietung auswählen"></mat-paginator>
+    </div>
+</div>

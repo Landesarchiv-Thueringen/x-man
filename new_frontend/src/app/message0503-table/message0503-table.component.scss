@@ -1,0 +1,15 @@
+:host {
+    display: block;
+    padding: 3em;
+
+    .message-section {
+        display: flex;
+        flex-direction: column;
+        margin-top: 2em;
+    
+        .message-table {
+            min-width: 80em;
+            max-width: 100em;
+        }
+    }
+}

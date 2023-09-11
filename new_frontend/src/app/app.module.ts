@@ -1,7 +1,10 @@
 // angular
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
+import localeDe from '@angular/common/locales/de';
+import { registerLocaleData } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
+registerLocaleData(localeDe);
 
 // project
 import { AppRoutingModule } from './app-routing.module';
@@ -36,7 +39,7 @@ import { Message0503TableComponent } from './message0503-table/message0503-table
     MatTableModule,
     MatToolbarModule,
   ],
-  providers: [],
+  providers: [{ provide: LOCALE_ID, useValue: 'de' }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

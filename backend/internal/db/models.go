@@ -61,16 +61,17 @@ type Message0503 struct {
 }
 
 type MessageHead struct {
-	XMLName    xml.Name       `gorm:"-" xml:"Kopf" json:"-"`
-	ID         uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt  time.Time      `json:"-"`
-	UpdatedAt  time.Time      `json:"-"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
-	ProcessID  string         `xml:"ProzessID" json:"processID"`
-	SenderID   uint           `json:"-"`
-	Sender     Contact        `gorm:"foreignKey:SenderID;references:ID" xml:"Absender" json:"sender"`
-	ReceiverID uint           `json:"-"`
-	Receiver   Contact        `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger" json:"receiver"`
+	XMLName      xml.Name       `gorm:"-" xml:"Kopf" json:"-"`
+	ID           uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt    time.Time      `json:"-"`
+	UpdatedAt    time.Time      `json:"-"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ProcessID    string         `xml:"ProzessID" json:"processID"`
+	CreationTime string         `xml:"Erstellungszeitpunkt" json:"creationTime"`
+	SenderID     uint           `json:"-"`
+	Sender       Contact        `gorm:"foreignKey:SenderID;references:ID" xml:"Absender" json:"sender"`
+	ReceiverID   uint           `json:"-"`
+	Receiver     Contact        `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger" json:"receiver"`
 }
 
 type Contact struct {

@@ -1,10 +1,15 @@
-.message-section {
-    display: flex;
-    flex-direction: column;
+:host {
+    display: block;
+    padding: 3em;
 
-    .message-table {
-        margin: 3em;
-        min-width: 80em;
-        max-width: 100em;
+    .message-section {
+        display: flex;
+        flex-direction: column;
+        margin-top: 2em;
+    
+        .message-table {
+            min-width: 80em;
+            max-width: 100em;
+        }
     }
 }

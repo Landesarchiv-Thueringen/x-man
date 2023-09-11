@@ -17,6 +17,7 @@ export interface MessageType {
 export interface MessageHead {
   id: number;
   processID: string;
+  creationTime: string;
   sender: Contact;
   receiver: Contact;
 }
@@ -87,5 +88,9 @@ export class MessageService {
 
   get0501Messages(): Observable<Message[]> {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0501');
+  }
+
+  get0503Messages(): Observable<Message[]> {
+    return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
   }
 }

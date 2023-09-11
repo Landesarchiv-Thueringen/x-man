@@ -9,16 +9,6 @@ import { MatTableDataSource } from '@angular/material/table';
 // project
 import { Message, MessageService } from '../message/message.service';
 
-interface MessageTableRow {
-  processID: string;
-  agency: string;
-}
-
-const DATA: MessageTableRow[] = [
-  {processID: '72a1f5a2-cf79-4b9a-8f12-ec649fc3d6b1', agency: 'Arbeitsamt Jena'},
-  {processID: 'd2ed87ae-2e85-410c-a4d5-092688d9cd11', agency: 'Thüringer Staatskanzlei'},
-]
-
 @Component({
   selector: 'app-message0501-table',
   templateUrl: './message0501-table.component.html',
@@ -26,13 +16,25 @@ const DATA: MessageTableRow[] = [
 })
 export class Message0501TableComponent {
   dataSource: MatTableDataSource<Message>;
-  displayedColumns: string[] = ['processID', 'agency'];
+  displayedColumns: string[] = ['creationTime', 'agency', 'processID'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(private messageService: MessageService) {
     this.dataSource = new MatTableDataSource();
+    this.dataSource.sortingDataAccessor = (item: Message, property: string) => {
+      switch(property) {
+        case 'creationTime':
+          return item.messageHead.creationTime;
+        case 'agency':
+          return item.messageHead.sender.institution.name
+        case 'processID':
+          return item.messageHead.processID
+        default:
+          throw new Error('sorting error: unhandled column');
+      }
+    }
     this.messageService.get0501Messages().subscribe(
       (messages: Message[]) => {
         console.log(messages);

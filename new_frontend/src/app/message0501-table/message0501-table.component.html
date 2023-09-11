@@ -1,17 +1,24 @@
+<h2>E-Akten - Anbietungen</h2>
 <div class="message-section">
     <div class="message-table mat-elevation-z8">
-        <table mat-table [dataSource]="dataSource" matSort>
+        <table mat-table [dataSource]="dataSource" matSort matSortActive="creationTime" matSortDirection="desc">
     
-        <!-- process ID Column -->
-        <ng-container matColumnDef="processID">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Prozess-ID </th>
-            <td mat-cell *matCellDef="let message"> {{message.messageHead.processID}} </td>
+        <!-- creation time Column -->
+        <ng-container matColumnDef="creationTime">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Erstellungszeitpunkt </th>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.creationTime | date}} </td>
         </ng-container>
     
         <!-- agency Column -->
         <ng-container matColumnDef="agency">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Behörde </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Institution </th>
             <td mat-cell *matCellDef="let message"> {{message.messageHead.sender.institution.name}} </td>
+        </ng-container>
+
+        <!-- process ID Column -->
+        <ng-container matColumnDef="processID">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Prozess-ID </th>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.processID}} </td>
         </ng-container>
     
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
