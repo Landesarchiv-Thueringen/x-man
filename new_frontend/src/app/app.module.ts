@@ -20,6 +20,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Message0501TableComponent } from './message0501-table/message0501-table.component';
 import { Message0503TableComponent } from './message0503-table/message0503-table.component';
+import { MessageViewComponent } from './message-view/message-view.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { Message0503TableComponent } from './message0503-table/message0503-table
     MainNavigationComponent,
     Message0501TableComponent,
     Message0503TableComponent,
+    MessageViewComponent,
   ],
   imports: [
     BrowserModule,

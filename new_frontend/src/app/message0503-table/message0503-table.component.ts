@@ -63,6 +63,4 @@ export class Message0503TableComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.messageSubscription.unsubscribe();
   }
-
-  showMessage(messageID: number) {}
 }

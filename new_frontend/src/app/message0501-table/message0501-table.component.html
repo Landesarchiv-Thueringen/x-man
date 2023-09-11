@@ -29,10 +29,10 @@
                 <mat-icon>more_horiz</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                <button mat-menu-item (click)="showMessage(message.id)">
-                    <mat-icon>search</mat-icon>
-                    <span>Details anzeigen</span>
-                </button>
+                    <button mat-menu-item [routerLink]="['/nachricht', message.id]">
+                        <mat-icon>search</mat-icon>
+                        <span>Details anzeigen</span>
+                    </button>
                 </mat-menu>
             </td>
         </ng-container>

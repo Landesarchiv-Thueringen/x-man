@@ -27,7 +27,7 @@ type Process struct {
 }
 
 type Message struct {
-	ID            uint           `gorm:"primaryKey"`
+	ID            uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt     time.Time      `json:"-"`
 	UpdatedAt     time.Time      `json:"-"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
