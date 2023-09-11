@@ -1,5 +1,5 @@
 // angular
-import { Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 
 // material
 import { MatPaginator } from '@angular/material/paginator';
@@ -9,14 +9,18 @@ import { MatTableDataSource } from '@angular/material/table';
 // project
 import { Message, MessageService } from '../message/message.service';
 
+// utility
+import { interval, switchMap, Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-message0501-table',
   templateUrl: './message0501-table.component.html',
   styleUrls: ['./message0501-table.component.scss']
 })
-export class Message0501TableComponent {
+export class Message0501TableComponent implements AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<Message>;
   displayedColumns: string[] = ['creationTime', 'agency', 'processID', 'actions'];
+  messageSubscription: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -35,18 +39,29 @@ export class Message0501TableComponent {
           throw new Error('sorting error: unhandled column');
       }
     }
-    this.messageService.get0501Messages().subscribe(
+    this.messageSubscription = this.messageService.get0501Messages().subscribe(
       (messages: Message[]) => {
-        console.log(messages);
         this.dataSource.data = messages;
       }
     );
-    
+    // refetch messages every minute
+    interval(60000)
+      .pipe(
+        switchMap(() => this.messageService.get0501Messages())
+      ).subscribe(
+        (messages: Message[]) => {
+          this.dataSource.data = messages;
+        }
+      )
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+  }
+
+  ngOnDestroy(): void {
+    this.messageSubscription.unsubscribe();
   }
 
   showMessage(messageID: number) {}
