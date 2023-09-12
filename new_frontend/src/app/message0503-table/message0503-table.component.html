@@ -6,7 +6,7 @@
         <!-- creation time column -->
         <ng-container matColumnDef="creationTime">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Erstellungszeitpunkt </th>
-            <td mat-cell *matCellDef="let message"> {{message.messageHead.creationTime | date}} </td>
+            <td mat-cell *matCellDef="let message"> {{message.messageHead.creationTime | date:'short'}} </td>
         </ng-container>
     
         <!-- agency column -->

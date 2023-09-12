@@ -1,5 +1,6 @@
 // angular
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
@@ -20,13 +21,14 @@ export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
 
   constructor(
+    private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private route: ActivatedRoute,
   ) {
     this.form = this.formBuilder.group({
       processID: new FormControl<string | null>(null),
-      creationTime: new FormControl<string | null>(null),
+      creationTime: new FormControl<Date | null>(null),
       xdomeaVersion: new FormControl<string | null>(null),
     });
   }
@@ -40,7 +42,7 @@ export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
             this.message = message;
             this.form.patchValue({
               processID: message.messageHead.processID,
-              creationTime: message.messageHead.creationTime,
+              creationTime: this.datePipe.transform(new Date(message.messageHead.creationTime), 'short'),
               xdomeaVersion: message.xdomeaVersion,
             });
           }

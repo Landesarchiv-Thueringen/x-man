@@ -1,6 +1,6 @@
 // angular
 import { NgModule, LOCALE_ID } from '@angular/core';
-import { registerLocaleData } from '@angular/common';
+import { DatePipe, registerLocaleData } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -61,7 +61,7 @@ import { InstitutMetadataComponent } from './metadata/institution-metadata/insti
     MatToolbarModule,
     ReactiveFormsModule,
   ],
-  providers: [{ provide: LOCALE_ID, useValue: 'de' }],
+  providers: [{ provide: LOCALE_ID, useValue: 'de' }, DatePipe],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
