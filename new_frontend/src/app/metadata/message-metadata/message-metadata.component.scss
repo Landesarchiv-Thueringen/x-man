@@ -1,0 +1,19 @@
+:host {
+    display: block;
+    padding: 2.0em;
+
+    .message-metadata-section {
+        min-width: 60.0em;
+        max-width: 80.0em;
+
+        .metadata-row {
+            display: flex;
+            flex-direction: row;
+            column-gap: 1.5em;
+        }
+
+        .process-id-input {
+            width: 25.0em;
+        }
+    }
+}

@@ -1,9 +1,10 @@
 // angular
 import { NgModule, LOCALE_ID } from '@angular/core';
-import localeDe from '@angular/common/locales/de';
 import { registerLocaleData } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
+import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import localeDe from '@angular/common/locales/de';
 registerLocaleData(localeDe);
 
 // project
@@ -12,7 +13,10 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MatButtonModule } from '@angular/material/button';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field'; 
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu'; 
 import { MatPaginatorModule} from '@angular/material/paginator';
 import { MatSidenavModule } from '@angular/material/sidenav'; 
@@ -23,8 +27,9 @@ import { MatTreeModule } from '@angular/material/tree';
 import { Message0501TableComponent } from './message0501-table/message0501-table.component';
 import { Message0503TableComponent } from './message0503-table/message0503-table.component';
 import { MessageViewComponent } from './message-view/message-view.component';
-import { MessageMetadataComponent } from './message-metadata/message-metadata.component';
-import { FileMetadataComponent } from './file-metadata/file-metadata.component';
+import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
+import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
+import { InstitutMetadataComponent } from './metadata/institution-metadata/institution-metadata.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +40,7 @@ import { FileMetadataComponent } from './file-metadata/file-metadata.component';
     MessageViewComponent,
     MessageMetadataComponent,
     FileMetadataComponent,
+    InstitutMetadataComponent,
   ],
   imports: [
     BrowserModule,
@@ -42,7 +48,10 @@ import { FileMetadataComponent } from './file-metadata/file-metadata.component';
     BrowserAnimationsModule,
     HttpClientModule,
     MatButtonModule,
+    MatExpansionModule,
+    MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatMenuModule,
     MatPaginatorModule,
     MatSidenavModule,
@@ -50,6 +59,7 @@ import { FileMetadataComponent } from './file-metadata/file-metadata.component';
     MatTableModule,
     MatTreeModule,
     MatToolbarModule,
+    ReactiveFormsModule,
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'de' }],
   bootstrap: [AppComponent]

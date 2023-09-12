@@ -1,5 +1,5 @@
 // angular
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 // material
@@ -8,6 +8,9 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 
 // project
 import { FileRecordObject, Message, MessageService } from '../message/message.service';
+
+// utility
+import { Subscription } from 'rxjs';
 
 type StructureNodeType =
   | 'message'
@@ -32,13 +35,14 @@ export interface StructureNode {
   templateUrl: './message-view.component.html',
   styleUrls: ['./message-view.component.scss']
 })
-export class MessageViewComponent implements AfterViewInit{
+export class MessageViewComponent implements AfterViewInit, OnDestroy{
   treeControl: NestedTreeControl<StructureNode>;
   dataSource: MatTreeNestedDataSource<StructureNode>;
+  urlParameterSubscription?: Subscription;
 
   constructor(
-    private route: ActivatedRoute,
     private messageService: MessageService,
+    private route: ActivatedRoute,
   ) {
     this.treeControl = new NestedTreeControl<StructureNode>(
       (node) => node.children
@@ -50,7 +54,7 @@ export class MessageViewComponent implements AfterViewInit{
     !!node.children && node.children.length > 0;
 
   ngAfterViewInit(): void {
-    this.route.params.subscribe((params) => {
+    this.urlParameterSubscription = this.route.params.subscribe((params) => {
       this.messageService.getMessage(+params['id']).subscribe(
         (message: Message) => {
           const treeData: StructureNode[] = [];
@@ -62,6 +66,10 @@ export class MessageViewComponent implements AfterViewInit{
         }
       )
     })
+  }
+
+  ngOnDestroy(): void {
+    this.urlParameterSubscription?.unsubscribe;
   }
 
   processMessage(message: Message): StructureNode {

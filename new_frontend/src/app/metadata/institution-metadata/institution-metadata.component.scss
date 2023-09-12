@@ -1,0 +1,13 @@
+.metadata {
+  display: flex;
+  flex-direction: row;
+  column-gap: 1.5em;
+
+  .abbrevation-input {
+    width: 20.0em;
+  }
+
+  .name-input {
+    flex-grow: 1;
+  }
+}
