@@ -86,7 +86,7 @@ export class MessageViewComponent implements AfterViewInit{
       default:
         throw new Error('unhandled message type');
     }
-    const routerLink: string = '';
+    const routerLink: string = 'details';
     const messageNode: StructureNode = {
       displayText: displayText,
       type: 'message',

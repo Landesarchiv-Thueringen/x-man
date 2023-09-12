@@ -17,7 +17,7 @@ const routes: Routes = [
       { 
         path: 'nachricht/:id',  component: MessageViewComponent,
         children: [
-          { path: '', component: MessageMetadataComponent },
+          { path: 'details', component: MessageMetadataComponent },
           { path: 'akte/:id', component: FileMetadataComponent },
         ],
       },
