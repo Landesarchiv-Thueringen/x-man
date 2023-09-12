@@ -27,6 +27,7 @@ export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
     this.form = this.formBuilder.group({
       processID: new FormControl<string | null>(null),
       creationTime: new FormControl<string | null>(null),
+      xdomeaVersion: new FormControl<string | null>(null),
     });
   }
 
@@ -40,6 +41,7 @@ export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
             this.form.patchValue({
               processID: message.messageHead.processID,
               creationTime: message.messageHead.creationTime,
+              xdomeaVersion: message.xdomeaVersion,
             });
           }
         )

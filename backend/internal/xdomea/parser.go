@@ -36,8 +36,10 @@ func parse0501Message(message db.Message, xmlBytes []byte) db.Message {
 	if err != nil {
 		log.Fatal(err)
 	}
+	version := extractVersion(m.XMLName.Space)
 	message.MessageHead = m.MessageHead
 	message.RecordObjects = m.RecordObjects
+	message.XdomeaVersion = version
 	return message
 }
 
@@ -47,7 +49,19 @@ func parse0503Message(message db.Message, xmlBytes []byte) db.Message {
 	if err != nil {
 		log.Fatal(err)
 	}
+	version := extractVersion(m.XMLName.Space)
 	message.MessageHead = m.MessageHead
 	message.RecordObjects = m.RecordObjects
+	message.XdomeaVersion = version
 	return message
+}
+
+func extractVersion(namespace string) string {
+	var version string
+	if namespaceRegex.MatchString(namespace) {
+		version = namespaceRegex.FindStringSubmatch(namespace)[1]
+	} else {
+		log.Fatal("The xdomea version can't be extracted from the xdomea namespace.")
+	}
+	return version
 }

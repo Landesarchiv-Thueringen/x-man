@@ -33,6 +33,7 @@ type Message struct {
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
 	StoreDir      string         `json:"-"`
 	MessagePath   string         `json:"-"`
+	XdomeaVersion string         `json:"xdomeaVersion"`
 	MessageHeadID uint           `json:"-"`
 	MessageTypeID uint           `json:"-"`
 	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`

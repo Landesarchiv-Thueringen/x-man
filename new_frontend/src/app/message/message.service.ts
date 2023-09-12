@@ -7,6 +7,7 @@ export interface Message {
   id: number;
   messageType: MessageType;
   creationTime: string;
+  xdomeaVersion: string;
   messageHead: MessageHead;
   recordObjects: RecordObject[];
 }

@@ -18,6 +18,7 @@ var message0503RegexString = uuidRegexString + message0503MessageSuffix + ".zip"
 var uuidRegex = regexp.MustCompile(uuidRegexString)
 var message0501Regex = regexp.MustCompile(message0501RegexString)
 var message0503Regex = regexp.MustCompile(message0503RegexString)
+var namespaceRegex = regexp.MustCompile("^urn:xoev-de:xdomea:schema:([0-9].[0-9].[0=9])$")
 
 func InitMessageTypes() {
 	messageTypes := []*db.MessageType{
