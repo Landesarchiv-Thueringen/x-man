@@ -1,3 +1,6 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
 :host {
     display: flex;
     width: 100%;
@@ -10,6 +13,74 @@
 
         mat-sidenav {
             width: 40.0em;
+            padding: 1em;
+        }
+    }
+
+    .message-tree-invisible {
+        display: none;
+      }
+      
+      .message-tree {
+        ul, li {
+          margin-top: 0;
+          margin-bottom: 0;
+          list-style-type: none;
+        }
+      
+        .active {
+          background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
+        }
+      
+        .node {
+          display: flex;
+          flex-direction: row;
+          align-items:center;
+      
+          .mat-icon {
+            // important icons shrink when overflow occurs
+            flex-shrink: 0;
+          }
+      
+          .node-title {
+            display: flex;
+            flex-direction: column;
+      
+            .node-subtitle-line {
+              font-weight: 500;
+            }
+          }
+        }
+      
+        /*
+        * This padding sets alignment of the nested nodes.
+        */
+        .mat-nested-tree-node div[role=group] {
+          padding-left: 1.5em;
+          padding-right: 1.5em;
+        }
+      
+        .mat-tree-node {
+          border-radius: 30px;
+          margin-bottom: 0.8em;
+           &:hover {
+            background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
+          }
+        }
+      
+        .file-icon {
+          color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+          margin-right: 0.5em;
+        }
+      
+        .process-icon {
+          color: green;
+          margin-right: 0.5em;
+        }
+      
+        .document-icon {
+          color: orange;
+          margin-right: 0.5em;
         }
     }
 }

@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 
 export interface Message {
   id: number;
+  messageType: MessageType;
+  creationTime: string;
   messageHead: MessageHead;
   recordObjects: RecordObject[];
 }

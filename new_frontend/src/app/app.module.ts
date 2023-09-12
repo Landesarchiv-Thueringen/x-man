@@ -19,9 +19,12 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSortModule} from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table'; 
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTreeModule } from '@angular/material/tree';
 import { Message0501TableComponent } from './message0501-table/message0501-table.component';
 import { Message0503TableComponent } from './message0503-table/message0503-table.component';
 import { MessageViewComponent } from './message-view/message-view.component';
+import { MessageMetadataComponent } from './message-metadata/message-metadata.component';
+import { FileMetadataComponent } from './file-metadata/file-metadata.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +33,8 @@ import { MessageViewComponent } from './message-view/message-view.component';
     Message0501TableComponent,
     Message0503TableComponent,
     MessageViewComponent,
+    MessageMetadataComponent,
+    FileMetadataComponent,
   ],
   imports: [
     BrowserModule,
@@ -43,6 +48,7 @@ import { MessageViewComponent } from './message-view/message-view.component';
     MatSidenavModule,
     MatSortModule,
     MatTableModule,
+    MatTreeModule,
     MatToolbarModule,
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'de' }],
