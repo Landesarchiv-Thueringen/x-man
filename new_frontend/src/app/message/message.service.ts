@@ -57,6 +57,14 @@ export interface FileRecordObject {
   generalMetadata?: GeneralMetadata;
   lifetime?: Lifetime;
   type?: string;
+  processes: ProcessRecordObject[];
+}
+
+export interface ProcessRecordObject {
+  id: number;
+  generalMetadata?: GeneralMetadata;
+  lifetime?: Lifetime;
+  type?: string;
 }
 
 export interface GeneralMetadata {
@@ -119,7 +127,7 @@ export class MessageService {
  * parsable date to show the malformed date in the ui. Returns formatted date string if text 
  * content is parsable.
  */
-  getDateText(dateText: string|null|undefined): string|null {
+  getDateText(dateText: string | null | undefined): string | null {
     if (dateText) {
       const timestamp: number = Date.parse(dateText);
       if (Number.isNaN(timestamp)) {
