@@ -1,1 +1,55 @@
-<p>file-metadata works!</p>
+<form *ngIf="fileRecordObject" [formGroup]="form">
+
+    <!--<h2>{{structureNode.displayText.title}} - {{structureNode.displayText.subtitle}}</h2> -->
+  
+    <mat-accordion multi>
+  
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            Allgemeine Metadaten
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+  
+        <div class="metadata">
+          <div class="file-identification-section">
+            <mat-form-field class="record-plan-id-input" appearance="outline">
+              <mat-label>Aktenplanschlüssel</mat-label>
+              <input matInput formControlName="recordPlanId" readonly>
+            </mat-form-field>
+  
+            <mat-form-field class="file-id-input" appearance="outline">
+              <mat-label>Aktenzeichen</mat-label>
+              <input matInput formControlName="fileId" readonly>
+            </mat-form-field>
+          </div>
+  
+          <mat-form-field class="subject-input" appearance="outline">
+            <mat-label>Behördlicher Aktentitel</mat-label>
+            <input matInput formControlName="subject" readonly>
+          </mat-form-field>
+  
+          <div class="file-additional-info-section">
+            <mat-form-field class="file-Type-input" appearance="outline">
+              <mat-label>Aktentyp</mat-label>
+              <input matInput formControlName="fileType" readonly>
+            </mat-form-field>
+  
+            <mat-form-field class="life-start-input" appearance="outline">
+              <mat-label>Laufzeit Beginn</mat-label>
+              <input matInput formControlName="lifeStart">
+            </mat-form-field>
+  
+            <mat-form-field class="life-end-input" appearance="outline">
+              <mat-label>Laufzeit Ende</mat-label>
+              <input matInput formControlName="lifeEnd" >
+            </mat-form-field>
+          </div>
+        </div>
+  
+      </mat-expansion-panel>
+  
+    </mat-accordion>
+  
+  </form>
+  

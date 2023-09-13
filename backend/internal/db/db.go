@@ -78,6 +78,16 @@ func GetMessageByID(id uint) (Message, error) {
 	return message, result.Error
 }
 
+func GetFileRecordObjectByID(id uint) (FileRecordObject, error) {
+	var file FileRecordObject
+	result := db.
+		Preload("GeneralMetadata").
+		Preload("GeneralMetadata.FilePlan").
+		Preload("Lifetime").
+		First(&file, id)
+	return file, result.Error
+}
+
 func GetMessageTypeByCode(code string) MessageType {
 	messageType := MessageType{Code: code}
 	result := db.Where(&messageType).First(&messageType)
