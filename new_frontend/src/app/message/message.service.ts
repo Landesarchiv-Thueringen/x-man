@@ -52,6 +52,7 @@ export interface FileRecordObject {
   id: number;
   generalMetadata: GeneralMetadata;
   lifetime: Lifetime;
+  type: string;
 }
 
 export interface GeneralMetadata {

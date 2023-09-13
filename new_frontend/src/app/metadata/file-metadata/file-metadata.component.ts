@@ -41,12 +41,13 @@ export class FileMetadataComponent implements AfterViewInit {
     this.urlParameterSubscription = this.route.params.subscribe((params) => {
       this.messageService.getFileRecordObject(+params['id']).subscribe(
         (fileRecordObject: FileRecordObject) => {
+          console.log(fileRecordObject);
           this.fileRecordObject = fileRecordObject;
           this.form.patchValue({
             recordPlanId: fileRecordObject.generalMetadata.filePlan.xdomeaID,
             fileId: fileRecordObject.generalMetadata.xdomeaID,
             subject: fileRecordObject.generalMetadata.subject,
-            //fileType: fileRecordObject.,
+            fileType: fileRecordObject.type,
             lifeStart: this.datePipe.transform(new Date(fileRecordObject.lifetime.start)),
             lifeEnd: this.datePipe.transform(new Date(fileRecordObject.lifetime.end)),
           });

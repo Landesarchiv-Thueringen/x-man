@@ -126,6 +126,7 @@ type FileRecordObject struct {
 	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	LifetimeID        uint            `json:"-"`
 	Lifetime          Lifetime        `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Type              string          `json:"type" xml:"Typ"`
 }
 
 type GeneralMetadata struct {
