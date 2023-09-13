@@ -44,12 +44,12 @@ export class FileMetadataComponent implements AfterViewInit {
           console.log(fileRecordObject);
           this.fileRecordObject = fileRecordObject;
           this.form.patchValue({
-            recordPlanId: fileRecordObject.generalMetadata.filePlan.xdomeaID,
-            fileId: fileRecordObject.generalMetadata.xdomeaID,
-            subject: fileRecordObject.generalMetadata.subject,
+            recordPlanId: fileRecordObject.generalMetadata?.filePlan?.xdomeaID,
+            fileId: fileRecordObject.generalMetadata?.xdomeaID,
+            subject: fileRecordObject.generalMetadata?.subject,
             fileType: fileRecordObject.type,
-            lifeStart: this.datePipe.transform(new Date(fileRecordObject.lifetime.start)),
-            lifeEnd: this.datePipe.transform(new Date(fileRecordObject.lifetime.end)),
+            lifeStart: this.messageService.getDateText(fileRecordObject.lifetime?.start),
+            lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
           });
         }
       )

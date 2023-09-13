@@ -106,11 +106,10 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy{
 
   getFileStructureNode(fileRecordObject: FileRecordObject): StructureNode {
     const displayText: DisplayText = {
-      title: 'Akte: ' + fileRecordObject.generalMetadata.xdomeaID,
-      subtitle: fileRecordObject.generalMetadata.subject,
+      title: 'Akte: ' + fileRecordObject.generalMetadata?.xdomeaID,
+      subtitle: fileRecordObject.generalMetadata?.subject,
     }
     const routerLink: string = 'akte/' + fileRecordObject.id;
-    fileRecordObject.generalMetadata.xdomeaID
     const node: StructureNode = {
       displayText: displayText,
       type: 'file',

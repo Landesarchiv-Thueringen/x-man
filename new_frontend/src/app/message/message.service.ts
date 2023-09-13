@@ -1,6 +1,10 @@
+// angular
 import { Injectable } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+
+// utility
 import { Observable } from 'rxjs';
 
 export interface Message {
@@ -27,20 +31,20 @@ export interface MessageHead {
 
 export interface Contact {
   id: number;
-  agencyIdentification: AgencyIdentification;
-  institution: Institution;
+  agencyIdentification?: AgencyIdentification;
+  institution?: Institution;
 }
 
 export interface AgencyIdentification {
   id: number;
-  code: Code;
-  prefix: Code;
+  code?: Code;
+  prefix?: Code;
 }
 
 export interface Institution {
   id: number;
-  name: string;
-  abbreviation: string;
+  name?: string;
+  abbreviation?: string;
 }
 
 export interface RecordObject {
@@ -50,33 +54,33 @@ export interface RecordObject {
 
 export interface FileRecordObject {
   id: number;
-  generalMetadata: GeneralMetadata;
-  lifetime: Lifetime;
-  type: string;
+  generalMetadata?: GeneralMetadata;
+  lifetime?: Lifetime;
+  type?: string;
 }
 
 export interface GeneralMetadata {
   id: number;
-  subject: string;
-  xdomeaID: string;
-  filePlan: FilePlan;
+  subject?: string;
+  xdomeaID?: string;
+  filePlan?: FilePlan;
 }
 
 export interface FilePlan {
   id: number;
-  xdomeaID: number;
+  xdomeaID?: number;
 }
 
 export interface Lifetime {
   id: number;
-  start: string;
-  end: string;
+  start?: string;
+  end?: string;
 }
 
 export interface Code {
   id: number;
-  code: string;
-  name: string;
+  code?: string;
+  name?: string;
 }
 
 @Injectable({
@@ -86,7 +90,10 @@ export class MessageService {
 
   apiEndpoint: string;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(
+    private datePipe: DatePipe,
+    private httpClient: HttpClient,
+  ) {
     this.apiEndpoint = environment.endpoint;
   }
 
@@ -104,5 +111,24 @@ export class MessageService {
 
   get0503Messages(): Observable<Message[]> {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
+  }
+
+  /** 
+ * Returns null if the xml node or its text contents are null, because that means the date was not
+ * provided in the message. Returns the text content of the xml node if the text content is no 
+ * parsable date to show the malformed date in the ui. Returns formatted date string if text 
+ * content is parsable.
+ */
+  getDateText(dateText: string|null|undefined): string|null {
+    if (dateText) {
+      const timestamp: number = Date.parse(dateText);
+      if (Number.isNaN(timestamp)) {
+        return dateText;
+      } else {
+        const date: Date = new Date(timestamp);
+        return this.datePipe.transform(date);
+      }
+    }
+    return null;
   }
 }

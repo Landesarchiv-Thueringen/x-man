@@ -30,9 +30,9 @@ export class Message0503TableComponent implements AfterViewInit, OnDestroy {
     this.dataSource.sortingDataAccessor = (item: Message, property: string) => {
       switch(property) {
         case 'creationTime':
-          return item.messageHead.creationTime;
+          return item.messageHead?.creationTime ? item.messageHead.creationTime : '';
         case 'agency':
-          return item.messageHead.sender.institution.name
+          return item.messageHead?.sender?.institution?.name ? item.messageHead.sender.institution.name : ''
         case 'processID':
           return item.messageHead.processID
         default:

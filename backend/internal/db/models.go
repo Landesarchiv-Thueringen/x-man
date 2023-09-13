@@ -7,13 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// Foreign keys need to be pointers so that the default value is nil.
+// The same is true for nullable values.
+
 type Code struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      string         `xml:"code" json:"code"`
-	Name      string         `xml:"name" json:"name"`
+	Code      *string        `xml:"code" json:"code"`
+	Name      *string        `xml:"name" json:"name"`
 }
 
 type Process struct {
@@ -34,10 +37,10 @@ type Message struct {
 	StoreDir      string         `json:"-"`
 	MessagePath   string         `json:"-"`
 	XdomeaVersion string         `json:"xdomeaVersion"`
-	MessageHeadID uint           `json:"-"`
-	MessageTypeID uint           `json:"-"`
-	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
+	MessageHeadID *uint          `json:"-"`
 	MessageHead   MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
+	MessageTypeID *uint          `json:"-"`
+	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
 	RecordObjects []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
 }
 
@@ -69,9 +72,9 @@ type MessageHead struct {
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 	ProcessID    string         `xml:"ProzessID" json:"processID"`
 	CreationTime string         `xml:"Erstellungszeitpunkt" json:"creationTime"`
-	SenderID     uint           `json:"-"`
+	SenderID     *uint          `json:"-"`
 	Sender       Contact        `gorm:"foreignKey:SenderID;references:ID" xml:"Absender" json:"sender"`
-	ReceiverID   uint           `json:"-"`
+	ReceiverID   *uint          `json:"-"`
 	Receiver     Contact        `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger" json:"receiver"`
 }
 
@@ -80,9 +83,9 @@ type Contact struct {
 	CreatedAt              time.Time            `json:"-"`
 	UpdatedAt              time.Time            `json:"-"`
 	DeletedAt              gorm.DeletedAt       `gorm:"index" json:"-"`
-	AgencyIdentificationID uint                 `json:"-"`
+	AgencyIdentificationID *uint                `json:"-"`
 	AgencyIdentification   AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung" json:"agencyIdentification"`
-	InstitutionID          uint                 `json:"-"`
+	InstitutionID          *uint                `json:"-"`
 	Institution            Institution          `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution" json:"institution"`
 }
 
@@ -91,9 +94,9 @@ type AgencyIdentification struct {
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	CodeID    uint           `json:"-"`
+	CodeID    *uint          `json:"-"`
 	Code      Code           `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel" json:"code"`
-	PrefixID  uint           `json:"-"`
+	PrefixID  *uint          `json:"-"`
 	Prefix    Code           `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix" json:"prefix"`
 }
 
@@ -102,8 +105,8 @@ type Institution struct {
 	CreatedAt    time.Time      `json:"-"`
 	UpdatedAt    time.Time      `json:"-"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
-	Name         string         `xml:"Name"  json:"name"`
-	Abbreviation string         `xml:"Kurzbezeichnung" json:"abbreviation"`
+	Name         *string        `xml:"Name"  json:"name"`
+	Abbreviation *string        `xml:"Kurzbezeichnung" json:"abbreviation"`
 }
 
 type RecordObject struct {
@@ -112,21 +115,35 @@ type RecordObject struct {
 	CreatedAt          time.Time        `json:"-"`
 	UpdatedAt          time.Time        `json:"-"`
 	DeletedAt          gorm.DeletedAt   `gorm:"index" json:"-"`
-	FileRecordObjectID uint             `json:"-"`
+	FileRecordObjectID *uint            `json:"-"`
 	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
 }
 
 type FileRecordObject struct {
-	XMLName           xml.Name        `gorm:"-" xml:"Akte" json:"-"`
+	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
+	ID                uint                  `gorm:"primaryKey" json:"id"`
+	CreatedAt         time.Time             `json:"-"`
+	UpdatedAt         time.Time             `json:"-"`
+	DeletedAt         gorm.DeletedAt        `gorm:"index" json:"-"`
+	GeneralMetadataID *uint                 `json:"-"`
+	GeneralMetadata   GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	LifetimeID        *uint                 `json:"-"`
+	Lifetime          Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Type              *string               `json:"type" xml:"Typ"`
+	Processes         []ProcessRecordObject `gorm:"many2many:file_processes;" xml:"Akteninhalt>Vorgang" json:"processes"`
+}
+
+type ProcessRecordObject struct {
+	XMLName           xml.Name        `gorm:"-" xml:"Vorgang" json:"-"`
 	ID                uint            `gorm:"primaryKey" json:"id"`
 	CreatedAt         time.Time       `json:"-"`
 	UpdatedAt         time.Time       `json:"-"`
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
-	GeneralMetadataID uint            `json:"-"`
+	GeneralMetadataID *uint           `json:"-"`
 	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	LifetimeID        uint            `json:"-"`
+	LifetimeID        *uint           `json:"-"`
 	Lifetime          Lifetime        `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
-	Type              string          `json:"type" xml:"Typ"`
+	Type              *string         `json:"type" xml:"Typ"`
 }
 
 type GeneralMetadata struct {
@@ -135,9 +152,9 @@ type GeneralMetadata struct {
 	CreatedAt  time.Time      `json:"-"`
 	UpdatedAt  time.Time      `json:"-"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
-	Subject    string         `xml:"Betreff" json:"subject"`
-	XdomeaID   string         `xml:"Kennzeichen" json:"xdomeaID"`
-	FilePlanID uint           `json:"-"`
+	Subject    *string        `xml:"Betreff" json:"subject"`
+	XdomeaID   *string        `xml:"Kennzeichen" json:"xdomeaID"`
+	FilePlanID *uint          `json:"-"`
 	FilePlan   FilePlan       `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
 }
 
@@ -147,7 +164,7 @@ type FilePlan struct {
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	XdomeaID  string         `xml:"Kennzeichen" json:"xdomeaID"`
+	XdomeaID  *string        `xml:"Kennzeichen" json:"xdomeaID"`
 }
 
 type Lifetime struct {
@@ -156,6 +173,6 @@ type Lifetime struct {
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Start     string         `xml:"Beginn" json:"start"`
-	End       string         `xml:"Ende" json:"end"`
+	Start     *string        `xml:"Beginn" json:"start"`
+	End       *string        `xml:"Ende" json:"end"`
 }

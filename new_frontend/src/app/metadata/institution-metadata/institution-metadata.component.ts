@@ -14,7 +14,7 @@ export class InstitutMetadataComponent {
   form: FormGroup;
   i?: Institution;
 
-  @Input() set institution(i: Institution | null) {
+  @Input() set institution(i: Institution | null | undefined) {
     if (!!i) {
       this.i = i;
       this.form.patchValue({

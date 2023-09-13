@@ -41,6 +41,7 @@ func Migrate() {
 		&Institution{},
 		&RecordObject{},
 		&FileRecordObject{},
+		&ProcessRecordObject{},
 		&GeneralMetadata{},
 		&FilePlan{},
 		&Lifetime{},
@@ -74,6 +75,10 @@ func GetMessageByID(id uint) (Message, error) {
 		Preload("RecordObjects.FileRecordObject.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
 		Preload("RecordObjects.FileRecordObject.Lifetime").
+		Preload("RecordObjects.FileRecordObject.Processes").
+		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata").
+		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata.FilePlan").
+		Preload("RecordObjects.FileRecordObject.Processes.Lifetime").
 		First(&message, id)
 	return message, result.Error
 }
@@ -84,6 +89,10 @@ func GetFileRecordObjectByID(id uint) (FileRecordObject, error) {
 		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
 		Preload("Lifetime").
+		Preload("Processes").
+		Preload("Processes.GeneralMetadata").
+		Preload("Processes.GeneralMetadata.FilePlan").
+		Preload("Processes.Lifetime").
 		First(&file, id)
 	return file, result.Error
 }
