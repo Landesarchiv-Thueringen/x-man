@@ -1,44 +1,49 @@
 :host {
-    padding: 2em;
-    display: block;
-    width: 60em;
-  
+  padding: 2em;
+  display: block;
+
+  .metadata-section {
+    min-width: 60.0em;
+    max-width: 80.0em;
+
     .metadata {
-  
       display: flex;
       flex-direction: column;
-  
-      .file-identification-section {
+
+      .metadata-row {
         display: flex;
         flex-direction: row;
-        column-gap: 1em;
-  
-        .record-plan-id-input {
-          width: 10em;
-        }
-  
-        .file-id-input {
-          flex-grow: 1;
-        }
+        column-gap: 1.5em;
       }
   
       .subject-input {
         flex-grow: 1;
       }
   
-      .file-additional-info-section {
-        display: flex;
-        flex-direction: row;
-        column-gap: 1em;
-  
-        mat-form-field {
-          flex-grow: 1;
-        }
-      }
-  
       .appraisal-input {
         width: 10em;
       }
+
+      .record-plan-id-input {
+        width: 10em;
+      }
+
+      .file-id-input {
+        flex-grow: 1;
+      }
+
+      .file-Type-input {
+        flex-grow: 1;
+      }
+
+      .life-start-input {
+        flex-grow: 1;
+      }
+
+      .life-end-input {
+        flex-grow: 1;
+      }
     }
   }
+}
   

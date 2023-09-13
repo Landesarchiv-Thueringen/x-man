@@ -1,5 +1,6 @@
 // angular
 import { AfterViewInit, Component } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
@@ -20,6 +21,7 @@ export class FileMetadataComponent implements AfterViewInit {
   form: FormGroup;
 
   constructor(
+    private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private route: ActivatedRoute,
@@ -45,8 +47,8 @@ export class FileMetadataComponent implements AfterViewInit {
             fileId: fileRecordObject.generalMetadata.xdomeaID,
             subject: fileRecordObject.generalMetadata.subject,
             //fileType: fileRecordObject.,
-            lifeStart: fileRecordObject.lifetime.start,
-            lifeEnd: fileRecordObject.lifetime.end,
+            lifeStart: this.datePipe.transform(new Date(fileRecordObject.lifetime.start)),
+            lifeEnd: this.datePipe.transform(new Date(fileRecordObject.lifetime.end)),
           });
         }
       )
