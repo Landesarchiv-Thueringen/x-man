@@ -33,6 +33,7 @@ import { Message0501TableComponent } from './message0501-table/message0501-table
 import { Message0503TableComponent } from './message0503-table/message0503-table.component';
 import { MessageViewComponent } from './message-view/message-view.component';
 import { PaginatorDeService } from './utility/localization/paginator-de.service';
+import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { PaginatorDeService } from './utility/localization/paginator-de.service'
     MessageMetadataComponent,
     FileMetadataComponent,
     InstitutMetadataComponent,
+    ProcessMetadataComponent,
   ],
   imports: [
     BrowserModule,

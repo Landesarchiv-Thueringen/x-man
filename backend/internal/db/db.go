@@ -97,6 +97,16 @@ func GetFileRecordObjectByID(id uint) (FileRecordObject, error) {
 	return file, result.Error
 }
 
+func GetProcessRecordObjectByID(id uint) (ProcessRecordObject, error) {
+	var process ProcessRecordObject
+	result := db.
+		Preload("GeneralMetadata").
+		Preload("GeneralMetadata.FilePlan").
+		Preload("Lifetime").
+		First(&process, id)
+	return process, result.Error
+}
+
 func GetMessageTypeByCode(code string) MessageType {
 	messageType := MessageType{Code: code}
 	result := db.Where(&messageType).First(&messageType)

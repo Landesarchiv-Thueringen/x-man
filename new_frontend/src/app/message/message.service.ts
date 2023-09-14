@@ -113,6 +113,10 @@ export class MessageService {
     return this.httpClient.get<FileRecordObject>(this.apiEndpoint + '/file-record-object/' + id);
   }
 
+  getProcessRecordObject(id: number): Observable<ProcessRecordObject> {
+    return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
+  }
+
   get0501Messages(): Observable<Message[]> {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0501');
   }

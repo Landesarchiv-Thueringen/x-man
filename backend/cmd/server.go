@@ -30,6 +30,7 @@ func main() {
 	router.GET("messages/0503", get0503Messages)
 	router.GET("message/:id", getMessageByID)
 	router.GET("file-record-object/:id", getFileRecordObjectByID)
+	router.GET("process-record-object/:id", getProcessRecordObjectByID)
 	router.Run("localhost:3000")
 }
 
@@ -68,6 +69,19 @@ func getFileRecordObjectByID(context *gin.Context) {
 		context.JSON(http.StatusNotFound, err)
 	} else {
 		context.JSON(http.StatusOK, fileRecordObject)
+	}
+}
+
+func getProcessRecordObjectByID(context *gin.Context) {
+	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	processRecordObject, err := db.GetProcessRecordObjectByID(uint(id))
+	if err != nil {
+		context.JSON(http.StatusNotFound, err)
+	} else {
+		context.JSON(http.StatusOK, processRecordObject)
 	}
 }
 

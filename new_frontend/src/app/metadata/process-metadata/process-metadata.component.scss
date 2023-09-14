@@ -1,0 +1,49 @@
+:host {
+    padding: 2em;
+    display: block;
+  
+    .metadata-section {
+      min-width: 60.0em;
+      max-width: 80.0em;
+  
+      .metadata {
+        display: flex;
+        flex-direction: column;
+  
+        .metadata-row {
+          display: flex;
+          flex-direction: row;
+          column-gap: 1.5em;
+        }
+    
+        .subject-input {
+          flex-grow: 1;
+        }
+    
+        .appraisal-input {
+          width: 10em;
+        }
+  
+        .record-plan-id-input {
+          width: 10em;
+        }
+  
+        .process-id-input {
+          flex-grow: 1;
+        }
+  
+        .process-Type-input {
+          flex-grow: 1;
+        }
+  
+        .life-start-input {
+          flex-grow: 1;
+        }
+  
+        .life-end-input {
+          flex-grow: 1;
+        }
+      }
+    }
+  }
+    

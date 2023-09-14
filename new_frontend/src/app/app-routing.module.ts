@@ -7,6 +7,7 @@ import { Message0503TableComponent } from './message0503-table/message0503-table
 import { MessageViewComponent } from './message-view/message-view.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
 import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
+import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 
 const routes: Routes = [
   { 
@@ -19,6 +20,7 @@ const routes: Routes = [
         children: [
           { path: 'details', component: MessageMetadataComponent },
           { path: 'akte/:id', component: FileMetadataComponent },
+          { path: 'vorgang/:id', component: ProcessMetadataComponent },
         ],
       },
     ],

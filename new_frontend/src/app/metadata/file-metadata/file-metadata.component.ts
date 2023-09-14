@@ -1,6 +1,5 @@
 // angular
 import { AfterViewInit, Component } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
@@ -21,7 +20,6 @@ export class FileMetadataComponent implements AfterViewInit {
   form: FormGroup;
 
   constructor(
-    private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private route: ActivatedRoute,

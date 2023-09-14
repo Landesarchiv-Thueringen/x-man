@@ -1,0 +1,57 @@
+<div class="metadata-section">
+
+    <form *ngIf="processRecordObject" [formGroup]="form">
+  
+      <!--<h2>{{structureNode.displayText.title}} - {{structureNode.displayText.subtitle}}</h2> -->
+    
+      <mat-accordion multi>
+    
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Allgemeine Metadaten
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+    
+          <div class="metadata">
+            <div class="metadata-row">
+              <mat-form-field class="record-plan-id-input" appearance="outline">
+                <mat-label>Aktenplanschlüssel</mat-label>
+                <input matInput formControlName="recordPlanId" readonly>
+              </mat-form-field>
+    
+              <mat-form-field class="process-id-input" appearance="outline">
+                <mat-label>Vorgangszeichen</mat-label>
+                <input matInput formControlName="fileId" readonly>
+              </mat-form-field>
+            </div>
+    
+            <mat-form-field class="subject-input" appearance="outline">
+              <mat-label>Behördlicher Vorgangstitel</mat-label>
+              <input matInput formControlName="subject" readonly>
+            </mat-form-field>
+    
+            <div class="metadata-row">
+              <mat-form-field class="process-Type-input" appearance="outline">
+                <mat-label>Vorgangstyp</mat-label>
+                <input matInput formControlName="processType" readonly>
+              </mat-form-field>
+    
+              <mat-form-field class="life-start-input" appearance="outline">
+                <mat-label>Laufzeit Beginn</mat-label>
+                <input matInput formControlName="lifeStart" readonly>
+              </mat-form-field>
+    
+              <mat-form-field class="life-end-input" appearance="outline">
+                <mat-label>Laufzeit Ende</mat-label>
+                <input matInput formControlName="lifeEnd" readonly>
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-expansion-panel>
+    
+      </mat-accordion>
+    
+    </form>
+  
+  </div>
