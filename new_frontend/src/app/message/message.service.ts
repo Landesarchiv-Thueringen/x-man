@@ -65,6 +65,13 @@ export interface ProcessRecordObject {
   generalMetadata?: GeneralMetadata;
   lifetime?: Lifetime;
   type?: string;
+  documents: DocumentRecordObject[];
+}
+
+export interface DocumentRecordObject {
+  id: number;
+  generalMetadata?: GeneralMetadata;
+  type?: string;
 }
 
 export interface GeneralMetadata {
@@ -115,6 +122,10 @@ export class MessageService {
 
   getProcessRecordObject(id: number): Observable<ProcessRecordObject> {
     return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
+  }
+
+  getDocumentRecordObject(id: number): Observable<DocumentRecordObject> {
+    return this.httpClient.get<DocumentRecordObject>(this.apiEndpoint + '/document-record-object/' + id);
   }
 
   get0501Messages(): Observable<Message[]> {

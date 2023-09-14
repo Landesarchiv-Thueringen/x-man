@@ -7,7 +7,7 @@ import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 
 // project
-import { FileRecordObject, Message, MessageService, ProcessRecordObject } from '../message/message.service';
+import { DocumentRecordObject, FileRecordObject, Message, MessageService, ProcessRecordObject } from '../message/message.service';
 
 // utility
 import { Subscription } from 'rxjs';
@@ -124,6 +124,10 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
   }
 
   getProcessStructureNode(processRecordObject: ProcessRecordObject): StructureNode {
+    const children: StructureNode[] = [];
+    for (let document of processRecordObject.documents) {
+      children.push(this.getDocumentStructureNode(document));
+    }
     const displayText: DisplayText = {
       title: 'Vorgang: ' + processRecordObject.generalMetadata?.xdomeaID,
       subtitle: processRecordObject.generalMetadata?.subject,
@@ -132,6 +136,21 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
     const node: StructureNode = {
       displayText: displayText,
       type: 'process',
+      routerLink: routerLink,
+      children: children,
+    };
+    return node;
+  }
+
+  getDocumentStructureNode(documentRecordObject: DocumentRecordObject): StructureNode {
+    const displayText: DisplayText = {
+      title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
+      subtitle: documentRecordObject.generalMetadata?.subject,
+    }
+    const routerLink: string = 'dokument/' + documentRecordObject.id;
+    const node: StructureNode = {
+      displayText: displayText,
+      type: 'document',
       routerLink: routerLink,
     };
     return node;

@@ -134,15 +134,27 @@ type FileRecordObject struct {
 }
 
 type ProcessRecordObject struct {
-	XMLName           xml.Name        `gorm:"-" xml:"Vorgang" json:"-"`
+	XMLName           xml.Name               `gorm:"-" xml:"Vorgang" json:"-"`
+	ID                uint                   `gorm:"primaryKey" json:"id"`
+	CreatedAt         time.Time              `json:"-"`
+	UpdatedAt         time.Time              `json:"-"`
+	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
+	GeneralMetadataID *uint                  `json:"-"`
+	GeneralMetadata   GeneralMetadata        `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	LifetimeID        *uint                  `json:"-"`
+	Lifetime          Lifetime               `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Type              *string                `json:"type" xml:"Typ"`
+	Documents         []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
+}
+
+type DocumentRecordObject struct {
+	XMLName           xml.Name        `gorm:"-" xml:"Dokument" json:"-"`
 	ID                uint            `gorm:"primaryKey" json:"id"`
 	CreatedAt         time.Time       `json:"-"`
 	UpdatedAt         time.Time       `json:"-"`
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
 	GeneralMetadataID *uint           `json:"-"`
 	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	LifetimeID        *uint           `json:"-"`
-	Lifetime          Lifetime        `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string         `json:"type" xml:"Typ"`
 }
 

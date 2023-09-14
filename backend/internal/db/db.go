@@ -42,6 +42,7 @@ func Migrate() {
 		&RecordObject{},
 		&FileRecordObject{},
 		&ProcessRecordObject{},
+		&DocumentRecordObject{},
 		&GeneralMetadata{},
 		&FilePlan{},
 		&Lifetime{},
@@ -79,6 +80,9 @@ func GetMessageByID(id uint) (Message, error) {
 		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata.FilePlan").
 		Preload("RecordObjects.FileRecordObject.Processes.Lifetime").
+		Preload("RecordObjects.FileRecordObject.Processes.Documents").
+		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata").
+		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata.FilePlan").
 		First(&message, id)
 	return message, result.Error
 }
@@ -103,8 +107,20 @@ func GetProcessRecordObjectByID(id uint) (ProcessRecordObject, error) {
 		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
 		Preload("Lifetime").
+		Preload("Documents").
+		Preload("Documents.GeneralMetadata").
+		Preload("Documents.GeneralMetadata.FilePlan").
 		First(&process, id)
 	return process, result.Error
+}
+
+func GetDocumentRecordObjectByID(id uint) (DocumentRecordObject, error) {
+	var document DocumentRecordObject
+	result := db.
+		Preload("GeneralMetadata").
+		Preload("GeneralMetadata.FilePlan").
+		First(&document, id)
+	return document, result.Error
 }
 
 func GetMessageTypeByCode(code string) MessageType {
