@@ -156,6 +156,9 @@ type DocumentRecordObject struct {
 	GeneralMetadataID *uint           `json:"-"`
 	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	Type              *string         `json:"type" xml:"Typ"`
+	IncomingDate      *string         `xml:"Posteingangsdatum" json:"incomingDate"`
+	OutgoingDate      *string         `xml:"Postausgangsdatum" json:"outgoingDate"`
+	DocumentDate      *string         `xml:"DatumDesSchreibens" json:"documentDate"`
 }
 
 type GeneralMetadata struct {

@@ -72,6 +72,9 @@ export interface DocumentRecordObject {
   id: number;
   generalMetadata?: GeneralMetadata;
   type?: string;
+  incomingDate?: string;
+  outgoingDate?: string;
+  documentDate?: string;
 }
 
 export interface GeneralMetadata {
