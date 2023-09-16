@@ -31,7 +31,8 @@ export class FileMetadataComponent implements AfterViewInit {
       fileType: new FormControl<string | null>(null),
       lifeStart: new FormControl<string | null>(null),
       lifeEnd: new FormControl<string | null>(null),
-      appraisal: new FormControl<number | null>(null),
+      appraisal: new FormControl<string | null>(null),
+      appraisalRecomm: new FormControl<string | null>(null),
     });
   }
 
@@ -48,6 +49,8 @@ export class FileMetadataComponent implements AfterViewInit {
             fileType: fileRecordObject.type,
             lifeStart: this.messageService.getDateText(fileRecordObject.lifetime?.start),
             lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
+            appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
+            appraisalRecomm: fileRecordObject.archiveMetadata?.appraisalRecommCode,
           });
         }
       )

@@ -9,7 +9,7 @@
         <mat-expansion-panel [expanded]="true">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              Allgemeine Metadaten
+              Metadaten
             </mat-panel-title>
           </mat-expansion-panel-header>
     
@@ -45,6 +45,26 @@
               <mat-form-field class="life-end-input" appearance="outline">
                 <mat-label>Laufzeit Ende</mat-label>
                 <input matInput formControlName="lifeEnd" readonly>
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Bewertung
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="metadata">
+            <div class="metadata-row">
+              <mat-form-field class="appraisal-recomm-input" appearance="outline">
+                <mat-label>Bewertungsvorschlag</mat-label>
+                <input matInput formControlName="appraisalRecomm" readonly>
+              </mat-form-field>
+              <mat-form-field class="appraisal-input" appearance="outline">
+                <mat-label>Bewertung</mat-label>
+                <input matInput formControlName="appraisal" readonly>
               </mat-form-field>
             </div>
           </div>

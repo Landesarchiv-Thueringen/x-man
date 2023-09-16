@@ -55,6 +55,7 @@ export interface RecordObject {
 export interface FileRecordObject {
   id: number;
   generalMetadata?: GeneralMetadata;
+  archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
   type?: string;
   processes: ProcessRecordObject[];
@@ -63,6 +64,7 @@ export interface FileRecordObject {
 export interface ProcessRecordObject {
   id: number;
   generalMetadata?: GeneralMetadata;
+  archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
   type?: string;
   documents: DocumentRecordObject[];
@@ -82,6 +84,12 @@ export interface GeneralMetadata {
   subject?: string;
   xdomeaID?: string;
   filePlan?: FilePlan;
+}
+
+export interface ArchiveMetadata {
+  id: number;
+  appraisalCode: string;
+  appraisalRecommCode: string;
 }
 
 export interface FilePlan {
