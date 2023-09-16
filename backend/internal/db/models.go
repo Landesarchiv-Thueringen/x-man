@@ -119,16 +119,6 @@ type RecordObject struct {
 	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
 }
 
-type RecordObjectAppraisal struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      byte           `json:"code"`
-	ShortDesc string         `json:"shortDesc"`
-	Desc      string         `json:"desc"`
-}
-
 type FileRecordObject struct {
 	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
 	ID                uint                  `gorm:"primaryKey" json:"id"`
@@ -137,6 +127,8 @@ type FileRecordObject struct {
 	DeletedAt         gorm.DeletedAt        `gorm:"index" json:"-"`
 	GeneralMetadataID *uint                 `json:"-"`
 	GeneralMetadata   GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	ArchiveMetadataID *uint                 `json:"-"`
+	ArchiveMetadata   ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
 	LifetimeID        *uint                 `json:"-"`
 	Lifetime          Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string               `json:"type" xml:"Typ"`
@@ -151,6 +143,8 @@ type ProcessRecordObject struct {
 	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
 	GeneralMetadataID *uint                  `json:"-"`
 	GeneralMetadata   GeneralMetadata        `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	ArchiveMetadataID *uint                  `json:"-"`
+	ArchiveMetadata   ArchiveMetadata        `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
 	LifetimeID        *uint                  `json:"-"`
 	Lifetime          Lifetime               `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string                `json:"type" xml:"Typ"`
@@ -200,4 +194,23 @@ type Lifetime struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Start     *string        `xml:"Beginn" json:"start"`
 	End       *string        `xml:"Ende" json:"end"`
+}
+
+type ArchiveMetadata struct {
+	XMLName       xml.Name       `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
+	ID            uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt     time.Time      `json:"-"`
+	UpdatedAt     time.Time      `json:"-"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	AppraisalCode string         `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
+}
+
+type RecordObjectAppraisal struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Code      byte           `gorm:"unique" xml:"code" json:"code"`
+	ShortDesc string         `json:"shortDesc"`
+	Desc      string         `json:"desc"`
 }

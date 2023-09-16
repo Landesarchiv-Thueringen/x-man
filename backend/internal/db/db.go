@@ -40,13 +40,14 @@ func Migrate() {
 		&AgencyIdentification{},
 		&Institution{},
 		&RecordObject{},
-		&RecordObjectAppraisal{},
 		&FileRecordObject{},
 		&ProcessRecordObject{},
 		&DocumentRecordObject{},
 		&GeneralMetadata{},
 		&FilePlan{},
 		&Lifetime{},
+		&ArchiveMetadata{},
+		&RecordObjectAppraisal{},
 	)
 }
 
@@ -83,10 +84,12 @@ func GetMessageByID(id uint) (Message, error) {
 		Preload("RecordObjects.FileRecordObject").
 		Preload("RecordObjects.FileRecordObject.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
+		Preload("RecordObjects.FileRecordObject.ArchiveMetadata").
 		Preload("RecordObjects.FileRecordObject.Lifetime").
 		Preload("RecordObjects.FileRecordObject.Processes").
 		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata.FilePlan").
+		Preload("RecordObjects.FileRecordObject.Processes.ArchiveMetadata").
 		Preload("RecordObjects.FileRecordObject.Processes.Lifetime").
 		Preload("RecordObjects.FileRecordObject.Processes.Documents").
 		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata").
@@ -100,6 +103,7 @@ func GetFileRecordObjectByID(id uint) (FileRecordObject, error) {
 	result := db.
 		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
+		Preload("ArchiveMetadata").
 		Preload("Lifetime").
 		Preload("Processes").
 		Preload("Processes.GeneralMetadata").
@@ -114,6 +118,7 @@ func GetProcessRecordObjectByID(id uint) (ProcessRecordObject, error) {
 	result := db.
 		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
+		Preload("ArchiveMetadata").
 		Preload("Lifetime").
 		Preload("Documents").
 		Preload("Documents.GeneralMetadata").
@@ -175,11 +180,6 @@ func GetMessagesByCode(code string) ([]Message, error) {
 		Preload("MessageHead.Receiver.AgencyIdentification").
 		Preload("MessageHead.Receiver.AgencyIdentification.Code").
 		Preload("MessageHead.Receiver.AgencyIdentification.Prefix").
-		Preload("RecordObjects").
-		Preload("RecordObjects.FileRecordObject").
-		Preload("RecordObjects.FileRecordObject.GeneralMetadata").
-		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
-		Preload("RecordObjects.FileRecordObject.Lifetime").
 		Where("message_type_id = ?", messageType.ID).
 		Find(&messages)
 	return messages, result.Error
