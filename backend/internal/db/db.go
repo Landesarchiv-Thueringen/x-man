@@ -145,6 +145,12 @@ func GetMessageTypeByCode(code string) MessageType {
 	return messageType
 }
 
+func GetRecordObjectAppraisals() ([]RecordObjectAppraisal, error) {
+	var recordObjectAppraisal []RecordObjectAppraisal
+	result := db.Find(&recordObjectAppraisal)
+	return recordObjectAppraisal, result.Error
+}
+
 func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 	result := db.Model(&Process{}).
 		Preload("Messages").

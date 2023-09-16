@@ -32,6 +32,7 @@ func main() {
 	router.GET("file-record-object/:id", getFileRecordObjectByID)
 	router.GET("process-record-object/:id", getProcessRecordObjectByID)
 	router.GET("document-record-object/:id", getDocumentRecordObjectByID)
+	router.GET("record-object-appraisals", getRecordObjectAppraisal)
 	router.Run("localhost:3000")
 }
 
@@ -113,6 +114,14 @@ func get0503Messages(context *gin.Context) {
 		log.Fatal(err)
 	}
 	context.JSON(http.StatusOK, messages)
+}
+
+func getRecordObjectAppraisal(context *gin.Context) {
+	appraisals, err := db.GetRecordObjectAppraisals()
+	if err != nil {
+		log.Fatal(err)
+	}
+	context.JSON(http.StatusOK, appraisals)
 }
 
 func processFlags() {

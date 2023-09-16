@@ -92,6 +92,13 @@ export interface ArchiveMetadata {
   appraisalRecommCode: string;
 }
 
+export interface RecordObjectAppraisal {
+  id: number;
+  code: string;
+  shortDesc: string;
+  desc: string;
+}
+
 export interface FilePlan {
   id: number;
   xdomeaID?: number;
@@ -145,6 +152,10 @@ export class MessageService {
 
   get0503Messages(): Observable<Message[]> {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
+  }
+
+  getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
+    return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
   }
 
   /** 
