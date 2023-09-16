@@ -121,5 +121,6 @@ func processFlags() {
 	if *initFlag {
 		db.Migrate()
 		xdomea.InitMessageTypes()
+		xdomea.InitRecordObjectAppraisals()
 	}
 }

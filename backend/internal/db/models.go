@@ -119,6 +119,16 @@ type RecordObject struct {
 	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
 }
 
+type RecordObjectAppraisal struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Code      byte           `json:"code"`
+	ShortDesc string         `json:"shortDesc"`
+	Desc      string         `json:"desc"`
+}
+
 type FileRecordObject struct {
 	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
 	ID                uint                  `gorm:"primaryKey" json:"id"`

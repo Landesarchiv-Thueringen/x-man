@@ -34,6 +34,15 @@ func InitMessageTypes() {
 	db.InitMessageTypes(messageTypes)
 }
 
+func InitRecordObjectAppraisals() {
+	appraisals := []*db.RecordObjectAppraisal{
+		{Code: 'A', ShortDesc: "archivieren", Desc: "Das Schriftgutobjekt ist archivwürdig."},
+		{Code: 'B', ShortDesc: "bewerten", Desc: "Das Schriftgutobjekt ist zum Bewerten markiert."},
+		{Code: 'V', ShortDesc: "vernichten", Desc: "Das Schriftgutobjekt ist zum Vernichten markiert."},
+	}
+	db.InitRecordObjectAppraisals(appraisals)
+}
+
 func IsMessage(path string) bool {
 	fileName := filepath.Base(path)
 	return message0501Regex.MatchString(fileName) || message0503Regex.MatchString(fileName)

@@ -40,6 +40,7 @@ func Migrate() {
 		&AgencyIdentification{},
 		&Institution{},
 		&RecordObject{},
+		&RecordObjectAppraisal{},
 		&FileRecordObject{},
 		&ProcessRecordObject{},
 		&DocumentRecordObject{},
@@ -53,6 +54,13 @@ func InitMessageTypes(messageTypes []*MessageType) {
 	result := db.Create(messageTypes)
 	if result.Error != nil {
 		log.Fatal("Failed to initialize message types!")
+	}
+}
+
+func InitRecordObjectAppraisals(appraisals []*RecordObjectAppraisal) {
+	result := db.Create(appraisals)
+	if result.Error != nil {
+		log.Fatal("Failed to initialize record object appraisal values!")
 	}
 }
 
