@@ -158,6 +158,17 @@ export class MessageService {
     return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
   }
 
+  getRecordObjectAppraisalByCode(code: string | undefined, appraisals: RecordObjectAppraisal[]): RecordObjectAppraisal | null {
+    if (!code) {
+      return null;
+    }
+    const appraisal = appraisals.find((appraisal: RecordObjectAppraisal) => appraisal.code === code);
+    if (!appraisal) {
+      throw new Error('record object appraisal with code <' + code + '> wasn\'t found');
+    }
+    return appraisal;
+  }
+
   /** 
  * Returns null if the xml node or its text contents are null, because that means the date was not
  * provided in the message. Returns the text content of the xml node if the text content is no 

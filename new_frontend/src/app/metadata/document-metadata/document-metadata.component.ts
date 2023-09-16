@@ -1,5 +1,5 @@
 // angular
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
@@ -14,7 +14,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './document-metadata.component.html',
   styleUrls: ['./document-metadata.component.scss']
 })
-export class DocumentMetadataComponent implements AfterViewInit {
+export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   documentRecordObject?: DocumentRecordObject;
   form: FormGroup;
@@ -54,5 +54,9 @@ export class DocumentMetadataComponent implements AfterViewInit {
         }
       )
     })   
+  }
+
+  ngOnDestroy(): void {
+    this.urlParameterSubscription?.unsubscribe;
   }
 }

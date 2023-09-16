@@ -1,22 +1,23 @@
 // angular
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 // project
-import { ProcessRecordObject, MessageService } from '../../message/message.service';
+import { ProcessRecordObject, MessageService, RecordObjectAppraisal } from '../../message/message.service';
 
 // utility
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-process-metadata',
   templateUrl: './process-metadata.component.html',
   styleUrls: ['./process-metadata.component.scss']
 })
-export class ProcessMetadataComponent {
+export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   processRecordObject?: ProcessRecordObject;
+  recordObjectAppraisals?: RecordObjectAppraisal[];
   form: FormGroup;
 
   constructor(
@@ -38,7 +39,15 @@ export class ProcessMetadataComponent {
 
   ngAfterViewInit(): void {
     this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService.getProcessRecordObject(+params['id']).subscribe(
+      this.messageService.getRecordObjectAppraisals().pipe(
+        switchMap(
+          (appraisals: RecordObjectAppraisal[]) => {
+            this.recordObjectAppraisals = appraisals;
+            console.log(appraisals);
+            return this.messageService.getProcessRecordObject(+params['id']);
+          }
+        )
+      ).subscribe(
         (processRecordObject: ProcessRecordObject) => {
           console.log(processRecordObject);
           this.processRecordObject = processRecordObject;
@@ -49,11 +58,19 @@ export class ProcessMetadataComponent {
             processType: processRecordObject.type,
             lifeStart: this.messageService.getDateText(processRecordObject.lifetime?.start),
             lifeEnd: this.messageService.getDateText(processRecordObject.lifetime?.end),
-            appraisal: processRecordObject.archiveMetadata?.appraisalCode,
-            appraisalRecomm: processRecordObject.archiveMetadata?.appraisalRecommCode,
+            appraisal: this.messageService.getRecordObjectAppraisalByCode(
+              processRecordObject.archiveMetadata?.appraisalCode, this.recordObjectAppraisals!,
+            )?.desc,
+            appraisalRecomm: this.messageService.getRecordObjectAppraisalByCode(
+              processRecordObject.archiveMetadata?.appraisalRecommCode, this.recordObjectAppraisals!,
+            )?.desc,
           });
         }
-      )
-    })   
+      );
+    }) 
+  }
+
+  ngOnDestroy(): void {
+    this.urlParameterSubscription?.unsubscribe;
   }
 }

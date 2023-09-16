@@ -1,22 +1,23 @@
 // angular
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 // project
-import { FileRecordObject, MessageService } from '../../message/message.service';
+import { FileRecordObject, MessageService, RecordObjectAppraisal } from '../../message/message.service';
 
 // utility
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-file-metadata',
   templateUrl: './file-metadata.component.html',
   styleUrls: ['./file-metadata.component.scss']
 })
-export class FileMetadataComponent implements AfterViewInit {
+export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   fileRecordObject?: FileRecordObject;
+  recordObjectAppraisals?: RecordObjectAppraisal[];
   form: FormGroup;
 
   constructor(
@@ -38,7 +39,15 @@ export class FileMetadataComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService.getFileRecordObject(+params['id']).subscribe(
+      this.messageService.getRecordObjectAppraisals().pipe(
+        switchMap(
+          (appraisals: RecordObjectAppraisal[]) => {
+            this.recordObjectAppraisals = appraisals;
+            console.log(appraisals);
+            return this.messageService.getFileRecordObject(+params['id']);
+          }
+        )
+      ).subscribe(
         (fileRecordObject: FileRecordObject) => {
           console.log(fileRecordObject);
           this.fileRecordObject = fileRecordObject;
@@ -49,11 +58,19 @@ export class FileMetadataComponent implements AfterViewInit {
             fileType: fileRecordObject.type,
             lifeStart: this.messageService.getDateText(fileRecordObject.lifetime?.start),
             lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
-            appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
-            appraisalRecomm: fileRecordObject.archiveMetadata?.appraisalRecommCode,
+            appraisal: this.messageService.getRecordObjectAppraisalByCode(
+              fileRecordObject.archiveMetadata?.appraisalCode, this.recordObjectAppraisals!,
+            )?.desc,
+            appraisalRecomm: this.messageService.getRecordObjectAppraisalByCode(
+              fileRecordObject.archiveMetadata?.appraisalRecommCode, this.recordObjectAppraisals!,
+            )?.desc,
           });
         }
-      )
-    })   
+      );
+    })
+  }
+
+  ngOnDestroy(): void {
+    this.urlParameterSubscription?.unsubscribe;
   }
 }

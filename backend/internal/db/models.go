@@ -211,7 +211,7 @@ type RecordObjectAppraisal struct {
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      byte           `gorm:"unique" xml:"code" json:"code"`
+	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	ShortDesc string         `json:"shortDesc"`
 	Desc      string         `json:"desc"`
 }
