@@ -1,10 +1,10 @@
 // angular
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 
 // project
-import { FileRecordObject, MessageService, RecordObjectAppraisal } from '../../message/message.service';
+import { FileRecordObject, Message, MessageService, RecordObjectAppraisal } from '../../message/message.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
@@ -16,6 +16,7 @@ import { Subscription, switchMap } from 'rxjs';
 })
 export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
+  message?: Message;
   fileRecordObject?: FileRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
   form: FormGroup;
@@ -38,39 +39,76 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService.getRecordObjectAppraisals().pipe(
-        switchMap(
-          (appraisals: RecordObjectAppraisal[]) => {
-            this.recordObjectAppraisals = appraisals;
-            console.log(appraisals);
-            return this.messageService.getFileRecordObject(+params['id']);
-          }
-        )
-      ).subscribe(
+    this.route.parent?.params.subscribe((params) => {
+      this.messageService.getMessage(+params['id']).subscribe(
+        (message: Message) => {
+          this.message = message;
+        }
+      );
+    });
+    this.urlParameterSubscription = this.route.params.pipe(
+      switchMap(
+        (params: Params) => {
+          return this.messageService.getFileRecordObject(+params['id']);
+        }
+      ),
+      switchMap(
         (fileRecordObject: FileRecordObject) => {
           console.log(fileRecordObject);
           this.fileRecordObject = fileRecordObject;
-          this.form.patchValue({
-            recordPlanId: fileRecordObject.generalMetadata?.filePlan?.xdomeaID,
-            fileId: fileRecordObject.generalMetadata?.xdomeaID,
-            subject: fileRecordObject.generalMetadata?.subject,
-            fileType: fileRecordObject.type,
-            lifeStart: this.messageService.getDateText(fileRecordObject.lifetime?.start),
-            lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
-            appraisal: this.messageService.getRecordObjectAppraisalByCode(
-              fileRecordObject.archiveMetadata?.appraisalCode, this.recordObjectAppraisals!,
-            )?.desc,
-            appraisalRecomm: this.messageService.getRecordObjectAppraisalByCode(
-              fileRecordObject.archiveMetadata?.appraisalRecommCode, this.recordObjectAppraisals!,
-            )?.desc,
-          });
+          return this.messageService.getMessage(this.route.parent!.snapshot.params['id']);
         }
-      );
-    })
+      ),
+      switchMap(
+        (message: Message) => {
+          this.message = message;
+          return this.messageService.getRecordObjectAppraisals();
+        }
+      ),
+    ).subscribe({
+      error: (error: any) => {
+        console.error(error)
+      },
+      next: (appraisals: RecordObjectAppraisal[]) => {
+        this.recordObjectAppraisals = appraisals;
+        this.setMetadata(
+          this.fileRecordObject!, 
+          this.message!, 
+          this.recordObjectAppraisals,
+        );
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.urlParameterSubscription?.unsubscribe;
+  }
+
+  setMetadata(
+    fileRecordObject: FileRecordObject, 
+    message: Message, 
+    recordObjectAppraisals: RecordObjectAppraisal[],
+  ): void {
+    let appraisal: string | undefined;
+    const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
+      fileRecordObject.archiveMetadata?.appraisalRecommCode, recordObjectAppraisals,
+    )?.desc;
+    if (message.appraisalComplete) {
+      appraisal = this.messageService.getRecordObjectAppraisalByCode(
+        fileRecordObject.archiveMetadata?.appraisalCode, recordObjectAppraisals,
+      )?.desc;
+    } else {
+      appraisal = fileRecordObject.archiveMetadata?.appraisalCode;
+    }
+    this.form.patchValue({
+      recordPlanId: fileRecordObject.generalMetadata?.filePlan?.xdomeaID,
+      fileId: fileRecordObject.generalMetadata?.xdomeaID,
+      subject: fileRecordObject.generalMetadata?.subject,
+      fileType: fileRecordObject.type,
+      lifeStart: this.messageService.getDateText(fileRecordObject.lifetime?.start),
+      lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
+      appraisal: appraisal,
+      appraisalRecomm: appraisalRecomm,
+    });
   }
 }

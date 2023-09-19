@@ -30,18 +30,19 @@ type Process struct {
 }
 
 type Message struct {
-	ID            uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt     time.Time      `json:"-"`
-	UpdatedAt     time.Time      `json:"-"`
-	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
-	StoreDir      string         `json:"-"`
-	MessagePath   string         `json:"-"`
-	XdomeaVersion string         `json:"xdomeaVersion"`
-	MessageHeadID *uint          `json:"-"`
-	MessageHead   MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
-	MessageTypeID *uint          `json:"-"`
-	MessageType   MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
-	RecordObjects []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
+	ID                uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt         time.Time      `json:"-"`
+	UpdatedAt         time.Time      `json:"-"`
+	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
+	StoreDir          string         `json:"-"`
+	MessagePath       string         `json:"-"`
+	XdomeaVersion     string         `json:"xdomeaVersion"`
+	MessageHeadID     *uint          `json:"-"`
+	MessageHead       MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
+	MessageTypeID     *uint          `json:"-"`
+	MessageType       MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
+	AppraisalComplete bool           `json:"appraisalComplete"`
+	RecordObjects     []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
 }
 
 type MessageType struct {

@@ -88,10 +88,15 @@ func AddMessage(
 	if err != nil {
 		log.Fatal("message doesn't exist")
 	}
+	appraisalComplete := false
+	if messageType.Code == "0503" {
+		appraisalComplete = true
+	}
 	message := db.Message{
-		MessageType: messageType,
-		StoreDir:    messageStoreDir,
-		MessagePath: messagePath,
+		MessageType:       messageType,
+		StoreDir:          messageStoreDir,
+		MessagePath:       messagePath,
+		AppraisalComplete: appraisalComplete,
 	}
 	// TODO: xsd validation
 	message = ParseMessage(message)

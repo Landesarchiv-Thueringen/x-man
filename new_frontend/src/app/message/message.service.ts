@@ -14,6 +14,7 @@ export interface Message {
   xdomeaVersion: string;
   messageHead: MessageHead;
   recordObjects: RecordObject[];
+  appraisalComplete: boolean;
 }
 
 export interface MessageType {

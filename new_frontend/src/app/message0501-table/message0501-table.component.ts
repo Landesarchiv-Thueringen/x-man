@@ -19,7 +19,7 @@ import { interval, switchMap, Subscription } from 'rxjs';
 })
 export class Message0501TableComponent implements AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<Message>;
-  displayedColumns: string[] = ['creationTime', 'agency', 'processID', 'actions'];
+  displayedColumns: string[] = ['creationTime', 'agency', 'processID', 'appraisalComplete', 'actions'];
   messageSubscription: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -35,6 +35,8 @@ export class Message0501TableComponent implements AfterViewInit, OnDestroy {
           return item.messageHead?.sender?.institution?.name ? item.messageHead.sender.institution.name : '';
         case 'processID':
           return item.messageHead.processID;
+        case 'appraisalComplete':
+          return item.appraisalComplete.toString();
         default:
           throw new Error('sorting error: unhandled column');
       }

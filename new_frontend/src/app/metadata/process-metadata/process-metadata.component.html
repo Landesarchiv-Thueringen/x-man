@@ -58,13 +58,26 @@
           </mat-expansion-panel-header>
           <div class="metadata">
             <div class="metadata-row">
+              <div *ngIf="message?.appraisalComplete; then appraisalInputReadonly else appraisalInputEditable"></div>
+              <ng-template #appraisalInputReadonly>
+                <mat-form-field class="appraisal-input" appearance="outline">
+                  <mat-label>Bewertung</mat-label>
+                  <input matInput formControlName="appraisal" readonly>
+                </mat-form-field>
+              </ng-template>
+              <ng-template #appraisalInputEditable>
+                <mat-form-field class="appraisal-input" appearance="outline">
+                  <mat-label>Bewertung</mat-label>
+                  <mat-select formControlName="appraisal">
+                    <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
+                      {{ appraisal.desc }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </ng-template>
               <mat-form-field class="appraisal-recomm-input" appearance="outline">
                 <mat-label>Bewertungsvorschlag</mat-label>
                 <input matInput formControlName="appraisalRecomm" readonly>
-              </mat-form-field>
-              <mat-form-field class="appraisal-input" appearance="outline">
-                <mat-label>Bewertung</mat-label>
-                <input matInput formControlName="appraisal" readonly>
               </mat-form-field>
             </div>
           </div>
