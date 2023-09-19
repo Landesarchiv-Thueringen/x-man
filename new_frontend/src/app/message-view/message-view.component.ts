@@ -27,6 +27,7 @@ export interface StructureNode {
   displayText: DisplayText;
   type: StructureNodeType;
   routerLink: string;
+  appraisal?: string;
   children?: StructureNode[];
 }
 
@@ -39,6 +40,7 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
   treeControl: NestedTreeControl<StructureNode>;
   dataSource: MatTreeNestedDataSource<StructureNode>;
   urlParameterSubscription?: Subscription;
+  message?: Message;
 
   constructor(
     private messageService: MessageService,
@@ -57,6 +59,7 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
     this.urlParameterSubscription = this.route.params.subscribe((params) => {
       this.messageService.getMessage(+params['id']).subscribe(
         (message: Message) => {
+          this.message = message;
           const treeData: StructureNode[] = [];
           const messageNode = this.processMessage(message);
           treeData.push(messageNode);
@@ -117,6 +120,7 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
     const node: StructureNode = {
       displayText: displayText,
       type: 'file',
+      appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
       routerLink: routerLink,
       children: children,
     };
@@ -136,6 +140,7 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
     const node: StructureNode = {
       displayText: displayText,
       type: 'process',
+      appraisal: processRecordObject.archiveMetadata?.appraisalCode,
       routerLink: routerLink,
       children: children,
     };

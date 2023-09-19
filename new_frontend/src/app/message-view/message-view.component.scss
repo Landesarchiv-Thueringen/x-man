@@ -12,8 +12,9 @@
         flex-grow: 1;
 
         mat-sidenav {
-            width: 40.0em;
+            width: 45.0em;
             padding: 1em;
+            padding-right: 0.0em;
         }
     }
 
@@ -45,10 +46,23 @@
           .node-title {
             display: flex;
             flex-direction: column;
+            word-break: break-all;
+            padding-right: 2.0em;
       
             .node-subtitle-line {
               font-weight: 500;
             }
+          }
+        }
+
+        .node-appraisal {
+          display: flex;
+          flex-grow: 1;
+          padding-right: 2.0em;
+          font-weight: bold;
+
+          .spacer {
+            flex: 1 1 auto;
           }
         }
       
@@ -57,12 +71,13 @@
         */
         .mat-nested-tree-node div[role=group] {
           padding-left: 1.5em;
-          padding-right: 1.5em;
+          //padding-right: 1.5em;
         }
       
         .mat-tree-node {
           border-radius: 30px;
           margin-bottom: 0.8em;
+          margin-right: 2.0em;
            &:hover {
             background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
           }
