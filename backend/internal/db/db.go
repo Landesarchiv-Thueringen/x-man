@@ -197,6 +197,12 @@ func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	return process, result.Error
 }
 
+func GetAppraisalByCode(code string) (RecordObjectAppraisal, error) {
+	appraisal := RecordObjectAppraisal{Code: code}
+	result := db.Where(&appraisal).First(&appraisal)
+	return appraisal, result.Error
+}
+
 func AddMessage(
 	xdomeaID string,
 	processStoreDir string,
@@ -227,4 +233,38 @@ func AddMessage(
 	process.Messages = append(process.Messages, message)
 	result = db.Save(&process)
 	return message, result.Error
+}
+
+func SetFileRecordObjectAppraisal(
+	id uint,
+	appraisalCode string,
+) error {
+	fileRecordObject, err := GetFileRecordObjectByID(id)
+	if err != nil {
+		return err
+	}
+	appraisal, err := GetAppraisalByCode(appraisalCode)
+	if err != nil {
+		return err
+	}
+	fileRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
+	result := db.Save(&fileRecordObject.ArchiveMetadata)
+	return result.Error
+}
+
+func SetProcessRecordObjectAppraisal(
+	id uint,
+	appraisalCode string,
+) error {
+	processRecordObject, err := GetProcessRecordObjectByID(id)
+	if err != nil {
+		return err
+	}
+	appraisal, err := GetAppraisalByCode(appraisalCode)
+	if err != nil {
+		return err
+	}
+	processRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
+	result := db.Save(&processRecordObject.ArchiveMetadata)
+	return result.Error
 }

@@ -5,6 +5,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 
 // project
 import { ProcessRecordObject, Message, MessageService, RecordObjectAppraisal } from '../../message/message.service';
+import { NotificationService } from 'src/app/utility/notification/notification.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
@@ -24,6 +25,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
   constructor(
     private formBuilder: FormBuilder,
     private messageService: MessageService,
+    private notificationService: NotificationService,
     private route: ActivatedRoute,
   ) {
     this.form = this.formBuilder.group({
@@ -110,5 +112,18 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
       appraisal: appraisal,
       appraisalRecomm: appraisalRecomm,
     });
+  }
+
+  setAppraisal(event: any): void {
+    if (this.processRecordObject) {
+      this.messageService.setProcessRecordObjectAppraisal(this.processRecordObject.id, event.value).subscribe({
+        error: (error) => {
+          console.error(error);
+        },
+        complete: () => {
+          this.notificationService.show('Bewertung erfolgreich gespeichert')
+        }
+      });
+    }
   }
 }

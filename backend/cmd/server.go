@@ -22,7 +22,8 @@ func main() {
 	router.SetTrustedProxies([]string{"http://127.0.0.1"})
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"http://localhost:4200"}
-	corsConfig.AllowHeaders = []string{"Origin"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type"}
+	corsConfig.AllowMethods = []string{"GET", "PATCH"}
 	// It's important that the cors configuration is used before declaring the routes
 	router.Use(cors.New(corsConfig))
 	router.GET("", getDefaultResponse)
@@ -33,6 +34,8 @@ func main() {
 	router.GET("process-record-object/:id", getProcessRecordObjectByID)
 	router.GET("document-record-object/:id", getDocumentRecordObjectByID)
 	router.GET("record-object-appraisals", getRecordObjectAppraisal)
+	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
+	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.Run("localhost:3000")
 }
 
@@ -122,6 +125,32 @@ func getRecordObjectAppraisal(context *gin.Context) {
 		log.Fatal(err)
 	}
 	context.JSON(http.StatusOK, appraisals)
+}
+
+func setFileRecordObjectAppraisal(context *gin.Context) {
+	fileRecordObjectID := context.Query("id")
+	id, err := strconv.ParseUint(fileRecordObjectID, 10, 32)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	appraisalCode := context.Query("appraisal")
+	err = db.SetFileRecordObjectAppraisal(uint(id), appraisalCode)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+}
+
+func setProcessRecordObjectAppraisal(context *gin.Context) {
+	processRecordObjectID := context.Query("id")
+	id, err := strconv.ParseUint(processRecordObjectID, 10, 32)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	appraisalCode := context.Query("appraisal")
+	err = db.SetProcessRecordObjectAppraisal(uint(id), appraisalCode)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
 }
 
 func processFlags() {

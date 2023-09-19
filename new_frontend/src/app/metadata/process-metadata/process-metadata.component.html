@@ -68,7 +68,7 @@
               <ng-template #appraisalInputEditable>
                 <mat-form-field class="appraisal-input" appearance="outline">
                   <mat-label>Bewertung</mat-label>
-                  <mat-select formControlName="appraisal">
+                  <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
                     <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
                       {{ appraisal.desc }}
                     </mat-option>

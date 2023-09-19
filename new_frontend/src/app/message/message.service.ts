@@ -1,7 +1,7 @@
 // angular
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 // utility
@@ -157,6 +157,32 @@ export class MessageService {
 
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
     return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
+  }
+
+  setFileRecordObjectAppraisal(id: number, code: string): Observable<void> {
+    const url = this.apiEndpoint + '/file-record-object-appraisal';
+    const body = {};
+    const options = {
+      params: new HttpParams().set('id', id).set('appraisal', code),
+    };
+    return this.httpClient.patch<void>(
+      url,
+      body,
+      options,
+    );
+  }
+
+  setProcessRecordObjectAppraisal(id: number, code: string): Observable<void> {
+    const url = this.apiEndpoint + '/process-record-object-appraisal';
+    const body = {};
+    const options = {
+      params: new HttpParams().set('id', id).set('appraisal', code),
+    };
+    return this.httpClient.patch<void>(
+      url,
+      body,
+      options,
+    );
   }
 
   getRecordObjectAppraisalByCode(code: string | undefined, appraisals: RecordObjectAppraisal[]): RecordObjectAppraisal | null {
