@@ -7,10 +7,10 @@ import (
 	"lath/xdomea/internal/xdomea"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 var defaultResponse = "LATh xdomea server is running"
@@ -52,11 +52,11 @@ func getDefaultResponse(context *gin.Context) {
 }
 
 func getMessageByID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	message, err := db.GetMessageByID(uint(id))
+	message, err := db.GetMessageByID(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, err)
 	} else {
@@ -65,11 +65,11 @@ func getMessageByID(context *gin.Context) {
 }
 
 func getFileRecordObjectByID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	fileRecordObject, err := db.GetFileRecordObjectByID(uint(id))
+	fileRecordObject, err := db.GetFileRecordObjectByID(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, err)
 	} else {
@@ -78,11 +78,11 @@ func getFileRecordObjectByID(context *gin.Context) {
 }
 
 func getProcessRecordObjectByID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	processRecordObject, err := db.GetProcessRecordObjectByID(uint(id))
+	processRecordObject, err := db.GetProcessRecordObjectByID(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, err)
 	} else {
@@ -91,11 +91,11 @@ func getProcessRecordObjectByID(context *gin.Context) {
 }
 
 func getDocumentRecordObjectByID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	documentRecordObject, err := db.GetDocumentRecordObjectByID(uint(id))
+	documentRecordObject, err := db.GetDocumentRecordObjectByID(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, err)
 	} else {
@@ -129,12 +129,12 @@ func getRecordObjectAppraisal(context *gin.Context) {
 
 func setFileRecordObjectAppraisal(context *gin.Context) {
 	fileRecordObjectID := context.Query("id")
-	id, err := strconv.ParseUint(fileRecordObjectID, 10, 32)
+	id, err := uuid.Parse(fileRecordObjectID)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
 	appraisalCode := context.Query("appraisal")
-	err = db.SetFileRecordObjectAppraisal(uint(id), appraisalCode)
+	err = db.SetFileRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
@@ -142,12 +142,12 @@ func setFileRecordObjectAppraisal(context *gin.Context) {
 
 func setProcessRecordObjectAppraisal(context *gin.Context) {
 	processRecordObjectID := context.Query("id")
-	id, err := strconv.ParseUint(processRecordObjectID, 10, 32)
+	id, err := uuid.Parse(processRecordObjectID)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
 	appraisalCode := context.Query("appraisal")
-	err = db.SetProcessRecordObjectAppraisal(uint(id), appraisalCode)
+	err = db.SetProcessRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}

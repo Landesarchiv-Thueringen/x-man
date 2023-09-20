@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -65,7 +66,7 @@ func InitRecordObjectAppraisals(appraisals []*RecordObjectAppraisal) {
 	}
 }
 
-func GetMessageByID(id uint) (Message, error) {
+func GetMessageByID(id uuid.UUID) (Message, error) {
 	var message Message
 	result := db.
 		Preload("MessageType").
@@ -98,7 +99,7 @@ func GetMessageByID(id uint) (Message, error) {
 	return message, result.Error
 }
 
-func GetFileRecordObjectByID(id uint) (FileRecordObject, error) {
+func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 	var file FileRecordObject
 	result := db.
 		Preload("GeneralMetadata").
@@ -113,7 +114,7 @@ func GetFileRecordObjectByID(id uint) (FileRecordObject, error) {
 	return file, result.Error
 }
 
-func GetProcessRecordObjectByID(id uint) (ProcessRecordObject, error) {
+func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
 	var process ProcessRecordObject
 	result := db.
 		Preload("GeneralMetadata").
@@ -127,7 +128,7 @@ func GetProcessRecordObjectByID(id uint) (ProcessRecordObject, error) {
 	return process, result.Error
 }
 
-func GetDocumentRecordObjectByID(id uint) (DocumentRecordObject, error) {
+func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
 	var document DocumentRecordObject
 	result := db.
 		Preload("GeneralMetadata").
@@ -236,7 +237,7 @@ func AddMessage(
 }
 
 func SetFileRecordObjectAppraisal(
-	id uint,
+	id uuid.UUID,
 	appraisalCode string,
 ) error {
 	fileRecordObject, err := GetFileRecordObjectByID(id)
@@ -253,7 +254,7 @@ func SetFileRecordObjectAppraisal(
 }
 
 func SetProcessRecordObjectAppraisal(
-	id uint,
+	id uuid.UUID,
 	appraisalCode string,
 ) error {
 	processRecordObject, err := GetProcessRecordObjectByID(id)

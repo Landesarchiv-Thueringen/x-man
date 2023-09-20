@@ -42,7 +42,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.route.parent?.params.subscribe((params) => {
-      this.messageService.getMessage(+params['id']).subscribe(
+      this.messageService.getMessage(params['id']).subscribe(
         (message: Message) => {
           this.message = message;
         }
@@ -51,7 +51,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
     this.urlParameterSubscription = this.route.params.pipe(
       switchMap(
         (params: Params) => {
-          return this.messageService.getFileRecordObject(+params['id']);
+          return this.messageService.getFileRecordObject(params['id']);
         }
       ),
       switchMap(

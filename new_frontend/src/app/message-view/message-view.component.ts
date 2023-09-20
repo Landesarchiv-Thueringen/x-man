@@ -57,7 +57,7 @@ export class MessageViewComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService.getMessage(+params['id']).subscribe(
+      this.messageService.getMessage(params['id']).subscribe(
         (message: Message) => {
           this.message = message;
           const treeData: StructureNode[] = [];

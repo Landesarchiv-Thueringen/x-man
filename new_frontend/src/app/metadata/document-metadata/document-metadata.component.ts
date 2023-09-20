@@ -38,7 +38,7 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService.getDocumentRecordObject(+params['id']).subscribe(
+      this.messageService.getDocumentRecordObject(params['id']).subscribe(
         (documentRecordObject: DocumentRecordObject) => {
           console.log(documentRecordObject);
           this.documentRecordObject = documentRecordObject;

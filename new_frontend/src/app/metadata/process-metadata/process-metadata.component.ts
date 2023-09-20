@@ -42,7 +42,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.route.parent?.params.subscribe((params) => {
-      this.messageService.getMessage(+params['id']).subscribe(
+      this.messageService.getMessage(params['id']).subscribe(
         (message: Message) => {
           this.message = message;
         }
@@ -51,7 +51,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
     this.urlParameterSubscription = this.route.params.pipe(
       switchMap(
         (params: Params) => {
-          return this.messageService.getProcessRecordObject(+params['id']);
+          return this.messageService.getProcessRecordObject(params['id']);
         }
       ),
       switchMap(

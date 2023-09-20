@@ -36,7 +36,7 @@ export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     if (!!this.route.parent) {
       this.urlParameterSubscription = this.route.parent.params.subscribe((params) => {
-        this.messageService.getMessage(+params['id']).subscribe(
+        this.messageService.getMessage(params['id']).subscribe(
           (message: Message) => {
             console.log(message);
             this.message = message;

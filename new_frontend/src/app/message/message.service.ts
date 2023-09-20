@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 
 export interface Message {
-  id: number;
+  id: string;
   messageType: MessageType;
   creationTime: string;
   xdomeaVersion: string;
@@ -54,7 +54,7 @@ export interface RecordObject {
 }
 
 export interface FileRecordObject {
-  id: number;
+  id: string;
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
@@ -63,7 +63,7 @@ export interface FileRecordObject {
 }
 
 export interface ProcessRecordObject {
-  id: number;
+  id: string;
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
@@ -72,7 +72,7 @@ export interface ProcessRecordObject {
 }
 
 export interface DocumentRecordObject {
-  id: number;
+  id: string;
   generalMetadata?: GeneralMetadata;
   type?: string;
   incomingDate?: string;
@@ -131,19 +131,19 @@ export class MessageService {
     this.apiEndpoint = environment.endpoint;
   }
 
-  getMessage(id: number): Observable<Message> {
+  getMessage(id: string): Observable<Message> {
     return this.httpClient.get<Message>(this.apiEndpoint + '/message/' + id);
   }
 
-  getFileRecordObject(id: number): Observable<FileRecordObject> {
+  getFileRecordObject(id: string): Observable<FileRecordObject> {
     return this.httpClient.get<FileRecordObject>(this.apiEndpoint + '/file-record-object/' + id);
   }
 
-  getProcessRecordObject(id: number): Observable<ProcessRecordObject> {
+  getProcessRecordObject(id: string): Observable<ProcessRecordObject> {
     return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
   }
 
-  getDocumentRecordObject(id: number): Observable<DocumentRecordObject> {
+  getDocumentRecordObject(id: string): Observable<DocumentRecordObject> {
     return this.httpClient.get<DocumentRecordObject>(this.apiEndpoint + '/document-record-object/' + id);
   }
 
@@ -159,7 +159,7 @@ export class MessageService {
     return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
   }
 
-  setFileRecordObjectAppraisal(id: number, code: string): Observable<void> {
+  setFileRecordObjectAppraisal(id: string, code: string): Observable<void> {
     const url = this.apiEndpoint + '/file-record-object-appraisal';
     const body = {};
     const options = {
@@ -172,7 +172,7 @@ export class MessageService {
     );
   }
 
-  setProcessRecordObjectAppraisal(id: number, code: string): Observable<void> {
+  setProcessRecordObjectAppraisal(id: string, code: string): Observable<void> {
     const url = this.apiEndpoint + '/process-record-object-appraisal';
     const body = {};
     const options = {

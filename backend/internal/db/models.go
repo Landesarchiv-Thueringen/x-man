@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +31,7 @@ type Process struct {
 }
 
 type Message struct {
-	ID                uint           `gorm:"primaryKey" json:"id"`
+	ID                uuid.UUID      `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt         time.Time      `json:"-"`
 	UpdatedAt         time.Time      `json:"-"`
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
@@ -116,13 +117,13 @@ type RecordObject struct {
 	CreatedAt          time.Time        `json:"-"`
 	UpdatedAt          time.Time        `json:"-"`
 	DeletedAt          gorm.DeletedAt   `gorm:"index" json:"-"`
-	FileRecordObjectID *uint            `json:"-"`
+	FileRecordObjectID *uuid.UUID       `json:"-"`
 	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
 }
 
 type FileRecordObject struct {
 	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
-	ID                uint                  `gorm:"primaryKey" json:"id"`
+	ID                uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt         time.Time             `json:"-"`
 	UpdatedAt         time.Time             `json:"-"`
 	DeletedAt         gorm.DeletedAt        `gorm:"index" json:"-"`
@@ -138,7 +139,7 @@ type FileRecordObject struct {
 
 type ProcessRecordObject struct {
 	XMLName           xml.Name               `gorm:"-" xml:"Vorgang" json:"-"`
-	ID                uint                   `gorm:"primaryKey" json:"id"`
+	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt         time.Time              `json:"-"`
 	UpdatedAt         time.Time              `json:"-"`
 	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
@@ -154,7 +155,7 @@ type ProcessRecordObject struct {
 
 type DocumentRecordObject struct {
 	XMLName           xml.Name        `gorm:"-" xml:"Dokument" json:"-"`
-	ID                uint            `gorm:"primaryKey" json:"id"`
+	ID                uuid.UUID       `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt         time.Time       `json:"-"`
 	UpdatedAt         time.Time       `json:"-"`
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
