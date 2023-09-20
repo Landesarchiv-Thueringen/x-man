@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "xdomea_appraisal": {
+    "xdomea_appraisal_frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/xdomea_appraisal",
+            "outputPath": "dist/xdomea_appraisal_frontend",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -57,7 +57,13 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -66,10 +72,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "xdomea_appraisal:build:production"
+              "browserTarget": "xdomea_appraisal_frontend:build:production"
             },
             "development": {
-              "browserTarget": "xdomea_appraisal:build:development"
+              "browserTarget": "xdomea_appraisal_frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -77,7 +83,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "xdomea_appraisal:build"
+            "browserTarget": "xdomea_appraisal_frontend:build"
           }
         },
         "test": {
@@ -102,8 +108,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": false
   }
 }

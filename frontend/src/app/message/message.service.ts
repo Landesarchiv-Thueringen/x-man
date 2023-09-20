@@ -1,182 +1,212 @@
 // angular
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 // utility
-import { v4 as uuidv4 } from 'uuid';
+import { Observable } from 'rxjs';
 
-type StructureNodeType =
-  | 'message'
-  | 'messageHead'
-  | 'recordObjectList'
-  | 'file'
-  | 'process'
-  | 'document';
-
-export interface DisplayText {
-  title: string;
-  subtitle?: string;
+export interface Message {
+  id: string;
+  messageType: MessageType;
+  creationTime: string;
+  xdomeaVersion: string;
+  messageHead: MessageHead;
+  recordObjects: RecordObject[];
+  appraisalComplete: boolean;
 }
 
-export interface StructureNode {
-  displayText: DisplayText;
-  type: StructureNodeType;
-  routerLink: string;
-  xmlNode: Node;
-  children?: StructureNode[];
+export interface MessageType {
+  id: number;
+  code: string;
+}
+
+export interface MessageHead {
+  id: number;
+  processID: string;
+  creationTime: string;
+  sender: Contact;
+  receiver: Contact;
+}
+
+export interface Contact {
+  id: number;
+  agencyIdentification?: AgencyIdentification;
+  institution?: Institution;
+}
+
+export interface AgencyIdentification {
+  id: number;
+  code?: Code;
+  prefix?: Code;
+}
+
+export interface Institution {
+  id: number;
+  name?: string;
+  abbreviation?: string;
+}
+
+export interface RecordObject {
+  id: number;
+  fileRecordObject?: FileRecordObject;
+}
+
+export interface FileRecordObject {
+  id: string;
+  generalMetadata?: GeneralMetadata;
+  archiveMetadata?: ArchiveMetadata;
+  lifetime?: Lifetime;
+  type?: string;
+  processes: ProcessRecordObject[];
+}
+
+export interface ProcessRecordObject {
+  id: string;
+  generalMetadata?: GeneralMetadata;
+  archiveMetadata?: ArchiveMetadata;
+  lifetime?: Lifetime;
+  type?: string;
+  documents: DocumentRecordObject[];
+}
+
+export interface DocumentRecordObject {
+  id: string;
+  generalMetadata?: GeneralMetadata;
+  type?: string;
+  incomingDate?: string;
+  outgoingDate?: string;
+  documentDate?: string;
+}
+
+export interface GeneralMetadata {
+  id: number;
+  subject?: string;
+  xdomeaID?: string;
+  filePlan?: FilePlan;
+}
+
+export interface ArchiveMetadata {
+  id: number;
+  appraisalCode: string;
+  appraisalRecommCode: string;
+}
+
+export interface RecordObjectAppraisal {
+  id: number;
+  code: string;
+  shortDesc: string;
+  desc: string;
+}
+
+export interface FilePlan {
+  id: number;
+  xdomeaID?: number;
+}
+
+export interface Lifetime {
+  id: number;
+  start?: string;
+  end?: string;
+}
+
+export interface Code {
+  id: number;
+  code?: string;
+  name?: string;
 }
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class MessageService {
-  parser: DOMParser;
-  messageDom?: Document;
-  nodes: Map<string, StructureNode>;
 
-  constructor(private datePipe: DatePipe,) {
-    this.parser = new DOMParser();
-    this.nodes = new Map<string, StructureNode>();
+  apiEndpoint: string;
+
+  constructor(
+    private datePipe: DatePipe,
+    private httpClient: HttpClient,
+  ) {
+    this.apiEndpoint = environment.endpoint;
   }
 
-  parseMessage(message: string): Document {
-    this.messageDom = this.parser.parseFromString(message, 'application/xml');
-    return this.messageDom;
+  getMessage(id: string): Observable<Message> {
+    return this.httpClient.get<Message>(this.apiEndpoint + '/message/' + id);
   }
 
-  getMessageDom(): Document {
-    if (!this.messageDom) {
-      throw new Error('message dom not initialized');
-    }
-    return this.messageDom;
+  getFileRecordObject(id: string): Observable<FileRecordObject> {
+    return this.httpClient.get<FileRecordObject>(this.apiEndpoint + '/file-record-object/' + id);
   }
 
-  /**
-   * Structure node is stored in map service and tree component for fast access. There are no
-   * storage concerns because in the node in the component is a shallow copy.
-   */
-  addNode(
-    type: StructureNodeType,
-    xmlNode: Node,
-    children?: StructureNode[]
-  ): StructureNode {
-    const nodeId = this.getNodeId(type, xmlNode);
-    const node: StructureNode = {
-      displayText: this.getDisplayText(type, xmlNode),
-      type: type,
-      xmlNode: xmlNode,
-      children: children,
-      routerLink: this.getRouterLink(type, nodeId),
+  getProcessRecordObject(id: string): Observable<ProcessRecordObject> {
+    return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
+  }
+
+  getDocumentRecordObject(id: string): Observable<DocumentRecordObject> {
+    return this.httpClient.get<DocumentRecordObject>(this.apiEndpoint + '/document-record-object/' + id);
+  }
+
+  get0501Messages(): Observable<Message[]> {
+    return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0501');
+  }
+
+  get0503Messages(): Observable<Message[]> {
+    return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
+  }
+
+  getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
+    return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
+  }
+
+  setFileRecordObjectAppraisal(id: string, code: string): Observable<void> {
+    const url = this.apiEndpoint + '/file-record-object-appraisal';
+    const body = {};
+    const options = {
+      params: new HttpParams().set('id', id).set('appraisal', code),
     };
-
-    this.nodes.set(nodeId, node);
-    return node;
-  }
-
-  getNode(id: string): StructureNode | undefined {
-    return this.nodes.get(id);
-  }
-
-  getNodeId(type: StructureNodeType, xmlNode: Node): string {
-    if (type === 'file' || type === 'process' || type === 'document') {
-      const idXmlNode: Node = this.getXmlNodes(
-        'xdomea:Identifikation/xdomea:ID',
-        xmlNode
-      ).snapshotItem(0)!;
-      return idXmlNode.textContent!;
-    }
-    return uuidv4();
-  }
-
-  private getDisplayText(type: StructureNodeType, xmlNode: Node): DisplayText {
-    switch (type) {
-      case 'message':
-        return { title: 'Anbietungsverzeichnis' };
-      case 'recordObjectList':
-        return { title: 'Schriftgutobjekte' };
-      case 'messageHead':
-        return { title: 'Nachrichtenkopf' };
-      case 'file':
-        return this.getRecorcObjectDisplayText(type, xmlNode);
-      case 'process':
-        return this.getRecorcObjectDisplayText(type, xmlNode);
-      case 'document':
-        return this.getRecorcObjectDisplayText(type, xmlNode);
-    }
-  }
-
-  private getRecorcObjectDisplayText(
-    type: StructureNodeType,
-    xmlNode: Node
-  ): DisplayText {
-    if (type === 'file' || type === 'process' || type === 'document') {
-      const recordNumberXmlNode: Node = this.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Kennzeichen',
-        xmlNode
-      ).snapshotItem(0)!;
-      const subjectXmlNode: Node | null = this.getXmlNodes(
-        'xdomea:AllgemeineMetadaten/xdomea:Betreff',
-        xmlNode
-      ).snapshotItem(0);
-      const subtitle: string | undefined = subjectXmlNode?.textContent
-        ? subjectXmlNode.textContent
-        : undefined;
-      let recordObjectTitle = recordNumberXmlNode.textContent;
-      switch (type) {
-        case 'file':
-          return { title: 'Akte: ' + recordObjectTitle, subtitle: subtitle };
-        case 'process':
-          return { title: 'Vorgang: ' + recordObjectTitle, subtitle: subtitle };
-        case 'document':
-          return { title: 'Dokument: ' + recordObjectTitle, subtitle: subtitle };
-      }
-    }
-    throw new Error('no record object');
-  }
-
-  private getRouterLink(nodeType: StructureNodeType, nodeId: string): string {
-    switch (nodeType) {
-      case 'message':
-        return 'nachricht/' + nodeId;
-      case 'recordObjectList':
-        return 'schriftgutobjekte' + nodeId;
-      case 'messageHead':
-        return 'nachrichtenkopf/' + nodeId;
-      case 'file':
-        return 'akte/' + nodeId;
-      case 'process':
-        return 'vorgang/' + nodeId;
-      case 'document':
-        return 'dokument/' + nodeId;
-    }
-  }
-
-  getXmlNodes(xpath: string, xmlNode?: Node): XPathResult {
-    if (!this.messageDom) {
-      throw new Error('message dom not initialized');
-    }
-    return this.messageDom!.evaluate(
-      xpath,
-      xmlNode ? xmlNode : this.messageDom,
-      (namespace) => {
-        return 'urn:xoev-de:xdomea:schema:2.3.0';
-      },
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
+    return this.httpClient.patch<void>(
+      url,
+      body,
+      options,
     );
   }
 
+  setProcessRecordObjectAppraisal(id: string, code: string): Observable<void> {
+    const url = this.apiEndpoint + '/process-record-object-appraisal';
+    const body = {};
+    const options = {
+      params: new HttpParams().set('id', id).set('appraisal', code),
+    };
+    return this.httpClient.patch<void>(
+      url,
+      body,
+      options,
+    );
+  }
+
+  getRecordObjectAppraisalByCode(code: string | undefined, appraisals: RecordObjectAppraisal[]): RecordObjectAppraisal | null {
+    if (!code) {
+      return null;
+    }
+    const appraisal = appraisals.find((appraisal: RecordObjectAppraisal) => appraisal.code === code);
+    if (!appraisal) {
+      throw new Error('record object appraisal with code <' + code + '> wasn\'t found');
+    }
+    return appraisal;
+  }
+
   /** 
-   * Returns null if the xml node or its text contents are null, because that means the date was not
-   * provided in the message. Returns the text content of the xml node if the text content is no 
-   * parsable date to show the malformed date in the ui. Returns formatted date string if text 
-   * content is parsable.
-   */
-  getDateText(xmlNode: Node|null): string|null {
-    if (xmlNode?.textContent) {
-      const timestamp: number = Date.parse(xmlNode?.textContent);
+ * Returns null if the xml node or its text contents are null, because that means the date was not
+ * provided in the message. Returns the text content of the xml node if the text content is no 
+ * parsable date to show the malformed date in the ui. Returns formatted date string if text 
+ * content is parsable.
+ */
+  getDateText(dateText: string | null | undefined): string | null {
+    if (dateText) {
+      const timestamp: number = Date.parse(dateText);
       if (Number.isNaN(timestamp)) {
-        return xmlNode?.textContent;
+        return dateText;
       } else {
         const date: Date = new Date(timestamp);
         return this.datePipe.transform(date);

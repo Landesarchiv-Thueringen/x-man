@@ -7,7 +7,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 
 // project
-import { Message, MessageService } from '../message/message.service';
+import { Message, MessageService } from '../message.service';
 
 // utility
 import { interval, switchMap, Subscription } from 'rxjs';
