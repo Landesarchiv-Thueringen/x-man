@@ -24,7 +24,15 @@
         <!-- appraisal complete Column -->
         <ng-container matColumnDef="appraisalComplete">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header> Bewertung abgeschlossen </th>
-            <td mat-cell class="task-cell" *matCellDef="let message"> {{message.appraisalComplete ? '✓' : '✗'}} </td>
+            <td mat-cell class="task-cell" *matCellDef="let message">
+                <ng-container *ngIf="message.appraisalComplete; then appraisalComplete; else appraisalNotComplete"></ng-container>
+                <ng-template #appraisalComplete>
+                    <mat-icon>check</mat-icon>
+                </ng-template>
+                <ng-template #appraisalNotComplete>
+                    <mat-icon>close</mat-icon>
+                </ng-template>
+            </td>
         </ng-container>
 
         <!-- actions column -->
