@@ -242,6 +242,10 @@ export class MessageService {
     return documentNode;
   }
 
+  getStructureNode(id: string): StructureNode | undefined {
+    return this.structureNodes.get(id);
+  }
+
   addStructureNode(
     id: string,
     displayText: DisplayText,
@@ -304,6 +308,9 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', code),
     };
+    if (this.structureNodes.get(id)?.appraisal) {
+      this.structureNodes.get(id)!.appraisal = code;
+    }
     return this.httpClient.patch<void>(url, body, options);
   }
 
@@ -313,6 +320,9 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', code),
     };
+    if (this.structureNodes.get(id)?.appraisal) {
+      this.structureNodes.get(id)!.appraisal = code;
+    }
     return this.httpClient.patch<void>(url, body, options);
   }
 
