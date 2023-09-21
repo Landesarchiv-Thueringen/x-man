@@ -117,18 +117,149 @@ export interface Code {
   name?: string;
 }
 
+type StructureNodeType = 'message' | 'file' | 'process' | 'document';
+
+export interface DisplayText {
+  title: string;
+  subtitle?: string;
+}
+
+export interface StructureNode {
+  id: string;
+  displayText: DisplayText;
+  type: StructureNodeType;
+  routerLink: string;
+  appraisal?: string;
+  children?: StructureNode[];
+}
+
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MessageService {
-
   apiEndpoint: string;
+  structureNodes: Map<string, StructureNode>;
 
-  constructor(
-    private datePipe: DatePipe,
-    private httpClient: HttpClient,
-  ) {
+  constructor(private datePipe: DatePipe, private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
+    this.structureNodes = new Map<string, StructureNode>();
+  }
+
+  processMessage(message: Message): StructureNode {
+    const children: StructureNode[] = [];
+    for (let recordObject of message.recordObjects) {
+      if (recordObject.fileRecordObject) {
+        children.push(this.getFileStructureNode(recordObject.fileRecordObject));
+      }
+    }
+    let displayText: DisplayText;
+    switch (message.messageType.code) {
+      case '0501':
+        displayText = {
+          title: 'Anbietung',
+        };
+        break;
+      case '0503':
+        displayText = {
+          title: 'Abgabe',
+        };
+        break;
+      default:
+        throw new Error('unhandled message type');
+    }
+    const routerLink: string = 'details';
+    const messageNode: StructureNode = {
+      id: message.id,
+      displayText: displayText,
+      type: 'message',
+      routerLink: routerLink,
+      children: children,
+    };
+    this.structureNodes.set(messageNode.id, messageNode);
+    return messageNode;
+  }
+
+  getFileStructureNode(fileRecordObject: FileRecordObject): StructureNode {
+    const children: StructureNode[] = [];
+    for (let process of fileRecordObject.processes) {
+      children.push(this.getProcessStructureNode(process));
+    }
+    const displayText: DisplayText = {
+      title: 'Akte: ' + fileRecordObject.generalMetadata?.xdomeaID,
+      subtitle: fileRecordObject.generalMetadata?.subject,
+    };
+    const routerLink: string = 'akte/' + fileRecordObject.id;
+    const fileNode: StructureNode = {
+      id: fileRecordObject.id,
+      displayText: displayText,
+      type: 'file',
+      routerLink: routerLink,
+      appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
+      children: children,
+    };
+    this.structureNodes.set(fileNode.id, fileNode);
+    return fileNode;
+  }
+
+  getProcessStructureNode(
+    processRecordObject: ProcessRecordObject
+  ): StructureNode {
+    const children: StructureNode[] = [];
+    for (let document of processRecordObject.documents) {
+      children.push(this.getDocumentStructureNode(document));
+    }
+    const displayText: DisplayText = {
+      title: 'Vorgang: ' + processRecordObject.generalMetadata?.xdomeaID,
+      subtitle: processRecordObject.generalMetadata?.subject,
+    };
+    const routerLink: string = 'vorgang/' + processRecordObject.id;
+    const processNode: StructureNode = {
+      id: processRecordObject.id,
+      displayText: displayText,
+      type: 'process',
+      routerLink: routerLink,
+      appraisal: processRecordObject.archiveMetadata?.appraisalCode,
+      children: children,
+    };
+    this.structureNodes.set(processNode.id, processNode);
+    return processNode;
+  }
+
+  getDocumentStructureNode(
+    documentRecordObject: DocumentRecordObject
+  ): StructureNode {
+    const displayText: DisplayText = {
+      title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
+      subtitle: documentRecordObject.generalMetadata?.subject,
+    };
+    const routerLink: string = 'dokument/' + documentRecordObject.id;
+    const documentNode: StructureNode = {
+      id: documentRecordObject.id,
+      displayText: displayText,
+      type: 'document',
+      routerLink: routerLink,
+    };
+    return documentNode;
+  }
+
+  addStructureNode(
+    id: string,
+    displayText: DisplayText,
+    type: StructureNodeType,
+    routerLink: string,
+    appraisal?: string,
+    children?: StructureNode[]
+  ): StructureNode {
+    const node: StructureNode = {
+      id: id,
+      displayText: displayText,
+      type: type,
+      routerLink: routerLink,
+      appraisal: appraisal,
+      children: children,
+    };
+    this.structureNodes.set(id, node);
+    return node;
   }
 
   getMessage(id: string): Observable<Message> {
@@ -136,15 +267,21 @@ export class MessageService {
   }
 
   getFileRecordObject(id: string): Observable<FileRecordObject> {
-    return this.httpClient.get<FileRecordObject>(this.apiEndpoint + '/file-record-object/' + id);
+    return this.httpClient.get<FileRecordObject>(
+      this.apiEndpoint + '/file-record-object/' + id
+    );
   }
 
   getProcessRecordObject(id: string): Observable<ProcessRecordObject> {
-    return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
+    return this.httpClient.get<ProcessRecordObject>(
+      this.apiEndpoint + '/process-record-object/' + id
+    );
   }
 
   getDocumentRecordObject(id: string): Observable<DocumentRecordObject> {
-    return this.httpClient.get<DocumentRecordObject>(this.apiEndpoint + '/document-record-object/' + id);
+    return this.httpClient.get<DocumentRecordObject>(
+      this.apiEndpoint + '/document-record-object/' + id
+    );
   }
 
   get0501Messages(): Observable<Message[]> {
@@ -156,7 +293,9 @@ export class MessageService {
   }
 
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
-    return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
+    return this.httpClient.get<RecordObjectAppraisal[]>(
+      this.apiEndpoint + '/record-object-appraisals'
+    );
   }
 
   setFileRecordObjectAppraisal(id: string, code: string): Observable<void> {
@@ -165,11 +304,7 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', code),
     };
-    return this.httpClient.patch<void>(
-      url,
-      body,
-      options,
-    );
+    return this.httpClient.patch<void>(url, body, options);
   }
 
   setProcessRecordObjectAppraisal(id: string, code: string): Observable<void> {
@@ -178,30 +313,33 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', code),
     };
-    return this.httpClient.patch<void>(
-      url,
-      body,
-      options,
-    );
+    return this.httpClient.patch<void>(url, body, options);
   }
 
-  getRecordObjectAppraisalByCode(code: string | undefined, appraisals: RecordObjectAppraisal[]): RecordObjectAppraisal | null {
+  getRecordObjectAppraisalByCode(
+    code: string | undefined,
+    appraisals: RecordObjectAppraisal[]
+  ): RecordObjectAppraisal | null {
     if (!code) {
       return null;
     }
-    const appraisal = appraisals.find((appraisal: RecordObjectAppraisal) => appraisal.code === code);
+    const appraisal = appraisals.find(
+      (appraisal: RecordObjectAppraisal) => appraisal.code === code
+    );
     if (!appraisal) {
-      throw new Error('record object appraisal with code <' + code + '> wasn\'t found');
+      throw new Error(
+        'record object appraisal with code <' + code + "> wasn't found"
+      );
     }
     return appraisal;
   }
 
-  /** 
- * Returns null if the xml node or its text contents are null, because that means the date was not
- * provided in the message. Returns the text content of the xml node if the text content is no 
- * parsable date to show the malformed date in the ui. Returns formatted date string if text 
- * content is parsable.
- */
+  /**
+   * Returns null if the xml node or its text contents are null, because that means the date was not
+   * provided in the message. Returns the text content of the xml node if the text content is no
+   * parsable date to show the malformed date in the ui. Returns formatted date string if text
+   * content is parsable.
+   */
   getDateText(dateText: string | null | undefined): string | null {
     if (dateText) {
       const timestamp: number = Date.parse(dateText);
