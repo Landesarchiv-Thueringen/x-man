@@ -33,7 +33,7 @@ import { InstitutMetadataComponent } from './metadata/institution-metadata/insti
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { Message0501TableComponent } from './message/message0501-table/message0501-table.component';
 import { Message0503TableComponent } from './message/message0503-table/message0503-table.component';
-import { MessageViewComponent } from './message/message-view/message-view.component';
+import { MessageTreeComponent } from './message/message-tree/message-tree.component';
 import { PaginatorDeService } from './utility/localization/paginator-de.service';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
@@ -44,7 +44,7 @@ import { DocumentMetadataComponent } from './metadata/document-metadata/document
     MainNavigationComponent,
     Message0501TableComponent,
     Message0503TableComponent,
-    MessageViewComponent,
+    MessageTreeComponent,
     MessageMetadataComponent,
     FileMetadataComponent,
     InstitutMetadataComponent,

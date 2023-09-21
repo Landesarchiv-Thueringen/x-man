@@ -6,7 +6,7 @@ import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.co
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { Message0501TableComponent } from './message/message0501-table/message0501-table.component';
 import { Message0503TableComponent } from './message/message0503-table/message0503-table.component';
-import { MessageViewComponent } from './message/message-view/message-view.component';
+import { MessageTreeComponent } from './message/message-tree/message-tree.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 
@@ -17,7 +17,7 @@ const routes: Routes = [
       { path: 'anbietungen',  component: Message0501TableComponent },
       { path: 'abgaben',  component: Message0503TableComponent },
       { 
-        path: 'nachricht/:id',  component: MessageViewComponent,
+        path: 'nachricht/:id',  component: MessageTreeComponent,
         children: [
           { path: 'details', component: MessageMetadataComponent },
           { path: 'akte/:id', component: FileMetadataComponent },

@@ -32,11 +32,11 @@ export interface StructureNode {
 }
 
 @Component({
-  selector: 'app-message-view',
-  templateUrl: './message-view.component.html',
-  styleUrls: ['./message-view.component.scss']
+  selector: 'app-message-tree',
+  templateUrl: './message-tree.component.html',
+  styleUrls: ['./message-tree.component.scss']
 })
-export class MessageViewComponent implements AfterViewInit, OnDestroy {
+export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   treeControl: NestedTreeControl<StructureNode>;
   dataSource: MatTreeNestedDataSource<StructureNode>;
   urlParameterSubscription?: Subscription;

@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MessageViewComponent } from './message-view.component';
+import { MessageTreeComponent } from './message-tree.component';
 
 describe('MessageViewComponent', () => {
-  let component: MessageViewComponent;
-  let fixture: ComponentFixture<MessageViewComponent>;
+  let component: MessageTreeComponent;
+  let fixture: ComponentFixture<MessageTreeComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [MessageViewComponent]
+      declarations: [MessageTreeComponent]
     });
-    fixture = TestBed.createComponent(MessageViewComponent);
+    fixture = TestBed.createComponent(MessageTreeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
