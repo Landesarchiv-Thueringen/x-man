@@ -8,11 +8,8 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 
 // project
 import {
-  DocumentRecordObject,
-  FileRecordObject,
   Message,
   MessageService,
-  ProcessRecordObject,
 } from '../message.service';
 
 // utility

@@ -28,9 +28,9 @@
                 </div>
 
               </div>
-              <div *ngIf="node.appraisal === 'A' || node.appraisal === 'V'" class="node-appraisal">
+              <div class="node-appraisal">
                 <span class="spacer"></span>
-                <span>{{ node.appraisal}}</span>
+                <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal}}</span>
               </div>
               
             </mat-tree-node>
@@ -60,9 +60,9 @@
                     <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
                   </div>
                 </div>
-                <div *ngIf="node.appraisal === 'A' || node.appraisal === 'V'" class="node-appraisal">
+                <div class="node-appraisal">
                   <span class="spacer"></span>
-                  <span>{{ node.appraisal}}</span>
+                  <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal}}</span>
                 </div>
               </div>
 
