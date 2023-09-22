@@ -342,7 +342,7 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', code),
     };
-    if (this.structureNodes.get(id)?.appraisal) {
+    if (this.structureNodes.get(id)) {
       this.structureNodes.get(id)!.appraisal = code;
     }
     return this.httpClient.patch<void>(url, body, options);
@@ -354,7 +354,7 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', code),
     };
-    if (this.structureNodes.get(id)?.appraisal) {
+    if (this.structureNodes.get(id)) {
       this.structureNodes.get(id)!.appraisal = code;
     }
     return this.httpClient.patch<void>(url, body, options);
