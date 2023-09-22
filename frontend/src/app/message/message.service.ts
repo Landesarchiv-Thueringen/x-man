@@ -336,28 +336,39 @@ export class MessageService {
     }
   }
 
-  setFileRecordObjectAppraisal(id: string, code: string): Observable<void> {
+  setFileRecordObjectAppraisal(id: string, appraisalCode: string): Observable<void> {
     const url = this.apiEndpoint + '/file-record-object-appraisal';
     const body = {};
     const options = {
-      params: new HttpParams().set('id', id).set('appraisal', code),
+      params: new HttpParams().set('id', id).set('appraisal', appraisalCode),
     };
-    if (this.structureNodes.get(id)) {
-      this.structureNodes.get(id)!.appraisal = code;
+    const node: StructureNode = this.structureNodes.get(id)!;
+    if (!!node) {
+      this.setStructureNodeAppraisal(node, appraisalCode)
     }
     return this.httpClient.patch<void>(url, body, options);
   }
 
-  setProcessRecordObjectAppraisal(id: string, code: string): Observable<void> {
+  setProcessRecordObjectAppraisal(id: string, appraisalCode: string): Observable<void> {
     const url = this.apiEndpoint + '/process-record-object-appraisal';
     const body = {};
     const options = {
-      params: new HttpParams().set('id', id).set('appraisal', code),
+      params: new HttpParams().set('id', id).set('appraisal', appraisalCode),
     };
     if (this.structureNodes.get(id)) {
-      this.structureNodes.get(id)!.appraisal = code;
+      this.structureNodes.get(id)!.appraisal = appraisalCode;
     }
     return this.httpClient.patch<void>(url, body, options);
+  }
+
+  // TODO: make recursive if useful
+  setStructureNodeAppraisal(node: StructureNode, appraisalCode: string) {
+    node.appraisal = appraisalCode;
+    if (node.children) {
+      for(let child of node.children) {
+        child.appraisal = appraisalCode;
+      }
+    }
   }
 
   getRecordObjectAppraisalByCode(

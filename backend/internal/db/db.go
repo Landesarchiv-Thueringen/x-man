@@ -264,7 +264,16 @@ func SetFileRecordObjectAppraisal(
 	}
 	fileRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
 	result := db.Save(&fileRecordObject.ArchiveMetadata)
-	return result.Error
+	if result.Error != nil {
+		return result.Error
+	}
+	for _, process := range fileRecordObject.Processes {
+		err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func SetProcessRecordObjectAppraisal(
