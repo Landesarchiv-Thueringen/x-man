@@ -130,6 +130,7 @@ export interface StructureNode {
   type: StructureNodeType;
   routerLink: string;
   appraisal?: string;
+  parentID?: string;
   children?: StructureNode[];
 }
 
@@ -149,7 +150,7 @@ export class MessageService {
     const children: StructureNode[] = [];
     for (let recordObject of message.recordObjects) {
       if (recordObject.fileRecordObject) {
-        children.push(this.getFileStructureNode(recordObject.fileRecordObject));
+        children.push(this.getFileStructureNode(recordObject.fileRecordObject, message.id));
       }
     }
     let displayText: DisplayText;
@@ -179,10 +180,10 @@ export class MessageService {
     return messageNode;
   }
 
-  getFileStructureNode(fileRecordObject: FileRecordObject): StructureNode {
+  getFileStructureNode(fileRecordObject: FileRecordObject, parentID: string): StructureNode {
     const children: StructureNode[] = [];
     for (let process of fileRecordObject.processes) {
-      children.push(this.getProcessStructureNode(process));
+      children.push(this.getProcessStructureNode(process, fileRecordObject.id));
     }
     const displayText: DisplayText = {
       title: 'Akte: ' + fileRecordObject.generalMetadata?.xdomeaID,
@@ -195,18 +196,19 @@ export class MessageService {
       type: 'file',
       routerLink: routerLink,
       appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
+      parentID: parentID,
       children: children,
     };
-    this.structureNodes.set(fileNode.id, fileNode);
+    this.addStructureNode(fileNode);
     return fileNode;
   }
 
   getProcessStructureNode(
-    processRecordObject: ProcessRecordObject
+    processRecordObject: ProcessRecordObject, parentID: string
   ): StructureNode {
     const children: StructureNode[] = [];
     for (let document of processRecordObject.documents) {
-      children.push(this.getDocumentStructureNode(document));
+      children.push(this.getDocumentStructureNode(document, processRecordObject.id));
     }
     const displayText: DisplayText = {
       title: 'Vorgang: ' + processRecordObject.generalMetadata?.xdomeaID,
@@ -219,14 +221,15 @@ export class MessageService {
       type: 'process',
       routerLink: routerLink,
       appraisal: processRecordObject.archiveMetadata?.appraisalCode,
+      parentID: parentID,
       children: children,
     };
-    this.structureNodes.set(processNode.id, processNode);
+    this.addStructureNode(processNode);
     return processNode;
   }
 
   getDocumentStructureNode(
-    documentRecordObject: DocumentRecordObject
+    documentRecordObject: DocumentRecordObject, parentID: string
   ): StructureNode {
     const displayText: DisplayText = {
       title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
@@ -238,7 +241,9 @@ export class MessageService {
       displayText: displayText,
       type: 'document',
       routerLink: routerLink,
+      parentID: parentID,
     };
+    this.addStructureNode(documentNode);
     return documentNode;
   }
 
@@ -247,23 +252,9 @@ export class MessageService {
   }
 
   addStructureNode(
-    id: string,
-    displayText: DisplayText,
-    type: StructureNodeType,
-    routerLink: string,
-    appraisal?: string,
-    children?: StructureNode[]
-  ): StructureNode {
-    const node: StructureNode = {
-      id: id,
-      displayText: displayText,
-      type: type,
-      routerLink: routerLink,
-      appraisal: appraisal,
-      children: children,
-    };
-    this.structureNodes.set(id, node);
-    return node;
+    node: StructureNode,
+  ) {
+    this.structureNodes.set(node.id, node);
   }
 
   getMessage(id: string): Observable<Message> {

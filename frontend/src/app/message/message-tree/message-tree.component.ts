@@ -1,34 +1,16 @@
 // angular
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 
 // material
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 
 // project
-import {
-  Message,
-  MessageService,
-} from '../message.service';
+import { Message, MessageService, StructureNode } from '../message.service';
 
 // utility
-import { Subscription } from 'rxjs';
-
-type StructureNodeType = 'message' | 'file' | 'process' | 'document';
-
-export interface DisplayText {
-  title: string;
-  subtitle?: string;
-}
-
-export interface StructureNode {
-  displayText: DisplayText;
-  type: StructureNodeType;
-  routerLink: string;
-  appraisal?: string;
-  children?: StructureNode[];
-}
+import { Subscription, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-message-tree',
@@ -55,19 +37,56 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     !!node.children && node.children.length > 0;
 
   ngAfterViewInit(): void {
-    this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService
-        .getMessage(params['id'])
-        .subscribe((message: Message) => {
-          this.message = message;
-          const treeData: StructureNode[] = [];
-          const messageNode = this.messageService.processMessage(message);
-          treeData.push(messageNode);
-          this.dataSource.data = treeData;
-          this.treeControl.dataNodes = treeData;
-          this.treeControl.expand(messageNode);
+    this.urlParameterSubscription?.unsubscribe();
+    if (this.route.firstChild) {
+      this.urlParameterSubscription = this.route.params
+        .pipe(
+          switchMap((params: Params) => {
+            return this.messageService.getMessage(params['id']);
+          }),
+          switchMap((message: Message) => {
+            this.initTree(message);
+            return this.route.firstChild!.params;
+          })
+        )
+        .subscribe((params: Params) => {
+          const nodeID: string = params['id'];
+          if (nodeID) {
+            this.expandNode(nodeID);
+          }
         });
-    });
+    } else {
+      this.urlParameterSubscription = this.route.params
+        .pipe(
+          switchMap((params: Params) => {
+            return this.messageService.getMessage(params['id']);
+          })
+        )
+        .subscribe((message: Message) => {
+          this.initTree(message);
+        });
+    }
+  }
+
+  initTree(message: Message): void {
+    this.message = message;
+    const treeData: StructureNode[] = [];
+    const messageNode = this.messageService.processMessage(message);
+    treeData.push(messageNode);
+    this.dataSource.data = treeData;
+    this.treeControl.dataNodes = treeData;
+    this.treeControl.expand(messageNode);
+  }
+
+  expandNode(id: string): void {
+    const node: StructureNode | undefined =
+      this.messageService.getStructureNode(id);
+      if (node) {
+        this.treeControl.expand(node);
+        if (node.parentID) {
+          this.expandNode(node.parentID);
+        }
+      }
   }
 
   ngOnDestroy(): void {
