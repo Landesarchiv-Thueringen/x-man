@@ -33,7 +33,8 @@ func main() {
 	router.GET("file-record-object/:id", getFileRecordObjectByID)
 	router.GET("process-record-object/:id", getProcessRecordObjectByID)
 	router.GET("document-record-object/:id", getDocumentRecordObjectByID)
-	router.GET("record-object-appraisals", getRecordObjectAppraisal)
+	router.GET("record-object-appraisals", getRecordObjectAppraisals)
+	router.GET("record-object-confidentialities", getRecordObjectConfidentialities)
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.Run("localhost:3000")
@@ -119,8 +120,16 @@ func get0503Messages(context *gin.Context) {
 	context.JSON(http.StatusOK, messages)
 }
 
-func getRecordObjectAppraisal(context *gin.Context) {
+func getRecordObjectAppraisals(context *gin.Context) {
 	appraisals, err := db.GetRecordObjectAppraisals()
+	if err != nil {
+		log.Fatal(err)
+	}
+	context.JSON(http.StatusOK, appraisals)
+}
+
+func getRecordObjectConfidentialities(context *gin.Context) {
+	appraisals, err := db.GetRecordObjectConfidentialities()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,5 +169,6 @@ func processFlags() {
 		db.Migrate()
 		xdomea.InitMessageTypes()
 		xdomea.InitRecordObjectAppraisals()
+		xdomea.InitRecordObjectConfidentialities()
 	}
 }

@@ -43,6 +43,17 @@ func InitRecordObjectAppraisals() {
 	db.InitRecordObjectAppraisals(appraisals)
 }
 
+func InitRecordObjectConfidentialities() {
+	confidentialities := []*db.RecordObjectConfidentiality{
+		{Code: "001", Desc: "Geheim: Das Schriftgutobjekt ist als geheim eingestuft."},
+		{Code: "002", Desc: "NfD: Das Schriftgutobjekt ist als \"nur für den Dienstgebrauch (nfD)\" eingestuft."},
+		{Code: "003", Desc: "Offen: Das Schriftgutobjekt ist nicht eingestuft."},
+		{Code: "004", Desc: "Streng geheim: Das Schriftgutobjekt ist als streng geheim eingestuft."},
+		{Code: "005", Desc: "Vertraulich: Das Schriftgutobjekt ist als vertraulich eingestuft."},
+	}
+	db.InitRecordObjectConfidentialities(confidentialities)
+}
+
 func IsMessage(path string) bool {
 	fileName := filepath.Base(path)
 	return message0501Regex.MatchString(fileName) || message0503Regex.MatchString(fileName)

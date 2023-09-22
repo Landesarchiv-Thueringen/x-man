@@ -8,6 +8,7 @@ import {
   FileRecordObject,
   Message,
   MessageService,
+  RecordObjectConfidentiality,
   RecordObjectAppraisal,
 } from '../../message/message.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
@@ -25,6 +26,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   message?: Message;
   fileRecordObject?: FileRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
+  recordObjectConfidentialities?: RecordObjectConfidentiality[];
   form: FormGroup;
 
   constructor(
@@ -42,6 +44,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       lifeEnd: new FormControl<string | null>(null),
       appraisal: new FormControl<string | null>(null),
       appraisalRecomm: new FormControl<string | null>(null),
+      confidentiality: new FormControl<string | null>(null),
     });
   }
 
@@ -68,18 +71,23 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         switchMap((message: Message) => {
           this.message = message;
           return this.messageService.getRecordObjectAppraisals();
+        }),
+        switchMap((appraisals: RecordObjectAppraisal[]) => {
+          this.recordObjectAppraisals = appraisals;
+          return this.messageService.getRecordObjectConfidentialities();
         })
       )
       .subscribe({
         error: (error: any) => {
           console.error(error);
         },
-        next: (appraisals: RecordObjectAppraisal[]) => {
-          this.recordObjectAppraisals = appraisals;
+        next: (confidentialities: RecordObjectConfidentiality[]) => {
+          this.recordObjectConfidentialities = confidentialities;
           this.setMetadata(
             this.fileRecordObject!,
             this.message!,
-            this.recordObjectAppraisals
+            this.recordObjectAppraisals!,
+            this.recordObjectConfidentialities
           );
         },
       });
@@ -92,7 +100,8 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   setMetadata(
     fileRecordObject: FileRecordObject,
     message: Message,
-    recordObjectAppraisals: RecordObjectAppraisal[]
+    recordObjectAppraisals: RecordObjectAppraisal[],
+    recordObjectConfidentialities: RecordObjectConfidentiality[],
   ): void {
     let appraisal: string | undefined;
     const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
@@ -118,6 +127,10 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
       appraisal: appraisal,
       appraisalRecomm: appraisalRecomm,
+      confidentiality: recordObjectConfidentialities.find(
+        (c: RecordObjectConfidentiality) =>
+          c.code === this.fileRecordObject?.generalMetadata?.confidentialityCode
+      )?.desc,
     });
   }
 

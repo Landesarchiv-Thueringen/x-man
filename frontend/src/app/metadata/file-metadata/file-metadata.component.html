@@ -36,7 +36,12 @@
               <mat-label>Aktentyp</mat-label>
               <input matInput formControlName="fileType" readonly>
             </mat-form-field>
-  
+            <mat-form-field class="confidentiality-input" appearance="outline">
+              <mat-label>Vertraulichkeitsstufe</mat-label>
+              <input matInput formControlName="confidentiality" readonly>
+            </mat-form-field>
+          </div>
+          <div class="metadata-row">
             <mat-form-field class="life-start-input" appearance="outline">
               <mat-label>Laufzeit Beginn</mat-label>
               <input matInput formControlName="lifeStart" readonly>

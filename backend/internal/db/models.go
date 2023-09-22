@@ -168,15 +168,16 @@ type DocumentRecordObject struct {
 }
 
 type GeneralMetadata struct {
-	XMLName    xml.Name       `gorm:"-" xml:"AllgemeineMetadaten" json:"-"`
-	ID         uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt  time.Time      `json:"-"`
-	UpdatedAt  time.Time      `json:"-"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
-	Subject    *string        `xml:"Betreff" json:"subject"`
-	XdomeaID   *string        `xml:"Kennzeichen" json:"xdomeaID"`
-	FilePlanID *uint          `json:"-"`
-	FilePlan   FilePlan       `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
+	XMLName             xml.Name       `gorm:"-" xml:"AllgemeineMetadaten" json:"-"`
+	ID                  uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt           time.Time      `json:"-"`
+	UpdatedAt           time.Time      `json:"-"`
+	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
+	Subject             *string        `xml:"Betreff" json:"subject"`
+	XdomeaID            *string        `xml:"Kennzeichen" json:"xdomeaID"`
+	FilePlanID          *uint          `json:"-"`
+	FilePlan            FilePlan       `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
+	ConfidentialityCode *string        `xml:"Vertraulichkeitsstufe>code" json:"confidentialityCode"`
 }
 
 type FilePlan struct {
@@ -208,6 +209,8 @@ type ArchiveMetadata struct {
 	AppraisalRecommCode *string        `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
 }
 
+// code list entries
+
 type RecordObjectAppraisal struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"-"`
@@ -215,5 +218,14 @@ type RecordObjectAppraisal struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	ShortDesc string         `json:"shortDesc"`
+	Desc      string         `json:"desc"`
+}
+
+type RecordObjectConfidentiality struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	Desc      string         `json:"desc"`
 }

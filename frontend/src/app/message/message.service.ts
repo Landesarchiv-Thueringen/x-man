@@ -5,7 +5,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 // utility
-import { Observable } from 'rxjs';
+import { Observable, Subscriber } from 'rxjs';
 
 export interface Message {
   id: string;
@@ -85,6 +85,13 @@ export interface GeneralMetadata {
   subject?: string;
   xdomeaID?: string;
   filePlan?: FilePlan;
+  confidentialityCode?: string;
+}
+
+export interface RecordObjectConfidentiality {
+  id: number;
+  code: string;
+  desc: string;
 }
 
 export interface ArchiveMetadata {
@@ -140,10 +147,22 @@ export interface StructureNode {
 export class MessageService {
   apiEndpoint: string;
   structureNodes: Map<string, StructureNode>;
+  appraisals?: RecordObjectAppraisal[];
+  confidentialities?: RecordObjectConfidentiality[];
 
   constructor(private datePipe: DatePipe, private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
     this.structureNodes = new Map<string, StructureNode>();
+    this.getRecordObjectAppraisals().subscribe(
+      (appraisals: RecordObjectAppraisal[]) => {
+        this.appraisals = appraisals;
+      }
+    );
+    this.getRecordObjectConfidentialities().subscribe(
+      (confidentialities: RecordObjectConfidentiality[]) => {
+        this.confidentialities = confidentialities;
+      }
+    );
   }
 
   processMessage(message: Message): StructureNode {
@@ -288,9 +307,33 @@ export class MessageService {
   }
 
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
-    return this.httpClient.get<RecordObjectAppraisal[]>(
-      this.apiEndpoint + '/record-object-appraisals'
-    );
+    if (this.appraisals) {
+      return new Observable(
+        (subscriber: Subscriber<RecordObjectAppraisal[]>) => {
+          subscriber.next(this.appraisals);
+          subscriber.complete();
+        }
+      );
+    } else {
+      return this.httpClient.get<RecordObjectAppraisal[]>(
+        this.apiEndpoint + '/record-object-appraisals'
+      );
+    }
+  }
+
+  getRecordObjectConfidentialities(): Observable<RecordObjectConfidentiality[]> {
+    if (this.confidentialities) {
+      return new Observable(
+        (subscriber: Subscriber<RecordObjectConfidentiality[]>) => {
+          subscriber.next(this.confidentialities);
+          subscriber.complete();
+        }
+      );
+    } else {
+      return this.httpClient.get<RecordObjectConfidentiality[]>(
+        this.apiEndpoint + '/record-object-confidentialities'
+      );
+    }
   }
 
   setFileRecordObjectAppraisal(id: string, code: string): Observable<void> {

@@ -49,6 +49,7 @@ func Migrate() {
 		&Lifetime{},
 		&ArchiveMetadata{},
 		&RecordObjectAppraisal{},
+		&RecordObjectConfidentiality{},
 	)
 }
 
@@ -63,6 +64,13 @@ func InitRecordObjectAppraisals(appraisals []*RecordObjectAppraisal) {
 	result := db.Create(appraisals)
 	if result.Error != nil {
 		log.Fatal("Failed to initialize record object appraisal values!")
+	}
+}
+
+func InitRecordObjectConfidentialities(confidentialities []*RecordObjectConfidentiality) {
+	result := db.Create(confidentialities)
+	if result.Error != nil {
+		log.Fatal("Failed to initialize record object confidentialitiy values!")
 	}
 }
 
@@ -147,9 +155,15 @@ func GetMessageTypeByCode(code string) MessageType {
 }
 
 func GetRecordObjectAppraisals() ([]RecordObjectAppraisal, error) {
-	var recordObjectAppraisal []RecordObjectAppraisal
-	result := db.Find(&recordObjectAppraisal)
-	return recordObjectAppraisal, result.Error
+	var appraisals []RecordObjectAppraisal
+	result := db.Find(&appraisals)
+	return appraisals, result.Error
+}
+
+func GetRecordObjectConfidentialities() ([]RecordObjectConfidentiality, error) {
+	var confidentialities []RecordObjectConfidentiality
+	result := db.Find(&confidentialities)
+	return confidentialities, result.Error
 }
 
 func GetMessageOfProcessByCode(process Process, code string) (Message, error) {

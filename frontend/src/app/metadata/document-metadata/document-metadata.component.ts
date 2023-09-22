@@ -1,28 +1,33 @@
 // angular
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 
 // project
-import { DocumentRecordObject, MessageService } from '../../message/message.service';
+import {
+  DocumentRecordObject,
+  MessageService,
+  RecordObjectConfidentiality,
+} from '../../message/message.service';
 
 // utility
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-document-metadata',
   templateUrl: './document-metadata.component.html',
-  styleUrls: ['./document-metadata.component.scss']
+  styleUrls: ['./document-metadata.component.scss'],
 })
 export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   documentRecordObject?: DocumentRecordObject;
+  recordObjectConfidentialities?: RecordObjectConfidentiality[];
   form: FormGroup;
 
   constructor(
     private formBuilder: FormBuilder,
     private messageService: MessageService,
-    private route: ActivatedRoute,
+    private route: ActivatedRoute
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
@@ -33,27 +38,45 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
       outgoingDate: new FormControl<string | null>(null),
       documentDate: new FormControl<string | null>(null),
       appraisal: new FormControl<number | null>(null),
+      confidentiality: new FormControl<string | null>(null),
     });
   }
 
   ngAfterViewInit(): void {
-    this.urlParameterSubscription = this.route.params.subscribe((params) => {
-      this.messageService.getDocumentRecordObject(params['id']).subscribe(
-        (documentRecordObject: DocumentRecordObject) => {
-          console.log(documentRecordObject);
-          this.documentRecordObject = documentRecordObject;
-          this.form.patchValue({
-            recordPlanId: documentRecordObject.generalMetadata?.filePlan?.xdomeaID,
-            fileId: documentRecordObject.generalMetadata?.xdomeaID,
-            subject: documentRecordObject.generalMetadata?.subject,
-            documentType: documentRecordObject.type,
-            incomingDate: this.messageService.getDateText(documentRecordObject.incomingDate),
-            outgoingDate: this.messageService.getDateText(documentRecordObject.outgoingDate),
-            documentDate: this.messageService.getDateText(documentRecordObject.documentDate),
-          });
-        }
-      )
-    })   
+    this.urlParameterSubscription = this.route.params.pipe(
+      switchMap((params: Params) => {
+        return this.messageService.getDocumentRecordObject(params['id'])
+      }),
+      switchMap((document: DocumentRecordObject) => {
+        console.log(document);
+        this.documentRecordObject = document;
+        return this.messageService.getRecordObjectConfidentialities();
+      }),
+    ).subscribe(
+      (confidentialities: RecordObjectConfidentiality[]) => {
+        this.recordObjectConfidentialities = confidentialities;
+        this.form.patchValue({
+          recordPlanId:
+          this.documentRecordObject!.generalMetadata?.filePlan?.xdomeaID,
+          fileId: this.documentRecordObject!.generalMetadata?.xdomeaID,
+          subject: this.documentRecordObject!.generalMetadata?.subject,
+          documentType: this.documentRecordObject!.type,
+          incomingDate: this.messageService.getDateText(
+            this.documentRecordObject!.incomingDate
+          ),
+          outgoingDate: this.messageService.getDateText(
+            this.documentRecordObject!.outgoingDate
+          ),
+          documentDate: this.messageService.getDateText(
+            this.documentRecordObject!.documentDate
+          ),
+          confidentiality: this.recordObjectConfidentialities.find(
+            (c: RecordObjectConfidentiality) =>
+              c.code === this.documentRecordObject?.generalMetadata?.confidentialityCode
+          )?.desc,
+        });
+      }
+    );
   }
 
   ngOnDestroy(): void {
