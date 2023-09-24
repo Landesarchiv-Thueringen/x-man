@@ -23,3 +23,8 @@
   - `create extension if not exists "uuid-ossp";`
 - als postgres root Nutzer anmelden
   - `sudo -u postgres psql`
+- [Skript für die Datenbankerstellung](/psql/init_database.sql)
+  - Nutzer psql hat initial keine Leserechte -->
+    - `sudo mkdir /var/lib/postgres/scripts`
+    - `sudo cp psql/init_database.sql /var/lib/postgres/scripts`
+    - `sudo chown -R postgres:postgres /var/lib/postgres/scripts`
