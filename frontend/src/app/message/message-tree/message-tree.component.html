@@ -28,7 +28,7 @@
                 </div>
 
               </div>
-              <div class="node-appraisal">
+              <div *ngIf="showAppraisal" class="node-appraisal">
                 <span class="spacer"></span>
                 <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal}}</span>
               </div>
@@ -60,7 +60,7 @@
                     <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
                   </div>
                 </div>
-                <div class="node-appraisal">
+                <div *ngIf="showAppraisal" class="node-appraisal">
                   <span class="spacer"></span>
                   <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal}}</span>
                 </div>

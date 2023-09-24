@@ -22,11 +22,13 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   dataSource: MatTreeNestedDataSource<StructureNode>;
   urlParameterSubscription?: Subscription;
   message?: Message;
+  showAppraisal: boolean;
 
   constructor(
     private messageService: MessageService,
     private route: ActivatedRoute
   ) {
+    this.showAppraisal = true;
     this.treeControl = new NestedTreeControl<StructureNode>(
       (node) => node.children
     );
@@ -70,6 +72,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   initTree(message: Message): void {
     this.message = message;
+    this.showAppraisal = this.message.messageType.code === '0501';
     const treeData: StructureNode[] = [];
     const messageNode = this.messageService.processMessage(message);
     treeData.push(messageNode);
