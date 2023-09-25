@@ -1,13 +1,13 @@
 // angular
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnDestroy } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Params } from '@angular/router';
 
 // material
-import { FlatTreeControl, NestedTreeControl } from '@angular/cdk/tree';
+import { FlatTreeControl } from '@angular/cdk/tree';
 import {
   MatTreeFlatDataSource,
   MatTreeFlattener,
-  MatTreeNestedDataSource,
 } from '@angular/material/tree';
 
 // project
@@ -43,6 +43,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   message?: Message;
   showAppraisal: boolean;
+  messageTreeInit: boolean;
 
   treeControl: FlatTreeControl<FlatNode>;
   treeFlattener: MatTreeFlattener<StructureNode, FlatNode>;
@@ -62,10 +63,12 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   };
 
   constructor(
+    @Inject(DOCUMENT) private document: Document,
     private messageService: MessageService,
     private notificationService: NotificationService,
     private route: ActivatedRoute
   ) {
+    this.messageTreeInit = true;
     this.showAppraisal = true;
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
@@ -100,8 +103,12 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         )
         .subscribe((params: Params) => {
           const nodeID: string = params['id'];
-          if (nodeID) {
+          // expand node children and scroll selected node into view if message tree is initialized
+          // when opening a link to a node, it gets scrolled into view and expanded
+          if (nodeID && this.messageTreeInit) {
+            this.messageTreeInit = false;
             this.expandNode(nodeID);
+            this.document.getElementById(nodeID)?.scrollIntoView();
           }
         });
     } else {
