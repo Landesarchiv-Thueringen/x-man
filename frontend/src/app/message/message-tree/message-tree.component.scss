@@ -17,94 +17,81 @@
       padding-right: 0.0em;
     }
   }
-
-  .message-tree-invisible {
-      display: none;
-    }
     
-    .message-tree {
-      ul, li {
-        margin-top: 0;
-        margin-bottom: 0;
-        list-style-type: none;
-      }
+  .message-tree {
     
     .active {
       background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
     }
-  
+
     .node {
       display: flex;
-      flex-direction: row;
-      align-items:center;
-      
-      .mat-icon {
-        // important icons shrink when overflow occurs
-        flex-shrink: 0;
-      }
-  
-      .node-title {
-        display: flex;
-        flex-direction: column;
-        word-break: break-word;
-        padding-right: 2.0em;
-  
-        .node-subtitle-line {
-          font-weight: 500;
-        }
-      }
-    }
-
-    .message-menu {
-      display: flex;
-      flex-grow: 1;
-
-      .spacer {
-        flex: 1 1 auto;
-      }
-    }
-
-    .node-appraisal {
-      display: flex;
-      flex-grow: 1;
-      padding-right: 1.5em;
-      font-weight: bold;
-
-      .spacer {
-        flex: 1 1 auto;
-      }
-    }
-  
-    /*
-    * This padding sets alignment of the nested nodes.
-    */
-    .mat-nested-tree-node div[role=group] {
-      padding-left: 1.5em;
-    }
-  
-    .mat-tree-node {
+      width: 100%;
       border-radius: 30px;
       margin-bottom: 0.8em;
       margin-right: 2.0em;
-        &:hover {
+      &:hover {
         background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
       }
       cursor: pointer;
-    }
+
+      .node-info {
+        display: flex;
+        flex-direction: row;
+        align-items:center;
+        
+        .mat-icon {
+          // important icons shrink when overflow occurs
+          flex-shrink: 0;
+        }
+    
+        .node-title {
+          display: flex;
+          flex-direction: column;
+          word-break: break-word;
+          padding-right: 2.0em;
+    
+          .node-subtitle-line {
+            font-weight: 500;
+          }
+        }
+      }
+
+      .file-icon {
+        color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+        margin-right: 0.5em;
+      }
+    
+      .process-icon {
+        color: green;
+        margin-right: 0.5em;
+      }
+    
+      .document-icon {
+        color: orange;
+        margin-right: 0.5em;
+      }
+
+      .message-menu {
+        display: flex;
+        flex-grow: 1;
   
-    .file-icon {
-      color: mat.get-color-from-palette(mat.$indigo-palette, 500);
-      margin-right: 0.5em;
-    }
+        .spacer {
+          flex: 1 1 auto;
+        }
+      }
   
-    .process-icon {
-      color: green;
-      margin-right: 0.5em;
-    }
+      .node-appraisal {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        padding-right: 1.5em;
+        font-weight: bold;
   
-    .document-icon {
-      color: orange;
-      margin-right: 0.5em;
+        .spacer {
+          flex: 1 1 auto;
+        }
+      }
     }
   }
 }

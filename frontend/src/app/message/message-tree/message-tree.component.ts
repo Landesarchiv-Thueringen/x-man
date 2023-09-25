@@ -3,15 +3,36 @@ import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 
 // material
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { FlatTreeControl, NestedTreeControl } from '@angular/cdk/tree';
+import {
+  MatTreeFlatDataSource,
+  MatTreeFlattener,
+  MatTreeNestedDataSource,
+} from '@angular/material/tree';
 
 // project
-import { Message, MessageService, StructureNode } from '../message.service';
+import {
+  DisplayText,
+  Message,
+  MessageService,
+  StructureNode,
+  StructureNodeType,
+} from '../message.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
+
+export interface FlatNode {
+  id: string;
+  parentID?: string;
+  expandable: boolean;
+  level: number;
+  displayText: DisplayText;
+  type: StructureNodeType;
+  routerLink: string;
+  appraisal?: string;
+}
 
 @Component({
   selector: 'app-message-tree',
@@ -19,11 +40,26 @@ import { Subscription, switchMap } from 'rxjs';
   styleUrls: ['./message-tree.component.scss'],
 })
 export class MessageTreeComponent implements AfterViewInit, OnDestroy {
-  treeControl: NestedTreeControl<StructureNode>;
-  dataSource: MatTreeNestedDataSource<StructureNode>;
   urlParameterSubscription?: Subscription;
   message?: Message;
   showAppraisal: boolean;
+
+  treeControl: FlatTreeControl<FlatNode>;
+  treeFlattener: MatTreeFlattener<StructureNode, FlatNode>;
+  dataSource: MatTreeFlatDataSource<StructureNode, FlatNode>;
+
+  private _transformer = (node: StructureNode, level: number): FlatNode => {
+    return {
+      id: node.id,
+      parentID: node.parentID,
+      expandable: !!node.children && node.children.length > 0,
+      level: level,
+      displayText: node.displayText,
+      type: node.type,
+      routerLink: node.routerLink,
+      appraisal: node.appraisal,
+    };
+  };
 
   constructor(
     private messageService: MessageService,
@@ -31,14 +67,23 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     private route: ActivatedRoute
   ) {
     this.showAppraisal = true;
-    this.treeControl = new NestedTreeControl<StructureNode>(
+    this.treeControl = new FlatTreeControl<FlatNode>(
+      (node) => node.level,
+      (node) => node.expandable
+    );
+    this.treeFlattener = new MatTreeFlattener(
+      this._transformer,
+      (node) => node.level,
+      (node) => node.expandable,
       (node) => node.children
     );
-    this.dataSource = new MatTreeNestedDataSource<StructureNode>();
+    this.dataSource = new MatTreeFlatDataSource(
+      this.treeControl,
+      this.treeFlattener
+    );
   }
 
-  hasChild = (_: number, node: StructureNode) =>
-    !!node.children && node.children.length > 0;
+  hasChild = (_: number, node: FlatNode) => node.expandable;
 
   ngAfterViewInit(): void {
     this.urlParameterSubscription?.unsubscribe();
@@ -79,8 +124,10 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     const messageNode = this.messageService.processMessage(message);
     treeData.push(messageNode);
     this.dataSource.data = treeData;
-    this.treeControl.dataNodes = treeData;
-    this.treeControl.expand(messageNode);
+    console.log(this.treeControl.dataNodes);
+    // this.treeControl.dataNodes = treeData;
+    // this.treeControl.expand(messageNode);
+    this.expandNode(messageNode.id);
   }
 
   sendAppraisalMessage(): void {
@@ -90,21 +137,24 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           console.error(error);
         },
         next: () => {
-          this.notificationService.show('Bewertungsnachricht wurde erfolgreich versandt')
-        }
+          this.notificationService.show(
+            'Bewertungsnachricht wurde erfolgreich versandt'
+          );
+        },
       });
     }
   }
 
   expandNode(id: string): void {
-    const node: StructureNode | undefined =
-      this.messageService.getStructureNode(id);
-      if (node) {
-        this.treeControl.expand(node);
-        if (node.parentID) {
-          this.expandNode(node.parentID);
-        }
+    const node: FlatNode | undefined = this.treeControl.dataNodes.find(
+      (n: FlatNode) => n.id === id
+    );
+    if (node) {
+      this.treeControl.expand(node);
+      if (node.parentID) {
+        this.expandNode(node.parentID);
       }
+    }
   }
 
   ngOnDestroy(): void {

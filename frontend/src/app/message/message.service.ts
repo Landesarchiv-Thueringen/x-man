@@ -124,7 +124,7 @@ export interface Code {
   name?: string;
 }
 
-type StructureNodeType = 'message' | 'file' | 'process' | 'document';
+export type StructureNodeType = 'message' | 'file' | 'process' | 'document';
 
 export interface DisplayText {
   title: string;
