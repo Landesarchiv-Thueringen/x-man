@@ -223,6 +223,10 @@ func AddMessage(
 	processStoreDir string,
 	message Message,
 ) (Message, error) {
+	// generate ID for message, propagate the ID to record object children
+	// must be done before saving the message in database
+	message.ID = uuid.New()
+	setRecordObjectsMessageID(&message)
 	result := db.Create(&message)
 	// The Database failed to create the message.
 	if result.Error != nil {
@@ -248,6 +252,39 @@ func AddMessage(
 	process.Messages = append(process.Messages, message)
 	result = db.Save(&process)
 	return message, result.Error
+}
+
+func setRecordObjectsMessageID(message *Message) {
+	for _, r := range message.RecordObjects {
+		if r.FileRecordObject != nil {
+			setFileRecordObjectMessageID(message.ID, r.FileRecordObject)
+		}
+	}
+}
+
+func setFileRecordObjectMessageID(messageID uuid.UUID, fileRecordObject *FileRecordObject) {
+	fileRecordObject.MessageID = messageID
+	for i := range fileRecordObject.Processes {
+		log.Println(messageID)
+		setProcessRecordObjectMessageID(messageID, &fileRecordObject.Processes[i])
+	}
+}
+
+func setProcessRecordObjectMessageID(
+	messageID uuid.UUID,
+	processRecordObject *ProcessRecordObject,
+) {
+	processRecordObject.MessageID = messageID
+	for i := range processRecordObject.Documents {
+		setDocumentRecordObjectMessageID(messageID, &processRecordObject.Documents[i])
+	}
+}
+
+func setDocumentRecordObjectMessageID(
+	messageID uuid.UUID,
+	documentRecordObject *DocumentRecordObject,
+) {
+	documentRecordObject.MessageID = messageID
 }
 
 func UpdateMessage(message Message) error {

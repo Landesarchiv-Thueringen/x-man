@@ -112,13 +112,13 @@ type Institution struct {
 }
 
 type RecordObject struct {
-	XMLName            xml.Name         `gorm:"-" xml:"Schriftgutobjekt" json:"-"`
-	ID                 uint             `gorm:"primaryKey" json:"id"`
-	CreatedAt          time.Time        `json:"-"`
-	UpdatedAt          time.Time        `json:"-"`
-	DeletedAt          gorm.DeletedAt   `gorm:"index" json:"-"`
-	FileRecordObjectID *uuid.UUID       `json:"-"`
-	FileRecordObject   FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
+	XMLName            xml.Name          `gorm:"-" xml:"Schriftgutobjekt" json:"-"`
+	ID                 uint              `gorm:"primaryKey" json:"id"`
+	CreatedAt          time.Time         `json:"-"`
+	UpdatedAt          time.Time         `json:"-"`
+	DeletedAt          gorm.DeletedAt    `gorm:"index" json:"-"`
+	FileRecordObjectID *uuid.UUID        `json:"-"`
+	FileRecordObject   *FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
 }
 
 type FileRecordObject struct {
@@ -135,6 +135,7 @@ type FileRecordObject struct {
 	Lifetime          Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string               `json:"type" xml:"Typ"`
 	Processes         []ProcessRecordObject `gorm:"many2many:file_processes;" xml:"Akteninhalt>Vorgang" json:"processes"`
+	MessageID         uuid.UUID             `json:"messageID"`
 }
 
 type ProcessRecordObject struct {
@@ -151,6 +152,7 @@ type ProcessRecordObject struct {
 	Lifetime          Lifetime               `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string                `json:"type" xml:"Typ"`
 	Documents         []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
+	MessageID         uuid.UUID              `json:"messageID"`
 }
 
 type DocumentRecordObject struct {
@@ -165,6 +167,7 @@ type DocumentRecordObject struct {
 	IncomingDate      *string         `xml:"Posteingangsdatum" json:"incomingDate"`
 	OutgoingDate      *string         `xml:"Postausgangsdatum" json:"outgoingDate"`
 	DocumentDate      *string         `xml:"DatumDesSchreibens" json:"documentDate"`
+	MessageID         uuid.UUID       `json:"messageID"`
 }
 
 type GeneralMetadata struct {
