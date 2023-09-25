@@ -144,10 +144,11 @@ func setFileRecordObjectAppraisal(context *gin.Context) {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
 	appraisalCode := context.Query("appraisal")
-	err = db.SetFileRecordObjectAppraisal(id, appraisalCode)
+	fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
+	context.JSON(http.StatusOK, fileRecordObject)
 }
 
 func setProcessRecordObjectAppraisal(context *gin.Context) {
@@ -157,10 +158,11 @@ func setProcessRecordObjectAppraisal(context *gin.Context) {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
 	appraisalCode := context.Query("appraisal")
-	err = db.SetProcessRecordObjectAppraisal(id, appraisalCode)
+	processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
+	context.JSON(http.StatusOK, processRecordObject)
 }
 
 func finalizeMessageAppraisal(context *gin.Context) {

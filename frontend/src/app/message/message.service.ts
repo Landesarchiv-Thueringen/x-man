@@ -169,7 +169,9 @@ export class MessageService {
     const children: StructureNode[] = [];
     for (let recordObject of message.recordObjects) {
       if (recordObject.fileRecordObject) {
-        children.push(this.getFileStructureNode(recordObject.fileRecordObject, message.id));
+        children.push(
+          this.getFileStructureNode(recordObject.fileRecordObject, message.id)
+        );
       }
     }
     let displayText: DisplayText;
@@ -199,7 +201,10 @@ export class MessageService {
     return messageNode;
   }
 
-  getFileStructureNode(fileRecordObject: FileRecordObject, parentID: string): StructureNode {
+  getFileStructureNode(
+    fileRecordObject: FileRecordObject,
+    parentID: string
+  ): StructureNode {
     const children: StructureNode[] = [];
     for (let process of fileRecordObject.processes) {
       children.push(this.getProcessStructureNode(process, fileRecordObject.id));
@@ -223,11 +228,14 @@ export class MessageService {
   }
 
   getProcessStructureNode(
-    processRecordObject: ProcessRecordObject, parentID: string
+    processRecordObject: ProcessRecordObject,
+    parentID: string
   ): StructureNode {
     const children: StructureNode[] = [];
     for (let document of processRecordObject.documents) {
-      children.push(this.getDocumentStructureNode(document, processRecordObject.id));
+      children.push(
+        this.getDocumentStructureNode(document, processRecordObject.id)
+      );
     }
     const displayText: DisplayText = {
       title: 'Vorgang: ' + processRecordObject.generalMetadata?.xdomeaID,
@@ -248,7 +256,8 @@ export class MessageService {
   }
 
   getDocumentStructureNode(
-    documentRecordObject: DocumentRecordObject, parentID: string
+    documentRecordObject: DocumentRecordObject,
+    parentID: string
   ): StructureNode {
     const displayText: DisplayText = {
       title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
@@ -270,9 +279,7 @@ export class MessageService {
     return this.structureNodes.get(id);
   }
 
-  addStructureNode(
-    node: StructureNode,
-  ) {
+  addStructureNode(node: StructureNode) {
     this.structureNodes.set(node.id, node);
   }
 
@@ -310,11 +317,7 @@ export class MessageService {
     const url = this.apiEndpoint + '/finalize-message-appraisal/' + id;
     const body = {};
     const options = {};
-    return this.httpClient.patch<void>(
-      url,
-      body,
-      options,
-    );
+    return this.httpClient.patch<void>(url, body, options);
   }
 
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
@@ -332,7 +335,9 @@ export class MessageService {
     }
   }
 
-  getRecordObjectConfidentialities(): Observable<RecordObjectConfidentiality[]> {
+  getRecordObjectConfidentialities(): Observable<
+    RecordObjectConfidentiality[]
+  > {
     if (this.confidentialities) {
       return new Observable(
         (subscriber: Subscriber<RecordObjectConfidentiality[]>) => {
@@ -347,7 +352,10 @@ export class MessageService {
     }
   }
 
-  setFileRecordObjectAppraisal(id: string, appraisalCode: string): Observable<void> {
+  setFileRecordObjectAppraisal(
+    id: string,
+    appraisalCode: string
+  ): Observable<FileRecordObject> {
     const url = this.apiEndpoint + '/file-record-object-appraisal';
     const body = {};
     const options = {
@@ -355,12 +363,15 @@ export class MessageService {
     };
     const node: StructureNode = this.structureNodes.get(id)!;
     if (!!node) {
-      this.setStructureNodeAppraisal(node, appraisalCode)
+      this.setStructureNodeAppraisal(node, appraisalCode);
     }
-    return this.httpClient.patch<void>(url, body, options);
+    return this.httpClient.patch<FileRecordObject>(url, body, options);
   }
 
-  setProcessRecordObjectAppraisal(id: string, appraisalCode: string): Observable<void> {
+  setProcessRecordObjectAppraisal(
+    id: string,
+    appraisalCode: string
+  ): Observable<ProcessRecordObject> {
     const url = this.apiEndpoint + '/process-record-object-appraisal';
     const body = {};
     const options = {
@@ -369,14 +380,14 @@ export class MessageService {
     if (this.structureNodes.get(id)) {
       this.structureNodes.get(id)!.appraisal = appraisalCode;
     }
-    return this.httpClient.patch<void>(url, body, options);
+    return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 
   // TODO: make recursive if useful
   setStructureNodeAppraisal(node: StructureNode, appraisalCode: string) {
     node.appraisal = appraisalCode;
     if (node.children) {
-      for(let child of node.children) {
+      for (let child of node.children) {
         child.appraisal = appraisalCode;
       }
     }

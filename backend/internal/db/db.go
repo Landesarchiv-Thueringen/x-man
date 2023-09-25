@@ -295,42 +295,42 @@ func UpdateMessage(message Message) error {
 func SetFileRecordObjectAppraisal(
 	id uuid.UUID,
 	appraisalCode string,
-) error {
+) (FileRecordObject, error) {
 	fileRecordObject, err := GetFileRecordObjectByID(id)
 	if err != nil {
-		return err
+		return fileRecordObject, err
 	}
 	appraisal, err := GetAppraisalByCode(appraisalCode)
 	if err != nil {
-		return err
+		return fileRecordObject, err
 	}
 	fileRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
 	result := db.Save(&fileRecordObject.ArchiveMetadata)
 	if result.Error != nil {
-		return result.Error
+		return fileRecordObject, result.Error
 	}
 	for _, process := range fileRecordObject.Processes {
-		err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
+		_, err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
 		if err != nil {
-			return err
+			return fileRecordObject, err
 		}
 	}
-	return nil
+	return fileRecordObject, nil
 }
 
 func SetProcessRecordObjectAppraisal(
 	id uuid.UUID,
 	appraisalCode string,
-) error {
+) (ProcessRecordObject, error) {
 	processRecordObject, err := GetProcessRecordObjectByID(id)
 	if err != nil {
-		return err
+		return processRecordObject, err
 	}
 	appraisal, err := GetAppraisalByCode(appraisalCode)
 	if err != nil {
-		return err
+		return processRecordObject, err
 	}
 	processRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
 	result := db.Save(&processRecordObject.ArchiveMetadata)
-	return result.Error
+	return processRecordObject, result.Error
 }

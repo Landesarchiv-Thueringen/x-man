@@ -132,8 +132,6 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     treeData.push(messageNode);
     this.dataSource.data = treeData;
     console.log(this.treeControl.dataNodes);
-    // this.treeControl.dataNodes = treeData;
-    // this.treeControl.expand(messageNode);
     this.expandNode(messageNode.id);
   }
 
