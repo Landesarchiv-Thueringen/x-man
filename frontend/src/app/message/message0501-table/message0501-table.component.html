@@ -40,10 +40,10 @@
             <th mat-header-cell *matHeaderCellDef>Aktionen</th>
             <td mat-cell *matCellDef="let message">
                 <button mat-icon-button [matMenuTriggerFor]="menu" aria-hidden="false" aria-label="Aktionen für Nachricht anzeigen">
-                <mat-icon>more_horiz</mat-icon>
+                    <mat-icon>more_horiz</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                    <div *ngIf="message.appraisalComplete; then appraiseMessageMenuItem else appraiseMessageMenuItem"></div>
+                    <div *ngIf="message.appraisalComplete; then showMessageMenuItem else appraiseMessageMenuItem"></div>
                     <ng-template #showMessageMenuItem>
                         <button mat-menu-item [routerLink]="['/nachricht', message.id, 'details']">
                             <mat-icon>search</mat-icon>

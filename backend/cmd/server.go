@@ -37,6 +37,7 @@ func main() {
 	router.GET("record-object-confidentialities", getRecordObjectConfidentialities)
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
+	router.PATCH("finalize-message-appraisal/:id", finalizeMessageAppraisal)
 	router.Run("localhost:3000")
 }
 
@@ -159,6 +160,23 @@ func setProcessRecordObjectAppraisal(context *gin.Context) {
 	err = db.SetProcessRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+}
+
+func finalizeMessageAppraisal(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	message, err := db.GetMessageByID(id)
+	if err != nil {
+		context.JSON(http.StatusNotFound, err)
+	} else {
+		message.AppraisalComplete = true
+		err = db.UpdateMessage(message)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, err)
+		}
 	}
 }
 

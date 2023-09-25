@@ -250,6 +250,11 @@ func AddMessage(
 	return message, result.Error
 }
 
+func UpdateMessage(message Message) error {
+	result := db.Save(&message)
+	return result.Error
+}
+
 func SetFileRecordObjectAppraisal(
 	id uuid.UUID,
 	appraisalCode string,

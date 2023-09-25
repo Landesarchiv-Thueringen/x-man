@@ -26,7 +26,6 @@
                   </div>
                   <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
                 </div>
-
               </div>
               <div *ngIf="showAppraisal" class="node-appraisal">
                 <span class="spacer"></span>
@@ -60,7 +59,23 @@
                     <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
                   </div>
                 </div>
-                <div *ngIf="showAppraisal" class="node-appraisal">
+                <div *ngIf="node.type === 'message'" class="message-menu">
+                  <span class="spacer"></span>
+                  <button mat-icon-button [matMenuTriggerFor]="menu" [disableRipple]="true">
+                    <mat-icon>more_horiz</mat-icon>
+                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button *ngIf="!message?.appraisalComplete" mat-menu-item (click)="sendAppraisalMessage()">
+                      <mat-icon>forward_to_inbox</mat-icon>
+                      <span>Bewertung senden</span>
+                    </button>
+                    <button *ngIf="message?.messageType?.code === '0503'" mat-menu-item>
+                      <mat-icon>archive</mat-icon>
+                      <span>Abgabe archivieren</span>
+                    </button>
+                  </mat-menu>
+                </div>
+                <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
                   <span class="spacer"></span>
                   <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal}}</span>
                 </div>

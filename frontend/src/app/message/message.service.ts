@@ -306,6 +306,17 @@ export class MessageService {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
   }
 
+  finalizeMessageAppraisal(id: string): Observable<void> {
+    const url = this.apiEndpoint + '/finalize-message-appraisal/' + id;
+    const body = {};
+    const options = {};
+    return this.httpClient.patch<void>(
+      url,
+      body,
+      options,
+    );
+  }
+
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
     if (this.appraisals) {
       return new Observable(

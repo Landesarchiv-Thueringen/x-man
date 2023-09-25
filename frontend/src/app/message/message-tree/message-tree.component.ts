@@ -8,6 +8,7 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 
 // project
 import { Message, MessageService, StructureNode } from '../message.service';
+import { NotificationService } from 'src/app/utility/notification/notification.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
@@ -26,6 +27,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private messageService: MessageService,
+    private notificationService: NotificationService,
     private route: ActivatedRoute
   ) {
     this.showAppraisal = true;
@@ -79,6 +81,19 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     this.dataSource.data = treeData;
     this.treeControl.dataNodes = treeData;
     this.treeControl.expand(messageNode);
+  }
+
+  sendAppraisalMessage(): void {
+    if (this.message) {
+      this.messageService.finalizeMessageAppraisal(this.message.id).subscribe({
+        error: (error) => {
+          console.error(error);
+        },
+        next: () => {
+          this.notificationService.show('Bewertungsnachricht wurde erfolgreich versandt')
+        }
+      });
+    }
   }
 
   expandNode(id: string): void {

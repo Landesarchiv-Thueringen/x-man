@@ -55,10 +55,19 @@
       }
     }
 
+    .message-menu {
+      display: flex;
+      flex-grow: 1;
+
+      .spacer {
+        flex: 1 1 auto;
+      }
+    }
+
     .node-appraisal {
       display: flex;
       flex-grow: 1;
-      padding-right: 2.0em;
+      padding-right: 1.5em;
       font-weight: bold;
 
       .spacer {
