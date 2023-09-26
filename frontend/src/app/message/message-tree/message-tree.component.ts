@@ -1,11 +1,12 @@
 // angular
-import { AfterViewInit, Component, Inject, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Params } from '@angular/router';
 
 // material
 import { FlatTreeControl } from '@angular/cdk/tree';
 import {
+  MatTree,
   MatTreeFlatDataSource,
   MatTreeFlattener,
 } from '@angular/material/tree';
@@ -44,6 +45,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   message?: Message;
   showAppraisal: boolean;
   messageTreeInit: boolean;
+
+  @ViewChild('messageTree')
+  messageTree?: MatTree<StructureNode>;
 
   treeControl: FlatTreeControl<FlatNode>;
   treeFlattener: MatTreeFlattener<StructureNode, FlatNode>;
@@ -131,8 +135,12 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     const messageNode = this.messageService.processMessage(message);
     treeData.push(messageNode);
     this.dataSource.data = treeData;
-    console.log(this.treeControl.dataNodes);
     this.expandNode(messageNode.id);
+    // this.messageService.watchStructureNodes().subscribe(
+    //   () => {
+    //     this.messageTree?.renderNodeChanges();
+    //   }
+    // );
   }
 
   sendAppraisalMessage(): void {

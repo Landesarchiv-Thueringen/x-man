@@ -1,7 +1,7 @@
 <mat-sidenav-container>
 
     <mat-sidenav mode="side" opened>
-        <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="message-tree">
+        <mat-tree #messageTree [dataSource]="dataSource" [treeControl]="treeControl" class="message-tree">
 
           <!-- This is the tree node template for leaf nodes -->
           <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding >

@@ -136,6 +136,7 @@ type FileRecordObject struct {
 	Type              *string               `json:"type" xml:"Typ"`
 	Processes         []ProcessRecordObject `gorm:"many2many:file_processes;" xml:"Akteninhalt>Vorgang" json:"processes"`
 	MessageID         uuid.UUID             `json:"messageID"`
+	RecorcObjectType  string                `gorm:"default:file" json:"recordObjectType"`
 }
 
 type ProcessRecordObject struct {
@@ -153,6 +154,7 @@ type ProcessRecordObject struct {
 	Type              *string                `json:"type" xml:"Typ"`
 	Documents         []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
 	MessageID         uuid.UUID              `json:"messageID"`
+	RecorcObjectType  string                 `gorm:"default:process" json:"recordObjectType"`
 }
 
 type DocumentRecordObject struct {
@@ -168,6 +170,7 @@ type DocumentRecordObject struct {
 	OutgoingDate      *string         `xml:"Postausgangsdatum" json:"outgoingDate"`
 	DocumentDate      *string         `xml:"DatumDesSchreibens" json:"documentDate"`
 	MessageID         uuid.UUID       `json:"messageID"`
+	RecorcObjectType  string          `gorm:"default:document" json:"recordObjectType"`
 }
 
 type GeneralMetadata struct {

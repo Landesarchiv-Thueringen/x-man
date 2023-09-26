@@ -5,7 +5,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 // utility
-import { Observable, Subscriber } from 'rxjs';
+import { Observable, BehaviorSubject, Subscriber } from 'rxjs';
 
 export interface Message {
   id: string;
@@ -60,6 +60,7 @@ export interface FileRecordObject {
   lifetime?: Lifetime;
   type?: string;
   processes: ProcessRecordObject[];
+  recordObjectType: RecordObjectType;
 }
 
 export interface ProcessRecordObject {
@@ -69,6 +70,7 @@ export interface ProcessRecordObject {
   lifetime?: Lifetime;
   type?: string;
   documents: DocumentRecordObject[];
+  recordObjectType: RecordObjectType;
 }
 
 export interface DocumentRecordObject {
@@ -78,6 +80,7 @@ export interface DocumentRecordObject {
   incomingDate?: string;
   outgoingDate?: string;
   documentDate?: string;
+  recordObjectType: RecordObjectType;
 }
 
 export interface GeneralMetadata {
@@ -125,6 +128,7 @@ export interface Code {
 }
 
 export type StructureNodeType = 'message' | 'file' | 'process' | 'document';
+export type RecordObjectType = 'file' | 'process' | 'document';
 
 export interface DisplayText {
   title: string;
@@ -146,13 +150,18 @@ export interface StructureNode {
 })
 export class MessageService {
   apiEndpoint: string;
-  structureNodes: Map<string, StructureNode>;
   appraisals?: RecordObjectAppraisal[];
   confidentialities?: RecordObjectConfidentiality[];
+
+  nodesSubject: BehaviorSubject<Map<string, StructureNode>>;
+  structureNodes: Map<string, StructureNode>;
 
   constructor(private datePipe: DatePipe, private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
     this.structureNodes = new Map<string, StructureNode>();
+    this.nodesSubject = new BehaviorSubject<Map<string, StructureNode>>(
+      this.structureNodes
+    );
     this.getRecordObjectAppraisals().subscribe(
       (appraisals: RecordObjectAppraisal[]) => {
         this.appraisals = appraisals;
@@ -198,12 +207,13 @@ export class MessageService {
       children: children,
     };
     this.structureNodes.set(messageNode.id, messageNode);
+    this.nodesSubject.next(this.structureNodes);
     return messageNode;
   }
 
   getFileStructureNode(
     fileRecordObject: FileRecordObject,
-    parentID: string
+    parentID?: string
   ): StructureNode {
     const children: StructureNode[] = [];
     for (let process of fileRecordObject.processes) {
@@ -229,7 +239,7 @@ export class MessageService {
 
   getProcessStructureNode(
     processRecordObject: ProcessRecordObject,
-    parentID: string
+    parentID?: string
   ): StructureNode {
     const children: StructureNode[] = [];
     for (let document of processRecordObject.documents) {
@@ -257,7 +267,7 @@ export class MessageService {
 
   getDocumentStructureNode(
     documentRecordObject: DocumentRecordObject,
-    parentID: string
+    parentID?: string
   ): StructureNode {
     const displayText: DisplayText = {
       title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
@@ -275,8 +285,8 @@ export class MessageService {
     return documentNode;
   }
 
-  getStructureNode(id: string): StructureNode | undefined {
-    return this.structureNodes.get(id);
+  watchStructureNodes(): Observable<Map<string, StructureNode>> {
+    return this.nodesSubject.asObservable();
   }
 
   addStructureNode(node: StructureNode) {
@@ -361,10 +371,6 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', appraisalCode),
     };
-    const node: StructureNode = this.structureNodes.get(id)!;
-    if (!!node) {
-      this.setStructureNodeAppraisal(node, appraisalCode);
-    }
     return this.httpClient.patch<FileRecordObject>(url, body, options);
   }
 
@@ -383,13 +389,37 @@ export class MessageService {
     return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 
-  // TODO: make recursive if useful
-  setStructureNodeAppraisal(node: StructureNode, appraisalCode: string) {
-    node.appraisal = appraisalCode;
-    if (node.children) {
-      for (let child of node.children) {
-        child.appraisal = appraisalCode;
+  updateStructureNode(
+    recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject
+  ): void {
+    const structureNode: StructureNode | undefined = this.structureNodes.get(
+      recordObject.id
+    );
+    if (structureNode) {
+      switch (recordObject.recordObjectType) {
+        case 'file': {
+          const node: StructureNode = this.getFileStructureNode(
+            recordObject as FileRecordObject
+          );
+          break;
+        }
+        case 'process': {
+          const node: StructureNode = this.getProcessStructureNode(
+            recordObject as ProcessRecordObject
+          );
+          break;
+        }
+        case 'document': {
+          const node: StructureNode = this.getDocumentStructureNode(
+            recordObject as DocumentRecordObject
+          );
+          break;
+        }
       }
+    } else {
+      console.error(
+        'no structure node for record object with ID: ' + recordObject.id
+      );
     }
   }
 
