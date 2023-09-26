@@ -1,5 +1,11 @@
 // angular
-import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Inject,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Params } from '@angular/router';
 
@@ -136,11 +142,34 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     treeData.push(messageNode);
     this.dataSource.data = treeData;
     this.expandNode(messageNode.id);
-    // this.messageService.watchStructureNodes().subscribe(
-    //   () => {
-    //     this.messageTree?.renderNodeChanges();
-    //   }
-    // );
+    // this.messageService
+    //   .watchStructureNodes()
+    //   .subscribe((nodes: StructureNode[]) => {
+    //     this.dataSource.data = nodes;
+    //   });
+    this.messageService
+      .watchNodeChanges()
+      .subscribe((changedNode: StructureNode) => {
+        // change flat node works XD
+        const test: FlatNode|undefined = this.treeControl.dataNodes.find(
+          (n: FlatNode) => n.id === changedNode.id
+        );
+        test!.appraisal = changedNode.appraisal;
+        // initialize next nodes with root nodes of tree
+        const nextNodes: StructureNode[] = [...this.dataSource.data];
+        while (nextNodes.length !== 0) {
+          const currentNode: StructureNode = nextNodes.shift()!;
+          if (currentNode.id === changedNode.id) {
+            console.log(
+              'found' + currentNode.appraisal + changedNode.appraisal
+            );
+            currentNode.appraisal = changedNode.appraisal;
+          }
+          if (currentNode.children) {
+            nextNodes.push(...currentNode.children);
+          }
+        }
+      });
   }
 
   sendAppraisalMessage(): void {

@@ -62,7 +62,6 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
           return this.messageService.getProcessRecordObject(params['id']);
         }),
         switchMap((processRecordObject: ProcessRecordObject) => {
-          console.log(processRecordObject);
           this.processRecordObject = processRecordObject;
           return this.messageService.getMessage(
             this.route.parent!.snapshot.params['id']

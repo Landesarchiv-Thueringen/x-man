@@ -38,7 +38,6 @@ export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
       this.urlParameterSubscription = this.route.parent.params.subscribe((params) => {
         this.messageService.getMessage(params['id']).subscribe(
           (message: Message) => {
-            console.log(message);
             this.message = message;
             this.form.patchValue({
               processID: message.messageHead.processID,

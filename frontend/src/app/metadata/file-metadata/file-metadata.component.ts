@@ -62,7 +62,6 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
           return this.messageService.getFileRecordObject(params['id']);
         }),
         switchMap((fileRecordObject: FileRecordObject) => {
-          console.log(fileRecordObject);
           this.fileRecordObject = fileRecordObject;
           return this.messageService.getMessage(
             this.route.parent!.snapshot.params['id']

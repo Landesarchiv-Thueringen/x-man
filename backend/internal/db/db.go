@@ -117,7 +117,11 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 		Preload("Processes").
 		Preload("Processes.GeneralMetadata").
 		Preload("Processes.GeneralMetadata.FilePlan").
+		Preload("Processes.ArchiveMetadata").
 		Preload("Processes.Lifetime").
+		Preload("Processes.Documents").
+		Preload("Processes.Documents.GeneralMetadata").
+		Preload("Processes.Documents.GeneralMetadata.FilePlan").
 		First(&file, id)
 	return file, result.Error
 }
@@ -315,6 +319,11 @@ func SetFileRecordObjectAppraisal(
 			return fileRecordObject, err
 		}
 	}
+	// asdasd
+	fileRecordObject, err = GetFileRecordObjectByID(id)
+	if err != nil {
+		return fileRecordObject, err
+	}
 	return fileRecordObject, nil
 }
 
@@ -332,5 +341,13 @@ func SetProcessRecordObjectAppraisal(
 	}
 	processRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
 	result := db.Save(&processRecordObject.ArchiveMetadata)
+	if result.Error != nil {
+		return processRecordObject, result.Error
+	}
+	// adsdasd
+	processRecordObject, err = GetProcessRecordObjectByID(id)
+	if err != nil {
+		return processRecordObject, err
+	}
 	return processRecordObject, result.Error
 }

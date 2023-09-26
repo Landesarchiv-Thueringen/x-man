@@ -5,7 +5,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 // utility
-import { Observable, BehaviorSubject, Subscriber } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, Subscriber } from 'rxjs';
 
 export interface Message {
   id: string;
@@ -153,15 +153,17 @@ export class MessageService {
   appraisals?: RecordObjectAppraisal[];
   confidentialities?: RecordObjectConfidentiality[];
 
-  nodesSubject: BehaviorSubject<Map<string, StructureNode>>;
   structureNodes: Map<string, StructureNode>;
+  nodesSubject: BehaviorSubject<StructureNode[]>;
+  changedNodeSubject: Subject<StructureNode>;
 
   constructor(private datePipe: DatePipe, private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
     this.structureNodes = new Map<string, StructureNode>();
-    this.nodesSubject = new BehaviorSubject<Map<string, StructureNode>>(
-      this.structureNodes
+    this.nodesSubject = new BehaviorSubject<StructureNode[]>(
+      this.getRootStructureNodes()
     );
+    this.changedNodeSubject = new Subject<StructureNode>();
     this.getRecordObjectAppraisals().subscribe(
       (appraisals: RecordObjectAppraisal[]) => {
         this.appraisals = appraisals;
@@ -207,7 +209,7 @@ export class MessageService {
       children: children,
     };
     this.structureNodes.set(messageNode.id, messageNode);
-    this.nodesSubject.next(this.structureNodes);
+    this.nodesSubject.next(this.getRootStructureNodes());
     return messageNode;
   }
 
@@ -285,12 +287,39 @@ export class MessageService {
     return documentNode;
   }
 
-  watchStructureNodes(): Observable<Map<string, StructureNode>> {
+  watchStructureNodes(): Observable<StructureNode[]> {
     return this.nodesSubject.asObservable();
   }
 
-  addStructureNode(node: StructureNode) {
+  watchNodeChanges(): Observable<StructureNode> {
+    return this.changedNodeSubject.asObservable();
+  }
+
+  addStructureNode(node: StructureNode): void {
     this.structureNodes.set(node.id, node);
+  }
+
+  propagateNodeChangeToParents(node: StructureNode): void {
+    if (!node.parentID) {
+      throw new Error('no parent for node change propagation existing');
+    }
+    const parent: StructureNode | undefined = this.structureNodes.get(
+      node.parentID
+    );
+    if (!parent) {
+      throw new Error('parent node doesn"t exist, ID: ' + node.parentID);
+    }
+    if (!parent.children) {
+      throw new Error('parent and children are not connected');
+    }
+    const nodeIndex: number = parent.children.findIndex(
+      (child: StructureNode) => child.id === node.id
+    );
+    if (nodeIndex === -1) {
+      throw new Error('parent and child are not connected');
+    }
+    // replace old node with updated version
+    parent.children[nodeIndex] = node;
   }
 
   getMessage(id: string): Observable<Message> {
@@ -392,30 +421,38 @@ export class MessageService {
   updateStructureNode(
     recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject
   ): void {
-    const structureNode: StructureNode | undefined = this.structureNodes.get(
+    const node: StructureNode | undefined = this.structureNodes.get(
       recordObject.id
     );
-    if (structureNode) {
+    if (node) {
+      let changedNode: StructureNode;
       switch (recordObject.recordObjectType) {
         case 'file': {
-          const node: StructureNode = this.getFileStructureNode(
-            recordObject as FileRecordObject
+          changedNode = this.getFileStructureNode(
+            recordObject as FileRecordObject,
+            node.parentID
           );
           break;
         }
         case 'process': {
-          const node: StructureNode = this.getProcessStructureNode(
-            recordObject as ProcessRecordObject
+          changedNode = this.getProcessStructureNode(
+            recordObject as ProcessRecordObject,
+            node.parentID
           );
           break;
         }
         case 'document': {
-          const node: StructureNode = this.getDocumentStructureNode(
-            recordObject as DocumentRecordObject
+          changedNode = this.getDocumentStructureNode(
+            recordObject as DocumentRecordObject,
+            node.parentID
           );
           break;
         }
       }
+      // we accept you my node
+      this.propagateNodeChangeToParents(changedNode);
+      this.nodesSubject.next(this.getRootStructureNodes());
+      this.changedNodeSubject.next(changedNode);
     } else {
       console.error(
         'no structure node for record object with ID: ' + recordObject.id
@@ -458,5 +495,17 @@ export class MessageService {
       }
     }
     return null;
+  }
+
+  /**
+   * The message tree has only one root node which is the message node.
+   */
+  private getRootStructureNodes(): StructureNode[] {
+    for (let node of this.structureNodes.values()) {
+      if (!node.parentID) {
+        return [node];
+      }
+    }
+    return [];
   }
 }
