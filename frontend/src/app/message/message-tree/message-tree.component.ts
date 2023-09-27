@@ -142,6 +142,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     treeData.push(messageNode);
     this.dataSource.data = treeData;
     this.expandNode(messageNode.id);
+    // updating the whole tree loses all informationen on expanded nodes
     // this.messageService
     //   .watchStructureNodes()
     //   .subscribe((nodes: StructureNode[]) => {
@@ -150,26 +151,71 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     this.messageService
       .watchNodeChanges()
       .subscribe((changedNode: StructureNode) => {
-        // change flat node works XD
-        const test: FlatNode|undefined = this.treeControl.dataNodes.find(
-          (n: FlatNode) => n.id === changedNode.id
-        );
-        test!.appraisal = changedNode.appraisal;
+        // TODO: find better solution than manipulating the flat nodes directly
+        this.updateFlatNodeInTreeControlRec(changedNode);
         // initialize next nodes with root nodes of tree
-        const nextNodes: StructureNode[] = [...this.dataSource.data];
-        while (nextNodes.length !== 0) {
-          const currentNode: StructureNode = nextNodes.shift()!;
-          if (currentNode.id === changedNode.id) {
-            console.log(
-              'found' + currentNode.appraisal + changedNode.appraisal
-            );
-            currentNode.appraisal = changedNode.appraisal;
-          }
-          if (currentNode.children) {
-            nextNodes.push(...currentNode.children);
-          }
-        }
+        // update the changed node doesn't trigger updates of the corresponding flat node
+        //this.updateNodeInDataSource(changedNode);
       });
+  }
+
+  updateFlatNodeInTreeControlRec(changedNode: StructureNode): void {
+    const nextNodes: StructureNode[] = [changedNode];
+    while (nextNodes.length !== 0) {
+      // shift is breadth-first, pop is depth-first
+      const currentNode: StructureNode = nextNodes.shift()!;
+      this.updateFlatNodeInTreeControl(currentNode);
+      if (currentNode.children) {
+        nextNodes.push(...currentNode.children);
+      }
+    }
+  }
+
+  updateFlatNodeInTreeControl(changedNode: StructureNode): void {
+    const flatNode: FlatNode = this.treeControl.dataNodes.find(
+      (n: FlatNode) => n.id === changedNode.id
+    )!;
+    flatNode.appraisal = changedNode.appraisal;
+    flatNode.displayText = changedNode.displayText;
+    flatNode.routerLink = changedNode.routerLink;
+    flatNode.type = changedNode.type;
+  }
+
+  updateNodeInDataSource(changedNode: StructureNode): void {
+    const oldNode: StructureNode = this.findNodeInDataSource(
+      changedNode.id
+    )!;
+    if (oldNode.parentID) {
+      const parentNode: StructureNode = this.findNodeInDataSource(
+        oldNode.parentID
+      )!;
+      const oldNodeIndex: number = parentNode.children!.findIndex(
+        (node: StructureNode) => node.id === oldNode.id
+      )!;
+      parentNode.children![oldNodeIndex] = changedNode;
+    } else {
+      // element must be root element
+      const oldNodeIndex: number = this.dataSource.data.findIndex(
+        (node: StructureNode) => node.id === oldNode.id
+      )!;
+      this.dataSource.data[oldNodeIndex] = changedNode;
+    }
+  }
+
+  findNodeInDataSource(targetID: string): StructureNode | undefined {
+    // initialize next nodes with root nodes of tree
+    const nextNodes: StructureNode[] = [...this.dataSource.data];
+    while (nextNodes.length !== 0) {
+      // shift is breadth-first search, pop is depth-first search
+      const currentNode: StructureNode = nextNodes.shift()!;
+      if (currentNode.id === targetID) {
+        return currentNode;
+      }
+      if (currentNode.children) {
+        nextNodes.push(...currentNode.children);
+      }
+    }
+    return undefined;
   }
 
   sendAppraisalMessage(): void {
