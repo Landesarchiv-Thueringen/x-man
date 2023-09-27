@@ -146,7 +146,8 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
           error: (error) => {
             console.error(error);
           },
-          complete: () => {
+          next: (processRecordObject: ProcessRecordObject) => {
+            this.messageService.updateStructureNode(processRecordObject);
             this.notificationService.show('Bewertung erfolgreich gespeichert');
           },
         });
