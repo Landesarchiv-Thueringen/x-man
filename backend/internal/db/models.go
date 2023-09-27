@@ -123,14 +123,14 @@ type RecordObject struct {
 
 type FileRecordObject struct {
 	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
-	ID                uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	ID                uuid.UUID             `gorm:"primaryKey;type:uuid;" xml:"Identifikation>ID" json:"id"`
 	CreatedAt         time.Time             `json:"-"`
 	UpdatedAt         time.Time             `json:"-"`
 	DeletedAt         gorm.DeletedAt        `gorm:"index" json:"-"`
 	GeneralMetadataID *uint                 `json:"-"`
-	GeneralMetadata   GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	GeneralMetadata   *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	ArchiveMetadataID *uint                 `json:"-"`
-	ArchiveMetadata   ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
+	ArchiveMetadata   *ArchiveMetadata      `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
 	LifetimeID        *uint                 `json:"-"`
 	Lifetime          Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string               `json:"type" xml:"Typ"`
@@ -141,14 +141,14 @@ type FileRecordObject struct {
 
 type ProcessRecordObject struct {
 	XMLName           xml.Name               `gorm:"-" xml:"Vorgang" json:"-"`
-	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;" xml:"Identifikation>ID" json:"id"`
 	CreatedAt         time.Time              `json:"-"`
 	UpdatedAt         time.Time              `json:"-"`
 	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
 	GeneralMetadataID *uint                  `json:"-"`
-	GeneralMetadata   GeneralMetadata        `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	GeneralMetadata   *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	ArchiveMetadataID *uint                  `json:"-"`
-	ArchiveMetadata   ArchiveMetadata        `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
+	ArchiveMetadata   *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
 	LifetimeID        *uint                  `json:"-"`
 	Lifetime          Lifetime               `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string                `json:"type" xml:"Typ"`
@@ -158,19 +158,19 @@ type ProcessRecordObject struct {
 }
 
 type DocumentRecordObject struct {
-	XMLName           xml.Name        `gorm:"-" xml:"Dokument" json:"-"`
-	ID                uuid.UUID       `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CreatedAt         time.Time       `json:"-"`
-	UpdatedAt         time.Time       `json:"-"`
-	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
-	GeneralMetadataID *uint           `json:"-"`
-	GeneralMetadata   GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	Type              *string         `json:"type" xml:"Typ"`
-	IncomingDate      *string         `xml:"Posteingangsdatum" json:"incomingDate"`
-	OutgoingDate      *string         `xml:"Postausgangsdatum" json:"outgoingDate"`
-	DocumentDate      *string         `xml:"DatumDesSchreibens" json:"documentDate"`
-	MessageID         uuid.UUID       `json:"messageID"`
-	RecorcObjectType  string          `gorm:"default:document" json:"recordObjectType"`
+	XMLName           xml.Name         `gorm:"-" xml:"Dokument" json:"-"`
+	ID                uuid.UUID        `gorm:"primaryKey;type:uuid;" xml:"Identifikation>ID" json:"id"`
+	CreatedAt         time.Time        `json:"-"`
+	UpdatedAt         time.Time        `json:"-"`
+	DeletedAt         gorm.DeletedAt   `gorm:"index" json:"-"`
+	GeneralMetadataID *uint            `json:"-"`
+	GeneralMetadata   *GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	Type              *string          `json:"type" xml:"Typ"`
+	IncomingDate      *string          `xml:"Posteingangsdatum" json:"incomingDate"`
+	OutgoingDate      *string          `xml:"Postausgangsdatum" json:"outgoingDate"`
+	DocumentDate      *string          `xml:"DatumDesSchreibens" json:"documentDate"`
+	MessageID         uuid.UUID        `json:"messageID"`
+	RecorcObjectType  string           `gorm:"default:document" json:"recordObjectType"`
 }
 
 type GeneralMetadata struct {
@@ -234,4 +234,28 @@ type RecordObjectConfidentiality struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	Desc      string         `json:"desc"`
+}
+
+// types for message generation
+
+type Message0502 struct {
+	XMLName          xml.Name          `xml:"xdomea Aussonderung.Bewertungsverzeichnis.0502"`
+	MessageHead      MessageHead       `xml:"xdomea Kopf"`
+	AppraisedObjects []AppraisedObject `xml:"xdomea BewertetesObjekt"`
+}
+
+type AppraisedObject struct {
+	XMLName         xml.Name        `xml:"xdomea BewertetesObjekt"`
+	XdomeaID        uuid.UUID       `xml:"xdomea ID"`
+	ObjectAppraisal ObjectAppraisal `xml:"xdomea Aussonderungsart"`
+}
+
+type ObjectAppraisal struct {
+	XMLName       xml.Name      `xml:"xdomea Aussonderungsart"`
+	AppraisalCode AppraisalCode `xml:"xdomea Aussonderungsart"`
+}
+
+type AppraisalCode struct {
+	Aussonderungsart xml.Name `xml:"xdomea Aussonderungsart"`
+	Code             string   `xml:"xdomea code"`
 }

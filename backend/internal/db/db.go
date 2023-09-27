@@ -191,7 +191,6 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 func GetMessagesByCode(code string) ([]Message, error) {
 	var messages []Message
 	messageType := GetMessageTypeByCode(code)
-	log.Println(messageType)
 	result := db.Model(&Message{}).
 		Preload("MessageType").
 		Preload("MessageHead").
@@ -269,7 +268,6 @@ func setRecordObjectsMessageID(message *Message) {
 func setFileRecordObjectMessageID(messageID uuid.UUID, fileRecordObject *FileRecordObject) {
 	fileRecordObject.MessageID = messageID
 	for i := range fileRecordObject.Processes {
-		log.Println(messageID)
 		setProcessRecordObjectMessageID(messageID, &fileRecordObject.Processes[i])
 	}
 }
