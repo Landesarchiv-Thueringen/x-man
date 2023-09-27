@@ -62,7 +62,7 @@
               </div>
               <div *ngIf="node.type === 'message'" class="message-menu">
                 <span class="spacer"></span>
-                <button mat-icon-button [matMenuTriggerFor]="menu" [disableRipple]="true">
+                <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
                   <mat-icon>more_horiz</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">

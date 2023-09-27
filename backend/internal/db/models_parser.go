@@ -81,14 +81,14 @@ type MessageHead struct {
 }
 
 type Contact struct {
-	ID                     uint                 `gorm:"primaryKey" json:"id"`
-	CreatedAt              time.Time            `json:"-"`
-	UpdatedAt              time.Time            `json:"-"`
-	DeletedAt              gorm.DeletedAt       `gorm:"index" json:"-"`
-	AgencyIdentificationID *uint                `json:"-"`
-	AgencyIdentification   AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung" json:"agencyIdentification"`
-	InstitutionID          *uint                `json:"-"`
-	Institution            Institution          `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution" json:"institution"`
+	ID                     uint                  `gorm:"primaryKey" json:"id"`
+	CreatedAt              time.Time             `json:"-"`
+	UpdatedAt              time.Time             `json:"-"`
+	DeletedAt              gorm.DeletedAt        `gorm:"index" json:"-"`
+	AgencyIdentificationID *uint                 `json:"-"`
+	AgencyIdentification   *AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung" json:"agencyIdentification"`
+	InstitutionID          *uint                 `json:"-"`
+	Institution            *Institution          `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution" json:"institution"`
 }
 
 type AgencyIdentification struct {
@@ -97,9 +97,9 @@ type AgencyIdentification struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	CodeID    *uint          `json:"-"`
-	Code      Code           `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel" json:"code"`
+	Code      *Code          `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel" json:"code"`
 	PrefixID  *uint          `json:"-"`
-	Prefix    Code           `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix" json:"prefix"`
+	Prefix    *Code          `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix" json:"prefix"`
 }
 
 type Institution struct {
@@ -234,28 +234,4 @@ type RecordObjectConfidentiality struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	Desc      string         `json:"desc"`
-}
-
-// types for message generation
-
-type Message0502 struct {
-	XMLName          xml.Name          `xml:"xdomea Aussonderung.Bewertungsverzeichnis.0502"`
-	MessageHead      MessageHead       `xml:"xdomea Kopf"`
-	AppraisedObjects []AppraisedObject `xml:"xdomea BewertetesObjekt"`
-}
-
-type AppraisedObject struct {
-	XMLName         xml.Name        `xml:"xdomea BewertetesObjekt"`
-	XdomeaID        uuid.UUID       `xml:"xdomea ID"`
-	ObjectAppraisal ObjectAppraisal `xml:"xdomea Aussonderungsart"`
-}
-
-type ObjectAppraisal struct {
-	XMLName       xml.Name      `xml:"xdomea Aussonderungsart"`
-	AppraisalCode AppraisalCode `xml:"xdomea Aussonderungsart"`
-}
-
-type AppraisalCode struct {
-	Aussonderungsart xml.Name `xml:"xdomea Aussonderungsart"`
-	Code             string   `xml:"xdomea code"`
 }

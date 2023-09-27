@@ -179,6 +179,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, err)
 		}
+		xdomea.Generate0502Message(message)
 	}
 }
 
