@@ -159,6 +159,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
       });
   }
 
+  // updates flat node and all children
   updateFlatNodeInTreeControlRec(changedNode: StructureNode): void {
     const nextNodes: StructureNode[] = [changedNode];
     while (nextNodes.length !== 0) {
