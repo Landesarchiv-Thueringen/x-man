@@ -11,6 +11,7 @@ type GeneratorMessage0502 struct {
 	MessageHead      GeneratorMessageHead       `xml:"xdomea:Kopf"`
 	AppraisedObjects []GeneratorAppraisedObject `xml:"xdomea:BewertetesObjekt"`
 	XdomeaXmlNs      string                     `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs         string                     `xml:"xmlns:xsi,attr"`
 }
 
 type GeneratorAppraisedObject struct {

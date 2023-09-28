@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/xml"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -234,4 +235,33 @@ type RecordObjectConfidentiality struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	Desc      string         `json:"desc"`
+}
+
+type AppraisableRecordObject interface {
+	GetAppraisal() (string, error)
+	GetID() uuid.UUID
+}
+
+func (f *FileRecordObject) GetAppraisal() (string, error) {
+	if f.ArchiveMetadata != nil &&
+		f.ArchiveMetadata.AppraisalCode != nil {
+		return *f.ArchiveMetadata.AppraisalCode, nil
+	}
+	return "", errors.New("no appraisal existing")
+}
+
+func (f *FileRecordObject) GetID() uuid.UUID {
+	return f.ID
+}
+
+func (p *ProcessRecordObject) GetAppraisal() (string, error) {
+	if p.ArchiveMetadata != nil &&
+		p.ArchiveMetadata.AppraisalCode != nil {
+		return *p.ArchiveMetadata.AppraisalCode, nil
+	}
+	return "", errors.New("no appraisal existing")
+}
+
+func (p *ProcessRecordObject) GetID() uuid.UUID {
+	return p.ID
 }
