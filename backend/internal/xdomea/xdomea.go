@@ -11,10 +11,11 @@ import (
 )
 
 var uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-var message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
-var message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
-var message0501RegexString = uuidRegexString + message0501MessageSuffix + ".zip"
-var message0503RegexString = uuidRegexString + message0503MessageSuffix + ".zip"
+var Message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
+var Message0502MessageSuffix = "_Aussonderung.Bewertungsverzeichnis.0502"
+var Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
+var message0501RegexString = uuidRegexString + Message0501MessageSuffix + ".zip"
+var message0503RegexString = uuidRegexString + Message0503MessageSuffix + ".zip"
 var uuidRegex = regexp.MustCompile(uuidRegexString)
 var message0501Regex = regexp.MustCompile(message0501RegexString)
 var message0503Regex = regexp.MustCompile(message0503RegexString)
@@ -78,9 +79,9 @@ func GetMessageName(id string, messageType db.MessageType) string {
 	messageSuffix := ""
 	switch messageType.Code {
 	case "0501":
-		messageSuffix = message0501MessageSuffix
+		messageSuffix = Message0501MessageSuffix
 	case "0503":
-		messageSuffix = message0503MessageSuffix
+		messageSuffix = Message0503MessageSuffix
 	default:
 		log.Fatal("not supported message type")
 	}
@@ -92,6 +93,7 @@ func AddMessage(
 	messageType db.MessageType,
 	processStoreDir string,
 	messageStoreDir string,
+	transferDir string,
 ) {
 	messageName := GetMessageName(xdomeaID, messageType)
 	messagePath := path.Join(messageStoreDir, messageName)
@@ -105,6 +107,7 @@ func AddMessage(
 	}
 	message := db.Message{
 		MessageType:       messageType,
+		TransferDir:       transferDir,
 		StoreDir:          messageStoreDir,
 		MessagePath:       messagePath,
 		AppraisalComplete: appraisalComplete,

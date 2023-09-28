@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"lath/xdomea/internal/db"
+	"lath/xdomea/internal/messagestore"
 	"lath/xdomea/internal/transferdir"
 	"lath/xdomea/internal/xdomea"
 	"log"
@@ -179,7 +180,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, err)
 		}
-		xdomea.Generate0502Message(message)
+		messagestore.Generate0502Message(message)
 	}
 }
 

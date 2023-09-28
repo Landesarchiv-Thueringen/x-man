@@ -36,6 +36,7 @@ type Message struct {
 	CreatedAt         time.Time      `json:"-"`
 	UpdatedAt         time.Time      `json:"-"`
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
+	TransferDir       string         `json:"-"`
 	StoreDir          string         `json:"-"`
 	MessagePath       string         `json:"-"`
 	XdomeaVersion     string         `json:"xdomeaVersion"`

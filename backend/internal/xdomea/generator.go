@@ -11,7 +11,7 @@ import (
 const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
 const XsiXmlNs = "http://www.w3.org/2001/XMLSchema-instance"
 
-func Generate0502Message(message db.Message) {
+func Generate0502Message(message db.Message) string {
 	timeStamp := time.Now()
 	lathContact := GetLAThContact()
 	messageHead := db.GeneratorMessageHead{
@@ -40,7 +40,7 @@ func Generate0502Message(message db.Message) {
 		log.Fatal("0502 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
-	log.Println(messageXml)
+	return messageXml
 }
 
 func GenerateAppraisedObject(o db.AppraisableRecordObject) (db.GeneratorAppraisedObject, error) {
