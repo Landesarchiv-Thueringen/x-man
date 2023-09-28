@@ -28,3 +28,4 @@
     - `sudo mkdir /var/lib/postgres/scripts`
     - `sudo cp psql/init_database.sql /var/lib/postgres/scripts`
     - `sudo chown -R postgres:postgres /var/lib/postgres/scripts`
+    - `\i /var/lib/postgres/scripts/init_database.sql`

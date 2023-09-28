@@ -239,7 +239,9 @@ type RecordObjectConfidentiality struct {
 
 type AppraisableRecordObject interface {
 	GetAppraisal() (string, error)
+	SetAppraisal(string) error
 	GetID() uuid.UUID
+	GetAppraisableObjects() []AppraisableRecordObject
 }
 
 func (f *FileRecordObject) GetAppraisal() (string, error) {
@@ -248,6 +250,29 @@ func (f *FileRecordObject) GetAppraisal() (string, error) {
 		return *f.ArchiveMetadata.AppraisalCode, nil
 	}
 	return "", errors.New("no appraisal existing")
+}
+
+func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
+	if appraisalCode != "A" && appraisalCode != "V" && appraisalCode != "B" {
+		return errors.New("unknown appraisal code")
+	}
+	if f.ArchiveMetadata == nil {
+		archiveMetadata := ArchiveMetadata{
+			AppraisalCode: &appraisalCode,
+		}
+		f.ArchiveMetadata = &archiveMetadata
+	} else {
+		f.ArchiveMetadata.AppraisalCode = &appraisalCode
+	}
+	return nil
+}
+
+func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
+	appraisableObjects := []AppraisableRecordObject{f}
+	for _, p := range f.Processes {
+		appraisableObjects = append(appraisableObjects, &p)
+	}
+	return appraisableObjects
 }
 
 func (f *FileRecordObject) GetID() uuid.UUID {
@@ -262,6 +287,26 @@ func (p *ProcessRecordObject) GetAppraisal() (string, error) {
 	return "", errors.New("no appraisal existing")
 }
 
+func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
+	if appraisalCode != "A" && appraisalCode != "V" && appraisalCode != "B" {
+		return errors.New("unknown appraisal code")
+	}
+	if p.ArchiveMetadata == nil {
+		archiveMetadata := ArchiveMetadata{
+			AppraisalCode: &appraisalCode,
+		}
+		p.ArchiveMetadata = &archiveMetadata
+	} else {
+		p.ArchiveMetadata.AppraisalCode = &appraisalCode
+	}
+	return nil
+}
+
 func (p *ProcessRecordObject) GetID() uuid.UUID {
 	return p.ID
+}
+
+func (p *ProcessRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
+	appraisableObjects := []AppraisableRecordObject{p}
+	return appraisableObjects
 }

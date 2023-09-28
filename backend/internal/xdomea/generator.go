@@ -2,6 +2,7 @@ package xdomea
 
 import (
 	"encoding/xml"
+	"errors"
 	"lath/xdomea/internal/db"
 	"log"
 	"time"
@@ -26,9 +27,11 @@ func Generate0502Message(message db.Message) {
 	}
 	for _, r := range message.RecordObjects {
 		if r.FileRecordObject != nil {
-			appraisedObject, err := GenerateAppraisedObject(r.FileRecordObject)
-			if err == nil {
-				message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
+			for _, o := range r.FileRecordObject.GetAppraisableObjects() {
+				appraisedObject, err := GenerateAppraisedObject(o)
+				if err == nil {
+					message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
+				}
 			}
 		}
 	}
@@ -45,6 +48,9 @@ func GenerateAppraisedObject(o db.AppraisableRecordObject) (db.GeneratorAppraise
 	appraisal, err := o.GetAppraisal()
 	if err != nil {
 		return appraisedObject, err
+	}
+	if appraisal == "B" {
+		return appraisedObject, errors.New("appraisal B shouldn't be transmitted")
 	}
 	appraisalCode := db.GeneratorAppraisalCode{
 		Code: appraisal,
