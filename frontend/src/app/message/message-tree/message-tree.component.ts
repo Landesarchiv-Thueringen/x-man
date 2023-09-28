@@ -6,6 +6,7 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { Clipboard } from '@angular/cdk/clipboard';
 import { DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Params } from '@angular/router';
 
@@ -73,10 +74,11 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   };
 
   constructor(
+    private clipboard: Clipboard,
     @Inject(DOCUMENT) private document: Document,
     private messageService: MessageService,
     private notificationService: NotificationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.messageTreeInit = true;
     this.showAppraisal = true;
@@ -248,5 +250,10 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.urlParameterSubscription?.unsubscribe;
+  }
+
+  copyMessageUrl() {
+    this.clipboard.copy(this.document.location.toString());
+    this.notificationService.show('Nachrichten-Link in Zwischenspeicher kopiert');
   }
 }

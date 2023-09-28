@@ -74,6 +74,10 @@
                     <mat-icon>archive</mat-icon>
                     <span>Abgabe archivieren</span>
                   </button>
+                  <button mat-menu-item (click)="copyMessageUrl()">
+                    <mat-icon>content_copy</mat-icon>
+                    <span>Nachrichten-Link kopieren</span>
+                  </button>
                 </mat-menu>
               </div>
               <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
