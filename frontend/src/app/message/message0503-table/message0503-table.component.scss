@@ -1,6 +1,9 @@
 :host {
     display: block;
-    padding: 3em;
+    padding-top: 3em;
+    padding-bottom: 3em;
+    padding-left: 5em;
+    padding-right: 5em;
 
     .message-section {
         display: flex;
@@ -8,8 +11,9 @@
         margin-top: 2em;
     
         .message-table {
+            width: 100%;
             min-width: 80em;
-            max-width: 100em;
+            max-width: 150em;
         }
     }
 }

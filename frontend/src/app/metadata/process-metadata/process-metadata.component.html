@@ -21,13 +21,13 @@
               </mat-form-field>
     
               <mat-form-field class="process-id-input" appearance="outline">
-                <mat-label>Kennzeichen</mat-label>
+                <mat-label>Vorgangszeichen</mat-label>
                 <input matInput formControlName="fileId" readonly>
               </mat-form-field>
             </div>
     
             <mat-form-field class="subject-input" appearance="outline">
-              <mat-label>Betreff</mat-label>
+              <mat-label>Behördlicher Vorgangsbetreff</mat-label>
               <input matInput formControlName="subject" readonly>
             </mat-form-field>
     
@@ -66,13 +66,13 @@
               <div *ngIf="message?.appraisalComplete; then appraisalInputReadonly else appraisalInputEditable"></div>
               <ng-template #appraisalInputReadonly>
                 <mat-form-field class="appraisal-input" appearance="outline">
-                  <mat-label>Bewertung</mat-label>
+                  <mat-label>Bewertungsentscheidung</mat-label>
                   <input matInput formControlName="appraisal" readonly>
                 </mat-form-field>
               </ng-template>
               <ng-template #appraisalInputEditable>
                 <mat-form-field class="appraisal-input" appearance="outline">
-                  <mat-label>Bewertung</mat-label>
+                  <mat-label>Bewertungsentscheidung</mat-label>
                   <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
                     <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
                       {{ appraisal.desc }}
