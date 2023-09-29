@@ -48,6 +48,7 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
         return this.messageService.getDocumentRecordObject(params['id'])
       }),
       switchMap((document: DocumentRecordObject) => {
+        console.log(document);
         this.documentRecordObject = document;
         return this.messageService.getRecordObjectConfidentialities();
       }),

@@ -5,19 +5,19 @@
     
         <!-- creation time column -->
         <ng-container matColumnDef="creationTime">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Erstellungszeitpunkt </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Erstellungszeitpunkt</th>
             <td mat-cell *matCellDef="let message"> {{message.messageHead.creationTime | date:'short'}} </td>
         </ng-container>
     
         <!-- agency column -->
         <ng-container matColumnDef="agency">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Institution </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
             <td mat-cell *matCellDef="let message"> {{message.messageHead.sender.institution.name}} </td>
         </ng-container>
 
         <!-- process ID column -->
         <ng-container matColumnDef="processID">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Prozess-ID </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Prozess-ID</th>
             <td mat-cell *matCellDef="let message"> {{message.messageHead.processID}} </td>
         </ng-container>
 

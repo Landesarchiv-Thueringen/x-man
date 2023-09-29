@@ -182,6 +182,39 @@ type DocumentRecordObject struct {
 	DocumentDate      *string          `xml:"DatumDesSchreibens" json:"documentDate"`
 	MessageID         uuid.UUID        `json:"messageID"`
 	RecorcObjectType  string           `gorm:"default:document" json:"recordObjectType"`
+	Versions          *[]Version       `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
+}
+
+type Version struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	VersionID string         `xml:"Nummer" json:"versionID"`
+	Formats   []Format       `gorm:"many2many:document_version_formats;" xml:"Format" json:"formats"`
+}
+
+type Format struct {
+	ID                uint            `gorm:"primaryKey" json:"id"`
+	CreatedAt         time.Time       `json:"-"`
+	UpdatedAt         time.Time       `json:"-"`
+	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
+	Code              string          `xml:"Name>code" json:"code"`
+	OtherName         *string         `xml:"SonstigerName" json:"otherName"`
+	Version           string          `xml:"Version" json:"version"`
+	PrimaryDocumentID uint            `json:"-"`
+	PrimaryDocument   PrimaryDocument `gorm:"foreignKey:PrimaryDocumentID;references:ID" xml:"Primaerdokument" json:"primaryDocument"`
+}
+
+type PrimaryDocument struct {
+	ID               uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt        time.Time      `json:"-"`
+	UpdatedAt        time.Time      `json:"-"`
+	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
+	FileName         string         `xml:"Dateiname" json:"fileName"`
+	FileNameOriginal *string        `xml:"DateinameOriginal" json:"fileNameOriginal"`
+	CreatorName      *string        `xml:"Ersteller" json:"creatorName"`
+	CreationTime     *string        `xml:"DatumUhrzeit" json:"creationTime"`
 }
 
 type GeneralMetadata struct {
@@ -246,6 +279,8 @@ type RecordObjectConfidentiality struct {
 	Code      string         `gorm:"unique" xml:"code" json:"code"`
 	Desc      string         `json:"desc"`
 }
+
+// methods
 
 type AppraisableRecordObject interface {
 	GetAppraisal() (string, error)

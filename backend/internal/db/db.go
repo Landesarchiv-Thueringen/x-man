@@ -51,6 +51,9 @@ func Migrate() {
 		&ArchiveMetadata{},
 		&RecordObjectAppraisal{},
 		&RecordObjectConfidentiality{},
+		&Version{},
+		&Format{},
+		&PrimaryDocument{},
 	)
 }
 
@@ -170,6 +173,9 @@ func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
 	result := db.
 		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
+		Preload("Versions").
+		Preload("Versions.Formats").
+		Preload("Versions.Formats.PrimaryDocument").
 		First(&document, id)
 	return document, result.Error
 }
