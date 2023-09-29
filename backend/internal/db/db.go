@@ -327,6 +327,13 @@ func SetFileRecordObjectAppraisal(
 	if err != nil {
 		return fileRecordObject, err
 	}
+	message, err := GetMessageByID(fileRecordObject.MessageID)
+	if err != nil {
+		return fileRecordObject, err
+	}
+	if message.AppraisalComplete {
+		return fileRecordObject, errors.New("message appraisal already finished")
+	}
 	appraisal, err := GetAppraisalByCode(appraisalCode)
 	if err != nil {
 		return fileRecordObject, err
@@ -357,6 +364,13 @@ func SetProcessRecordObjectAppraisal(
 	if err != nil {
 		return processRecordObject, err
 	}
+	message, err := GetMessageByID(processRecordObject.MessageID)
+	if err != nil {
+		return processRecordObject, err
+	}
+	if message.AppraisalComplete {
+		return processRecordObject, errors.New("message appraisal already finished")
+	}
 	appraisal, err := GetAppraisalByCode(appraisalCode)
 	if err != nil {
 		return processRecordObject, err
@@ -366,7 +380,6 @@ func SetProcessRecordObjectAppraisal(
 	if result.Error != nil {
 		return processRecordObject, result.Error
 	}
-	// adsdasd
 	processRecordObject, err = GetProcessRecordObjectByID(id)
 	if err != nil {
 		return processRecordObject, err

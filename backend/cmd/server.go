@@ -173,7 +173,11 @@ func finalizeMessageAppraisal(context *gin.Context) {
 	}
 	message, err := db.GetMessageByID(id)
 	if err != nil {
+		// message couldn't be found
 		context.JSON(http.StatusNotFound, err)
+	} else if message.AppraisalComplete {
+		// appraisal for message is already complete
+		context.AbortWithStatus(http.StatusBadRequest)
 	} else {
 		message.AppraisalComplete = true
 		err = db.UpdateMessage(message)
