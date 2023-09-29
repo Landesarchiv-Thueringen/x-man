@@ -91,7 +91,7 @@ func Generate0502Message(message db.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(tempDir)
 	xmlName := message.MessageHead.ProcessID + xdomea.Message0502MessageSuffix + ".xml"
 	messageName := message.MessageHead.ProcessID + xdomea.Message0502MessageSuffix + ".zip"
 	messagePath := path.Join(tempDir, messageName)

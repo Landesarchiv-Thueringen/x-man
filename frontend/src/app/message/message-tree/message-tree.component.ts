@@ -231,6 +231,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           this.notificationService.show(
             'Bewertungsnachricht wurde erfolgreich versandt'
           );
+          this.message!.appraisalComplete = true;
         },
       });
     }
