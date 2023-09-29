@@ -47,7 +47,8 @@ export class Message0501TableComponent implements AfterViewInit, OnDestroy {
       }
     );
     // refetch messages every minute
-    this.messageSubscription = interval(60000)
+    // this.messageSubscription = interval(60000)
+    this.messageSubscription = interval(5000)
       .pipe(
         switchMap(() => this.messageService.get0501Messages())
       ).subscribe(
