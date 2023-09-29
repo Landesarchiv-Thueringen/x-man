@@ -32,6 +32,7 @@ func Migrate() {
 	}
 	// Migrate the complete schema.
 	db.AutoMigrate(
+		&XdomeaVersion{},
 		&Code{},
 		&Process{},
 		&Message{},
@@ -60,6 +61,13 @@ func InitMessageTypes(messageTypes []*MessageType) {
 	}
 }
 
+func InitXdomeaVersions(versions []*XdomeaVersion) {
+	result := db.Create(versions)
+	if result.Error != nil {
+		log.Fatal("Failed to initialize xdomea versions!")
+	}
+}
+
 func InitRecordObjectAppraisals(appraisals []*RecordObjectAppraisal) {
 	result := db.Create(appraisals)
 	if result.Error != nil {
@@ -72,6 +80,23 @@ func InitRecordObjectConfidentialities(confidentialities []*RecordObjectConfiden
 	if result.Error != nil {
 		log.Fatal("Failed to initialize record object confidentialitiy values!")
 	}
+}
+
+func GetSupportedXdomeaVersions() []XdomeaVersion {
+	var xdomeaVersions []XdomeaVersion
+	result := db.Find(&xdomeaVersions)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return xdomeaVersions
+}
+
+func GetXdomeaVersionByCode(code string) (XdomeaVersion, error) {
+	xdomeaVersion := XdomeaVersion{
+		Code: code,
+	}
+	result := db.Where(&xdomeaVersion).First(&xdomeaVersion)
+	return xdomeaVersion, result.Error
 }
 
 func GetMessageByID(id uuid.UUID) (Message, error) {
@@ -317,7 +342,6 @@ func SetFileRecordObjectAppraisal(
 			return fileRecordObject, err
 		}
 	}
-	// asdasd
 	fileRecordObject, err = GetFileRecordObjectByID(id)
 	if err != nil {
 		return fileRecordObject, err

@@ -190,6 +190,7 @@ func processFlags() {
 	if *initFlag {
 		db.Migrate()
 		xdomea.InitMessageTypes()
+		xdomea.InitXdomeaVersions()
 		xdomea.InitRecordObjectAppraisals()
 		xdomea.InitRecordObjectConfidentialities()
 	}

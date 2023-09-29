@@ -35,6 +35,16 @@ func InitMessageTypes() {
 	db.InitMessageTypes(messageTypes)
 }
 
+func InitXdomeaVersions() {
+	versions := []*db.XdomeaVersion{
+		{Code: "2.3.0", URI: "urn:xoev-de:xdomea:schema:2.3.0"},
+		{Code: "2.4.0", URI: "urn:xoev-de:xdomea:schema:2.4.0"},
+		{Code: "3.0.0", URI: "urn:xoev-de:xdomea:schema:3.0.0"},
+		{Code: "3.1.0", URI: "urn:xoev-de:xdomea:schema:3.1.0"},
+	}
+	db.InitXdomeaVersions(versions)
+}
+
 func InitRecordObjectAppraisals() {
 	appraisals := []*db.RecordObjectAppraisal{
 		{Code: "A", ShortDesc: "archivieren", Desc: "Das Schriftgutobjekt ist archivwürdig."},

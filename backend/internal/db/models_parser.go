@@ -12,13 +12,13 @@ import (
 // Foreign keys need to be pointers so that the default value is nil.
 // The same is true for nullable values.
 
-type Code struct {
+type XdomeaVersion struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      *string        `xml:"code" json:"code"`
-	Name      *string        `xml:"name" json:"name"`
+	Code      string         `json:"code"`
+	URI       string         `json:"uri"`
 }
 
 type Process struct {
@@ -102,6 +102,15 @@ type AgencyIdentification struct {
 	Code      *Code          `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel" json:"code"`
 	PrefixID  *uint          `json:"-"`
 	Prefix    *Code          `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix" json:"prefix"`
+}
+
+type Code struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Code      *string        `xml:"code" json:"code"`
+	Name      *string        `xml:"name" json:"name"`
 }
 
 type Institution struct {

@@ -12,6 +12,10 @@ const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
 const XsiXmlNs = "http://www.w3.org/2001/XMLSchema-instance"
 
 func Generate0502Message(message db.Message) string {
+	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
+	if err != nil {
+		log.Fatal(err)
+	}
 	timeStamp := time.Now()
 	lathContact := GetLAThContact()
 	messageHead := db.GeneratorMessageHead{
@@ -21,7 +25,7 @@ func Generate0502Message(message db.Message) string {
 		Receiver:     ConvertParserToGeneratorContact(message.MessageHead.Sender),
 	}
 	message0502 := db.GeneratorMessage0502{
-		XdomeaXmlNs: "urn:xoev-de:xdomea:schema:3.0.0",
+		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
 	}
