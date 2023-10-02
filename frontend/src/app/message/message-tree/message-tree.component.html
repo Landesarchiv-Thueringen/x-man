@@ -35,7 +35,7 @@
           </mat-tree-node>
           
           <!-- This is the tree node template for expandable nodes -->
-          <mat-tree-node *matTreeNodeDef="let node; when: hasChild" id="{{ node.id }}" matTreeNodePadding>
+          <mat-tree-node *matTreeNodeDef="let node; when: hasChild" id="{{ node.id }}" [ngClass]="node.type === 'message' ? 'root-node' : ''" matTreeNodePadding>
             
             <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']">
               <div class="node-info">

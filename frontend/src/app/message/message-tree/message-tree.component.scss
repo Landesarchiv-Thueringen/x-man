@@ -24,6 +24,13 @@
       background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
     }
 
+    .root-node {
+      position: sticky;
+      top: 0px;
+      background-color: white;
+      z-index: 2;
+    }
+
     .node {
       display: flex;
       width: 100%;
