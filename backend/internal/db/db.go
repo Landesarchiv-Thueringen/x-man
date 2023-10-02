@@ -112,30 +112,19 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 	var message Message
 	result := db.
 		Preload("MessageType").
-		Preload("MessageHead").
-		Preload("MessageHead.Sender").
 		Preload("MessageHead.Sender.Institution").
 		Preload("MessageHead.Sender.AgencyIdentification").
 		Preload("MessageHead.Sender.AgencyIdentification.Code").
 		Preload("MessageHead.Sender.AgencyIdentification.Prefix").
-		Preload("MessageHead.Receiver").
 		Preload("MessageHead.Receiver.Institution").
-		Preload("MessageHead.Receiver.AgencyIdentification").
 		Preload("MessageHead.Receiver.AgencyIdentification.Code").
 		Preload("MessageHead.Receiver.AgencyIdentification.Prefix").
-		Preload("RecordObjects").
-		Preload("RecordObjects.FileRecordObject").
-		Preload("RecordObjects.FileRecordObject.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
 		Preload("RecordObjects.FileRecordObject.ArchiveMetadata").
 		Preload("RecordObjects.FileRecordObject.Lifetime").
-		Preload("RecordObjects.FileRecordObject.Processes").
-		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata.FilePlan").
 		Preload("RecordObjects.FileRecordObject.Processes.ArchiveMetadata").
 		Preload("RecordObjects.FileRecordObject.Processes.Lifetime").
-		Preload("RecordObjects.FileRecordObject.Processes.Documents").
-		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata").
 		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata.FilePlan").
 		First(&message, id)
 	return message, result.Error
@@ -149,17 +138,12 @@ func IsMessageAppraisalComplete(id uuid.UUID) (bool, error) {
 func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 	var file FileRecordObject
 	result := db.
-		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
-		Preload("Processes").
-		Preload("Processes.GeneralMetadata").
 		Preload("Processes.GeneralMetadata.FilePlan").
 		Preload("Processes.ArchiveMetadata").
 		Preload("Processes.Lifetime").
-		Preload("Processes.Documents").
-		Preload("Processes.Documents.GeneralMetadata").
 		Preload("Processes.Documents.GeneralMetadata.FilePlan").
 		First(&file, id)
 	return file, result.Error
@@ -168,12 +152,9 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
 	var process ProcessRecordObject
 	result := db.
-		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
-		Preload("Documents").
-		Preload("Documents.GeneralMetadata").
 		Preload("Documents.GeneralMetadata.FilePlan").
 		First(&process, id)
 	return process, result.Error
@@ -182,10 +163,8 @@ func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
 func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
 	var document DocumentRecordObject
 	result := db.
-		Preload("GeneralMetadata").
 		Preload("GeneralMetadata.FilePlan").
 		Preload("Versions").
-		Preload("Versions.Formats").
 		Preload("Versions.Formats.PrimaryDocument").
 		First(&document, id)
 	return document, result.Error
@@ -235,15 +214,10 @@ func GetMessagesByCode(code string) ([]Message, error) {
 	messageType := GetMessageTypeByCode(code)
 	result := db.Model(&Message{}).
 		Preload("MessageType").
-		Preload("MessageHead").
-		Preload("MessageHead.Sender").
 		Preload("MessageHead.Sender.Institution").
-		Preload("MessageHead.Sender.AgencyIdentification").
 		Preload("MessageHead.Sender.AgencyIdentification.Code").
 		Preload("MessageHead.Sender.AgencyIdentification.Prefix").
-		Preload("MessageHead.Receiver").
 		Preload("MessageHead.Receiver.Institution").
-		Preload("MessageHead.Receiver.AgencyIdentification").
 		Preload("MessageHead.Receiver.AgencyIdentification.Code").
 		Preload("MessageHead.Receiver.AgencyIdentification.Prefix").
 		Where("message_type_id = ?", messageType.ID).
