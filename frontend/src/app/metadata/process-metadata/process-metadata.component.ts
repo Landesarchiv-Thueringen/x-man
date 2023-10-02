@@ -6,7 +6,6 @@ import { ActivatedRoute, Params } from '@angular/router';
 // project
 import {
   ProcessRecordObject,
-  Message,
   MessageService,
   RecordObjectAppraisal,
   RecordObjectConfidentiality,
@@ -23,7 +22,7 @@ import { Subscription, switchMap } from 'rxjs';
 })
 export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
-  message?: Message;
+  messageAppraisalComplete?: boolean;
   processRecordObject?: ProcessRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
   recordObjectConfidentialities?: RecordObjectConfidentiality[];
@@ -49,13 +48,6 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.route.parent?.params.subscribe((params) => {
-      this.messageService
-        .getMessage(params['id'])
-        .subscribe((message: Message) => {
-          this.message = message;
-        });
-    });
     this.urlParameterSubscription = this.route.params
       .pipe(
         switchMap((params: Params) => {
@@ -63,12 +55,12 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
         }),
         switchMap((processRecordObject: ProcessRecordObject) => {
           this.processRecordObject = processRecordObject;
-          return this.messageService.getMessage(
+          return this.messageService.isMessageAppraisalComplete(
             this.route.parent!.snapshot.params['id']
           );
         }),
-        switchMap((message: Message) => {
-          this.message = message;
+        switchMap((messageAppraisalComplete: boolean) => {
+          this.messageAppraisalComplete = messageAppraisalComplete;
           return this.messageService.getRecordObjectAppraisals();
         }),
         switchMap((appraisals: RecordObjectAppraisal[]) => {
@@ -84,7 +76,6 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
           this.recordObjectConfidentialities = confidentialities;
           this.setMetadata(
             this.processRecordObject!,
-            this.message!,
             this.recordObjectAppraisals!,
             this.recordObjectConfidentialities,
           );
@@ -98,7 +89,6 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
 
   setMetadata(
     processRecordObject: ProcessRecordObject,
-    message: Message,
     recordObjectAppraisals: RecordObjectAppraisal[],
     recordObjectConfidentialities: RecordObjectConfidentiality[],
   ): void {
@@ -107,7 +97,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
       processRecordObject.archiveMetadata?.appraisalRecommCode,
       recordObjectAppraisals
     )?.shortDesc;
-    if (message.appraisalComplete) {
+    if (this.messageAppraisalComplete) {
       appraisal = this.messageService.getRecordObjectAppraisalByCode(
         processRecordObject.archiveMetadata?.appraisalCode,
         recordObjectAppraisals

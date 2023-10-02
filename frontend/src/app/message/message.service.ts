@@ -479,6 +479,12 @@ export class MessageService {
     return appraisal;
   }
 
+  isMessageAppraisalComplete(id: string): Observable<boolean> {
+    return this.httpClient.get<boolean>(
+      this.apiEndpoint + '/message-appraisal-complete/' + id
+    );
+  }
+
   /**
    * Returns null if the xml node or its text contents are null, because that means the date was not
    * provided in the message. Returns the text content of the xml node if the text content is no

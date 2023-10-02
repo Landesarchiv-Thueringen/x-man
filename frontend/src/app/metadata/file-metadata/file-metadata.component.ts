@@ -6,7 +6,6 @@ import { ActivatedRoute, Params } from '@angular/router';
 // project
 import {
   FileRecordObject,
-  Message,
   MessageService,
   RecordObjectConfidentiality,
   RecordObjectAppraisal,
@@ -23,7 +22,7 @@ import { Subscription, switchMap } from 'rxjs';
 })
 export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
-  message?: Message;
+  messageAppraisalComplete?: boolean;
   fileRecordObject?: FileRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
   recordObjectConfidentialities?: RecordObjectConfidentiality[];
@@ -49,13 +48,6 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.route.parent?.params.subscribe((params) => {
-      this.messageService
-        .getMessage(params['id'])
-        .subscribe((message: Message) => {
-          this.message = message;
-        });
-    });
     this.urlParameterSubscription = this.route.params
       .pipe(
         switchMap((params: Params) => {
@@ -63,12 +55,12 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         }),
         switchMap((fileRecordObject: FileRecordObject) => {
           this.fileRecordObject = fileRecordObject;
-          return this.messageService.getMessage(
+          return this.messageService.isMessageAppraisalComplete(
             this.route.parent!.snapshot.params['id']
           );
         }),
-        switchMap((message: Message) => {
-          this.message = message;
+        switchMap((messageAppraisalComplete: boolean) => {
+          this.messageAppraisalComplete = messageAppraisalComplete;
           return this.messageService.getRecordObjectAppraisals();
         }),
         switchMap((appraisals: RecordObjectAppraisal[]) => {
@@ -84,7 +76,6 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
           this.recordObjectConfidentialities = confidentialities;
           this.setMetadata(
             this.fileRecordObject!,
-            this.message!,
             this.recordObjectAppraisals!,
             this.recordObjectConfidentialities
           );
@@ -98,7 +89,6 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
 
   setMetadata(
     fileRecordObject: FileRecordObject,
-    message: Message,
     recordObjectAppraisals: RecordObjectAppraisal[],
     recordObjectConfidentialities: RecordObjectConfidentiality[],
   ): void {
@@ -107,7 +97,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       fileRecordObject.archiveMetadata?.appraisalRecommCode,
       recordObjectAppraisals
     )?.shortDesc;
-    if (message.appraisalComplete) {
+    if (this.messageAppraisalComplete) {
       appraisal = this.messageService.getRecordObjectAppraisalByCode(
         fileRecordObject.archiveMetadata?.appraisalCode,
         recordObjectAppraisals

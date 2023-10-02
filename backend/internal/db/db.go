@@ -104,6 +104,12 @@ func GetXdomeaVersionByCode(code string) (XdomeaVersion, error) {
 
 func GetMessageByID(id uuid.UUID) (Message, error) {
 	var message Message
+	result := db.First(&message, id)
+	return message, result.Error
+}
+
+func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
+	var message Message
 	result := db.
 		Preload("MessageType").
 		Preload("MessageHead").
@@ -133,6 +139,11 @@ func GetMessageByID(id uuid.UUID) (Message, error) {
 		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata.FilePlan").
 		First(&message, id)
 	return message, result.Error
+}
+
+func IsMessageAppraisalComplete(id uuid.UUID) (bool, error) {
+	message, error := GetMessageByID(id)
+	return message.AppraisalComplete, error
 }
 
 func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
@@ -333,7 +344,7 @@ func SetFileRecordObjectAppraisal(
 	if err != nil {
 		return fileRecordObject, err
 	}
-	message, err := GetMessageByID(fileRecordObject.MessageID)
+	message, err := GetCompleteMessageByID(fileRecordObject.MessageID)
 	if err != nil {
 		return fileRecordObject, err
 	}
@@ -370,7 +381,7 @@ func SetProcessRecordObjectAppraisal(
 	if err != nil {
 		return processRecordObject, err
 	}
-	message, err := GetMessageByID(processRecordObject.MessageID)
+	message, err := GetCompleteMessageByID(processRecordObject.MessageID)
 	if err != nil {
 		return processRecordObject, err
 	}

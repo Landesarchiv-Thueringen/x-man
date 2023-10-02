@@ -63,7 +63,7 @@
         </mat-expansion-panel-header>
         <div class="metadata">
           <div class="metadata-row">
-            <div *ngIf="message?.appraisalComplete; then appraisalInputReadonly else appraisalInputEditable"></div>
+            <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly else appraisalInputEditable"></div>
             <ng-template #appraisalInputReadonly>
               <mat-form-field class="appraisal-input" appearance="outline">
                 <mat-label>Bewertungsentscheidung</mat-label>

@@ -36,6 +36,7 @@ func main() {
 	router.GET("document-record-object/:id", getDocumentRecordObjectByID)
 	router.GET("record-object-appraisals", getRecordObjectAppraisals)
 	router.GET("record-object-confidentialities", getRecordObjectConfidentialities)
+	router.GET("message-appraisal-complete/:id", isMessageAppraisalComplete)
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("finalize-message-appraisal/:id", finalizeMessageAppraisal)
@@ -59,7 +60,7 @@ func getMessageByID(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	message, err := db.GetMessageByID(id)
+	message, err := db.GetCompleteMessageByID(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, err)
 	} else {
@@ -171,7 +172,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	message, err := db.GetMessageByID(id)
+	message, err := db.GetCompleteMessageByID(id)
 	if err != nil {
 		// message couldn't be found
 		context.JSON(http.StatusNotFound, err)
@@ -185,6 +186,19 @@ func finalizeMessageAppraisal(context *gin.Context) {
 			context.JSON(http.StatusInternalServerError, err)
 		}
 		messagestore.Generate0502Message(message)
+	}
+}
+
+func isMessageAppraisalComplete(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	appraisalComplete, err := db.IsMessageAppraisalComplete(id)
+	if err != nil {
+		context.JSON(http.StatusNotFound, err)
+	} else {
+		context.JSON(http.StatusOK, appraisalComplete)
 	}
 }
 
