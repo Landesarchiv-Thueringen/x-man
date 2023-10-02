@@ -85,11 +85,15 @@
         display: flex;
         align-items: center;
         flex-grow: 1;
-        padding-right: 1.5em;
         font-weight: bold;
   
         .spacer {
           flex: 1 1 auto;
+        }
+
+        .appraisal-symbol {
+          width: 48px; // icon width for alignment
+          text-align: center;
         }
       }
     }

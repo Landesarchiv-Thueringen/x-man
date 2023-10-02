@@ -82,7 +82,7 @@
               </div>
               <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
                 <span class="spacer"></span>
-                <span *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal}}</span>
+                <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal}}</span>
               </div>
             </div>
 
