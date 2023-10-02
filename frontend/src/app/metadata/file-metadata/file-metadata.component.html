@@ -75,7 +75,7 @@
                 <mat-label>Bewertungsentscheidung</mat-label>
                 <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
                   <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
-                    {{ appraisal.desc }}
+                    {{ appraisal.shortDesc }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>

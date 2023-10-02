@@ -95,6 +95,7 @@ export interface RecordObjectConfidentiality {
   id: number;
   code: string;
   desc: string;
+  shortDesc: string;
 }
 
 export interface ArchiveMetadata {

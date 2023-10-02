@@ -106,12 +106,12 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
     const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
       processRecordObject.archiveMetadata?.appraisalRecommCode,
       recordObjectAppraisals
-    )?.desc;
+    )?.shortDesc;
     if (message.appraisalComplete) {
       appraisal = this.messageService.getRecordObjectAppraisalByCode(
         processRecordObject.archiveMetadata?.appraisalCode,
         recordObjectAppraisals
-      )?.desc;
+      )?.shortDesc;
     } else {
       appraisal = processRecordObject.archiveMetadata?.appraisalCode;
     }

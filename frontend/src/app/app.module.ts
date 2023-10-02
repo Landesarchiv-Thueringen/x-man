@@ -28,6 +28,7 @@ import { MatTreeModule } from '@angular/material/tree';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
 import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
 import { InstitutMetadataComponent } from './metadata/institution-metadata/institution-metadata.component';
@@ -37,11 +38,12 @@ import { Message0503TableComponent } from './message/message0503-table/message05
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
 import { PaginatorDeService } from './utility/localization/paginator-de.service';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
-import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
+import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
+    DocumentMetadataComponent,
     MainNavigationComponent,
     Message0501TableComponent,
     Message0503TableComponent,
@@ -50,7 +52,7 @@ import { DocumentMetadataComponent } from './metadata/document-metadata/document
     FileMetadataComponent,
     InstitutMetadataComponent,
     ProcessMetadataComponent,
-    DocumentMetadataComponent,
+    RecordObjectAppraisalPipe,
   ],
   imports: [
     BrowserModule,

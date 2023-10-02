@@ -106,12 +106,12 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
     const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
       fileRecordObject.archiveMetadata?.appraisalRecommCode,
       recordObjectAppraisals
-    )?.desc;
+    )?.shortDesc;
     if (message.appraisalComplete) {
       appraisal = this.messageService.getRecordObjectAppraisalByCode(
         fileRecordObject.archiveMetadata?.appraisalCode,
         recordObjectAppraisals
-      )?.desc;
+      )?.shortDesc;
     } else {
       appraisal = fileRecordObject.archiveMetadata?.appraisalCode;
     }
@@ -129,7 +129,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       confidentiality: recordObjectConfidentialities.find(
         (c: RecordObjectConfidentiality) =>
           c.code === this.fileRecordObject?.generalMetadata?.confidentialityCode
-      )?.desc,
+      )?.shortDesc,
     });
   }
 
