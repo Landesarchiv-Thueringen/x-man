@@ -134,7 +134,8 @@ type RecordObject struct {
 
 type FileRecordObject struct {
 	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
-	ID                uuid.UUID             `gorm:"primaryKey;type:uuid;" xml:"Identifikation>ID" json:"id"`
+	ID                uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID          uuid.UUID             `xml:"Identifikation>ID" json:"xdomeaID"`
 	CreatedAt         time.Time             `json:"-"`
 	UpdatedAt         time.Time             `json:"-"`
 	DeletedAt         gorm.DeletedAt        `gorm:"index" json:"-"`
@@ -152,7 +153,8 @@ type FileRecordObject struct {
 
 type ProcessRecordObject struct {
 	XMLName           xml.Name               `gorm:"-" xml:"Vorgang" json:"-"`
-	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;" xml:"Identifikation>ID" json:"id"`
+	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID          uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
 	CreatedAt         time.Time              `json:"-"`
 	UpdatedAt         time.Time              `json:"-"`
 	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
@@ -170,7 +172,8 @@ type ProcessRecordObject struct {
 
 type DocumentRecordObject struct {
 	XMLName           xml.Name         `gorm:"-" xml:"Dokument" json:"-"`
-	ID                uuid.UUID        `gorm:"primaryKey;type:uuid;" xml:"Identifikation>ID" json:"id"`
+	ID                uuid.UUID        `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID          uuid.UUID        `xml:"Identifikation>ID" json:"xdomeaID"`
 	CreatedAt         time.Time        `json:"-"`
 	UpdatedAt         time.Time        `json:"-"`
 	DeletedAt         gorm.DeletedAt   `gorm:"index" json:"-"`
