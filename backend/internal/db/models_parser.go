@@ -324,7 +324,7 @@ func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 }
 
 func (f *FileRecordObject) GetID() uuid.UUID {
-	return f.ID
+	return f.XdomeaID
 }
 
 func (p *ProcessRecordObject) GetAppraisal() (string, error) {
@@ -351,7 +351,7 @@ func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
 }
 
 func (p *ProcessRecordObject) GetID() uuid.UUID {
-	return p.ID
+	return p.XdomeaID
 }
 
 func (p *ProcessRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
