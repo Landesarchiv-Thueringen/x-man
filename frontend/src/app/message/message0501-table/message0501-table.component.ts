@@ -26,7 +26,7 @@ export class Message0501TableComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(private messageService: MessageService) {
-    this.dataSource = new MatTableDataSource();
+    this.dataSource = new MatTableDataSource<Message>();
     this.dataSource.sortingDataAccessor = (item: Message, property: string) => {
       switch(property) {
         case 'creationTime':

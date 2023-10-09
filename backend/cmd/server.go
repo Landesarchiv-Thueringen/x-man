@@ -28,6 +28,7 @@ func main() {
 	// It's important that the cors configuration is used before declaring the routes
 	router.Use(cors.New(corsConfig))
 	router.GET("", getDefaultResponse)
+	router.GET("processes", getProcesses)
 	router.GET("messages/0501", get0501Messages)
 	router.GET("messages/0503", get0503Messages)
 	router.GET("message/:id", getMessageByID)
@@ -53,6 +54,15 @@ func initServer() {
 
 func getDefaultResponse(context *gin.Context) {
 	context.String(http.StatusOK, defaultResponse)
+}
+
+func getProcesses(context *gin.Context) {
+	processes, err := db.GetProcesses()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, processes)
+	} else {
+		context.JSON(http.StatusOK, processes)
+	}
 }
 
 func getMessageByID(context *gin.Context) {

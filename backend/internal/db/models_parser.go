@@ -22,13 +22,14 @@ type XdomeaVersion struct {
 }
 
 type Process struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	XdomeaID  string         `json:"xdomeaID"`
-	StoreDir  string         `json:"-"`
-	Messages  []Message      `gorm:"many2many:process_messages;" json:"messages"`
+	ID          uuid.UUID      `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	CreatedAt   time.Time      `json:"receivedAt"`
+	UpdatedAt   time.Time      `json:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	XdomeaID    string         `json:"xdomeaID"`
+	StoreDir    string         `json:"-"`
+	Institution string         `json:"institution"`
+	Messages    []Message      `gorm:"many2many:process_messages;" json:"messages"`
 }
 
 type Message struct {

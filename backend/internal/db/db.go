@@ -102,6 +102,12 @@ func GetXdomeaVersionByCode(code string) (XdomeaVersion, error) {
 	return xdomeaVersion, result.Error
 }
 
+func GetProcesses() ([]Process, error) {
+	var processes []Process
+	result := db.Preload("Messages.MessageHead").Preload("Messages.MessageType").Find(&processes)
+	return processes, result.Error
+}
+
 func GetMessageByID(id uuid.UUID) (Message, error) {
 	var message Message
 	result := db.First(&message, id)
@@ -254,7 +260,22 @@ func AddMessage(
 	process, err := GetProcessByXdomeaID(xdomeaID)
 	// The process was not found. Create a new process.
 	if err != nil {
-		process = Process{XdomeaID: xdomeaID, StoreDir: processStoreDir}
+		// set institution if possible
+		var institution string
+		if message.MessageHead.Sender.Institution != nil &&
+			message.MessageHead.Sender.Institution.Name != nil {
+			institution = *message.MessageHead.Sender.Institution.Name
+			process = Process{
+				XdomeaID:    xdomeaID,
+				StoreDir:    processStoreDir,
+				Institution: institution,
+			}
+		} else {
+			process = Process{
+				XdomeaID: xdomeaID,
+				StoreDir: processStoreDir,
+			}
+		}
 		result = db.Create(&process)
 		// The Database failed to create the process for the message.
 		if result.Error != nil {

@@ -9,11 +9,13 @@ import { Message0503TableComponent } from './message/message0503-table/message05
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
+import { ProcessTableComponent } from './process/process-table/process-table.component';
 
 const routes: Routes = [
   { 
     path: '',  component: MainNavigationComponent,
     children: [
+      { path: 'aussonderungen',  component: ProcessTableComponent },
       { path: 'anbietungen',  component: Message0501TableComponent },
       { path: 'abgaben',  component: Message0503TableComponent },
       { 

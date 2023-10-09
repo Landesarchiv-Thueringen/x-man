@@ -39,6 +39,7 @@ import { MessageTreeComponent } from './message/message-tree/message-tree.compon
 import { PaginatorDeService } from './utility/localization/paginator-de.service';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pipe';
+import { ProcessTableComponent } from './process/process-table/process-table.component';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pi
     InstitutMetadataComponent,
     ProcessMetadataComponent,
     RecordObjectAppraisalPipe,
+    ProcessTableComponent,
   ],
   imports: [
     BrowserModule,
