@@ -104,7 +104,12 @@ func GetXdomeaVersionByCode(code string) (XdomeaVersion, error) {
 
 func GetProcesses() ([]Process, error) {
 	var processes []Process
-	result := db.Preload("Messages.MessageHead").Preload("Messages.MessageType").Find(&processes)
+	result := db.
+		Preload("Message0501.MessageHead").
+		Preload("Message0501.MessageType").
+		Preload("Message0503.MessageHead").
+		Preload("Message0503.MessageType").
+		Find(&processes)
 	return processes, result.Error
 }
 
@@ -199,20 +204,31 @@ func GetRecordObjectConfidentialities() ([]RecordObjectConfidentiality, error) {
 
 func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 	result := db.Model(&Process{}).
-		Preload("Messages").
-		Preload("Messages.MessageType").
+		Preload("Message0501.MessageType").
+		Preload("Message0503.MessageType").
 		Where(&process).
 		First(&process)
 	if result.Error != nil {
 		log.Fatal("process not found")
 	}
-	var message Message
-	for _, m := range process.Messages {
-		if m.MessageType.Code == code {
-			return message, nil
+	switch code {
+	case "0501":
+		if process.Message0501 == nil {
+			return Message{}, errors.New("process {" + process.XdomeaID + "} has no 0501 message")
+		} else {
+			return *process.Message0501, nil
 		}
+	case "0503":
+		if process.Message0503 == nil {
+			return Message{}, errors.New("process {" + process.XdomeaID + "} has no 0503 message")
+		} else {
+			return *process.Message0503, nil
+		}
+	default:
+		errorMessage := "unsupported message type with code: " + code
+		log.Fatal(errorMessage)
+		return Message{}, errors.New(errorMessage)
 	}
-	return Message{}, errors.New("no message with type found")
 }
 
 func GetMessagesByCode(code string) ([]Message, error) {
@@ -233,7 +249,7 @@ func GetMessagesByCode(code string) ([]Message, error) {
 
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
-	result := db.Model(&Process{}).Preload("Messages").Where(&process).First(&process)
+	result := db.Model(&Process{}).Where(&process).First(&process)
 	return process, result.Error
 }
 
@@ -289,7 +305,14 @@ func AddMessage(
 			log.Fatal("process has already message with type")
 		}
 	}
-	process.Messages = append(process.Messages, message)
+	switch message.MessageType.Code {
+	case "0501":
+		process.Message0501 = &message
+	case "0503":
+		process.Message0503 = &message
+	default:
+		log.Fatal("unhandled message type: " + message.MessageType.Code)
+	}
 	result = db.Save(&process)
 	return message, result.Error
 }

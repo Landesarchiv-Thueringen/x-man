@@ -14,13 +14,17 @@
           width: 100%;
           min-width: 80em;
           max-width: 150em;
-      }
 
-      // TODO: find a better solution to justifu content
-      .task-cell {
-          padding-left: 5em;
-          font-weight: bold;
-          font-size: large;
+        // no other possibility to center the text of a sort header
+        ::ng-deep .task-header .mat-sort-header-container {
+            justify-content: center;
+        }
+
+        .task-cell {
+            font-weight: bold;
+            font-size: large;
+            text-align: center;
+        }
       }
   }
 }

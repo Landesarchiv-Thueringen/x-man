@@ -7,8 +7,11 @@ import { Message } from '../message/message.service';
 export interface Process {
   id: string;
   xdomeaID: string;
-  createdAt: string;
-  messages: Message[];
+  receivedAt: string;
+  institution: string;
+  archivingComplete: boolean;
+  message0501: Message;
+  message0503: Message;
 }
 
 @Injectable({

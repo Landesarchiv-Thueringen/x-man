@@ -15,41 +15,94 @@
             <td mat-cell *matCellDef="let process"> {{process.institution}} </td>
         </ng-container>
 
+        <!-- 0501 message Column -->
+        <ng-container matColumnDef="message0501">
+            <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
+            <td mat-cell class="task-cell" *matCellDef="let process">
+                <ng-container *ngIf="process.message0501; then message0501Exists; else message0501ExistsNot"></ng-container>
+                <ng-template #message0501Exists>
+                    <mat-icon>check</mat-icon>
+                </ng-template>
+                <ng-template #message0501ExistsNot>
+                    <!-- <mat-icon>close</mat-icon> -->
+                </ng-template>
+            </td>
+        </ng-container>
+
         <!-- appraisal complete Column -->
-        <!-- <ng-container matColumnDef="appraisalComplete">
+        <ng-container matColumnDef="appraisalComplete">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
-                <ng-container *ngIf="process.appraisalComplete; then appraisalComplete; else appraisalNotComplete"></ng-container>
+                <ng-container *ngIf="process.message0501?.appraisalComplete; then appraisalComplete; else appraisalNotComplete"></ng-container>
                 <ng-template #appraisalComplete>
                     <mat-icon>check</mat-icon>
                 </ng-template>
                 <ng-template #appraisalNotComplete>
-                    <mat-icon>close</mat-icon>
+                    <!-- <mat-icon>close</mat-icon> -->
                 </ng-template>
             </td>
-        </ng-container> -->
+        </ng-container>
+
+        <!-- 0503 message Column -->
+        <ng-container matColumnDef="message0503">
+            <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Abgabe erhalten</th>
+            <td mat-cell class="task-cell" *matCellDef="let process">
+                <ng-container *ngIf="process.message0503; then message0503Exists; else message0503ExistsNot"></ng-container>
+                <ng-template #message0503Exists>
+                    <mat-icon>check</mat-icon>
+                </ng-template>
+                <ng-template #message0503ExistsNot>
+                    <!-- <mat-icon>close</mat-icon> -->
+                </ng-template>
+            </td>
+        </ng-container>
+
+        <!-- archiving complete Column -->
+        <ng-container matColumnDef="archivingComplete">
+            <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Archivierung abgeschlossen</th>
+            <td mat-cell class="task-cell" *matCellDef="let process">
+                <ng-container *ngIf="process.archivingComplete; then archivingComplete; else archivingNotComplete"></ng-container>
+                <ng-template #archivingComplete>
+                    <mat-icon>check</mat-icon>
+                </ng-template>
+                <ng-template #archivingNotComplete>
+                    <!-- <mat-icon>close</mat-icon> -->
+                </ng-template>
+            </td>
+        </ng-container>
 
         <!-- actions column -->
         <ng-container matColumnDef="actions" stickyEnd>
             <th mat-header-cell *matHeaderCellDef>Aktionen</th>
-            <td mat-cell *matCellDef="let message">
+            <td mat-cell *matCellDef="let process">
                 <button mat-icon-button [matMenuTriggerFor]="menu" aria-hidden="false" aria-label="Aktionen für Nachricht anzeigen">
                     <mat-icon>more_horiz</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                    <!-- <div *ngIf="message.appraisalComplete; then showMessageMenuItem else appraiseMessageMenuItem"></div>
-                    <ng-template #showMessageMenuItem>
-                        <button mat-menu-item [routerLink]="['/nachricht', message.id, 'details']">
+                    <ng-container *ngIf="process.message0501 && process.message0501.appraisalComplete">
+                        <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
                             <mat-icon>search</mat-icon>
-                            <span>Details anzeigen</span>
+                            <span>Anbietung anzeigen</span>
                         </button>
-                    </ng-template>
-                    <ng-template #appraiseMessageMenuItem>
-                        <button mat-menu-item [routerLink]="['/nachricht', message.id, 'details']">
+                    </ng-container>
+                    <ng-container *ngIf="process.message0501 && !process.message0501.appraisalComplete">
+                        <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
                             <mat-icon>checklist</mat-icon>
                             <span>Bewerten</span>
                         </button>
-                    </ng-template> -->
+                    </ng-container>
+                    <ng-container *ngIf="process.message0503 && process.message0503.archivingComplete">
+                        <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
+                            <mat-icon>search</mat-icon>
+                            <span>Abgabe anzeigen</span>
+                        </button>
+                    </ng-container>
+                    <ng-container *ngIf="process.message0503 && !process.message0503.archivingComplete">
+                        <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
+                            <mat-icon>archive</mat-icon>
+                            <span>Archivieren</span>
+                        </button>
+                    </ng-container>
                 </mat-menu>
             </td>
         </ng-container>
@@ -59,6 +112,6 @@
     
         </table>
     
-        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Anbietung auswählen"></mat-paginator>
+        <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Anbietung auswählen"></mat-paginator>
     </div>
 </div>
