@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+// angular
+import { Component, Input } from '@angular/core';
+
+import { DocumentVersion } from 'src/app/message/message.service';
 
 @Component({
   selector: 'app-document-version-metadata',
@@ -6,5 +9,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./document-version-metadata.component.scss']
 })
 export class DocumentVersionMetadataComponent {
+  documentVersions?: DocumentVersion[];
 
+  @Input() set versions(v: DocumentVersion[] | null | undefined) {
+    if (!!v) {
+      this.documentVersions = v;
+    }
+  }
 }

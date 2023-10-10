@@ -1,8 +1,17 @@
 <mat-expansion-panel [expanded]="true"> 
   <mat-expansion-panel-header>
       <mat-panel-title>
-          Versionen
+          Dokumentversionen
   </mat-panel-title>
   </mat-expansion-panel-header>
-
+  <mat-list *ngIf="documentVersions">
+    <mat-list-item *ngFor="let documentVersion of documentVersions">
+      <div matListItemTitle>
+        Version {{ documentVersion.versionID }}
+      </div>
+      <div matListItemLine *ngFor="let format of documentVersion.formats">
+        {{ format.primaryDocument.fileName }}
+      </div>
+    </mat-list-item>
+  </mat-list>
 </mat-expansion-panel>

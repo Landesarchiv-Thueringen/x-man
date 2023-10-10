@@ -84,6 +84,29 @@ export interface DocumentRecordObject {
   outgoingDate?: string;
   documentDate?: string;
   recordObjectType: RecordObjectType;
+  versions?: DocumentVersion[];
+}
+
+export interface DocumentVersion {
+  id: number;
+  versionID: string;
+  formats: Format[];
+}
+
+export interface Format {
+  id: number;
+  code: string;
+  otherName?: string;
+  version: string;
+  primaryDocument: PrimaryDocument;
+}
+
+export interface PrimaryDocument {
+  id: number;
+  fileName: string;
+  fileNameOriginal?: string;
+  creatorName?: string;
+  creationTime?: string;
 }
 
 export interface GeneralMetadata {

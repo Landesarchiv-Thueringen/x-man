@@ -6,6 +6,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 // project
 import {
   DocumentRecordObject,
+  DocumentVersion,
   MessageService,
   RecordObjectConfidentiality,
 } from '../../message/message.service';
@@ -21,6 +22,7 @@ import { Subscription, switchMap } from 'rxjs';
 export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   documentRecordObject?: DocumentRecordObject;
+  documentVersions?: DocumentVersion[];
   recordObjectConfidentialities?: RecordObjectConfidentiality[];
   messageTypeCode?: string;
   form: FormGroup;
@@ -51,6 +53,7 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
       switchMap((document: DocumentRecordObject) => {
         console.log(document);
         this.documentRecordObject = document;
+        this.documentVersions = document.versions;
         return this.messageService.getMessageTypeCode(document.messageID)
       }),
       switchMap((messageTypeCode: string) => {
