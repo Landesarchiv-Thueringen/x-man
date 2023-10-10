@@ -38,6 +38,7 @@ func main() {
 	router.GET("record-object-appraisals", getRecordObjectAppraisals)
 	router.GET("record-object-confidentialities", getRecordObjectConfidentialities)
 	router.GET("message-appraisal-complete/:id", isMessageAppraisalComplete)
+	router.GET("message-type-code/:id", getMessageTypeCode)
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("finalize-message-appraisal/:id", finalizeMessageAppraisal)
@@ -209,6 +210,19 @@ func isMessageAppraisalComplete(context *gin.Context) {
 		context.JSON(http.StatusNotFound, err)
 	} else {
 		context.JSON(http.StatusOK, appraisalComplete)
+	}
+}
+
+func getMessageTypeCode(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	messageTypeCode, err := db.GetMessageTypeCode(id)
+	if err != nil {
+		context.JSON(http.StatusNotFound, err)
+	} else {
+		context.JSON(http.StatusOK, messageTypeCode)
 	}
 }
 

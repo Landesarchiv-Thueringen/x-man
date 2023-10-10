@@ -55,6 +55,7 @@ export interface RecordObject {
 
 export interface FileRecordObject {
   id: string;
+  messageID: string;
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
@@ -65,6 +66,7 @@ export interface FileRecordObject {
 
 export interface ProcessRecordObject {
   id: string;
+  messageID: string;
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
@@ -75,6 +77,7 @@ export interface ProcessRecordObject {
 
 export interface DocumentRecordObject {
   id: string;
+  messageID: string;
   generalMetadata?: GeneralMetadata;
   type?: string;
   incomingDate?: string;
@@ -482,6 +485,12 @@ export class MessageService {
   isMessageAppraisalComplete(id: string): Observable<boolean> {
     return this.httpClient.get<boolean>(
       this.apiEndpoint + '/message-appraisal-complete/' + id
+    );
+  }
+
+  getMessageTypeCode(id: string): Observable<string> {
+    return this.httpClient.get<string>(
+      this.apiEndpoint + '/message-type-code/' + id
     );
   }
 

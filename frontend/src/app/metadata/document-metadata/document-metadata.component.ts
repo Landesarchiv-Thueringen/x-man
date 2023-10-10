@@ -22,6 +22,7 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   documentRecordObject?: DocumentRecordObject;
   recordObjectConfidentialities?: RecordObjectConfidentiality[];
+  messageTypeCode?: string;
   form: FormGroup;
 
   constructor(
@@ -50,6 +51,10 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
       switchMap((document: DocumentRecordObject) => {
         console.log(document);
         this.documentRecordObject = document;
+        return this.messageService.getMessageTypeCode(document.messageID)
+      }),
+      switchMap((messageTypeCode: string) => {
+        this.messageTypeCode = messageTypeCode;
         return this.messageService.getRecordObjectConfidentialities();
       }),
     ).subscribe(

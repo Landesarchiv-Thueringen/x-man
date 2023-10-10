@@ -38,6 +38,7 @@ import { PaginatorDeService } from './utility/localization/paginator-de.service'
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pipe';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
+import { DocumentVersionMetadataComponent } from './metadata/document-version-metadata/document-version-metadata.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +52,7 @@ import { ProcessTableComponent } from './process/process-table/process-table.com
     ProcessMetadataComponent,
     RecordObjectAppraisalPipe,
     ProcessTableComponent,
+    DocumentVersionMetadataComponent,
   ],
   imports: [
     BrowserModule,

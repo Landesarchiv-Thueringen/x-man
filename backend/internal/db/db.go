@@ -141,6 +141,17 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 	return message, result.Error
 }
 
+func GetMessageTypeCode(id uuid.UUID) (string, error) {
+	var message Message
+	result := db.
+		Preload("MessageType").
+		First(&message, id)
+	if result.Error != nil {
+		return "", result.Error
+	}
+	return message.MessageType.Code, nil
+}
+
 func IsMessageAppraisalComplete(id uuid.UUID) (bool, error) {
 	message, error := GetMessageByID(id)
 	return message.AppraisalComplete, error
