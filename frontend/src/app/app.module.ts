@@ -14,7 +14,6 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field'; 
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list'; 
 import { MatMenuModule } from '@angular/material/menu'; 
 import { MatPaginatorModule, MatPaginatorIntl} from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
@@ -66,7 +65,6 @@ import { DocumentVersionMetadataComponent } from './metadata/document-version-me
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatListModule,
     MatMenuModule,
     MatPaginatorModule,
     MatSelectModule,

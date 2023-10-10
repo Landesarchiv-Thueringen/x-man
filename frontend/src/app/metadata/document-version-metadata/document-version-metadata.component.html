@@ -1,17 +1,33 @@
 <mat-expansion-panel [expanded]="true"> 
+
   <mat-expansion-panel-header>
       <mat-panel-title>
           Dokumentversionen
   </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-list *ngIf="documentVersions">
-    <mat-list-item *ngFor="let documentVersion of documentVersions">
-      <div matListItemTitle>
-        Version {{ documentVersion.versionID }}
-      </div>
-      <div matListItemLine *ngFor="let format of documentVersion.formats">
-        {{ format.primaryDocument.fileName }}
-      </div>
-    </mat-list-item>
-  </mat-list>
+
+  <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+
+    <!-- This is the tree node template for leaf nodes -->
+    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+      <!-- use a disabled button to provide padding for tree leaf -->
+      <button mat-icon-button disabled></button>
+      {{node.text}}
+      <button mat-mini-fab *ngIf="node.type === 'format'" class="download-button" color="primary">
+        <mat-icon>download</mat-icon>
+      </button>
+    </mat-tree-node>
+
+    <!-- This is the tree node template for expandable nodes -->
+    <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
+      <button mat-icon-button matTreeNodeToggle
+              [attr.aria-label]="'Toggle ' + node.name">
+        <mat-icon class="mat-icon-rtl-mirror">
+          {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+        </mat-icon>
+      </button>
+      {{node.text}}
+    </mat-tree-node>
+  </mat-tree>
+  
 </mat-expansion-panel>
