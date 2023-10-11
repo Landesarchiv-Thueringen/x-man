@@ -12,8 +12,10 @@
     <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
       <!-- use a disabled button to provide padding for tree leaf -->
       <button mat-icon-button disabled></button>
-      {{node.text}}
-      <button mat-mini-fab *ngIf="node.type === 'format'" class="download-button" color="primary">
+      <div class="node-text">
+        {{node.text}}
+      </div>
+      <button mat-mini-fab *ngIf="node.type === 'format'" (click)="downloadPrimaryFile(node.fileID)" class="download-button" color="primary">
         <mat-icon>download</mat-icon>
       </button>
     </mat-tree-node>
@@ -26,7 +28,9 @@
           {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
         </mat-icon>
       </button>
-      {{node.text}}
+      <div class="node-text">
+        {{node.text}}
+      </div>
     </mat-tree-node>
   </mat-tree>
   

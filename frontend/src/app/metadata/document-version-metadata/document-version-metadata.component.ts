@@ -9,13 +9,14 @@ import {
 } from '@angular/material/tree';
 
 // project
-import { DocumentVersion } from 'src/app/message/message.service';
+import { DocumentRecordObject } from 'src/app/message/message.service';
 
 export type NodeType = 'version' | 'format';
 
 export interface Node {
   text: string;
   type: NodeType;
+  fileID?: number;
   children?: Node[];
 }
 
@@ -23,6 +24,7 @@ export interface FlatNode {
   expandable: boolean;
   level: number;
   text: string;
+  fileID?: number;
   type: NodeType;
 }
 
@@ -59,23 +61,24 @@ export class DocumentVersionMetadataComponent {
       level: level,
       text: node.text,
       type: node.type,
+      fileID: node.fileID,
     };
   };
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-  documentVersions?: DocumentVersion[];
-  @Input() set versions(v: DocumentVersion[] | null | undefined) {
-    if (!!v) {
-      this.documentVersions = v;
+  d?: DocumentRecordObject;
+  @Input() set document(d: DocumentRecordObject | null | undefined) {
+    if (!!d) {
+      this.d = d;
       this.initTree();
     }
   }
 
   initTree(): void {
-    if (!!this.documentVersions) {
+    if (!!this.d && !!this.d.versions) {
       const treeData: Node[] = [];
-      for (let version of this.documentVersions) {
+      for (let version of this.d.versions) {
         const formatNodes: Node[] = [];
         for (let format of version.formats) {
           const formatNode: Node = {
@@ -83,6 +86,7 @@ export class DocumentVersionMetadataComponent {
               ? format.primaryDocument.fileNameOriginal
               : format.primaryDocument.fileName,
             type: 'format',
+            fileID: format.primaryDocument.id,
           };
           formatNodes.push(formatNode);
         }
@@ -96,5 +100,9 @@ export class DocumentVersionMetadataComponent {
       this.dataSource.data = treeData;
       this.treeControl.expandAll();
     }
+  }
+
+  downloadPrimaryFile(fileID: number): void {
+    console.log(fileID);
   }
 }

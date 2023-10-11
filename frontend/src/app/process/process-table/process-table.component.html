@@ -1,4 +1,4 @@
-<h2>Aussonderungen</h2>
+<!-- <h2>Aussonderungen</h2> -->
 <div class="process-section">
     <div class="process-table mat-elevation-z8">
         <table mat-table [dataSource]="dataSource" matSort matSortActive="receivedAt" matSortDirection="desc">
@@ -19,13 +19,7 @@
         <ng-container matColumnDef="message0501">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
-                <ng-container *ngIf="process.message0501; then message0501Exists; else message0501ExistsNot"></ng-container>
-                <ng-template #message0501Exists>
-                    <mat-icon>check</mat-icon>
-                </ng-template>
-                <ng-template #message0501ExistsNot>
-                    <!-- <mat-icon>close</mat-icon> -->
-                </ng-template>
+                <mat-icon *ngIf="process.message0501">check</mat-icon>
             </td>
         </ng-container>
 
@@ -33,13 +27,7 @@
         <ng-container matColumnDef="appraisalComplete">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
-                <ng-container *ngIf="process.message0501?.appraisalComplete; then appraisalComplete; else appraisalNotComplete"></ng-container>
-                <ng-template #appraisalComplete>
-                    <mat-icon>check</mat-icon>
-                </ng-template>
-                <ng-template #appraisalNotComplete>
-                    <!-- <mat-icon>close</mat-icon> -->
-                </ng-template>
+                <mat-icon *ngIf="process.message0501?.appraisalComplete">check</mat-icon>
             </td>
         </ng-container>
 
@@ -47,27 +35,15 @@
         <ng-container matColumnDef="message0503">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Abgabe erhalten</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
-                <ng-container *ngIf="process.message0503; then message0503Exists; else message0503ExistsNot"></ng-container>
-                <ng-template #message0503Exists>
-                    <mat-icon>check</mat-icon>
-                </ng-template>
-                <ng-template #message0503ExistsNot>
-                    <!-- <mat-icon>close</mat-icon> -->
-                </ng-template>
+                <mat-icon *ngIf="process.message0503">check</mat-icon>
             </td>
         </ng-container>
 
         <!-- archiving complete Column -->
         <ng-container matColumnDef="archivingComplete">
-            <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Archivierung abgeschlossen</th>
+            <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Abgabe archiviert</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
-                <ng-container *ngIf="process.archivingComplete; then archivingComplete; else archivingNotComplete"></ng-container>
-                <ng-template #archivingComplete>
-                    <mat-icon>check</mat-icon>
-                </ng-template>
-                <ng-template #archivingNotComplete>
-                    <!-- <mat-icon>close</mat-icon> -->
-                </ng-template>
+                <mat-icon *ngIf="process.archivingComplete">check</mat-icon>
             </td>
         </ng-container>
 
@@ -88,7 +64,7 @@
                     <ng-container *ngIf="process.message0501 && !process.message0501.appraisalComplete">
                         <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
                             <mat-icon>checklist</mat-icon>
-                            <span>Bewerten</span>
+                            <span>Anbietung bewerten</span>
                         </button>
                     </ng-container>
                     <ng-container *ngIf="process.message0503 && process.message0503.archivingComplete">
@@ -99,8 +75,8 @@
                     </ng-container>
                     <ng-container *ngIf="process.message0503 && !process.message0503.archivingComplete">
                         <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                            <mat-icon>archive</mat-icon>
-                            <span>Archivieren</span>
+                            <mat-icon>edit_note</mat-icon>
+                            <span>Abgabe bearbeiten</span>
                         </button>
                     </ng-container>
                 </mat-menu>
