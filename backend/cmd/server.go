@@ -8,6 +8,8 @@ import (
 	"lath/xdomea/internal/xdomea"
 	"log"
 	"net/http"
+	"path/filepath"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -39,6 +41,7 @@ func main() {
 	router.GET("record-object-confidentialities", getRecordObjectConfidentialities)
 	router.GET("message-appraisal-complete/:id", isMessageAppraisalComplete)
 	router.GET("message-type-code/:id", getMessageTypeCode)
+	router.GET("primary-document", getPrimaryDocument)
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("finalize-message-appraisal/:id", finalizeMessageAppraisal)
@@ -224,6 +227,30 @@ func getMessageTypeCode(context *gin.Context) {
 	} else {
 		context.JSON(http.StatusOK, messageTypeCode)
 	}
+}
+
+func getPrimaryDocument(context *gin.Context) {
+	messageIDParam := context.Query("messageID")
+	messageID, err := uuid.Parse(messageIDParam)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	primaryDocumentIDParam := context.Query("primaryDocumentID")
+	primaryDocumentID, err := strconv.ParseUint(primaryDocumentIDParam, 10, 32)
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	path, err := db.GetPrimaryFileStorePath(messageID, uint(primaryDocumentID))
+	if err != nil {
+		context.JSON(http.StatusNotFound, err)
+	}
+	fileName := filepath.Base(path)
+	// context.Header("Content-Description", "File Transfer")
+	context.Header("Content-Transfer-Encoding", "binary")
+	context.Header("Content-Disposition", "attachment; filename="+fileName)
+	context.Header("Content-Type", "application/octet-stream")
+	log.Println(fileName)
+	context.FileAttachment(path, fileName)
 }
 
 func processFlags() {

@@ -379,6 +379,20 @@ export class MessageService {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
   }
 
+  getPrimaryDocument(
+    messageID: string,
+    primaryDocumentID: number
+  ): Observable<Blob> {
+    const url = this.apiEndpoint + '/primary-document';
+    const options = {
+      params: new HttpParams()
+        .set('messageID', messageID)
+        .set('primaryDocumentID', primaryDocumentID),
+      responseType: 'blob' as 'json', // https://github.com/angular/angular/issues/18586
+    };
+    return this.httpClient.get<Blob>(url, options);
+  }
+
   finalizeMessageAppraisal(id: string): Observable<void> {
     const url = this.apiEndpoint + '/finalize-message-appraisal/' + id;
     const body = {};

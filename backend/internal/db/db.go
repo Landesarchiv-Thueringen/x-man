@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"log"
+	"path/filepath"
 
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
@@ -268,6 +269,22 @@ func GetAppraisalByCode(code string) (RecordObjectAppraisal, error) {
 	appraisal := RecordObjectAppraisal{Code: code}
 	result := db.Where(&appraisal).First(&appraisal)
 	return appraisal, result.Error
+}
+
+func GetPrimaryFileStorePath(messageID uuid.UUID, primaryDocumentID uint) (string, error) {
+	var message Message
+	result := db.
+		Preload("MessageType").
+		First(&message, messageID)
+	if result.Error != nil {
+		return "", result.Error
+	}
+	var primaryDocument PrimaryDocument
+	result = db.First(&primaryDocument, primaryDocumentID)
+	if result.Error != nil {
+		return "", result.Error
+	}
+	return filepath.Join(message.StoreDir, primaryDocument.FileName), nil
 }
 
 func AddMessage(

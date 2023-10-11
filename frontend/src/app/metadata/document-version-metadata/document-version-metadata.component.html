@@ -15,7 +15,8 @@
       <div class="node-text">
         {{node.text}}
       </div>
-      <button mat-mini-fab *ngIf="node.type === 'format'" (click)="downloadPrimaryFile(node.fileID)" class="download-button" color="primary">
+      <button mat-mini-fab *ngIf="node.type === 'format'" 
+          (click)="downloadPrimaryFile(node.fileID, node.fileName)" class="download-button" color="primary">
         <mat-icon>download</mat-icon>
       </button>
     </mat-tree-node>

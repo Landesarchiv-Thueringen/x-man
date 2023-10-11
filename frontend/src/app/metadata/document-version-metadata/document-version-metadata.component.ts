@@ -9,7 +9,13 @@ import {
 } from '@angular/material/tree';
 
 // project
-import { DocumentRecordObject } from 'src/app/message/message.service';
+import {
+  DocumentRecordObject,
+  MessageService,
+} from 'src/app/message/message.service';
+
+// utility
+import { saveAs } from 'file-saver';
 
 export type NodeType = 'version' | 'format';
 
@@ -17,6 +23,7 @@ export interface Node {
   text: string;
   type: NodeType;
   fileID?: number;
+  fileName?: string;
   children?: Node[];
 }
 
@@ -25,6 +32,7 @@ export interface FlatNode {
   level: number;
   text: string;
   fileID?: number;
+  fileName?: string;
   type: NodeType;
 }
 
@@ -38,7 +46,7 @@ export class DocumentVersionMetadataComponent {
   treeFlattener: MatTreeFlattener<Node, FlatNode>;
   dataSource: MatTreeFlatDataSource<Node, FlatNode>;
 
-  constructor() {
+  constructor(private messageService: MessageService) {
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
       (node) => node.expandable
@@ -62,6 +70,7 @@ export class DocumentVersionMetadataComponent {
       text: node.text,
       type: node.type,
       fileID: node.fileID,
+      fileName: node.fileName,
     };
   };
 
@@ -87,6 +96,9 @@ export class DocumentVersionMetadataComponent {
               : format.primaryDocument.fileName,
             type: 'format',
             fileID: format.primaryDocument.id,
+            fileName: format.primaryDocument.fileNameOriginal
+              ? format.primaryDocument.fileNameOriginal
+              : format.primaryDocument.fileName,
           };
           formatNodes.push(formatNode);
         }
@@ -102,7 +114,19 @@ export class DocumentVersionMetadataComponent {
     }
   }
 
-  downloadPrimaryFile(fileID: number): void {
-    console.log(fileID);
+  downloadPrimaryFile(fileID: number, fileName: string): void {
+    if (this.d) {
+      this.messageService.getPrimaryDocument(
+        this.d.messageID,
+        fileID
+      ).subscribe({
+        error: (error) => {
+          console.error(error);
+        },
+        next: (file: Blob) => {
+          saveAs(file, fileName);
+        },
+      });
+    }
   }
 }
