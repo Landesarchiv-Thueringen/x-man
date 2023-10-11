@@ -78,7 +78,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     @Inject(DOCUMENT) private document: Document,
     private messageService: MessageService,
     private notificationService: NotificationService,
-    private route: ActivatedRoute,
+    private route: ActivatedRoute
   ) {
     this.messageTreeInit = true;
     this.showAppraisal = true;
@@ -120,7 +120,11 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           if (nodeID && this.messageTreeInit) {
             this.messageTreeInit = false;
             this.expandNode(nodeID);
-            this.document.getElementById(nodeID)?.scrollIntoView();
+            const nodeElement: HTMLElement | null =
+              this.document.getElementById(nodeID);
+            if (nodeElement) {
+              nodeElement.scrollIntoView({block: 'center'});
+            }
           }
         });
     } else {
@@ -185,9 +189,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   }
 
   updateNodeInDataSource(changedNode: StructureNode): void {
-    const oldNode: StructureNode = this.findNodeInDataSource(
-      changedNode.id
-    )!;
+    const oldNode: StructureNode = this.findNodeInDataSource(changedNode.id)!;
     if (oldNode.parentID) {
       const parentNode: StructureNode = this.findNodeInDataSource(
         oldNode.parentID
@@ -255,6 +257,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   copyMessageUrl() {
     this.clipboard.copy(this.document.location.toString());
-    this.notificationService.show('Nachrichten-Link in Zwischenspeicher kopiert');
+    this.notificationService.show(
+      'Nachrichten-Link in Zwischenspeicher kopiert'
+    );
   }
 }
