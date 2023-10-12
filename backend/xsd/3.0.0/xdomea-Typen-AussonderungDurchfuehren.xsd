@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:xdomea="urn:xoev-de:xdomea:schema:3.0.0"
+           targetNamespace="urn:xoev-de:xdomea:schema:3.0.0"
+           version="3.0.0"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+   <xs:annotation>
+      <xs:appinfo>
+         <standard>
+            <nameLang>xdomea - XÖV-Standard für den IT-gestützten Austausch und die IT-gestützte Aussonderung behördlichen Schriftgutes</nameLang>
+            <nameKurz>xdomea</nameKurz>
+            <nameTechnisch>xdomea</nameTechnisch>
+            <kennung>urn:xoev-de:xdomea:kosit:standard:xdomea</kennung>
+            <beschreibung>xdomea ist der vom IT-Planungsrat verabschiedete verbindliche Standard für den Austausch von Akten, Vorgängen und Dokumenten im Kontext der Übermittlung, der Abgabe sowie der Aussonderung von Schriftgutobjekten (www.it-planungsrat.de, Beschluss 2017/39). Weiterhin kann xdomea für den Austausch zwischen Fachverfahren und DMS/VBS sowie für die Zwischenarchivierung genutzt werden. 
+
+Um diese Anwendungsszenarien bestmöglich zu unterstützen, ist xdomea gemäß des XÖV-Rahmenwerkes nach dem Baukastenprinzip aufgebaut und bietet einzelne Nachrichten(gruppen) für die jeweiligen Prozesse an. 
+
+Der Standard xdomea wird von der gleichnamigen Arbeitsgruppe des IT-Planungsrates weiterentwickelt und gepflegt. Der Betrieb des Standards erfolgt durch die Koordinierungsstelle für IT-Standards (KoSIT).
+</beschreibung>
+         </standard>
+         <versionStandard>
+            <version>3.0.0</version>
+            <beschreibung>Die Version 3.0.0 ist durch den IT-Planungsrat beschlossen. Details zum Beschluss sowie zu den Fristen der Umsetzung sind der Veröffentlichung im Bundesanzeiger unter www.bundesanzeiger.de zu entnehmen.</beschreibung>
+            <versionXOEVProfil>1.7.2</versionXOEVProfil>
+            <versionXOEVHandbuch>2.3.1</versionXOEVHandbuch>
+            <versionXGenerator>3.0.1</versionXGenerator>
+            <versionModellierungswerkzeug>19.0</versionModellierungswerkzeug>
+            <nameModellierungswerkzeug>MagicDraw</nameModellierungswerkzeug>
+         </versionStandard>
+      </xs:appinfo>
+   </xs:annotation>
+   <xs:include schemaLocation="xdomea-Baukasten.xsd"/>
+   <xs:complexType name="AktenplanBewertungskatalogType">
+      <xs:annotation>
+         <xs:appinfo>
+            <title>AktenplanBewertungskatalog</title>
+         </xs:appinfo>
+         <xs:documentation>Der Aktenplan enthält ein aufgabenbezogenes mehrstufiges Ordnungssystem mit einer hierarchischen Gliederung für das Bilden und Kennzeichnen von Akten und Vorgängen sowie das Zuordnen von Dokumenten.</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="ID" type="xdomea:stringUUIDType">
+            <xs:annotation>
+               <xs:documentation>Die UUID des Aktenplans.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Bezeichnung" type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Der Name des Aktenplans.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Typ" minOccurs="0" type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Der Typ des Aktenplans, z.B. Teilaktenplan.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Version" type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Die Version des Aktenplans.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Einheit"
+                     minOccurs="0"
+                     maxOccurs="unbounded"
+                     type="xdomea:AktenplaneinheitAktenplanBewertungskatalogType">
+            <xs:annotation>
+               <xs:documentation>Die Einheit eines Aktenplans, die Auskunft über die hierarchische Strukturierung eines Aktenplans gibt. Eine Aktenplanheit entspricht z.B. einer Hauptgruppe, Obergruppe, Gruppe, Untergruppe oder Betreffseinheit.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Gueltigkeit" minOccurs="0" type="xdomea:ZeitraumType">
+            <xs:annotation>
+               <xs:documentation>Die Gültigkeit des Aktenplans mit Beginn und Ende.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Aktenplandatei"
+                     minOccurs="0"
+                     maxOccurs="unbounded"
+                     type="xdomea:FormatType">
+            <xs:annotation>
+               <xs:documentation>Die Datei zum Aktenplan als Primärdokument.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="AktenplaneinheitAktenplanBewertungskatalogType">
+      <xs:annotation>
+         <xs:appinfo>
+            <title>AktenplaneinheitAktenplanBewertungskatalog</title>
+         </xs:appinfo>
+         <xs:documentation>Eine Aktenplaneinheit gibt Auskunft über die hierarchische Strukturierung eines Aktenplans. Eine Aktenplanheit entspricht z.B. einer Hauptgruppe, Obergruppe, Gruppe, Untergruppe oder Betreffseinheit.</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="ID" type="xdomea:stringUUIDType">
+            <xs:annotation>
+               <xs:documentation>Die UUID der Aktenplaneinheit.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Aussonderungsart" type="xdomea:AussonderungsartType">
+            <xs:annotation>
+               <xs:appinfo>
+                  <implementationHint>Die Aussonderungsart vererbt sich auf alle unter einer Hierarchiestufe angelegten Schriftgutobjekte.</implementationHint>
+               </xs:appinfo>
+               <xs:documentation>Die Aussonderungsart gibt das Ergebnis der archivischen Bewertung an. Die Aussonderungsart wird vom Aktenplan (zweistufiges Aussonderungsverfahren) auf zugehörige Akten und Vorgänge vererbt.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="ErfolgOderMisserfolgAussonderungType">
+      <xs:annotation>
+         <xs:appinfo>
+            <title>ErfolgOderMisserfolgAussonderung</title>
+         </xs:appinfo>
+         <xs:documentation>Die Information zum erfolgreichen oder nicht erfolgreichen Import eines auszusondernden Schriftgutobjekts.</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="IDSGO" type="xdomea:stringUUIDType">
+            <xs:annotation>
+               <xs:documentation>Die ID des Schriftgutobjekts, das ausgesondert werden sollte.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Erfolgreich" type="xs:boolean">
+            <xs:annotation>
+               <xs:documentation>Die Kennzeichnung des erfolgreichen oder nicht erfolgreichen Imports der Aussonderung zu einem Schriftgutobjekt. Der erfolgreiche Import wird mit 1 und der nicht erfolgreiche Import mit 0 gekennzeichnet.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Fehlermeldung"
+                     minOccurs="0"
+                     maxOccurs="unbounded"
+                     type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Erläuterung des Grundes als Freitext für den nicht erfolgreichen Import einer Aussonderung zu einem Schriftgutobjekt.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="FehlermeldungCode"
+                     minOccurs="0"
+                     maxOccurs="unbounded"
+                     type="xdomea:SonstigeFehlermeldungCodeType">
+            <xs:annotation>
+               <xs:documentation>Erläuterung des Grundes als Code für den nicht erfolgreichen Import einer Aussonderung zu einem Schriftgutobjekt.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Archivkennung" minOccurs="0" type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Die ID, unter der das ausgesonderte Schriftgutobjekt im Archiv verwahrt wird. Für den Fall, dass "Erfolgreich" positiv belegt ist und von der aussondernden Behörde die Rückgabe der Archivkennungen gewünscht ist ("RueckmeldungArchivkennung" ist positiv belegt), können durch das archivierende System die Archivkennungen zu den einzelnen Schriftgutobjekt übergeben werden.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="ErfolgOderMisserfolgBewertungskatalogType">
+      <xs:annotation>
+         <xs:appinfo>
+            <title>ErfolgOderMisserfolgBewertungskatalog</title>
+         </xs:appinfo>
+         <xs:documentation>Die Information zum erfolgreichen oder nicht erfolgreichen Import einer zu bewertenden Aktenplaneinheit.</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="ID" type="xdomea:stringUUIDType">
+            <xs:annotation>
+               <xs:documentation>Die ID der Aktenplaneinheit, die bewertet werden sollte.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Erfolgreich" type="xs:boolean">
+            <xs:annotation>
+               <xs:documentation>Die Kennzeichnung des erfolgreichen oder nicht erfolgreichen Imports der Bewertung zu einer Aktenplaneinheit. Der erfolgreiche Import wird mit 1 und der nicht erfolgreiche Import mit 0 gekennzeichnet.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Fehlermeldung"
+                     minOccurs="0"
+                     maxOccurs="unbounded"
+                     type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Erläuterung des Grundes als Freitext für den nicht erfolgreichen Import einer Bewertung zu einer Aktenplaneinheit.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="FehlermeldungCode"
+                     minOccurs="0"
+                     maxOccurs="unbounded"
+                     type="xdomea:SonstigeFehlermeldungCodeType">
+            <xs:annotation>
+               <xs:documentation>Erläuterung des Grundes als Code für den nicht erfolgreichen Import einer Bewertung zu einer Aktenplaneinheit.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="NkAussonderungType">
+      <xs:annotation>
+         <xs:appinfo>
+            <title>NkAussonderung</title>
+         </xs:appinfo>
+         <xs:documentation>Der Kopf der Nachricht enthält allgemeine Informationen für den Empfänger einer Nachricht, bei der es sich um die konkrete Aussonderung handelt.</xs:documentation>
+      </xs:annotation>
+      <xs:complexContent>
+         <xs:extension base="xdomea:NkBasisType">
+            <xs:sequence>
+               <xs:element name="Importbestaetigung" fixed="1" type="xs:boolean">
+                  <xs:annotation>
+                     <xs:documentation>Die Angabe, dass eine Importbestätigung vom Empfänger der Nachricht erwünscht wird.</xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+               <xs:element name="RueckmeldungArchivkennung" type="xs:boolean">
+                  <xs:annotation>
+                     <xs:documentation>Die Angabe, ob die Rückübermittlung der Archivsignaturen vom Empfänger erwünscht wird. Sollen die Archivsignaturen übermittelt werden, so ist der Wert 1 anzugeben. Sollen keine Archivsignaturen übermittelt werden, so ist der Wert 0 anzugeben.</xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+               <xs:element name="Empfangsbestaetigung" type="xs:boolean">
+                  <xs:annotation>
+                     <xs:appinfo>
+                        <implementationHint>Für die Umsetzung in den Systemen wird empfohlen, sofern kein anderer Wert hinterlegt wurde, als Standardwert den Wert 0 für "keine Empfangsbestätigung senden" anzugeben.</implementationHint>
+                     </xs:appinfo>
+                     <xs:documentation>Die Angabe, ob vom Empfänger der Nachricht eine Empfangsbestätigung erwünscht wird. Eine erwünschte Empfangsbestätigung wird mit 1 gekennzeichnet. Wird keine Empfangsbestätigung gewünscht, so wird dies mit 0 gekennzeichnet.</xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+            </xs:sequence>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+   <xs:complexType name="RueckgabeparameterAnbietungType">
+      <xs:annotation>
+         <xs:appinfo>
+            <title>RueckgabeparameterAnbietung</title>
+         </xs:appinfo>
+         <xs:documentation>Die Rückmeldung des Archivs zu einem zur Bewertung übergegebenen Schriftgutobjekt zur Steuerung des weiteren Aussonderungsprozesses.</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="ID" type="xdomea:stringUUIDType">
+            <xs:annotation>
+               <xs:documentation>Die UUID des angebotenen Schriftgutobjektes, in der Regel die eines Vorgangs.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Aussonderungsart" type="xdomea:AussonderungsartType">
+            <xs:annotation>
+               <xs:documentation>Die Beschreibung des Bewertungsergebnisses für ein angebotenes Schriftgutobjekt.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+</xs:schema>

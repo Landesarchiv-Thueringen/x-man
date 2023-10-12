@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:xdomea="urn:xoev-de:xdomea:schema:3.0.0"
+           targetNamespace="urn:xoev-de:xdomea:schema:3.0.0"
+           version="3.0.0"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+   <xs:annotation>
+      <xs:appinfo>
+         <standard>
+            <nameLang>xdomea - XÖV-Standard für den IT-gestützten Austausch und die IT-gestützte Aussonderung behördlichen Schriftgutes</nameLang>
+            <nameKurz>xdomea</nameKurz>
+            <nameTechnisch>xdomea</nameTechnisch>
+            <kennung>urn:xoev-de:xdomea:kosit:standard:xdomea</kennung>
+            <beschreibung>xdomea ist der vom IT-Planungsrat verabschiedete verbindliche Standard für den Austausch von Akten, Vorgängen und Dokumenten im Kontext der Übermittlung, der Abgabe sowie der Aussonderung von Schriftgutobjekten (www.it-planungsrat.de, Beschluss 2017/39). Weiterhin kann xdomea für den Austausch zwischen Fachverfahren und DMS/VBS sowie für die Zwischenarchivierung genutzt werden. 
+
+Um diese Anwendungsszenarien bestmöglich zu unterstützen, ist xdomea gemäß des XÖV-Rahmenwerkes nach dem Baukastenprinzip aufgebaut und bietet einzelne Nachrichten(gruppen) für die jeweiligen Prozesse an. 
+
+Der Standard xdomea wird von der gleichnamigen Arbeitsgruppe des IT-Planungsrates weiterentwickelt und gepflegt. Der Betrieb des Standards erfolgt durch die Koordinierungsstelle für IT-Standards (KoSIT).
+</beschreibung>
+         </standard>
+         <versionStandard>
+            <version>3.0.0</version>
+            <beschreibung>Die Version 3.0.0 ist durch den IT-Planungsrat beschlossen. Details zum Beschluss sowie zu den Fristen der Umsetzung sind der Veröffentlichung im Bundesanzeiger unter www.bundesanzeiger.de zu entnehmen.</beschreibung>
+            <versionXOEVProfil>1.7.2</versionXOEVProfil>
+            <versionXOEVHandbuch>2.3.1</versionXOEVHandbuch>
+            <versionXGenerator>3.0.1</versionXGenerator>
+            <versionModellierungswerkzeug>19.0</versionModellierungswerkzeug>
+            <nameModellierungswerkzeug>MagicDraw</nameModellierungswerkzeug>
+         </versionStandard>
+      </xs:appinfo>
+   </xs:annotation>
+   <xs:include schemaLocation="xdomea-Nachrichten-FachverfahrensdatenAustauschen.xsd"/>
+</xs:schema>

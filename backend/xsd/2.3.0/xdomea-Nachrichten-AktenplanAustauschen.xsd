@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xdomea="urn:xoev-de:xdomea:schema:2.3.0" targetNamespace="urn:xoev-de:xdomea:schema:2.3.0" version="2.3.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:include schemaLocation="xdomea-Baukasten.xsd" />
+  <xs:element name="Aktenplan.Aktenplan.0301">
+    <xs:annotation>
+      <xs:appinfo>
+        <implementationHint>Die austauschenden Behörden müssen die für den Aktenplan erforderliche Konfiguration abstimmen, wenn dieser übernommen werden soll.</implementationHint>
+      </xs:appinfo>
+      <xs:documentation>Die Nachricht beschreibt den Export eines Aktenplans zur Information oder Übernahme in ein anderes System.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Kopf" type="xdomea:NkNichtFVDatenWeitereEmpfaengerMitEmpfangsbestaetigungType">
+          <xs:annotation>
+            <xs:documentation>Der Kopf der Nachricht enthält allgemeine Informationen für den Empfänger der Aktenplan-Nachricht.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="Aktenplan" type="xdomea:AktenplanType">
+          <xs:annotation>
+            <xs:documentation>Der zu übergebende Aktenplan enthält ein aufgabenbezogenes mehrstufiges Ordnungssystem mit hierarchischer Gliederung für das Bilden und Kennzeichnen von Akten und Vorgängen sowie das Zuordnen von Dokumenten.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Aktenplan.EmpfangBestaetigen.0302">
+    <xs:annotation>
+      <xs:documentation>Die Nachricht beschreibt den erfolgreichen Empfang des Aktenplans.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Kopf" type="xdomea:NkBasisType">
+          <xs:annotation>
+            <xs:documentation>Der Kopf der Nachricht enthält allgemeine Informationen für den Empfänger der Empfangsbestätigung.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
+

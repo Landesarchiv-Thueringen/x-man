@@ -2,12 +2,16 @@ package xdomea
 
 import (
 	"errors"
+	"io/ioutil"
 	"lath/xdomea/internal/db"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
+
+	"github.com/lestrrat-go/libxml2"
+	"github.com/lestrrat-go/libxml2/xsd"
 )
 
 var uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -37,10 +41,26 @@ func InitMessageTypes() {
 
 func InitXdomeaVersions() {
 	versions := []*db.XdomeaVersion{
-		{Code: "2.3.0", URI: "urn:xoev-de:xdomea:schema:2.3.0"},
-		{Code: "2.4.0", URI: "urn:xoev-de:xdomea:schema:2.4.0"},
-		{Code: "3.0.0", URI: "urn:xoev-de:xdomea:schema:3.0.0"},
-		{Code: "3.1.0", URI: "urn:xoev-de:xdomea:schema:3.1.0"},
+		{
+			Code:    "2.3.0",
+			URI:     "urn:xoev-de:xdomea:schema:2.3.0",
+			XSDPath: "xsd/2.3.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
+		},
+		{
+			Code:    "2.4.0",
+			URI:     "urn:xoev-de:xdomea:schema:2.4.0",
+			XSDPath: "xsd/2.4.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
+		},
+		{
+			Code:    "3.0.0",
+			URI:     "urn:xoev-de:xdomea:schema:3.0.0",
+			XSDPath: "xsd/3.0.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
+		},
+		{
+			Code:    "3.1.0",
+			URI:     "urn:xoev-de:xdomea:schema:3.1.0",
+			XSDPath: "xsd/3.1.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
+		},
 	}
 	db.InitXdomeaVersions(versions)
 }
@@ -122,10 +142,51 @@ func AddMessage(
 		MessagePath:       messagePath,
 		AppraisalComplete: appraisalComplete,
 	}
-	// TODO: xsd validation
-	message = ParseMessage(message)
+	messageIsValid, err := IsMessageValid(message)
+	message.SchemaValidation = messageIsValid
+	if err != nil && messageIsValid {
+		log.Fatal(err)
+	}
+	message, err = ParseMessage(message)
+	if err != nil {
+		log.Fatal(err)
+	}
 	_, err = db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func IsMessageValid(message db.Message) (bool, error) {
+	xdomeaVersion, err := ExtractVersionFromMessage(message)
+	if err != nil {
+		return false, err
+	}
+	schema, err := xsd.ParseFromFile(xdomeaVersion.XSDPath)
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+	defer schema.Free()
+	messageFile, err := os.Open(message.MessagePath)
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+	defer messageFile.Close()
+	buffer, err := ioutil.ReadAll(messageFile)
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+	messageXML, err := libxml2.Parse(buffer)
+	if err != nil {
+		return false, err
+	}
+	defer messageXML.Free()
+	err = schema.Validate(messageXML)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

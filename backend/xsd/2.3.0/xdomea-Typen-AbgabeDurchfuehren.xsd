@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xdomea="urn:xoev-de:xdomea:schema:2.3.0" xmlns:xoev-lc="http://xoev.de/latinchars/1_1/datatypes" targetNamespace="urn:xoev-de:xdomea:schema:2.3.0" version="2.3.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:include schemaLocation="xdomea-Baukasten.xsd" />
+  <xs:import schemaLocation="http://xoev.de/latinchars/1_1/datatypes/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
+  <xs:complexType name="ErfolgOderMisserfolgAbgabeType">
+    <xs:annotation>
+      <xs:appinfo>
+        <title>ErfolgOderMisserfolgAbgabe</title>
+      </xs:appinfo>
+      <xs:documentation>Die Information zum erfolgreichen oder nicht erfolgreichen Import einer Abgabe.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Erfolgreich" default="1" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Die Kennzeichnung des erfolgreichen oder nicht erfolgreichen Imports der Abgabe.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Fehlermeldung" minOccurs="0" type="xoev-lc:String.Latin">
+        <xs:annotation>
+          <xs:documentation>Die Information, aus welchem Grund der Import der Abgabe nicht erfolgreich war.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NkAbgabeType">
+    <xs:annotation>
+      <xs:appinfo>
+        <title>NkAbgabe</title>
+      </xs:appinfo>
+      <xs:documentation>Der Kopf der Nachricht enthält allgemeine Informationen für den Empfänger einer Nachricht, bei der es sich um eine Abgabe handelt.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="xdomea:NkNichtFVDatenWeitereEmpfaengerType">
+        <xs:sequence>
+          <xs:element name="Importbestaetigung" fixed="1" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation>Die Angabe, dass eine Importbestätigung vom Empfänger der Nachricht erwünscht wird.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>
+

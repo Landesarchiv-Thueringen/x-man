@@ -19,6 +19,7 @@ type XdomeaVersion struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Code      string         `json:"code"`
 	URI       string         `json:"uri"`
+	XSDPath   string         `json:""`
 }
 
 type Process struct {
@@ -45,6 +46,7 @@ type Message struct {
 	StoreDir          string         `json:"-"`
 	MessagePath       string         `json:"-"`
 	XdomeaVersion     string         `json:"xdomeaVersion"`
+	SchemaValidation  bool           `gorm:"default:true" json:"schemaValidation"`
 	MessageHeadID     *uint          `json:"-"`
 	MessageHead       MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
 	MessageTypeID     *uint          `json:"-"`
@@ -67,10 +69,18 @@ type Message0501 struct {
 	RecordObjects []RecordObject `xml:"Schriftgutobjekt" json:"recordObjects"`
 }
 
+type MessageBody0501 struct {
+	XMLName xml.Name `gorm:"-" xml:"Aussonderung.Anbieteverzeichnis.0501" json:"-"`
+}
+
 type Message0503 struct {
 	XMLName       xml.Name       `gorm:"-" xml:"Aussonderung.Aussonderung.0503" json:"-"`
 	MessageHead   MessageHead    `xml:"Kopf" json:"messageHead"`
 	RecordObjects []RecordObject `xml:"Schriftgutobjekt" json:"recordObjects"`
+}
+
+type MessageBody0503 struct {
+	XMLName xml.Name `gorm:"-" xml:"Aussonderung.Aussonderung.0503" json:"-"`
 }
 
 type MessageHead struct {

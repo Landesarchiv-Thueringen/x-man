@@ -3,3 +3,4 @@
 !/go.sum
 !/**/*.go
 !/psql/init_database.sql
+!/xsd/**/*.xsd

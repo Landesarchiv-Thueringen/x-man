@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xdomea="urn:xoev-de:xdomea:schema:2.3.0" targetNamespace="urn:xoev-de:xdomea:schema:2.3.0" version="2.3.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:include schemaLocation="xdomea-Nachrichten-AktenplanAustauschen.xsd" />
+  <xs:include schemaLocation="xdomea-Nachrichten-AussonderungDurchfuehren.xsd" />
+</xs:schema>
+

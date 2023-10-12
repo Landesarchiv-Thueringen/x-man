@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:xoev-de:xdomea:schema:3.0.0"
+           version="3.0.0"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+   <xs:include schemaLocation="xdomea-Baukasten.xsd"/>
+   <xs:include schemaLocation="xdomea-Datentypen.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-AbgabeDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-AktenplanAustauschen.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-Archivsystem.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-AussonderungDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-DMS.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-Fachverfahren.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-FachverfahrensdatenAustauschen.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-GeschaeftsgangDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-InformationAustauschen.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-VBS.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-ZwischenarchivierungDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Nachrichten-Zwischenarchivsystem.xsd"/>
+   <xs:include schemaLocation="xdomea-Typen-AbgabeDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Typen-AussonderungDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Typen-FachverfahrensdatenAustauschen.xsd"/>
+   <xs:include schemaLocation="xdomea-Typen-GeschaeftsgangDurchfuehren.xsd"/>
+   <xs:include schemaLocation="xdomea-Typen-ZwischenarchivierungDurchfuehren.xsd"/>
+</xs:schema>

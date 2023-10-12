@@ -29,3 +29,11 @@
     - `sudo cp psql/init_database.sql /var/lib/postgres/scripts`
     - `sudo chown -R postgres:postgres /var/lib/postgres/scripts`
     - `\i /var/lib/postgres/scripts/init_database.sql`
+
+  ## Go Bibliotheken
+
+  - [Gin](https://gin-gonic.com/)
+  - [Gorm](https://gorm.io/)
+  - [fsnotify](https://github.com/fsnotify/fsnotify)
+  - [libxml2](https://github.com/lestrrat-go/libxml2)
+    - C-Bibliothek libxml2, libxml2-dev notwendig (in Ubuntu bereits vorinstalliert)
