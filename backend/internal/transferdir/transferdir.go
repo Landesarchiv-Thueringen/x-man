@@ -1,8 +1,8 @@
 package transferdir
 
 import (
-	"lath/xdomea/internal/messagestore"
-	"lath/xdomea/internal/xdomea"
+	"lath/xman/internal/messagestore"
+	"lath/xman/internal/xdomea"
 	"log"
 	"math"
 	"sync"

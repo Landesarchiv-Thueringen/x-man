@@ -1,4 +1,4 @@
-# LATh xdomea Server
+# X-Man Server
 
 ## Abhängigkeiten
 

@@ -3,7 +3,7 @@ package xdomea
 import (
 	"errors"
 	"io/ioutil"
-	"lath/xdomea/internal/db"
+	"lath/xman/internal/db"
 	"log"
 	"os"
 	"path"

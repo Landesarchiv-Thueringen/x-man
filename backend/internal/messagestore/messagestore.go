@@ -3,8 +3,8 @@ package messagestore
 import (
 	"archive/zip"
 	"io"
-	"lath/xdomea/internal/db"
-	"lath/xdomea/internal/xdomea"
+	"lath/xman/internal/db"
+	"lath/xman/internal/xdomea"
 	"log"
 	"os"
 	"path"

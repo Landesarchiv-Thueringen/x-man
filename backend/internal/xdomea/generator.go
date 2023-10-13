@@ -3,7 +3,7 @@ package xdomea
 import (
 	"encoding/xml"
 	"errors"
-	"lath/xdomea/internal/db"
+	"lath/xman/internal/db"
 	"log"
 	"time"
 )

@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"lath/xdomea/internal/db"
-	"lath/xdomea/internal/messagestore"
-	"lath/xdomea/internal/transferdir"
-	"lath/xdomea/internal/xdomea"
+	"lath/xman/internal/db"
+	"lath/xman/internal/messagestore"
+	"lath/xman/internal/transferdir"
+	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
 	"path/filepath"

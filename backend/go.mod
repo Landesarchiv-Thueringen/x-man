@@ -1,4 +1,4 @@
-module lath/xdomea
+module lath/xman
 
 go 1.18
 

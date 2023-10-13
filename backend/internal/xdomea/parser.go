@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
-	"lath/xdomea/internal/db"
+	"lath/xman/internal/db"
 	"log"
 	"os"
 )
