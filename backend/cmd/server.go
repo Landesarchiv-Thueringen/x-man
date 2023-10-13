@@ -199,7 +199,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, err)
 		}
-		messagestore.Generate0502Message(message)
+		messagestore.Store0502Message(message)
 	}
 }
 
@@ -249,7 +249,6 @@ func getPrimaryDocument(context *gin.Context) {
 	context.Header("Content-Transfer-Encoding", "binary")
 	context.Header("Content-Disposition", "attachment; filename="+fileName)
 	context.Header("Content-Type", "application/octet-stream")
-	log.Println(fileName)
 	context.FileAttachment(path, fileName)
 }
 

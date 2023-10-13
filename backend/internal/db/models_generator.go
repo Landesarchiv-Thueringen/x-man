@@ -14,6 +14,13 @@ type GeneratorMessage0502 struct {
 	XsiXmlNs         string                     `xml:"xmlns:xsi,attr"`
 }
 
+type GeneratorMessage0504 struct {
+	XMLName     xml.Name             `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
+	MessageHead GeneratorMessageHead `xml:"xdomea:Kopf" json:"messageHead"`
+	XdomeaXmlNs string               `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs    string               `xml:"xmlns:xsi,attr"`
+}
+
 type GeneratorAppraisedObject struct {
 	XMLName         xml.Name                 `xml:"xdomea:BewertetesObjekt"`
 	XdomeaID        uuid.UUID                `xml:"xdomea:ID"`

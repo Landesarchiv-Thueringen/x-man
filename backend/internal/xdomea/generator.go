@@ -16,14 +16,7 @@ func Generate0502Message(message db.Message) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	timeStamp := time.Now()
-	lathContact := GetLAThContact()
-	messageHead := db.GeneratorMessageHead{
-		ProcessID:    message.MessageHead.ProcessID,
-		CreationTime: timeStamp.Format("01-02-2006 15:04"),
-		Sender:       lathContact,
-		Receiver:     ConvertParserToGeneratorContact(message.MessageHead.Sender),
-	}
+	messageHead := GenerateMessageHeadLATh(message.MessageHead.ProcessID, message.MessageHead.Sender)
 	message0502 := db.GeneratorMessage0502{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
@@ -67,6 +60,37 @@ func GenerateAppraisedObject(o db.AppraisableRecordObject) (db.GeneratorAppraise
 		ObjectAppraisal: objectAppraisal,
 	}
 	return appraisedObject, nil
+}
+
+func Generate0504Message(message db.Message) string {
+	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
+	if err != nil {
+		log.Fatal(err)
+	}
+	messageHead := GenerateMessageHeadLATh(message.MessageHead.ProcessID, message.MessageHead.Sender)
+	message0504 := db.GeneratorMessage0504{
+		XdomeaXmlNs: xdomeaVersion.URI,
+		XsiXmlNs:    XsiXmlNs,
+		MessageHead: messageHead,
+	}
+	xmlBytes, err := xml.MarshalIndent(message0504, " ", " ")
+	if err != nil {
+		log.Fatal("0504 message couldn't be created")
+	}
+	messageXml := XmlHeader + string(xmlBytes)
+	return messageXml
+}
+
+func GenerateMessageHeadLATh(processID string, sender db.Contact) db.GeneratorMessageHead {
+	timeStamp := time.Now()
+	lathContact := GetLAThContact()
+	messageHead := db.GeneratorMessageHead{
+		ProcessID:    processID,
+		CreationTime: timeStamp.Format("01-02-2006 15:04"),
+		Sender:       lathContact,
+		Receiver:     ConvertParserToGeneratorContact(sender),
+	}
+	return messageHead
 }
 
 func GetLAThContact() db.GeneratorContact {

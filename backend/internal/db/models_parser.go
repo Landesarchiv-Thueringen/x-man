@@ -34,6 +34,7 @@ type Process struct {
 	Message0501       *Message       `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
 	Message0503ID     *uuid.UUID     `json:"-"`
 	Message0503       *Message       `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
+	Message0504Path   *string        `json:"-"`
 	ArchivingComplete bool           `gorm:"default:false" json:"archivingComplete"`
 }
 

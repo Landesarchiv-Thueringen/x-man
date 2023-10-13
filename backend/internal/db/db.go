@@ -291,7 +291,8 @@ func AddMessage(
 	xdomeaID string,
 	processStoreDir string,
 	message Message,
-) (Message, error) {
+) (Process, Message, error) {
+	var process Process
 	// generate ID for message, propagate the ID to record object children
 	// must be done before saving the message in database
 	message.ID = uuid.New()
@@ -299,7 +300,7 @@ func AddMessage(
 	result := db.Create(&message)
 	// The Database failed to create the message.
 	if result.Error != nil {
-		return message, result.Error
+		return process, message, result.Error
 	}
 	process, err := GetProcessByXdomeaID(xdomeaID)
 	// The process was not found. Create a new process.
@@ -323,7 +324,7 @@ func AddMessage(
 		result = db.Create(&process)
 		// The Database failed to create the process for the message.
 		if result.Error != nil {
-			return message, result.Error
+			return process, message, result.Error
 		}
 	} else {
 		// Check if the process has already a message with the type of the given message.
@@ -342,7 +343,7 @@ func AddMessage(
 		log.Fatal("unhandled message type: " + message.MessageType.Code)
 	}
 	result = db.Save(&process)
-	return message, result.Error
+	return process, message, result.Error
 }
 
 func setRecordObjectsMessageID(message *Message) {
@@ -375,6 +376,11 @@ func setDocumentRecordObjectMessageID(
 	documentRecordObject *DocumentRecordObject,
 ) {
 	documentRecordObject.MessageID = messageID
+}
+
+func UpdateProcess(process Process) error {
+	result := db.Save(&process)
+	return result.Error
 }
 
 func UpdateMessage(message Message) error {

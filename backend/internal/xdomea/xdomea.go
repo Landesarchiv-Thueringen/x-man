@@ -18,6 +18,7 @@ var uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{
 var Message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
 var Message0502MessageSuffix = "_Aussonderung.Bewertungsverzeichnis.0502"
 var Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
+var Message0504MessageSuffix = "_Aussonderung.AnbietungEmpfangBestaetigen.0504"
 var message0501RegexString = uuidRegexString + Message0501MessageSuffix + ".zip"
 var message0503RegexString = uuidRegexString + Message0503MessageSuffix + ".zip"
 var uuidRegex = regexp.MustCompile(uuidRegexString)
@@ -124,7 +125,7 @@ func AddMessage(
 	processStoreDir string,
 	messageStoreDir string,
 	transferDir string,
-) {
+) (db.Process, db.Message) {
 	messageName := GetMessageName(xdomeaID, messageType)
 	messagePath := path.Join(messageStoreDir, messageName)
 	_, err := os.Stat(messagePath)
@@ -151,10 +152,11 @@ func AddMessage(
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = db.AddMessage(xdomeaID, processStoreDir, message)
+	process, message, err := db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
+	return process, message
 }
 
 func IsMessageValid(message db.Message) (bool, error) {

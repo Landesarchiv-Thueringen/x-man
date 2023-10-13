@@ -81,19 +81,53 @@ func extractMessage(transferDir string, messagePath string, id string) {
 			log.Fatal(err)
 		}
 	}
-	xdomea.AddMessage(id, messageType, processStoreDir, messageStoreDir, transferDir)
+	process, message :=
+		xdomea.AddMessage(id, messageType, processStoreDir, messageStoreDir, transferDir)
+	// store the confirmation message that the 0501 message was received
+	if messageType.Code == "0501" {
+		messagePath := Store0504Message(message)
+		process.Message0504Path = &messagePath
+		err = db.UpdateProcess(process)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
-func Generate0502Message(message db.Message) {
+func Store0502Message(message db.Message) string {
 	messageXml := xdomea.Generate0502Message(message)
+	return storeMessage(
+		message.MessageHead.ProcessID,
+		messageXml,
+		xdomea.Message0502MessageSuffix,
+		message.TransferDir,
+	)
+}
+
+func Store0504Message(message db.Message) string {
+	messageXml := xdomea.Generate0504Message(message)
+	return storeMessage(
+		message.MessageHead.ProcessID,
+		messageXml,
+		xdomea.Message0504MessageSuffix,
+		message.TransferDir,
+	)
+}
+
+func storeMessage(
+	messageID string,
+	messageXml string,
+	messageSuffix string,
+	transferDir string,
+) string {
 	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := os.MkdirTemp("", message.ID.String())
+	tempDir, err := os.MkdirTemp("", messageID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer os.RemoveAll(tempDir)
-	xmlName := message.MessageHead.ProcessID + xdomea.Message0502MessageSuffix + ".xml"
-	messageName := message.MessageHead.ProcessID + xdomea.Message0502MessageSuffix + ".zip"
+	xmlName := messageID + messageSuffix + ".xml"
+	messageName := messageID + messageSuffix + ".zip"
 	messagePath := path.Join(tempDir, messageName)
 	messageArchive, err := os.Create(messagePath)
 	if err != nil {
@@ -118,7 +152,7 @@ func Generate0502Message(message db.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	messageTransferDirPath := path.Join(message.TransferDir, messageName)
+	messageTransferDirPath := path.Join(transferDir, messageName)
 	messageInTransferDir, err := os.Create(messageTransferDirPath)
 	if err != nil {
 		log.Fatal(err)
@@ -129,4 +163,5 @@ func Generate0502Message(message db.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return messageTransferDirPath
 }
