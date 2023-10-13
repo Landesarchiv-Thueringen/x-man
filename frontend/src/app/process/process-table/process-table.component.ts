@@ -31,6 +31,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
       'institution',
       'message0501',
       'appraisalComplete',
+      'received0502',
       'message0503',
       'archivingComplete',
       'actions',
