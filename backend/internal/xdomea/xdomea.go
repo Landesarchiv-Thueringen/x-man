@@ -194,6 +194,9 @@ func IsMessageValid(message db.Message) error {
 	defer messageXML.Free()
 	err = schema.Validate(messageXML)
 	if err != nil {
+		for _, e := range err.(xsd.SchemaValidationError).Errors() {
+			log.Printf("error: %s", e.Error())
+		}
 		processingErr := db.ProcessingError{
 			Description:      "Schema-Validierung ungültig",
 			TransferDirPath:  &message.TransferDirMessagePath,
