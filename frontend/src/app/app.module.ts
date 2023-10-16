@@ -39,6 +39,7 @@ import { ProcessMetadataComponent } from './metadata/process-metadata/process-me
 import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pipe';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
 import { DocumentVersionMetadataComponent } from './metadata/document-version-metadata/document-version-metadata.component';
+import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { DocumentVersionMetadataComponent } from './metadata/document-version-me
     RecordObjectAppraisalPipe,
     ProcessTableComponent,
     DocumentVersionMetadataComponent,
+    ClearingTableComponent,
   ],
   imports: [
     BrowserModule,

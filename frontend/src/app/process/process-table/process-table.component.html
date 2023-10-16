@@ -1,21 +1,20 @@
-<!-- <h2>Aussonderungen</h2> -->
 <div class="process-section">
     <div class="process-table mat-elevation-z8">
         <table mat-table [dataSource]="dataSource" matSort matSortActive="receivedAt" matSortDirection="desc">
     
-        <!-- creation time Column -->
+        <!-- creation time column -->
         <ng-container matColumnDef="receivedAt">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Eingang</th>
             <td mat-cell *matCellDef="let process"> {{process.receivedAt | date:'short'}} </td>
         </ng-container>
     
-        <!-- agency Column -->
+        <!-- agency column -->
         <ng-container matColumnDef="institution">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
             <td mat-cell *matCellDef="let process"> {{process.institution}} </td>
         </ng-container>
 
-        <!-- 0501 message Column -->
+        <!-- 0501 message column -->
         <ng-container matColumnDef="message0501">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
@@ -23,7 +22,7 @@
             </td>
         </ng-container>
 
-        <!-- appraisal complete Column -->
+        <!-- appraisal complete column -->
         <ng-container matColumnDef="appraisalComplete">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
@@ -31,7 +30,7 @@
             </td>
         </ng-container>
 
-        <!-- dms received 0502 Column -->
+        <!-- dms received 0502 column -->
         <ng-container matColumnDef="received0502">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
@@ -39,7 +38,7 @@
             </td>
         </ng-container>
 
-        <!-- 0503 message Column -->
+        <!-- 0503 message column -->
         <ng-container matColumnDef="message0503">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Abgabe erhalten</th>
             <td mat-cell class="task-cell" *matCellDef="let process">
@@ -47,7 +46,7 @@
             </td>
         </ng-container>
 
-        <!-- archiving complete Column -->
+        <!-- archiving complete column -->
         <ng-container matColumnDef="archivingComplete">
             <th mat-header-cell class="task-header" *matHeaderCellDef mat-sort-header>Abgabe archiviert</th>
             <td mat-cell class="task-cell" *matCellDef="let process">

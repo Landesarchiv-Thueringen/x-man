@@ -16,8 +16,8 @@ var storeDir = "message_store"
 
 func StoreMessage(messagePath string) {
 	id := xdomea.GetMessageID(messagePath)
-	messageName := filepath.Base(messagePath)
 	transferDir := filepath.Dir(messagePath)
+	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory ist the message ID.
 	tempDir, err := os.MkdirTemp("", id)
 	if err != nil {
@@ -42,10 +42,15 @@ func StoreMessage(messagePath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	extractMessage(transferDir, copyPath, id)
+	extractMessage(transferDir, messagePath, copyPath, id)
 }
 
-func extractMessage(transferDir string, messagePath string, id string) {
+func extractMessage(
+	transferDir string,
+	transferDirMessagePath string,
+	messagePath string,
+	id string,
+) {
 	messageType, err := xdomea.GetMessageTypeImpliedByPath(messagePath)
 	// The error should never happen because the message filter should prevent the pross
 	if err != nil {
@@ -81,15 +86,25 @@ func extractMessage(transferDir string, messagePath string, id string) {
 			log.Fatal(err)
 		}
 	}
-	process, message :=
-		xdomea.AddMessage(id, messageType, processStoreDir, messageStoreDir, transferDir)
-	// store the confirmation message that the 0501 message was received
-	if messageType.Code == "0501" {
-		messagePath := Store0504Message(message)
-		process.Message0504Path = &messagePath
-		err = db.UpdateProcess(process)
-		if err != nil {
-			log.Fatal(err)
+	process, message, err :=
+		xdomea.AddMessage(
+			id,
+			messageType,
+			processStoreDir,
+			messageStoreDir,
+			transferDir,
+			transferDirMessagePath,
+		)
+	// if no error occured while processing the message
+	if err == nil {
+		// store the confirmation message that the 0501 message was received
+		if messageType.Code == "0501" {
+			messagePath := Store0504Message(message)
+			process.Message0504Path = &messagePath
+			err = db.UpdateProcess(process)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 }

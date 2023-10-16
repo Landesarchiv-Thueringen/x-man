@@ -55,6 +55,7 @@ func Migrate() {
 		&Version{},
 		&Format{},
 		&PrimaryDocument{},
+		&ProcessingError{},
 	)
 }
 
@@ -84,6 +85,15 @@ func InitRecordObjectConfidentialities(confidentialities []*RecordObjectConfiden
 	if result.Error != nil {
 		log.Fatal("Failed to initialize record object confidentialitiy values!")
 	}
+}
+
+func GetProcessingErrors() []ProcessingError {
+	var processingErrors []ProcessingError
+	result := db.Find(&processingErrors)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return processingErrors
 }
 
 func GetSupportedXdomeaVersions() []XdomeaVersion {
@@ -458,4 +468,12 @@ func SetProcessRecordObjectAppraisal(
 		return processRecordObject, err
 	}
 	return processRecordObject, result.Error
+}
+
+func AddProcessingError(error ProcessingError) {
+	result := db.Save(&error)
+	if result.Error != nil {
+		// error handling not possible
+		log.Fatal(result.Error)
+	}
 }

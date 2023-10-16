@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
 import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
 import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
@@ -23,6 +24,7 @@ const routes: Routes = [
           { path: 'dokument/:id', component: DocumentMetadataComponent },
         ],
       },
+      { path: 'steuerungsstelle', component: ClearingTableComponent },
     ],
   },
 ];

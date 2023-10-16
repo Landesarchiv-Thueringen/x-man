@@ -125,7 +125,10 @@ func AddMessage(
 	processStoreDir string,
 	messageStoreDir string,
 	transferDir string,
-) (db.Process, db.Message) {
+	transferDirMessagePath string,
+) (db.Process, db.Message, error) {
+	var process db.Process
+	var message db.Message
 	messageName := GetMessageName(xdomeaID, messageType)
 	messagePath := path.Join(messageStoreDir, messageName)
 	_, err := os.Stat(messagePath)
@@ -136,59 +139,68 @@ func AddMessage(
 	if messageType.Code == "0503" {
 		appraisalComplete = true
 	}
-	message := db.Message{
-		MessageType:       messageType,
-		TransferDir:       transferDir,
-		StoreDir:          messageStoreDir,
-		MessagePath:       messagePath,
-		AppraisalComplete: appraisalComplete,
+	message = db.Message{
+		MessageType:            messageType,
+		TransferDir:            transferDir,
+		TransferDirMessagePath: transferDirMessagePath,
+		StoreDir:               messageStoreDir,
+		MessagePath:            messagePath,
+		AppraisalComplete:      appraisalComplete,
 	}
-	messageIsValid, err := IsMessageValid(message)
+	err = IsMessageValid(message)
+	messageIsValid := err == nil
 	message.SchemaValidation = messageIsValid
-	if err != nil && messageIsValid {
-		log.Fatal(err)
+	if err != nil {
+		log.Println(err)
+		return process, message, err
 	}
 	message, err = ParseMessage(message)
 	if err != nil {
 		log.Fatal(err)
 	}
-	process, message, err := db.AddMessage(xdomeaID, processStoreDir, message)
+	process, message, err = db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return process, message
+	return process, message, nil
 }
 
-func IsMessageValid(message db.Message) (bool, error) {
+func IsMessageValid(message db.Message) error {
 	xdomeaVersion, err := ExtractVersionFromMessage(message)
 	if err != nil {
-		return false, err
+		return err
 	}
 	schema, err := xsd.ParseFromFile(xdomeaVersion.XSDPath)
 	if err != nil {
 		log.Println(err)
-		return false, err
+		return err
 	}
 	defer schema.Free()
 	messageFile, err := os.Open(message.MessagePath)
 	if err != nil {
 		log.Println(err)
-		return false, err
+		return err
 	}
 	defer messageFile.Close()
 	buffer, err := ioutil.ReadAll(messageFile)
 	if err != nil {
 		log.Println(err)
-		return false, err
+		return err
 	}
 	messageXML, err := libxml2.Parse(buffer)
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer messageXML.Free()
 	err = schema.Validate(messageXML)
 	if err != nil {
-		return false, err
+		processingErr := db.ProcessingError{
+			Description:      "Schema-Validierung ungültig",
+			TransferDirPath:  &message.TransferDirMessagePath,
+			MessageStorePath: &message.MessagePath,
+		}
+		db.AddProcessingError(processingErr)
+		return err
 	}
-	return true, nil
+	return nil
 }

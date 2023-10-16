@@ -30,6 +30,7 @@ func main() {
 	// It's important that the cors configuration is used before declaring the routes
 	router.Use(cors.New(corsConfig))
 	router.GET("", getDefaultResponse)
+	router.GET("processing-errors", getProcessingErrors)
 	router.GET("processes", getProcesses)
 	router.GET("messages/0501", get0501Messages)
 	router.GET("messages/0503", get0503Messages)
@@ -58,6 +59,11 @@ func initServer() {
 
 func getDefaultResponse(context *gin.Context) {
 	context.String(http.StatusOK, defaultResponse)
+}
+
+func getProcessingErrors(context *gin.Context) {
+	processingErrors := db.GetProcessingErrors()
+	context.JSON(http.StatusOK, processingErrors)
 }
 
 func getProcesses(context *gin.Context) {
