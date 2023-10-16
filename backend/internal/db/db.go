@@ -261,7 +261,11 @@ func GetMessagesByCode(code string) ([]Message, error) {
 
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
-	result := db.Model(&Process{}).Where(&process).First(&process)
+	// if first is used instead of find the error will get logged, that is not desired
+	result := db.Model(&Process{}).Where(&process).Limit(1).Find(&process)
+	if result.RowsAffected == 0 {
+		return process, gorm.ErrRecordNotFound
+	}
 	return process, result.Error
 }
 
