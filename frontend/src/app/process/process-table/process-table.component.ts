@@ -49,6 +49,8 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
           return item.message0501
             ? item.message0501.appraisalComplete.toString()
             : (!!item.message0501).toString();
+        case 'received0502':
+          return (!!item.message0501 && !!item.message0503).toString()
         case 'message0503':
           return (!!item.message0503).toString();
         case 'archivingComplete':
