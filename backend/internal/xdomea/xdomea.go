@@ -147,6 +147,7 @@ func AddMessage(
 		MessagePath:            messagePath,
 		AppraisalComplete:      appraisalComplete,
 	}
+	// xsd schema validation
 	err = IsMessageValid(message)
 	messageIsValid := err == nil
 	message.SchemaValidation = messageIsValid
@@ -154,17 +155,23 @@ func AddMessage(
 		log.Println(err)
 		return process, message, err
 	}
+	// parse message
 	message, err = ParseMessage(message)
 	if err != nil {
 		log.Fatal(err)
 	}
+	// store message metadata in database
 	process, message, err = db.AddMessage(xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if messageType.Code == "0503" {
+		checkMessage0503Integrity(message)
+	}
 	return process, message, nil
 }
 
+// performs xsd schema validation
 func IsMessageValid(message db.Message) error {
 	xdomeaVersion, err := ExtractVersionFromMessage(message)
 	if err != nil {
@@ -199,6 +206,7 @@ func IsMessageValid(message db.Message) error {
 		}
 		processingErr := db.ProcessingError{
 			Description:      "Schema-Validierung ungültig",
+			MessageID:        &message.ID,
 			TransferDirPath:  &message.TransferDirMessagePath,
 			MessageStorePath: &message.MessagePath,
 		}
@@ -206,4 +214,27 @@ func IsMessageValid(message db.Message) error {
 		return err
 	}
 	return nil
+}
+
+func checkMessage0503Integrity(message db.Message) {
+	primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
+	// error while getting the primary documents should never happen, can't recover
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, primaryDocument := range primaryDocuments {
+		filePath := path.Join(message.StoreDir, primaryDocument.FileName)
+		_, err := os.Stat(filePath)
+		if err != nil {
+			log.Println(err.Error())
+			processingErr := db.ProcessingError{
+				Description:      "Primärdatei fehlt in Abgabe",
+				MessageID:        &message.ID,
+				TransferDirPath:  &message.TransferDirMessagePath,
+				MessageStorePath: &message.StoreDir,
+			}
+			db.AddProcessingError(processingErr)
+			break
+		}
+	}
 }

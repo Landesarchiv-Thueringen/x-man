@@ -197,10 +197,30 @@ func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
 	var document DocumentRecordObject
 	result := db.
 		Preload("GeneralMetadata.FilePlan").
-		Preload("Versions").
 		Preload("Versions.Formats.PrimaryDocument").
 		First(&document, id)
 	return document, result.Error
+}
+
+func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
+	var primaryDocuments []PrimaryDocument
+	var documents []DocumentRecordObject
+	result := db.Preload("Versions.Formats.PrimaryDocument").
+		Where("message_id = ?", messageID.String()).
+		Find(&documents)
+	if result.Error != nil {
+		return primaryDocuments, result.Error
+	}
+	for _, document := range documents {
+		if document.Versions != nil {
+			for _, version := range *document.Versions {
+				for _, format := range version.Formats {
+					primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
+				}
+			}
+		}
+	}
+	return primaryDocuments, nil
 }
 
 func GetMessageTypeByCode(code string) MessageType {
