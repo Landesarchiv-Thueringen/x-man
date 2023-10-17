@@ -202,6 +202,49 @@ func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
 	return document, result.Error
 }
 
+func GetAllFileRecordObjects(messageID uuid.UUID) (map[uuid.UUID]FileRecordObject, error) {
+	var fileRecordObjects []FileRecordObject
+	result := db.
+		Preload("GeneralMetadata.FilePlan").
+		Preload("ArchiveMetadata").
+		Preload("Lifetime").
+		Where("message_id = ?", messageID.String()).
+		Find(&fileRecordObjects)
+	fileIndex := make(map[uuid.UUID]FileRecordObject)
+	for _, f := range fileRecordObjects {
+		fileIndex[f.XdomeaID] = f
+	}
+	return fileIndex, result.Error
+}
+
+func GetAllProcessRecordObjects(messageID uuid.UUID) (map[uuid.UUID]ProcessRecordObject, error) {
+	var processRecordObjects []ProcessRecordObject
+	result := db.
+		Preload("GeneralMetadata.FilePlan").
+		Preload("ArchiveMetadata").
+		Preload("Lifetime").
+		Where("message_id = ?", messageID.String()).
+		Find(&processRecordObjects)
+	processIndex := make(map[uuid.UUID]ProcessRecordObject)
+	for _, p := range processRecordObjects {
+		processIndex[p.XdomeaID] = p
+	}
+	return processIndex, result.Error
+}
+
+func GetAllDocumentRecordObjects(messageID uuid.UUID) (map[uuid.UUID]DocumentRecordObject, error) {
+	var documentRecordObjects []DocumentRecordObject
+	result := db.
+		Preload("GeneralMetadata.FilePlan").
+		Where("message_id = ?", messageID.String()).
+		Find(&documentRecordObjects)
+	documentIndex := make(map[uuid.UUID]DocumentRecordObject)
+	for _, d := range documentRecordObjects {
+		documentIndex[d.XdomeaID] = d
+	}
+	return documentIndex, result.Error
+}
+
 func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 	var primaryDocuments []PrimaryDocument
 	var documents []DocumentRecordObject

@@ -300,7 +300,7 @@ type RecordObjectConfidentiality struct {
 	Desc      string         `json:"desc"`
 }
 
-// methods
+// interfaces and methods
 
 type AppraisableRecordObject interface {
 	GetAppraisal() (string, error)

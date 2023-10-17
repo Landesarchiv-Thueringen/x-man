@@ -14,6 +14,7 @@ type ProcessingError struct {
 	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
 	Resolved         bool           `gorm:"default:false" json:"resolved"`
 	Description      string         `json:"description"`
+	AdditionalInfo   *string        `json:"additionalInfo"`
 	MessageID        *uuid.UUID     `json:"messageID"`
 	MessageStorePath *string        `json:"messageStorePath"`
 	TransferDirPath  *string        `json:"transferDirPath"`

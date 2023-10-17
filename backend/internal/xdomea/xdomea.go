@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2"
 	"github.com/lestrrat-go/libxml2/xsd"
 )
@@ -166,7 +167,7 @@ func AddMessage(
 		log.Fatal(err)
 	}
 	if messageType.Code == "0503" {
-		checkMessage0503Integrity(message)
+		checkMessage0503Integrity(process, message)
 	}
 	return process, message, nil
 }
@@ -216,25 +217,143 @@ func IsMessageValid(message db.Message) error {
 	return nil
 }
 
-func checkMessage0503Integrity(message db.Message) {
-	primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
+func checkMessage0503Integrity(process db.Process, message0503 db.Message) {
+	primaryDocuments, err := db.GetAllPrimaryDocuments(message0503.ID)
 	// error while getting the primary documents should never happen, can't recover
 	if err != nil {
 		log.Fatal(err)
 	}
+	// check if all primary document files exist
 	for _, primaryDocument := range primaryDocuments {
-		filePath := path.Join(message.StoreDir, primaryDocument.FileName)
+		filePath := path.Join(message0503.StoreDir, primaryDocument.FileName)
 		_, err := os.Stat(filePath)
 		if err != nil {
 			log.Println(err.Error())
 			processingErr := db.ProcessingError{
 				Description:      "Primärdatei fehlt in Abgabe",
-				MessageID:        &message.ID,
-				TransferDirPath:  &message.TransferDirMessagePath,
-				MessageStorePath: &message.StoreDir,
+				MessageID:        &message0503.ID,
+				TransferDirPath:  &message0503.TransferDirMessagePath,
+				MessageStorePath: &message0503.StoreDir,
 			}
 			db.AddProcessingError(processingErr)
-			break
+			return
 		}
 	}
+	// check if 0501 message exists
+	message0501, err := db.GetMessageOfProcessByCode(process, "0501")
+	if err != nil {
+		processingErr := db.ProcessingError{
+			Description:      "es existiert keine Anbietung für die Abgabe",
+			MessageID:        &message0503.ID,
+			TransferDirPath:  &message0503.TransferDirMessagePath,
+			MessageStorePath: &message0503.StoreDir,
+		}
+		db.AddProcessingError(processingErr)
+		return
+	}
+	// check if appraisal of 0501 message is already complete
+	if !message0501.AppraisalComplete {
+		processingErr := db.ProcessingError{
+			Description:      "Abgabe erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde",
+			MessageID:        &message0503.ID,
+			TransferDirPath:  &message0503.TransferDirMessagePath,
+			MessageStorePath: &message0503.StoreDir,
+		}
+		db.AddProcessingError(processingErr)
+		return
+	} else {
+		checkRecordObjetcsOfMessage0503(message0501, message0503)
+	}
+}
+
+func checkRecordObjetcsOfMessage0503(message0501 db.Message, message0503 db.Message) {
+	message0503Incomplete := false
+	additionalInfo := ""
+	err := checkFileRecordObjetcsOfMessage0503(
+		message0501.ID,
+		message0503.ID,
+		&additionalInfo,
+	)
+	if err != nil {
+		message0503Incomplete = true
+	}
+	err = checkProcessRecordObjetcsOfMessage0503(
+		message0501.ID,
+		message0503.ID,
+		&additionalInfo,
+	)
+	if err != nil {
+		message0503Incomplete = true
+	}
+	if message0503Incomplete {
+		processingErr := db.ProcessingError{
+			Description:      "Abgabe ist nicht vollständig",
+			AdditionalInfo:   &additionalInfo,
+			MessageID:        &message0503.ID,
+			TransferDirPath:  &message0503.TransferDirMessagePath,
+			MessageStorePath: &message0503.StoreDir,
+		}
+		db.AddProcessingError(processingErr)
+		return
+	}
+}
+
+func checkFileRecordObjetcsOfMessage0503(
+	message0501ID uuid.UUID,
+	message0503ID uuid.UUID,
+	additionalInfo *string,
+) error {
+	message0503Incomplete := false
+	fileIndex0501, err := db.GetAllFileRecordObjects(message0501ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fileIndex0503, err := db.GetAllFileRecordObjects(message0503ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for id0501, file0501 := range fileIndex0501 {
+		_, file0503Exists := fileIndex0503[id0501]
+		if *file0501.ArchiveMetadata.AppraisalCode == "A" && !file0503Exists {
+			errorMessage :=
+				"0503 integrity check failed: missing file record object [" + file0501.ID.String() + "]"
+			*additionalInfo += "Akte [" + file0501.ID.String() + "] fehlt in Abgabe"
+			log.Println(errorMessage)
+			message0503Incomplete = true
+		}
+	}
+	if message0503Incomplete {
+		return errors.New("0503 message incomplete: file record objects missing")
+	}
+	return nil
+}
+
+func checkProcessRecordObjetcsOfMessage0503(
+	message0501ID uuid.UUID,
+	message0503ID uuid.UUID,
+	additionalInfo *string,
+) error {
+	message0503Incomplete := false
+	processIndex0501, err := db.GetAllProcessRecordObjects(message0501ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	processIndex0503, err := db.GetAllProcessRecordObjects(message0503ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for id0501, process0501 := range processIndex0501 {
+		_, process0503Exists := processIndex0503[id0501]
+		if *process0501.ArchiveMetadata.AppraisalCode == "A" && !process0503Exists {
+			errorMessage := "0503 integrity check failed: missing process record object [" +
+				process0501.ID.String() + "]"
+			*additionalInfo += "Vorgang [" + process0501.ID.String() + "] fehlt in Abgabe"
+			log.Println(errorMessage)
+			message0503Incomplete = true
+		}
+	}
+	if message0503Incomplete {
+		return errors.New("0503 message incomplete: process record objects missing")
+	}
+	return nil
 }
