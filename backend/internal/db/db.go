@@ -120,6 +120,7 @@ func GetProcesses() ([]Process, error) {
 		Preload("Message0501.MessageType").
 		Preload("Message0503.MessageHead").
 		Preload("Message0503.MessageType").
+		Preload("ProcessingErrors").
 		Find(&processes)
 	return processes, result.Error
 }
@@ -533,10 +534,19 @@ func SetProcessRecordObjectAppraisal(
 	return processRecordObject, result.Error
 }
 
-func AddProcessingError(error ProcessingError) {
-	result := db.Save(&error)
+func AddProcessingError(e ProcessingError) {
+	result := db.Save(&e)
 	if result.Error != nil {
 		// error handling not possible
 		log.Fatal(result.Error)
+	}
+}
+
+func AddProcessingErrorToProcess(process Process, e ProcessingError) {
+	process.ProcessingErrors = append(process.ProcessingErrors, e)
+	err := UpdateProcess(process)
+	if err != nil {
+		// error handling not possible
+		log.Fatal(err)
 	}
 }

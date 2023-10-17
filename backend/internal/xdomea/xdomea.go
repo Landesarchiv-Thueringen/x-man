@@ -235,7 +235,7 @@ func checkMessage0503Integrity(process db.Process, message0503 db.Message) {
 				TransferDirPath:  &message0503.TransferDirMessagePath,
 				MessageStorePath: &message0503.StoreDir,
 			}
-			db.AddProcessingError(processingErr)
+			db.AddProcessingErrorToProcess(process, processingErr)
 			return
 		}
 	}
@@ -248,7 +248,7 @@ func checkMessage0503Integrity(process db.Process, message0503 db.Message) {
 			TransferDirPath:  &message0503.TransferDirMessagePath,
 			MessageStorePath: &message0503.StoreDir,
 		}
-		db.AddProcessingError(processingErr)
+		db.AddProcessingErrorToProcess(process, processingErr)
 		return
 	}
 	// check if appraisal of 0501 message is already complete
@@ -259,14 +259,18 @@ func checkMessage0503Integrity(process db.Process, message0503 db.Message) {
 			TransferDirPath:  &message0503.TransferDirMessagePath,
 			MessageStorePath: &message0503.StoreDir,
 		}
-		db.AddProcessingError(processingErr)
+		db.AddProcessingErrorToProcess(process, processingErr)
 		return
 	} else {
-		checkRecordObjetcsOfMessage0503(message0501, message0503)
+		checkRecordObjetcsOfMessage0503(process, message0501, message0503)
 	}
 }
 
-func checkRecordObjetcsOfMessage0503(message0501 db.Message, message0503 db.Message) {
+func checkRecordObjetcsOfMessage0503(
+	process db.Process,
+	message0501 db.Message,
+	message0503 db.Message,
+) {
 	message0503Incomplete := false
 	additionalInfo := ""
 	err := checkFileRecordObjetcsOfMessage0503(
@@ -293,7 +297,7 @@ func checkRecordObjetcsOfMessage0503(message0501 db.Message, message0503 db.Mess
 			TransferDirPath:  &message0503.TransferDirMessagePath,
 			MessageStorePath: &message0503.StoreDir,
 		}
-		db.AddProcessingError(processingErr)
+		db.AddProcessingErrorToProcess(process, processingErr)
 		return
 	}
 }

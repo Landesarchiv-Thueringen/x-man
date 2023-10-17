@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 import { Message } from '../message/message.service';
+import { ProcessingError } from '../clearing/clearing.service';
 
 export interface Process {
   id: string;
@@ -12,6 +13,7 @@ export interface Process {
   archivingComplete: boolean;
   message0501: Message;
   message0503: Message;
+  processingErrors: ProcessingError[];
 }
 
 @Injectable({
