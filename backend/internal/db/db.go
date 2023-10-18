@@ -122,7 +122,16 @@ func GetProcesses() ([]Process, error) {
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
 		Find(&processes)
-	return processes, result.Error
+	if result.Error != nil {
+		return processes, result.Error
+	}
+	var processesWithoutErrors []Process
+	for _, p := range processes {
+		if len(p.ProcessingErrors) == 0 {
+			processesWithoutErrors = append(processesWithoutErrors, p)
+		}
+	}
+	return processesWithoutErrors, result.Error
 }
 
 func GetMessageByID(id uuid.UUID) (Message, error) {
