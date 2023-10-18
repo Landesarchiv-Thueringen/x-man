@@ -7,3 +7,6 @@
 
 # allow database creation script
 !/mariaDB/create_database.sql
+
+# allow project readme
+!/README.md
