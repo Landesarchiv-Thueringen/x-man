@@ -1,4 +1,4 @@
-# xdomea Aussonderungsmanager (x-man)
+# xdomea Aussonderungsmanager
 
 ## Kurzbeschreibung
 
