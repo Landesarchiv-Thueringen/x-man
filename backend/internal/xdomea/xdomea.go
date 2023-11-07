@@ -317,6 +317,10 @@ func checkFileRecordObjetcsOfMessage0503(
 		log.Fatal(err)
 	}
 	for id0501, file0501 := range fileIndex0501 {
+		// missing appraisal metadata for 0501 message, should not happen
+		if file0501.ArchiveMetadata == nil || file0501.ArchiveMetadata.AppraisalCode == nil {
+			continue
+		}
 		_, file0503Exists := fileIndex0503[id0501]
 		if *file0501.ArchiveMetadata.AppraisalCode == "A" && !file0503Exists {
 			errorMessage :=
@@ -347,6 +351,10 @@ func checkProcessRecordObjetcsOfMessage0503(
 		log.Fatal(err)
 	}
 	for id0501, process0501 := range processIndex0501 {
+		// missing appraisal metadata for 0501 message, should not happen
+		if process0501.ArchiveMetadata == nil || process0501.ArchiveMetadata.AppraisalCode == nil {
+			continue
+		}
 		_, process0503Exists := processIndex0503[id0501]
 		if *process0501.ArchiveMetadata.AppraisalCode == "A" && !process0503Exists {
 			errorMessage := "0503 integrity check failed: missing process record object [" +
