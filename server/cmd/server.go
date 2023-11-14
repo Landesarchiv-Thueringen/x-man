@@ -22,9 +22,9 @@ func main() {
 	initServer()
 	router := gin.Default()
 	router.ForwardedByClientIP = true
-	router.SetTrustedProxies([]string{"http://127.0.0.1"})
+	router.SetTrustedProxies([]string{"*"})
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:4200"}
+	corsConfig.AllowOrigins = []string{"*"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Type"}
 	corsConfig.AllowMethods = []string{"GET", "PATCH"}
 	// It's important that the cors configuration is used before declaring the routes
@@ -54,7 +54,7 @@ func initServer() {
 	db.Init()
 	// It's important to process the flags after the database initialization.
 	processFlags()
-	go transferdir.Watch("transfer/lpd", "transfer/aaj")
+	go transferdir.Watch("transfer/tmik")
 }
 
 func getDefaultResponse(context *gin.Context) {

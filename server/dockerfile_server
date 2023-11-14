@@ -1,0 +1,7 @@
+FROM golang AS build
+WORKDIR /xman
+COPY . ./
+RUN apt-get update
+RUN apt-get install -y postgresql postgresql-client libxml2 libxml2-dev
+# RUN psql
+# CMD ["go", "run", "cmd/server.go"]

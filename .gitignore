@@ -5,8 +5,11 @@
 # allow gitginore files
 !.gitignore
 
-# allow database creation script
-!/mariaDB/create_database.sql
-
 # allow project readme
 !/README.md
+
+# allow environment file
+!/.env
+
+# allow docker compose file
+!/docker-compose.yml

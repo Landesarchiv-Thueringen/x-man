@@ -1,6 +1,18 @@
+# allwo readme
 !README.md
+
+# allow go project files
 !/go.mod
 !/go.sum
+
+# allow go source code
 !/**/*.go
+
+# allow database init script
 !/psql/init_database.sql
+
+# allow xdomea xml schemas
 !/xsd/**/*.xsd
+
+# allow server dockerfile
+!dockerfile_server
