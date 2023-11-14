@@ -55,6 +55,12 @@ func Migrate() {
 		&Version{},
 		&Format{},
 		&PrimaryDocument{},
+		&FormatVerification{},
+		&ToolResponse{},
+		&ExtractedFeature{},
+		&Feature{},
+		&FeatureValue{},
+		&ToolConfidence{},
 		&ProcessingError{},
 	)
 }
