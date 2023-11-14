@@ -203,7 +203,7 @@ type DocumentRecordObject struct {
 	DocumentDate      *string          `xml:"DatumDesSchreibens" json:"documentDate"`
 	MessageID         uuid.UUID        `json:"messageID"`
 	RecorcObjectType  string           `gorm:"default:document" json:"recordObjectType"`
-	Versions          *[]Version       `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
+	Versions          []Version        `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
 }
 
 type Version struct {

@@ -266,7 +266,7 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 	}
 	for _, document := range documents {
 		if document.Versions != nil {
-			for _, version := range *document.Versions {
+			for _, version := range document.Versions {
 				for _, format := range version.Formats {
 					primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
 				}
