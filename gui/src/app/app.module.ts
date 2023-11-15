@@ -40,6 +40,7 @@ import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pi
 import { ProcessTableComponent } from './process/process-table/process-table.component';
 import { DocumentVersionMetadataComponent } from './metadata/document-version-metadata/document-version-metadata.component';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
+import { PrimaryDocumentsTableComponent } from './message/primary-documents-table/primary-documents-table.component';
 
 @NgModule({
   declarations: [
@@ -55,6 +56,7 @@ import { ClearingTableComponent } from './clearing/clearing-table/clearing-table
     ProcessTableComponent,
     DocumentVersionMetadataComponent,
     ClearingTableComponent,
+    PrimaryDocumentsTableComponent,
   ],
   imports: [
     BrowserModule,

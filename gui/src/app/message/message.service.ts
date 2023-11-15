@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 
 // utility
 import { Observable, BehaviorSubject, Subject, Subscriber } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Message {
   id: string;
@@ -155,7 +156,7 @@ export interface Code {
   name?: string;
 }
 
-export type StructureNodeType = 'message' | 'file' | 'process' | 'document';
+export type StructureNodeType = 'message' | 'file' | 'process' | 'document' | 'primaryDocuments';
 export type RecordObjectType = 'file' | 'process' | 'document';
 
 export interface DisplayText {
@@ -224,6 +225,7 @@ export class MessageService {
         displayText = {
           title: 'Abgabe',
         };
+        children.push(this.getPrimaryDocumentsNode(message.id));
         break;
       default:
         throw new Error('unhandled message type');
@@ -239,6 +241,22 @@ export class MessageService {
     this.structureNodes.set(messageNode.id, messageNode);
     this.nodesSubject.next(this.getRootStructureNodes());
     return messageNode;
+  }
+
+  getPrimaryDocumentsNode(messageID: string): StructureNode {
+    const displayText: DisplayText = {
+      title: 'Formatverifikation',
+      subtitle: 'Primärdateien',
+    };
+    const routerLink: string = 'formatverifikation';
+    const primaryDocumentsNode: StructureNode = {
+      id: uuidv4(),
+      displayText: displayText,
+      type: 'primaryDocuments',
+      routerLink: routerLink,
+      parentID: messageID,
+    };
+    return primaryDocumentsNode;
   }
 
   getFileStructureNode(

@@ -79,6 +79,11 @@
         margin-right: 0.5em;
       }
 
+      .primary-documents-icon {
+        color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+        margin-right: 0.5em;
+      }
+
       .message-menu {
         display: flex;
         flex-grow: 1;
