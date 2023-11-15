@@ -259,15 +259,16 @@ func checkMessage0503Integrity(
 	// check if 0501 message exists
 	message0501, err := db.GetMessageOfProcessByCode(process, "0501")
 	if err != nil {
-		errorMessage := "es existiert keine Anbietung für die Abgabe"
-		processingErr := db.ProcessingError{
-			Description:      errorMessage,
-			MessageID:        &message0503.ID,
-			TransferDirPath:  &message0503.TransferDirMessagePath,
-			MessageStorePath: &message0503.StoreDir,
-		}
-		db.AddProcessingErrorToProcess(process, processingErr)
-		return errors.New(errorMessage)
+		// errorMessage := "es existiert keine Anbietung für die Abgabe"
+		// processingErr := db.ProcessingError{
+		// 	Description:      errorMessage,
+		// 	MessageID:        &message0503.ID,
+		// 	TransferDirPath:  &message0503.TransferDirMessagePath,
+		// 	MessageStorePath: &message0503.StoreDir,
+		// }
+		// db.AddProcessingErrorToProcess(process, processingErr)
+		// return errors.New(errorMessage)
+		return nil
 	}
 	// check if appraisal of 0501 message is already complete
 	if !message0501.AppraisalComplete {
