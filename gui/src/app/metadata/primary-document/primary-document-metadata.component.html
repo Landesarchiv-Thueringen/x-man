@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>Formatverifikation</h1>
+
+<mat-dialog-content>
+
+  <table mat-table [dataSource]="dataSource">
+
+    <ng-container *ngFor="let tableColumn of tableColumnList" matColumnDef={{tableColumn}}>
+      <th mat-header-cell *matHeaderCellDef>{{tableColumn|fileFeature}}</th>
+      <td mat-cell *matCellDef="let fileInfo"
+        [class.high-confidence-cell]="fileInfo[tableColumn] && fileInfo[tableColumn].colorizeConfidence && fileInfo[tableColumn].confidence >= 0.7"
+        [class.mid-confidence-cell]="fileInfo[tableColumn] && fileInfo[tableColumn].colorizeConfidence && fileInfo[tableColumn].confidence < 0.7 && fileInfo[tableColumn]?.confidence >= 0.45"
+        [class.low-confidence-cell]="fileInfo[tableColumn] && fileInfo[tableColumn].colorizeConfidence && fileInfo[tableColumn].confidence < 0.45">
+        <div class="feature-info">
+          <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'true'">check</mat-icon>
+          <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'false'">close</mat-icon>
+          <ng-container *ngIf="fileInfo[tableColumn]?.value !== 'false' && fileInfo[tableColumn]?.value !== 'true'">
+            <span *ngIf="fileInfo[tableColumn]">{{fileInfo[tableColumn].value}}</span>
+          </ng-container>
+          <span *ngIf="fileInfo[tableColumn]?.confidence || fileInfo[tableColumn]?.confidence === 0.0" class="confidence-value">
+            ({{ fileInfo[tableColumn].confidence | percent }})
+          </span>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="tableColumnList"></tr>
+    <tr mat-row *matRowDef="let row; columns: tableColumnList;"></tr>
+
+  </table>
+
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-raised-button mat-dialog-close color="primary">Schließen</button>
+</mat-dialog-actions>

@@ -7,7 +7,7 @@ import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.co
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
-import { PrimaryDocumentsTableComponent } from './message/primary-documents-table/primary-documents-table.component';
+import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
 

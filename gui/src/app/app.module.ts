@@ -10,6 +10,7 @@ registerLocaleData(localeDe);
 
 // material
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog'; 
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field'; 
 import { MatIconModule } from '@angular/material/icon';
@@ -41,7 +42,8 @@ import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pi
 import { ProcessTableComponent } from './process/process-table/process-table.component';
 import { DocumentVersionMetadataComponent } from './metadata/document-version-metadata/document-version-metadata.component';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
-import { PrimaryDocumentsTableComponent } from './message/primary-documents-table/primary-documents-table.component';
+import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
+import { FileOverviewComponent } from './metadata/primary-document/primary-document-metadata.component';
 
 @NgModule({
   declarations: [
@@ -52,6 +54,7 @@ import { PrimaryDocumentsTableComponent } from './message/primary-documents-tabl
     MessageMetadataComponent,
     FileFeaturePipe,
     FileMetadataComponent,
+    FileOverviewComponent,
     InstitutMetadataComponent,
     ProcessMetadataComponent,
     RecordObjectAppraisalPipe,
@@ -67,6 +70,7 @@ import { PrimaryDocumentsTableComponent } from './message/primary-documents-tabl
     ClipboardModule,
     HttpClientModule,
     MatButtonModule,
+    MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
