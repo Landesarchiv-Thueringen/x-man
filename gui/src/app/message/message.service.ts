@@ -109,6 +109,39 @@ export interface PrimaryDocument {
   fileNameOriginal?: string;
   creatorName?: string;
   creationTime?: string;
+  formatVerification?: FormatVerification;
+}
+
+export interface FormatVerification {
+  fileIdentificationResults: ToolResult[];
+  fileValidationResults: ToolResult[];
+  summary: Summary;
+}
+
+export interface ToolResult {
+  toolName: string;
+  toolVersion: string;
+  toolOutput: string;
+}
+
+export interface Summary {
+  [key: string]: Feature;
+}
+
+export interface Feature {
+  key: string;
+  values: FeatureValue[];
+}
+
+export interface FeatureValue {
+  value: string;
+  score: number;
+  tools: ToolConfidence[];
+}
+
+export interface ToolConfidence {
+  confidence: number;
+  toolName: string;
 }
 
 export interface GeneralMetadata {
@@ -156,7 +189,12 @@ export interface Code {
   name?: string;
 }
 
-export type StructureNodeType = 'message' | 'file' | 'process' | 'document' | 'primaryDocuments';
+export type StructureNodeType =
+  | 'message'
+  | 'file'
+  | 'process'
+  | 'document'
+  | 'primaryDocuments';
 export type RecordObjectType = 'file' | 'process' | 'document';
 
 export interface DisplayText {
@@ -410,6 +448,11 @@ export class MessageService {
       responseType: 'blob' as 'json', // https://github.com/angular/angular/issues/18586
     };
     return this.httpClient.get<Blob>(url, options);
+  }
+
+  getPrimaryDocuments(id: string): Observable<PrimaryDocument[]> {
+    const url = this.apiEndpoint + '/primary-documents/' + id;
+    return this.httpClient.get<PrimaryDocument[]>(url);
   }
 
   finalizeMessageAppraisal(id: string): Observable<void> {
