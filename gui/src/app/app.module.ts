@@ -17,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu'; 
 import { MatPaginatorModule, MatPaginatorIntl} from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; 
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -77,6 +78,7 @@ import { FileOverviewComponent } from './metadata/primary-document/primary-docum
     MatInputModule,
     MatMenuModule,
     MatPaginatorModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     MatSidenavModule,
     MatSnackBarModule,

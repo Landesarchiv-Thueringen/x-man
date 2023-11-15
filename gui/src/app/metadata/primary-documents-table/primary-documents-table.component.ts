@@ -70,25 +70,26 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
     const featureKeys: string[] = ['fileName'];
     const data: FileOverview[] = [];
     for (let primaryDocument of primaryDocuments) {
+      if (!primaryDocument.formatVerification) {
+        continue;
+      }
       const primaryDocumentID: string = uuidv4();
       let fileOverview: FileOverview = {};
-      if (primaryDocument.formatVerification) {
-        for (let featureKey in primaryDocument.formatVerification.summary) {
-          featureKeys.push(featureKey);
-          fileOverview['fileName'] = {
-            value: primaryDocument.fileName,
-          };
-          fileOverview[featureKey] = {
-            value:
-              primaryDocument.formatVerification.summary[featureKey].values[0]
-                .value,
-            confidence:
-              primaryDocument.formatVerification.summary[featureKey].values[0]
-                .score,
-            feature: primaryDocument.formatVerification.summary[featureKey],
-          };
-          fileOverview['id'] = { value: primaryDocumentID };
-        }
+      for (let featureKey in primaryDocument.formatVerification.summary) {
+        featureKeys.push(featureKey);
+        fileOverview['fileName'] = {
+          value: primaryDocument.fileName,
+        };
+        fileOverview[featureKey] = {
+          value:
+            primaryDocument.formatVerification.summary[featureKey].values[0]
+              .value,
+          confidence:
+            primaryDocument.formatVerification.summary[featureKey].values[0]
+              .score,
+          feature: primaryDocument.formatVerification.summary[featureKey],
+        };
+        fileOverview['id'] = { value: primaryDocumentID };
       }
       this.primaryDocuments.set(primaryDocumentID, primaryDocument);
       data.push(fileOverview);

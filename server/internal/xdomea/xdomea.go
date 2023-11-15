@@ -142,12 +142,13 @@ func AddMessage(
 		appraisalComplete = true
 	}
 	message = db.Message{
-		MessageType:            messageType,
-		TransferDir:            transferDir,
-		TransferDirMessagePath: transferDirMessagePath,
-		StoreDir:               messageStoreDir,
-		MessagePath:            messagePath,
-		AppraisalComplete:      appraisalComplete,
+		MessageType:                messageType,
+		TransferDir:                transferDir,
+		TransferDirMessagePath:     transferDirMessagePath,
+		StoreDir:                   messageStoreDir,
+		MessagePath:                messagePath,
+		AppraisalComplete:          appraisalComplete,
+		FormatVerificationComplete: false,
 	}
 	// xsd schema validation
 	err = IsMessageValid(message)

@@ -6,25 +6,31 @@
   padding-right: 5em;
 
   .process-section {
-      display: flex;
-      flex-direction: column;
-      margin-top: 2em;
+    display: flex;
+    flex-direction: column;
+    margin-top: 2em;
   
-      .process-table {
-          width: 100%;
-          min-width: 80em;
-          max-width: 150em;
+    .process-table {
+      width: 100%;
+      min-width: 80em;
+      max-width: 150em;
 
-        // no other possibility to center the text of a sort header
-        ::ng-deep .task-header .mat-sort-header-container {
-            justify-content: center;
-        }
-
-        .task-cell {
-            font-weight: bold;
-            font-size: large;
-            text-align: center;
-        }
+      // no other possibility to center the text of a sort header
+      ::ng-deep .task-header .mat-sort-header-container {
+        justify-content: center;
       }
+
+      .task-cell {
+        font-weight: bold;
+        font-size: large;
+        text-align: center;
+      }
+
+      .progress-cell {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+    }
   }
 }

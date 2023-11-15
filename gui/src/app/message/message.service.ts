@@ -17,6 +17,7 @@ export interface Message {
   messageHead: MessageHead;
   recordObjects: RecordObject[];
   appraisalComplete: boolean;
+  formatVerificationComplete: boolean;
 }
 
 export interface MessageType {
