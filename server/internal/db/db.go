@@ -282,6 +282,38 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 			}
 		}
 	}
+	for primaryDocumentIndex, primaryDocument := range primaryDocuments {
+		if primaryDocument.FormatVerification == nil {
+			continue
+		}
+		if len(primaryDocument.FormatVerification.Features) > 0 {
+			summary := make(map[string]Feature)
+			for _, feature := range primaryDocument.FormatVerification.Features {
+				summary[feature.Key] = feature
+			}
+			primaryDocuments[primaryDocumentIndex].FormatVerification.Summary = summary
+		}
+		if len(primaryDocument.FormatVerification.FileIdentificationResults) > 0 {
+			for toolID, tool := range primaryDocument.FormatVerification.FileIdentificationResults {
+				features := make(map[string]string)
+				for _, feature := range tool.Features {
+					features[feature.Key] = feature.Value
+				}
+				primaryDocuments[primaryDocumentIndex].FormatVerification.
+					FileIdentificationResults[toolID].ExtractedFeatures = &features
+			}
+		}
+		if len(primaryDocument.FormatVerification.FileValidationResults) > 0 {
+			for toolID, tool := range primaryDocument.FormatVerification.FileValidationResults {
+				features := make(map[string]string)
+				for _, feature := range tool.Features {
+					features[feature.Key] = feature.Value
+				}
+				primaryDocuments[primaryDocumentIndex].FormatVerification.
+					FileValidationResults[toolID].ExtractedFeatures = &features
+			}
+		}
+	}
 	return primaryDocuments, nil
 }
 
