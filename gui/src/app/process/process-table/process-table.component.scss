@@ -30,6 +30,10 @@
         width: 100%;
         display: flex;
         justify-content: center;
+
+        mat-spinner {
+          margin-left: 1.0em;
+        }
       }
     }
   }

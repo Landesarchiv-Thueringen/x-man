@@ -73,6 +73,11 @@ func VerifyFileFormats(messageID uuid.UUID) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		message.VerificationCompleteCount = message.VerificationCompleteCount + 1
+		err = db.UpdateMessage(message)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	message.FormatVerificationComplete = true
 	err = db.UpdateMessage(message)

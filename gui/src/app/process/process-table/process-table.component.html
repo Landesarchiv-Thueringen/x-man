@@ -52,6 +52,7 @@
             <td mat-cell class="task-cell" *matCellDef="let process">
                 <mat-icon *ngIf="process.message0503?.formatVerificationComplete">check</mat-icon>
                 <div *ngIf="process.message0503 && !process.message0503.formatVerificationComplete" class="progress-cell">
+                    {{process.message0503.verificationCompleteCount}}/{{process.message0503.primaryDocumentCount}}
                     <mat-spinner diameter="25"></mat-spinner>
                 </div>
             </td>

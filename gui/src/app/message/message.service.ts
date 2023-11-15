@@ -18,6 +18,8 @@ export interface Message {
   recordObjects: RecordObject[];
   appraisalComplete: boolean;
   formatVerificationComplete: boolean;
+  primaryDocumentCount: number;
+  verificationCompleteCount: number;
 }
 
 export interface MessageType {

@@ -149,6 +149,8 @@ func AddMessage(
 		MessagePath:                messagePath,
 		AppraisalComplete:          appraisalComplete,
 		FormatVerificationComplete: false,
+		PrimaryDocumentCount:       0,
+		VerificationCompleteCount:  0,
 	}
 	// xsd schema validation
 	err = IsMessageValid(message)
@@ -169,7 +171,18 @@ func AddMessage(
 		log.Fatal(err)
 	}
 	if messageType.Code == "0503" {
-		err = checkMessage0503Integrity(process, message)
+		// get primary documents
+		primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
+		// error while getting the primary documents should never happen, can't recover
+		if err != nil {
+			log.Fatal(err)
+		}
+		message.PrimaryDocumentCount = uint(len(primaryDocuments))
+		err = db.UpdateMessage(message)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
 			format.VerifyFileFormats(message.ID)
 		}
@@ -222,12 +235,11 @@ func IsMessageValid(message db.Message) error {
 	return nil
 }
 
-func checkMessage0503Integrity(process db.Process, message0503 db.Message) error {
-	primaryDocuments, err := db.GetAllPrimaryDocuments(message0503.ID)
-	// error while getting the primary documents should never happen, can't recover
-	if err != nil {
-		log.Fatal(err)
-	}
+func checkMessage0503Integrity(
+	process db.Process,
+	message0503 db.Message,
+	primaryDocuments []db.PrimaryDocument,
+) error {
 	// check if all primary document files exist
 	for _, primaryDocument := range primaryDocuments {
 		filePath := path.Join(message0503.StoreDir, primaryDocument.FileName)

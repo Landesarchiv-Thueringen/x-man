@@ -56,6 +56,8 @@ type Message struct {
 	MessageType                MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
 	AppraisalComplete          bool           `json:"appraisalComplete"`
 	FormatVerificationComplete bool           `json:"formatVerificationComplete"`
+	PrimaryDocumentCount       uint           `json:"primaryDocumentCount"`
+	VerificationCompleteCount  uint           `json:"verificationCompleteCount"`
 	RecordObjects              []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
 }
 
