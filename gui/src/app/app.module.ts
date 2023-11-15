@@ -30,6 +30,7 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
+import { FileFeaturePipe } from './utility/localization/file-attribut-de.pipe';
 import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
 import { InstitutMetadataComponent } from './metadata/institution-metadata/institution-metadata.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
@@ -49,6 +50,7 @@ import { PrimaryDocumentsTableComponent } from './message/primary-documents-tabl
     MainNavigationComponent,
     MessageTreeComponent,
     MessageMetadataComponent,
+    FileFeaturePipe,
     FileMetadataComponent,
     InstitutMetadataComponent,
     ProcessMetadataComponent,
@@ -84,6 +86,7 @@ import { PrimaryDocumentsTableComponent } from './message/primary-documents-tabl
     { provide: LOCALE_ID, useValue: 'de' },
     { provide: MatPaginatorIntl, useClass: PaginatorDeService },
     DatePipe,
+    FileFeaturePipe,
   ],
   bootstrap: [AppComponent]
 })

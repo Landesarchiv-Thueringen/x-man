@@ -1,4 +1,67 @@
 :host {
-  padding: 2em;
   display: block;
+  padding-top: 3em;
+  padding-bottom: 3em;
+  padding-left: 5em;
+  padding-right: 5em;
+
+  .file-analysis-section {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2em;
+  
+    .file-analysis-table {
+      width: 100%;
+      min-width: 70em;
+      max-width: 100em;
+
+      .table-content {
+        overflow: auto;
+
+        .path-cell {
+          max-width: 15.0em!important;
+          word-break: break-word;
+        }
+
+        .name-cell {
+          max-width: 15.0em!important;
+          word-break: break-word;
+        }
+
+        .mime-type-cell {
+          max-width: 10.0em!important;
+          word-break: break-word;
+        }
+
+        .high-confidence-cell {
+          background-color: rgba(0,150,0,0.1);
+        }
+
+        .mid-confidence-cell {
+          background-color: rgba(255,165,0,0.2);
+        }
+
+        .low-confidence-cell {
+          background-color: rgba(150,0,0,0.1);
+        }
+      }
+
+      .table-toolbar {
+        background-color: white;
+        column-gap: 1.0em;
+
+        mat-paginator {
+          background: transparent;
+        }
+        
+        .spacer {
+            flex: 1 1 auto;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+      }
+    }
+  }
 }

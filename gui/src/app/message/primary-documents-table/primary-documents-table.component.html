@@ -1,1 +1,59 @@
-<p>primary-documents-table works!</p>
+<div class="file-analysis-section">
+
+  <div class="file-analysis-table mat-elevation-z8">
+
+    <div class="table-content">
+
+      <table mat-table [dataSource]="dataSource">
+
+        <ng-container *ngFor="let tableColumn of generatedTableColumnList" matColumnDef={{tableColumn}}>
+          <th mat-header-cell *matHeaderCellDef>{{tableColumn|fileFeature}}</th>
+          <td mat-cell 
+            *matCellDef="let fileInfo"
+            [class.name-cell]="tableColumn === 'fileName'"
+            [class.path-cell]="tableColumn === 'relativePath'"
+            [class.mime-type-cell]="tableColumn === 'mimeType'"
+            [class.high-confidence-cell]="fileInfo[tableColumn] && fileInfo[tableColumn].confidence >= 0.7"
+            [class.mid-confidence-cell]="fileInfo[tableColumn] && fileInfo[tableColumn].confidence < 0.7 && fileInfo[tableColumn]?.confidence >= 0.45"
+            [class.low-confidence-cell]="fileInfo[tableColumn] && fileInfo[tableColumn].confidence < 0.45">
+            <mat-icon *ngIf="fileInfo[tableColumn] && fileInfo[tableColumn].value === 'true'">check</mat-icon>
+            <mat-icon *ngIf="fileInfo[tableColumn] && fileInfo[tableColumn].value === 'false'">close</mat-icon>
+            <div *ngIf="fileInfo[tableColumn] && fileInfo[tableColumn].value !== 'false' && fileInfo[tableColumn].value !== 'true'">
+              {{fileInfo[tableColumn].value}}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- actions column -->
+        <ng-container matColumnDef="actions" stickyEnd>
+          <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+          <td mat-cell *matCellDef="let fileInfo">
+              <button mat-icon-button [matMenuTriggerFor]="menu" aria-hidden="false" aria-label="Aktionen für Dateiergebnisse anzeigen">
+                  <mat-icon>more_horiz</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                  <ng-container>
+                      <button mat-menu-item (click)="openDetails(fileInfo)">
+                          <mat-icon>search</mat-icon>
+                          <span>Details anzeigen</span>
+                      </button>
+                  </ng-container>
+              </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="tableColumnList"></tr>
+        <tr mat-row *matRowDef="let row; columns: tableColumnList;"></tr>
+
+      </table>
+
+    </div>
+
+    <mat-toolbar class ="table-toolbar">
+      <span class="spacer"></span>
+      <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 15]" showFirstLastButtons></mat-paginator>
+    </mat-toolbar>
+
+  </div>
+
+</div>
