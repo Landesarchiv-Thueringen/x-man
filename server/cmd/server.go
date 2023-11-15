@@ -43,6 +43,7 @@ func main() {
 	router.GET("message-appraisal-complete/:id", isMessageAppraisalComplete)
 	router.GET("message-type-code/:id", getMessageTypeCode)
 	router.GET("primary-document", getPrimaryDocument)
+	router.GET("primary-documents/:id", getPrimaryDocuments)
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("finalize-message-appraisal/:id", finalizeMessageAppraisal)
@@ -256,6 +257,19 @@ func getPrimaryDocument(context *gin.Context) {
 	context.Header("Content-Disposition", "attachment; filename="+fileName)
 	context.Header("Content-Type", "application/octet-stream")
 	context.FileAttachment(path, fileName)
+}
+
+func getPrimaryDocuments(context *gin.Context) {
+	messageID, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	primaryDocuments, err := db.GetAllPrimaryDocuments(messageID)
+	if err != nil {
+		context.JSON(http.StatusNotFound, err)
+	} else {
+		context.JSON(http.StatusOK, primaryDocuments)
+	}
 }
 
 func processFlags() {

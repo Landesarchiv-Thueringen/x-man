@@ -25,10 +25,10 @@
   - `sudo -u postgres psql`
 - [Skript für die Datenbankerstellung](/psql/init_database.sql)
   - Nutzer psql hat initial keine Leserechte -->
-    - `sudo mkdir /var/lib/postgres/scripts`
-    - `sudo cp psql/init_database.sql /var/lib/postgres/scripts`
-    - `sudo chown -R postgres:postgres /var/lib/postgres/scripts`
-    - `\i /var/lib/postgres/scripts/init_database.sql`
+    - `sudo mkdir /var/lib/postgresql/scripts`
+    - `sudo cp server/psql/init_database.sql /var/lib/postgresql/scripts`
+    - `sudo chown -R postgres:postgres /var/lib/postgresql/scripts`
+    - `\i /var/lib/postgresql/scripts/init_database.sql`
 
   ## Go Bibliotheken
 
