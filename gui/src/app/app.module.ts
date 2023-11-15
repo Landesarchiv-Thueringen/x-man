@@ -34,6 +34,7 @@ import { DocumentMetadataComponent } from './metadata/document-metadata/document
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
 import { FileFeaturePipe } from './utility/localization/file-attribut-de.pipe';
 import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
+import { FileNamePipe } from './utility/formatting/file-name.pipe';
 import { InstitutMetadataComponent } from './metadata/institution-metadata/institution-metadata.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
@@ -55,6 +56,7 @@ import { FileOverviewComponent } from './metadata/primary-document/primary-docum
     MessageMetadataComponent,
     FileFeaturePipe,
     FileMetadataComponent,
+    FileNamePipe,
     FileOverviewComponent,
     InstitutMetadataComponent,
     ProcessMetadataComponent,
@@ -93,6 +95,7 @@ import { FileOverviewComponent } from './metadata/primary-document/primary-docum
     { provide: MatPaginatorIntl, useClass: PaginatorDeService },
     DatePipe,
     FileFeaturePipe,
+    FileNamePipe,
   ],
   bootstrap: [AppComponent]
 })

@@ -19,7 +19,8 @@
             <mat-icon *ngIf="fileInfo[tableColumn] && fileInfo[tableColumn].value === 'true'">check</mat-icon>
             <mat-icon *ngIf="fileInfo[tableColumn] && fileInfo[tableColumn].value === 'false'">close</mat-icon>
             <div *ngIf="fileInfo[tableColumn] && fileInfo[tableColumn].value !== 'false' && fileInfo[tableColumn].value !== 'true'">
-              {{fileInfo[tableColumn].value}}
+              <div *ngIf="tableColumn === 'fileName'" [innerHTML]="fileInfo[tableColumn].value|fileName"></div>
+              <div *ngIf="tableColumn !== 'fileName'">{{ fileInfo[tableColumn].value }}</div>
             </div>
           </td>
         </ng-container>

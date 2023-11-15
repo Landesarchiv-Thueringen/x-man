@@ -18,6 +18,10 @@
       .table-content {
         overflow: auto;
 
+        td {
+          padding: 0.5em;
+        }
+
         .path-cell {
           max-width: 15.0em!important;
           word-break: break-word;
