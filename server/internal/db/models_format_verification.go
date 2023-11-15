@@ -46,7 +46,7 @@ type Feature struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Key       string         `json:"key"`
-	Values    []FeatureValue `gorm:"many2many:feature_values;" json:"values"`
+	Values    []FeatureValue `gorm:"many2many:feature_feature_values;" json:"values"`
 }
 
 type FeatureValue struct {

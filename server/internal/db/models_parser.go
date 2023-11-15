@@ -228,14 +228,16 @@ type Format struct {
 }
 
 type PrimaryDocument struct {
-	ID               uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt        time.Time      `json:"-"`
-	UpdatedAt        time.Time      `json:"-"`
-	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
-	FileName         string         `xml:"Dateiname" json:"fileName"`
-	FileNameOriginal *string        `xml:"DateinameOriginal" json:"fileNameOriginal"`
-	CreatorName      *string        `xml:"Ersteller" json:"creatorName"`
-	CreationTime     *string        `xml:"DatumUhrzeit" json:"creationTime"`
+	ID                   uint                `gorm:"primaryKey" json:"id"`
+	CreatedAt            time.Time           `json:"-"`
+	UpdatedAt            time.Time           `json:"-"`
+	DeletedAt            gorm.DeletedAt      `gorm:"index" json:"-"`
+	FileName             string              `xml:"Dateiname" json:"fileName"`
+	FileNameOriginal     *string             `xml:"DateinameOriginal" json:"fileNameOriginal"`
+	CreatorName          *string             `xml:"Ersteller" json:"creatorName"`
+	CreationTime         *string             `xml:"DatumUhrzeit" json:"creationTime"`
+	FormatVerificationID *uint               `json:"-"`
+	FormatVerification   *FormatVerification `gorm:"foreignKey:FormatVerificationID;references:ID" json:"formatVerification"`
 }
 
 type GeneralMetadata struct {

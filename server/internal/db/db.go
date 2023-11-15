@@ -264,7 +264,10 @@ func GetAllDocumentRecordObjects(messageID uuid.UUID) (map[uuid.UUID]DocumentRec
 func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 	var primaryDocuments []PrimaryDocument
 	var documents []DocumentRecordObject
-	result := db.Preload("Versions.Formats.PrimaryDocument").
+	result := db.
+		Preload("Versions.Formats.PrimaryDocument.FormatVerification.Features.Values.Tools").
+		Preload("Versions.Formats.PrimaryDocument.FormatVerification.FileIdentificationResults.Features").
+		Preload("Versions.Formats.PrimaryDocument.FormatVerification.FileValidationResults.Features").
 		Where("message_id = ?", messageID.String()).
 		Find(&documents)
 	if result.Error != nil {
@@ -478,6 +481,11 @@ func UpdateProcess(process Process) error {
 
 func UpdateMessage(message Message) error {
 	result := db.Save(&message)
+	return result.Error
+}
+
+func UpdatePrimaryDocument(primaryDocument PrimaryDocument) error {
+	result := db.Save(&primaryDocument)
 	return result.Error
 }
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"lath/xman/internal/db"
+	"lath/xman/internal/format"
 	"log"
 	"os"
 	"path"
@@ -168,6 +169,7 @@ func AddMessage(
 	}
 	if messageType.Code == "0503" {
 		checkMessage0503Integrity(process, message)
+		format.VerifyFileFormats(message.ID)
 	}
 	return process, message, nil
 }
