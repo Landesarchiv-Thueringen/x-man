@@ -270,6 +270,9 @@ export class MessageService {
 
   processMessage(message: Message): StructureNode {
     const children: StructureNode[] = [];
+    if ((message.messageType?.code === '0503')) {
+      children.push(this.getPrimaryDocumentsNode(message.id));
+    }
     for (let recordObject of message.recordObjects) {
       if (recordObject.fileRecordObject) {
         children.push(
@@ -288,7 +291,6 @@ export class MessageService {
         displayText = {
           title: 'Abgabe',
         };
-        children.push(this.getPrimaryDocumentsNode(message.id));
         break;
       default:
         throw new Error('unhandled message type');
