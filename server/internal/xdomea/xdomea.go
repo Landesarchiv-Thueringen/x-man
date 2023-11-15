@@ -169,8 +169,10 @@ func AddMessage(
 		log.Fatal(err)
 	}
 	if messageType.Code == "0503" {
-		checkMessage0503Integrity(process, message)
-		format.VerifyFileFormats(message.ID)
+		err = checkMessage0503Integrity(process, message)
+		if err == nil {
+			format.VerifyFileFormats(message.ID)
+		}
 	}
 	return process, message, nil
 }
@@ -220,7 +222,7 @@ func IsMessageValid(message db.Message) error {
 	return nil
 }
 
-func checkMessage0503Integrity(process db.Process, message0503 db.Message) {
+func checkMessage0503Integrity(process db.Process, message0503 db.Message) error {
 	primaryDocuments, err := db.GetAllPrimaryDocuments(message0503.ID)
 	// error while getting the primary documents should never happen, can't recover
 	if err != nil {
@@ -239,33 +241,35 @@ func checkMessage0503Integrity(process db.Process, message0503 db.Message) {
 				MessageStorePath: &message0503.StoreDir,
 			}
 			db.AddProcessingErrorToProcess(process, processingErr)
-			return
+			return err
 		}
 	}
 	// check if 0501 message exists
 	message0501, err := db.GetMessageOfProcessByCode(process, "0501")
 	if err != nil {
+		errorMessage := "es existiert keine Anbietung für die Abgabe"
 		processingErr := db.ProcessingError{
-			Description:      "es existiert keine Anbietung für die Abgabe",
+			Description:      errorMessage,
 			MessageID:        &message0503.ID,
 			TransferDirPath:  &message0503.TransferDirMessagePath,
 			MessageStorePath: &message0503.StoreDir,
 		}
 		db.AddProcessingErrorToProcess(process, processingErr)
-		return
+		return errors.New(errorMessage)
 	}
 	// check if appraisal of 0501 message is already complete
 	if !message0501.AppraisalComplete {
+		errorMessage := "die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
 		processingErr := db.ProcessingError{
-			Description:      "Abgabe erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde",
+			Description:      errorMessage,
 			MessageID:        &message0503.ID,
 			TransferDirPath:  &message0503.TransferDirMessagePath,
 			MessageStorePath: &message0503.StoreDir,
 		}
 		db.AddProcessingErrorToProcess(process, processingErr)
-		return
+		return errors.New(errorMessage)
 	} else {
-		checkRecordObjetcsOfMessage0503(process, message0501, message0503)
+		return checkRecordObjetcsOfMessage0503(process, message0501, message0503)
 	}
 }
 
@@ -273,7 +277,7 @@ func checkRecordObjetcsOfMessage0503(
 	process db.Process,
 	message0501 db.Message,
 	message0503 db.Message,
-) {
+) error {
 	message0503Incomplete := false
 	additionalInfo := ""
 	err := checkFileRecordObjetcsOfMessage0503(
@@ -293,16 +297,18 @@ func checkRecordObjetcsOfMessage0503(
 		message0503Incomplete = true
 	}
 	if message0503Incomplete {
+		errorMessage := "die Abgabe ist nicht vollständig"
 		processingErr := db.ProcessingError{
-			Description:      "Abgabe ist nicht vollständig",
+			Description:      errorMessage,
 			AdditionalInfo:   &additionalInfo,
 			MessageID:        &message0503.ID,
 			TransferDirPath:  &message0503.TransferDirMessagePath,
 			MessageStorePath: &message0503.StoreDir,
 		}
 		db.AddProcessingErrorToProcess(process, processingErr)
-		return
+		return errors.New(errorMessage)
 	}
+	return nil
 }
 
 func checkFileRecordObjetcsOfMessage0503(

@@ -264,7 +264,7 @@ func getPrimaryDocuments(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	primaryDocuments, err := db.GetAllPrimaryDocuments(messageID)
+	primaryDocuments, err := db.GetAllPrimaryDocumentsWithFormatVerification(messageID)
 	if err != nil {
 		context.JSON(http.StatusNotFound, err)
 	} else {

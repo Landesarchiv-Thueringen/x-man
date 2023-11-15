@@ -265,6 +265,28 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 	var primaryDocuments []PrimaryDocument
 	var documents []DocumentRecordObject
 	result := db.
+		Preload("Versions.Formats.PrimaryDocument").
+		Where("message_id = ?", messageID.String()).
+		Find(&documents)
+	if result.Error != nil {
+		return primaryDocuments, result.Error
+	}
+	for _, document := range documents {
+		if document.Versions != nil {
+			for _, version := range document.Versions {
+				for _, format := range version.Formats {
+					primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
+				}
+			}
+		}
+	}
+	return primaryDocuments, nil
+}
+
+func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) ([]PrimaryDocument, error) {
+	var primaryDocuments []PrimaryDocument
+	var documents []DocumentRecordObject
+	result := db.
 		Preload("Versions.Formats.PrimaryDocument.FormatVerification.Features.Values.Tools").
 		Preload("Versions.Formats.PrimaryDocument.FormatVerification.FileIdentificationResults.Features").
 		Preload("Versions.Formats.PrimaryDocument.FormatVerification.FileValidationResults.Features").
