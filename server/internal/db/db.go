@@ -33,6 +33,16 @@ func MigrationCompleted() bool {
 	return result.Error == nil
 }
 
+func SetMigrationCompleted() {
+	serverState := ServerState{
+		MigrationComplete: true,
+	}
+	result := db.Save(&serverState)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+}
+
 func Migrate() {
 	if db == nil {
 		log.Fatal("database wasn't initialized")

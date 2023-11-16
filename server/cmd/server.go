@@ -61,6 +61,7 @@ func initServer() {
 		xdomea.InitXdomeaVersions()
 		xdomea.InitRecordObjectAppraisals()
 		xdomea.InitRecordObjectConfidentialities()
+		db.SetMigrationCompleted()
 	}
 	go transferdir.Watch("transfer/tmik")
 }
