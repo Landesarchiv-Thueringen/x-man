@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/transferdir"
@@ -55,8 +54,14 @@ func main() {
 func initServer() {
 	log.Println(defaultResponse)
 	db.Init()
-	// It's important to process the flags after the database initialization.
-	processFlags()
+	// It's important to the migrate after the database initialization.
+	if !db.MigrationCompleted() {
+		db.Migrate()
+		xdomea.InitMessageTypes()
+		xdomea.InitXdomeaVersions()
+		xdomea.InitRecordObjectAppraisals()
+		xdomea.InitRecordObjectConfidentialities()
+	}
 	go transferdir.Watch("transfer/tmik")
 }
 
@@ -271,17 +276,5 @@ func getPrimaryDocuments(context *gin.Context) {
 		context.JSON(http.StatusNotFound, err)
 	} else {
 		context.JSON(http.StatusOK, primaryDocuments)
-	}
-}
-
-func processFlags() {
-	initFlag := flag.Bool("init", false, "initialize database")
-	flag.Parse()
-	if *initFlag {
-		db.Migrate()
-		xdomea.InitMessageTypes()
-		xdomea.InitXdomeaVersions()
-		xdomea.InitRecordObjectAppraisals()
-		xdomea.InitRecordObjectConfidentialities()
 	}
 }

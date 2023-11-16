@@ -27,12 +27,19 @@ func Init() {
 	db = database
 }
 
+func MigrationCompleted() bool {
+	var serverState ServerState
+	result := db.First(&serverState)
+	return result.Error == nil
+}
+
 func Migrate() {
 	if db == nil {
 		log.Fatal("database wasn't initialized")
 	}
 	// Migrate the complete schema.
 	db.AutoMigrate(
+		&ServerState{},
 		&XdomeaVersion{},
 		&Code{},
 		&Process{},
