@@ -2,6 +2,8 @@
 *
 !*/
 
+/server/database/data
+
 # allow gitginore files
 !.gitignore
 
