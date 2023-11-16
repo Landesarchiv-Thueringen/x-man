@@ -18,7 +18,7 @@ services:
     volumes:
       - ./server/database/data:/var/lib/postgresql/data
       - type: bind
-        source: ./server/transfer
+        source: ${TRANSFER_DIR}
         target: /xman/transfer
     ports:
       - ${XMAN_DATABASE_HOST_PORT}:5432
