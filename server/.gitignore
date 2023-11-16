@@ -9,7 +9,10 @@
 !/**/*.go
 
 # allow database init script
-!/psql/init_database.sql
+!/database/init_database.sql
+
+# allow database dockerfile
+!/database/dockerfile_database
 
 # allow xdomea xml schemas
 !/xsd/**/*.xsd

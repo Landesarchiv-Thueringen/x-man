@@ -13,10 +13,10 @@ import (
 var db *gorm.DB
 
 func Init() {
-	dsn := `host=localhost 
-		user=lath_xdomea 
-		password=temporary 
-		dbname=lath_xdomea 
+	dsn := `host=xman-database 
+		user=xman
+		password=test1234
+		dbname=xman 
 		port=5432 
 		sslmode=disable 
 		TimeZone=Europe/Berlin`

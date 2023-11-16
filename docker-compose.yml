@@ -1,5 +1,25 @@
 services:
 
+  database:
+    container_name: xman-database
+    restart: unless-stopped
+    healthcheck:
+      test: "exit 0"
+    build:
+      context: ./server/database
+      dockerfile: dockerfile_database
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - ${XMAN_DATABASE_HOST_PORT}:5432
+
   server:
     container_name: xman-server
     restart: unless-stopped
@@ -9,6 +29,9 @@ services:
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
+    depends_on:
+      database:
+        condition: service_healthy
     environment:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
     ports:
