@@ -8,6 +8,7 @@ import (
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -47,7 +48,8 @@ func main() {
 	router.PATCH("file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("finalize-message-appraisal/:id", finalizeMessageAppraisal)
-	router.Run("localhost:3000")
+	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
+	router.Run(addr)
 }
 
 func initServer() {
