@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xdomea="urn:xoev-de:xdomea:schema:2.3.0" xmlns:xoev-lc="http://xoev.de/latinchars/1_1/datatypes" targetNamespace="urn:xoev-de:xdomea:schema:2.3.0" version="2.3.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
   <xs:include schemaLocation="xdomea-Baukasten.xsd" />
-  <xs:import schemaLocation="http://xoev.de/latinchars/1_1/datatypes/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
+  <xs:import schemaLocation="../xoev/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
   <xs:complexType name="ErfolgOderMisserfolgAussonderungType">
     <xs:annotation>
       <xs:appinfo>

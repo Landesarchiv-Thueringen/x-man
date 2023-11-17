@@ -44,7 +44,7 @@ Der IT-Planungsrat hat daraufhin in seiner 24. Sitzung am 02.10.2017 die Anwendu
       </versionStandard>
     </xs:appinfo>
   </xs:annotation>
-  <xs:import schemaLocation="http://xoev.de/schemata/code/1_0/xoev-code.xsd" namespace="http://xoev.de/schemata/code/1_0" />
+  <xs:import schemaLocation="../xoev/xoev-code.xsd" namespace="http://xoev.de/schemata/code/1_0" />
   <xs:complexType name="AllgemeineRueckmeldungCodeType">
     <xs:annotation>
       <xs:appinfo>

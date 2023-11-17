@@ -33,7 +33,7 @@ Der Standard xdomea wird von der gleichnamigen Arbeitsgruppe des IT-Planungsrate
       <xs:documentation>Der Baukasten beinhaltet alle spezifischen Komponenten, die entweder aus XÖV-Kernkomponenten abgeleitet sind oder für xdomea erstellt wurden.</xs:documentation>
    </xs:annotation>
    <xs:include schemaLocation="xdomea-Datentypen.xsd"/>
-   <xs:import schemaLocation="http://xoev.de/schemata/code/1_0/xoev-code.xsd"
+   <xs:import schemaLocation="../xoev/xoev-code.xsd"
               namespace="http://xoev.de/schemata/code/1_0"/>
    <xs:complexType name="AkteType">
       <xs:annotation>

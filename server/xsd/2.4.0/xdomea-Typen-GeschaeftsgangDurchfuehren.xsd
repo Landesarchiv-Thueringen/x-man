@@ -44,7 +44,7 @@ Der IT-Planungsrat hat daraufhin in seiner 24. Sitzung am 02.10.2017 die Anwendu
     </xs:appinfo>
   </xs:annotation>
   <xs:include schemaLocation="xdomea-Baukasten.xsd" />
-  <xs:import schemaLocation="http://xoev.de/latinchars/1_1/datatypes/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
+  <xs:import schemaLocation="../xoev/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
   <xs:complexType name="GeaenderterBeteiligungsschrittType">
     <xs:annotation>
       <xs:appinfo>

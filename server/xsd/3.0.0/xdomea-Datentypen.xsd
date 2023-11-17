@@ -32,7 +32,7 @@ Der Standard xdomea wird von der gleichnamigen Arbeitsgruppe des IT-Planungsrate
       </xs:appinfo>
       <xs:documentation>Datentypen enthält spezifische Datentypen, welche von Datentypen aus anderen Namensräumen (z.B. UN/CEFACT, W3C) abgeleitet wurden.</xs:documentation>
    </xs:annotation>
-   <xs:import schemaLocation="http://xoev.de/schemata/code/1_0/xoev-code.xsd"
+   <xs:import schemaLocation="../xoev/xoev-code.xsd"
               namespace="http://xoev.de/schemata/code/1_0"/>
    <xs:complexType name="AllgemeineRueckmeldungCodeType">
       <xs:annotation>

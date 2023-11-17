@@ -17,9 +17,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ./server/database/data:/var/lib/postgresql/data
-      - type: bind
-        source: ${TRANSFER_DIR}
-        target: /xman/transfer
     ports:
       - ${XMAN_DATABASE_HOST_PORT}:5432
 
@@ -37,5 +34,9 @@ services:
         condition: service_healthy
     environment:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
+    volumes:
+      - type: bind
+        source: ${TRANSFER_DIR}
+        target: /xman/transfer/
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}

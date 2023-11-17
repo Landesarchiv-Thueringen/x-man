@@ -45,8 +45,8 @@ Der IT-Planungsrat hat daraufhin in seiner 24. Sitzung am 02.10.2017 die Anwendu
     </xs:appinfo>
   </xs:annotation>
   <xs:include schemaLocation="xdomea-Datentypen.xsd" />
-  <xs:import schemaLocation="http://xoev.de/latinchars/1_1/datatypes/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
-  <xs:import schemaLocation="http://xoev.de/schemata/code/1_0/xoev-code.xsd" namespace="http://xoev.de/schemata/code/1_0" />
+  <xs:import schemaLocation="../xoev/latinchars.xsd" namespace="http://xoev.de/latinchars/1_1/datatypes" />
+  <xs:import schemaLocation="../xoev/xoev-code.xsd" namespace="http://xoev.de/schemata/code/1_0" />
   <xs:complexType name="AkteType">
     <xs:annotation>
       <xs:appinfo>

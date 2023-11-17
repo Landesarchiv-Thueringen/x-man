@@ -63,7 +63,7 @@ func initServer() {
 		xdomea.InitRecordObjectConfidentialities()
 		db.SetMigrationCompleted()
 	}
-	go transferdir.Watch("transfer/tmik")
+	go transferdir.Watch("/xman/transfer/tmik")
 }
 
 func getDefaultResponse(context *gin.Context) {

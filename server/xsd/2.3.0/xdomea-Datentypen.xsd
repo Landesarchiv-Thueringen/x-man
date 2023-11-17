@@ -3,7 +3,7 @@
   <xs:annotation>
     <xs:documentation>Datentypen enthält projektspezifische Datentypen, welche von Datentypen aus anderen Namensräumen (z.B. UN/CEFACT, W3C) abgeleitet wurden.</xs:documentation>
   </xs:annotation>
-  <xs:import schemaLocation="http://xoev.de/schemata/code/1_0/xoev-code.xsd" namespace="http://xoev.de/schemata/code/1_0" />
+  <xs:import schemaLocation="../xoev/xoev-code.xsd" namespace="http://xoev.de/schemata/code/1_0" />
   <xs:complexType name="AllgemeineRueckmeldungCodeType">
     <xs:annotation>
       <xs:appinfo>
