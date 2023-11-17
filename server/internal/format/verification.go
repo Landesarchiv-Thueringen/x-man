@@ -2,6 +2,7 @@ package format
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"io"
 	"lath/xman/internal/db"
@@ -15,7 +16,14 @@ import (
 	"github.com/google/uuid"
 )
 
-var BorgEndpoint = "http://localhost:3330/analyse-file"
+var BorgEndpoint = "https://borg.tsa.thlv.de/analyse-file"
+var tr http.Transport = http.Transport{
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+}
+var client http.Client = http.Client{
+	Timeout:   time.Second * 60,
+	Transport: &tr,
+}
 
 func VerifyFileFormats(messageID uuid.UUID) {
 	message, err := db.GetMessageByID(messageID)
@@ -25,9 +33,6 @@ func VerifyFileFormats(messageID uuid.UUID) {
 	primaryDocuments, err := db.GetAllPrimaryDocuments(messageID)
 	if err != nil {
 		log.Fatal(err)
-	}
-	client := &http.Client{
-		Timeout: time.Second * 60,
 	}
 	for _, primaryDocument := range primaryDocuments {
 		filePath := path.Join(message.StoreDir, primaryDocument.FileName)
