@@ -34,6 +34,9 @@ services:
         condition: service_healthy
     environment:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - NO_PROXY=borg.tsa.thlv.de
     volumes:
       - type: bind
         source: ${TRANSFER_DIR}
