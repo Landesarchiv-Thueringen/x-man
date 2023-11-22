@@ -40,6 +40,14 @@ func ExtractVersionFromMessage(message db.Message) (db.XdomeaVersion, error) {
 			return xdomeaVersion, err
 		}
 		return extractVersion(messageBody.XMLName.Space)
+	case "0505":
+		var messageBody db.MessageBody0505
+		err := xml.Unmarshal(xmlBytes, &messageBody)
+		if err != nil {
+			log.Println(err)
+			return xdomeaVersion, err
+		}
+		return extractVersion(messageBody.XMLName.Space)
 	default:
 		errorMessage := "message type can't be parsed"
 		log.Println(errorMessage)
@@ -63,6 +71,8 @@ func ParseMessage(message db.Message) (db.Message, error) {
 		return parse0501Message(message, xmlBytes)
 	case "0503":
 		return parse0503Message(message, xmlBytes)
+	case "0505":
+		return parse0505Message(message, xmlBytes)
 	default:
 		errorMessage := "message type can't be parsed"
 		return message, errors.New(errorMessage)
@@ -97,6 +107,21 @@ func parse0503Message(message db.Message, xmlBytes []byte) (db.Message, error) {
 	}
 	message.MessageHead = m.MessageHead
 	message.RecordObjects = m.RecordObjects
+	message.XdomeaVersion = version.Code
+	return message, nil
+}
+
+func parse0505Message(message db.Message, xmlBytes []byte) (db.Message, error) {
+	var m db.Message0505
+	err := xml.Unmarshal(xmlBytes, &m)
+	if err != nil {
+		return message, err
+	}
+	version, err := extractVersion(m.XMLName.Space)
+	if err != nil {
+		return message, err
+	}
+	message.MessageHead = m.MessageHead
 	message.XdomeaVersion = version.Code
 	return message, nil
 }

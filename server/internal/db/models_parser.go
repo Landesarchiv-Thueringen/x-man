@@ -35,6 +35,8 @@ type Process struct {
 	Message0503ID    *uuid.UUID        `json:"-"`
 	Message0503      *Message          `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
 	Message0504Path  *string           `json:"-"`
+	Message0505ID    *uuid.UUID        `json:"-"`
+	Message0505      *Message          `gorm:"foreignKey:Message0505ID;references:ID" json:"message0505"`
 	ProcessingErrors []ProcessingError `gorm:"many2many:process_errors;" json:"processingErrors"`
 	ProcessStateID   uint              `json:"-"`
 	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
@@ -115,6 +117,15 @@ type Message0503 struct {
 
 type MessageBody0503 struct {
 	XMLName xml.Name `gorm:"-" xml:"Aussonderung.Aussonderung.0503" json:"-"`
+}
+
+type Message0505 struct {
+	XMLName     xml.Name    `gorm:"-" xml:"Aussonderung.BewertungEmpfangBestaetigen.0505" json:"-"`
+	MessageHead MessageHead `xml:"Kopf" json:"messageHead"`
+}
+
+type MessageBody0505 struct {
+	XMLName xml.Name `gorm:"-" xml:"Aussonderung.BewertungEmpfangBestaetigen.0505" json:"-"`
 }
 
 type MessageHead struct {

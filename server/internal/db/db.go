@@ -411,6 +411,12 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 		} else {
 			return *process.Message0503, nil
 		}
+	case "0505":
+		if process.Message0505 == nil {
+			return Message{}, errors.New("process {" + process.XdomeaID + "} has no 0505 message")
+		} else {
+			return *process.Message0505, nil
+		}
 	default:
 		errorMessage := "unsupported message type with code: " + code
 		log.Fatal(errorMessage)
@@ -591,6 +597,15 @@ func AddMessage(
 	case "0503":
 		process.Message0503 = &message
 		processStep := process.ProcessState.Receive0503
+		processStep.Complete = true
+		processStep.CompletionTime = time.Now()
+		err = UpdateProcessStep(processStep)
+		if err != nil {
+			log.Fatal(err)
+		}
+	case "0505":
+		process.Message0505 = &message
+		processStep := process.ProcessState.Receive0505
 		processStep.Complete = true
 		processStep.CompletionTime = time.Now()
 		err = UpdateProcessStep(processStep)
