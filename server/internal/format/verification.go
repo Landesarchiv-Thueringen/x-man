@@ -89,6 +89,17 @@ func VerifyFileFormats(messageID uuid.UUID) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	processStep := process.ProcessState.FormatVerification
+	processStep.Complete = true
+	processStep.CompletionTime = time.Now()
+	err = db.UpdateProcessStep(processStep)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func prepareForDatabase(formatVerification *db.FormatVerification) {

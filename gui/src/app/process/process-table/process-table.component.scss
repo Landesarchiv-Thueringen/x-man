@@ -16,15 +16,18 @@
       min-width: 80em;
       max-width: 150em;
 
-      // no other possibility to center the text of a sort header
-      ::ng-deep .task-header .mat-sort-header-container {
-        justify-content: center;
-      }
-
       .task-cell {
-        font-weight: bold;
-        font-size: large;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        column-gap: 1.0em;
+
+        mat-icon {
+          font-weight: 600;
+        }
+
+        // .task-completion-time {
+        //   color: gray;
+        // }
       }
 
       .progress-cell {

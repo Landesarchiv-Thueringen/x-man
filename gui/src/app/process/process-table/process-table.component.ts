@@ -27,7 +27,6 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
 
   constructor(private processService: ProcessService) {
     this.displayedColumns = [
-      'receivedAt',
       'institution',
       'message0501',
       'appraisalComplete',
@@ -69,8 +68,8 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
         this.dataSource.data = processes;
       },
     });
-    // refetch processes every 10 seconds
-    this.processSubscription = interval(10000)
+    // refetch processes every 30 seconds
+    this.processSubscription = interval(30000)
       .pipe(switchMap(() => this.processService.getProcesses()))
       .subscribe({
         error: (error) => {

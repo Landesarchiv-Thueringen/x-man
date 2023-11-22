@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
@@ -53,6 +54,8 @@ func Migrate() {
 		&XdomeaVersion{},
 		&Code{},
 		&Process{},
+		&ProcessState{},
+		&ProcessStep{},
 		&Message{},
 		&MessageType{},
 		&MessageHead{},
@@ -144,6 +147,12 @@ func GetProcesses() ([]Process, error) {
 		Preload("Message0503.MessageHead").
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
+		Preload("ProcessState.Receive0501").
+		Preload("ProcessState.Appraisal").
+		Preload("ProcessState.Receive0505").
+		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.FormatVerification").
+		Preload("ProcessState.Archiving").
 		Find(&processes)
 	if result.Error != nil {
 		return processes, result.Error
@@ -425,7 +434,19 @@ func GetMessagesByCode(code string) ([]Message, error) {
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
 	// if first is used instead of find the error will get logged, that is not desired
-	result := db.Model(&Process{}).Where(&process).Limit(1).Find(&process)
+	result := db.Model(&Process{}).
+		Preload("Message0501.MessageHead").
+		Preload("Message0501.MessageType").
+		Preload("Message0503.MessageHead").
+		Preload("Message0503.MessageType").
+		Preload("ProcessingErrors").
+		Preload("ProcessState.Receive0501").
+		Preload("ProcessState.Appraisal").
+		Preload("ProcessState.Receive0505").
+		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.FormatVerification").
+		Preload("ProcessState.Archiving").
+		Where(&process).Limit(1).Find(&process)
 	if result.RowsAffected == 0 {
 		return process, gorm.ErrRecordNotFound
 	}
@@ -454,6 +475,70 @@ func GetPrimaryFileStorePath(messageID uuid.UUID, primaryDocumentID uint) (strin
 	return filepath.Join(message.StoreDir, primaryDocument.FileName), nil
 }
 
+func AddProcess(
+	xdomeaID string,
+	processStoreDir string,
+	institution *string,
+) (Process, error) {
+	var process Process
+	processState, err := AddProcessState()
+	if err != nil {
+		return process, err
+	}
+	process = Process{
+		XdomeaID:     xdomeaID,
+		StoreDir:     processStoreDir,
+		Institution:  institution,
+		ProcessState: processState,
+	}
+	result := db.Save(&process)
+	return process, result.Error
+}
+
+func AddProcessState() (ProcessState, error) {
+	var processState ProcessState
+	Receive0501 := ProcessStep{}
+	result := db.Save(&Receive0501)
+	if result.Error != nil {
+		return processState, result.Error
+	}
+	Appraisal := ProcessStep{}
+	result = db.Save(&Appraisal)
+	if result.Error != nil {
+		return processState, result.Error
+	}
+	Receive0505 := ProcessStep{}
+	result = db.Save(&Receive0505)
+	if result.Error != nil {
+		return processState, result.Error
+	}
+	Receive0503 := ProcessStep{}
+	result = db.Save(&Receive0503)
+	if result.Error != nil {
+		return processState, result.Error
+	}
+	FormatVerification := ProcessStep{}
+	result = db.Save(&FormatVerification)
+	if result.Error != nil {
+		return processState, result.Error
+	}
+	Archiving := ProcessStep{}
+	result = db.Save(&Archiving)
+	if result.Error != nil {
+		return processState, result.Error
+	}
+	processState = ProcessState{
+		Receive0501:        Receive0501,
+		Appraisal:          Appraisal,
+		Receive0505:        Receive0505,
+		Receive0503:        Receive0503,
+		FormatVerification: FormatVerification,
+		Archiving:          Archiving,
+	}
+	result = db.Save(&processState)
+	return processState, result.Error
+}
+
 func AddMessage(
 	xdomeaID string,
 	processStoreDir string,
@@ -472,26 +557,15 @@ func AddMessage(
 	process, err := GetProcessByXdomeaID(xdomeaID)
 	// The process was not found. Create a new process.
 	if err != nil {
+		var institution *string
 		// set institution if possible
-		var institution string
-		if message.MessageHead.Sender.Institution != nil &&
-			message.MessageHead.Sender.Institution.Name != nil {
-			institution = *message.MessageHead.Sender.Institution.Name
-			process = Process{
-				XdomeaID:    xdomeaID,
-				StoreDir:    processStoreDir,
-				Institution: institution,
-			}
-		} else {
-			process = Process{
-				XdomeaID: xdomeaID,
-				StoreDir: processStoreDir,
-			}
+		if message.MessageHead.Sender.Institution != nil {
+			institution = message.MessageHead.Sender.Institution.Name
 		}
-		result = db.Create(&process)
+		process, err = AddProcess(xdomeaID, processStoreDir, institution)
 		// The Database failed to create the process for the message.
-		if result.Error != nil {
-			return process, message, result.Error
+		if err != nil {
+			return process, message, err
 		}
 	} else {
 		// Check if the process has already a message with the type of the given message.
@@ -504,8 +578,22 @@ func AddMessage(
 	switch message.MessageType.Code {
 	case "0501":
 		process.Message0501 = &message
+		processStep := process.ProcessState.Receive0501
+		processStep.Complete = true
+		processStep.CompletionTime = time.Now()
+		err = UpdateProcessStep(processStep)
+		if err != nil {
+			log.Fatal(err)
+		}
 	case "0503":
 		process.Message0503 = &message
+		processStep := process.ProcessState.Receive0503
+		processStep.Complete = true
+		processStep.CompletionTime = time.Now()
+		err = UpdateProcessStep(processStep)
+		if err != nil {
+			log.Fatal(err)
+		}
 	default:
 		log.Fatal("unhandled message type: " + message.MessageType.Code)
 	}
@@ -557,6 +645,11 @@ func UpdateMessage(message Message) error {
 
 func UpdatePrimaryDocument(primaryDocument PrimaryDocument) error {
 	result := db.Save(&primaryDocument)
+	return result.Error
+}
+
+func UpdateProcessStep(processStep ProcessStep) error {
+	result := db.Save(&processStep)
 	return result.Error
 }
 

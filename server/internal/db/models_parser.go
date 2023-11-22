@@ -29,7 +29,7 @@ type Process struct {
 	DeletedAt         gorm.DeletedAt    `gorm:"index" json:"-"`
 	XdomeaID          string            `json:"xdomeaID"`
 	StoreDir          string            `json:"-"`
-	Institution       string            `json:"institution"`
+	Institution       *string           `json:"institution"`
 	Message0501ID     *uuid.UUID        `json:"-"`
 	Message0501       *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
 	Message0503ID     *uuid.UUID        `json:"-"`
@@ -37,6 +37,38 @@ type Process struct {
 	Message0504Path   *string           `json:"-"`
 	ArchivingComplete bool              `gorm:"default:false" json:"archivingComplete"`
 	ProcessingErrors  []ProcessingError `gorm:"many2many:process_errors;" json:"processingErrors"`
+	ProcessStateID    uint              `json:"-"`
+	ProcessState      ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
+}
+
+type ProcessState struct {
+	ID                       uint           `gorm:"primaryKey" json:"-"`
+	CreatedAt                time.Time      `json:"-"`
+	UpdatedAt                time.Time      `json:"-"`
+	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
+	Receive0501StepID        uint           `json:"-"`
+	Receive0501              ProcessStep    `gorm:"foreignKey:Receive0501StepID;references:ID" json:"receive0501"`
+	AppraisalStepID          uint           `json:"-"`
+	Appraisal                ProcessStep    `gorm:"foreignKey:AppraisalStepID;references:ID" json:"appraisal"`
+	Receive0505StepID        uint           `json:"-"`
+	Receive0505              ProcessStep    `gorm:"foreignKey:Receive0505StepID;references:ID" json:"receive0505"`
+	Receive0503StepID        uint           `json:"-"`
+	Receive0503              ProcessStep    `gorm:"foreignKey:Receive0503StepID;references:ID" json:"receive0503"`
+	FormatVerificationStepID uint           `json:"-"`
+	FormatVerification       ProcessStep    `gorm:"foreignKey:FormatVerificationStepID;references:ID" json:"formatVerification"`
+	ArchivingStepID          uint           `json:"-"`
+	Archiving                ProcessStep    `gorm:"foreignKey:ArchivingStepID;references:ID" json:"archiving"`
+}
+
+type ProcessStep struct {
+	ID                 uint           `gorm:"primaryKey" json:"-"`
+	CreatedAt          time.Time      `json:"-"`
+	UpdatedAt          time.Time      `json:"-"`
+	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
+	Complete           bool           `gorm:"default:false" json:"complete"`
+	CompletionTime     time.Time      `json:"completionTime"`
+	ItemCount          uint           `gorm:"default:0" json:"itemCount"`
+	ItemCompletetCount uint           `gorm:"default:0" json:"itemCompletetCount"`
 }
 
 type Message struct {

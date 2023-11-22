@@ -14,6 +14,23 @@ export interface Process {
   message0501: Message;
   message0503: Message;
   processingErrors: ProcessingError[];
+  processState: ProcessState;
+}
+
+export interface ProcessState {
+  receive0501: ProcessStep;
+  appraisal: ProcessStep;
+  receive0505: ProcessStep;
+  receive0503: ProcessStep;
+  formatVerification: ProcessStep;
+  archiving: ProcessStep;
+}
+
+export interface ProcessStep {
+  complete: boolean;
+  completionTime: string;
+  itemCount: number;
+  itemCompletetCount: number;
 }
 
 @Injectable({
