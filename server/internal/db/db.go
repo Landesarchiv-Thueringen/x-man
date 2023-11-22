@@ -206,8 +206,11 @@ func GetMessageTypeCode(id uuid.UUID) (string, error) {
 }
 
 func IsMessageAppraisalComplete(id uuid.UUID) (bool, error) {
-	message, error := GetMessageByID(id)
-	return message.AppraisalComplete, error
+	message, err := GetMessageByID(id)
+	if err != nil {
+		return false, err
+	}
+	return message.AppraisalComplete, err
 }
 
 func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {

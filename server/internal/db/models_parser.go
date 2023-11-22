@@ -23,22 +23,21 @@ type XdomeaVersion struct {
 }
 
 type Process struct {
-	ID                uuid.UUID         `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CreatedAt         time.Time         `json:"receivedAt"`
-	UpdatedAt         time.Time         `json:"-"`
-	DeletedAt         gorm.DeletedAt    `gorm:"index" json:"-"`
-	XdomeaID          string            `json:"xdomeaID"`
-	StoreDir          string            `json:"-"`
-	Institution       *string           `json:"institution"`
-	Message0501ID     *uuid.UUID        `json:"-"`
-	Message0501       *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
-	Message0503ID     *uuid.UUID        `json:"-"`
-	Message0503       *Message          `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
-	Message0504Path   *string           `json:"-"`
-	ArchivingComplete bool              `gorm:"default:false" json:"archivingComplete"`
-	ProcessingErrors  []ProcessingError `gorm:"many2many:process_errors;" json:"processingErrors"`
-	ProcessStateID    uint              `json:"-"`
-	ProcessState      ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
+	ID               uuid.UUID         `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	CreatedAt        time.Time         `json:"receivedAt"`
+	UpdatedAt        time.Time         `json:"-"`
+	DeletedAt        gorm.DeletedAt    `gorm:"index" json:"-"`
+	XdomeaID         string            `json:"xdomeaID"`
+	StoreDir         string            `json:"-"`
+	Institution      *string           `json:"institution"`
+	Message0501ID    *uuid.UUID        `json:"-"`
+	Message0501      *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
+	Message0503ID    *uuid.UUID        `json:"-"`
+	Message0503      *Message          `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
+	Message0504Path  *string           `json:"-"`
+	ProcessingErrors []ProcessingError `gorm:"many2many:process_errors;" json:"processingErrors"`
+	ProcessStateID   uint              `json:"-"`
+	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
 }
 
 type ProcessState struct {
@@ -72,25 +71,22 @@ type ProcessStep struct {
 }
 
 type Message struct {
-	ID                         uuid.UUID      `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CreatedAt                  time.Time      `json:"-"`
-	UpdatedAt                  time.Time      `json:"-"`
-	DeletedAt                  gorm.DeletedAt `gorm:"index" json:"-"`
-	TransferDir                string         `json:"-"`
-	TransferDirMessagePath     string         `json:"-"`
-	StoreDir                   string         `json:"-"`
-	MessagePath                string         `json:"-"`
-	XdomeaVersion              string         `json:"xdomeaVersion"`
-	SchemaValidation           bool           `gorm:"default:true" json:"schemaValidation"`
-	MessageHeadID              *uint          `json:"-"`
-	MessageHead                MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
-	MessageTypeID              *uint          `json:"-"`
-	MessageType                MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
-	AppraisalComplete          bool           `json:"appraisalComplete"`
-	FormatVerificationComplete bool           `json:"formatVerificationComplete"`
-	PrimaryDocumentCount       uint           `json:"primaryDocumentCount"`
-	VerificationCompleteCount  uint           `json:"verificationCompleteCount"`
-	RecordObjects              []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
+	ID                     uuid.UUID      `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	CreatedAt              time.Time      `json:"-"`
+	UpdatedAt              time.Time      `json:"-"`
+	DeletedAt              gorm.DeletedAt `gorm:"index" json:"-"`
+	TransferDir            string         `json:"-"`
+	TransferDirMessagePath string         `json:"-"`
+	StoreDir               string         `json:"-"`
+	MessagePath            string         `json:"-"`
+	XdomeaVersion          string         `json:"xdomeaVersion"`
+	MessageHeadID          *uint          `json:"-"`
+	MessageHead            MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
+	MessageTypeID          *uint          `json:"-"`
+	MessageType            MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
+	RecordObjects          []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
+	AppraisalComplete      bool           `json:"appraisalComplete"`
+	SchemaValidation       bool           `gorm:"default:true" json:"schemaValidation"`
 }
 
 type MessageType struct {

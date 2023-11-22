@@ -83,16 +83,6 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		message.VerificationCompleteCount = message.VerificationCompleteCount + 1
-		err = db.UpdateMessage(message)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	message.FormatVerificationComplete = true
-	err = db.UpdateMessage(message)
-	if err != nil {
-		log.Fatal(err)
 	}
 	processStep.Complete = true
 	processStep.CompletionTime = time.Now()

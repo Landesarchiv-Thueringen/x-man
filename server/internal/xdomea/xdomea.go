@@ -137,20 +137,14 @@ func AddMessage(
 	if err != nil {
 		log.Fatal("message doesn't exist")
 	}
-	appraisalComplete := false
-	if messageType.Code == "0503" {
-		appraisalComplete = true
-	}
+	appraisalComplete := messageType.Code == "0503"
 	message = db.Message{
-		MessageType:                messageType,
-		TransferDir:                transferDir,
-		TransferDirMessagePath:     transferDirMessagePath,
-		StoreDir:                   messageStoreDir,
-		MessagePath:                messagePath,
-		AppraisalComplete:          appraisalComplete,
-		FormatVerificationComplete: false,
-		PrimaryDocumentCount:       0,
-		VerificationCompleteCount:  0,
+		MessageType:            messageType,
+		TransferDir:            transferDir,
+		TransferDirMessagePath: transferDirMessagePath,
+		StoreDir:               messageStoreDir,
+		MessagePath:            messagePath,
+		AppraisalComplete:      appraisalComplete,
 	}
 	// xsd schema validation
 	err = IsMessageValid(message)
@@ -174,11 +168,6 @@ func AddMessage(
 		// get primary documents
 		primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
 		// error while getting the primary documents should never happen, can't recover
-		if err != nil {
-			log.Fatal(err)
-		}
-		message.PrimaryDocumentCount = uint(len(primaryDocuments))
-		err = db.UpdateMessage(message)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -271,7 +260,7 @@ func checkMessage0503Integrity(
 		return nil
 	}
 	// check if appraisal of 0501 message is already complete
-	if !message0501.AppraisalComplete {
+	if !process.ProcessState.Appraisal.Complete {
 		errorMessage := "die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
 		processingErr := db.ProcessingError{
 			Description:      errorMessage,
