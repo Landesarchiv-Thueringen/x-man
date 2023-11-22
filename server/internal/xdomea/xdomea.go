@@ -184,7 +184,7 @@ func AddMessage(
 		}
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
-			format.VerifyFileFormats(message.ID)
+			format.VerifyFileFormats(process, message)
 		}
 	}
 	return process, message, nil

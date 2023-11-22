@@ -12,8 +12,6 @@ import (
 	"os"
 	"path"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 var BorgEndpoint = "https://borg.tsa.thlv.de/analyse-file"
@@ -25,12 +23,14 @@ var client http.Client = http.Client{
 	Transport: &tr,
 }
 
-func VerifyFileFormats(messageID uuid.UUID) {
-	message, err := db.GetMessageByID(messageID)
+func VerifyFileFormats(process db.Process, message db.Message) {
+	primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	primaryDocuments, err := db.GetAllPrimaryDocuments(messageID)
+	processStep := process.ProcessState.FormatVerification
+	processStep.ItemCount = uint(len(primaryDocuments))
+	err = db.UpdateProcessStep(processStep)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +78,11 @@ func VerifyFileFormats(messageID uuid.UUID) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		processStep.ItemCompletetCount = processStep.ItemCompletetCount + 1
+		err = db.UpdateProcessStep(processStep)
+		if err != nil {
+			log.Fatal(err)
+		}
 		message.VerificationCompleteCount = message.VerificationCompleteCount + 1
 		err = db.UpdateMessage(message)
 		if err != nil {
@@ -89,11 +94,6 @@ func VerifyFileFormats(messageID uuid.UUID) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	processStep := process.ProcessState.FormatVerification
 	processStep.Complete = true
 	processStep.CompletionTime = time.Now()
 	err = db.UpdateProcessStep(processStep)

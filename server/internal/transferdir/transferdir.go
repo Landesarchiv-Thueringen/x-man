@@ -65,7 +65,6 @@ func watchLoop(watcher *fsnotify.Watcher) {
 		// Callback we run.
 		processEvent = func(event fsnotify.Event) {
 			if isProcessableMessage(event) {
-				log.Println("found something")
 				go messagestore.StoreMessage(event.Name)
 			}
 

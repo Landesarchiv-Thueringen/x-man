@@ -25,15 +25,15 @@
           font-weight: 600;
         }
 
-        // .task-completion-time {
-        //   color: gray;
-        // }
+        .task-completion-time {
+          color: gray;
+        }
       }
 
       .progress-cell {
         width: 100%;
         display: flex;
-        justify-content: center;
+        align-items: center;
         font-weight: 400;
 
         mat-spinner {

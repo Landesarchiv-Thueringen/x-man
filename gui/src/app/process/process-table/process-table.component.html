@@ -71,7 +71,7 @@
                     </span>
                 </div>
                 <div *ngIf="process.processState.receive0503.complete && !process.processState.formatVerification.complete" class="progress-cell">
-                    {{process.message0503.verificationCompleteCount}}/{{process.message0503.primaryDocumentCount}}
+                    {{ process.processState.formatVerification.itemCompletetCount }}/{{ process.processState.formatVerification.itemCount }}
                     <mat-spinner diameter="25"></mat-spinner>
                 </div>
             </td>
@@ -80,8 +80,13 @@
         <!-- archiving complete column -->
         <ng-container matColumnDef="archivingComplete">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</th>
-            <td mat-cell class="task-cell" *matCellDef="let process">
-                <mat-icon *ngIf="process.archivingComplete">check</mat-icon>
+            <td mat-cell *matCellDef="let process">
+                <div *ngIf="process.processState.archiving.complete" class="task-cell">
+                    <mat-icon>check</mat-icon>
+                    <span class="task-completion-time">
+                        {{ process.processState.archiving.completionTime | date:'short' }}
+                    </span>
+                </div>
             </td>
         </ng-container>
 
