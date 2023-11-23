@@ -1,6 +1,7 @@
 package main
 
 import (
+	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/transferdir"
@@ -48,6 +49,7 @@ func main() {
 	router.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("api/finalize-message-appraisal/:id", finalizeMessageAppraisal)
+	router.PATCH("api/archive-0503-message/:id", archive0503Message)
 	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
 	router.Run(addr)
 }
@@ -290,4 +292,12 @@ func getPrimaryDocuments(context *gin.Context) {
 	} else {
 		context.JSON(http.StatusOK, primaryDocuments)
 	}
+}
+
+func archive0503Message(context *gin.Context) {
+	messageID, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusUnprocessableEntity, err)
+	}
+	dimag.TransferToArchive(messageID)
 }

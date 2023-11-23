@@ -261,4 +261,17 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
       'Nachrichten-Link in Zwischenspeicher kopiert'
     );
   }
+
+  archive0503Message() {
+    if (this.message) {
+      this.messageService.archive0503Message(this.message.id).subscribe({
+        error: (error: any) => {
+          console.error(error);
+        },
+        next: () => {
+          console.log('yeah');
+        }
+      });
+    }
+  }
 }

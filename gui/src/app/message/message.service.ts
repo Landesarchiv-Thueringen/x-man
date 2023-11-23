@@ -491,6 +491,13 @@ export class MessageService {
     return this.httpClient.patch<void>(url, body, options);
   }
 
+  archive0503Message(id: string): Observable<void> {
+    const url = this.apiEndpoint + '/archive-0503-message/' + id;
+    const body = {};
+    const options = {};
+    return this.httpClient.patch<void>(url, body, options);
+  }
+
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
     if (this.appraisals) {
       return new Observable(

@@ -37,6 +37,10 @@ services:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
       - NO_PROXY=borg.tsa.thlv.de
+      - DIMAG_SFTP_SERVER_URL=${DIMAG_SFTP_SERVER_URL}
+      - DIMAG_SFTP_UPLOAD_DIR=${DIMAG_SFTP_UPLOAD_DIR}
+      - DIMAG_SFTP_USER=${DIMAG_SFTP_USER}
+      - DIMAG_SFTP_PASSWORD=${DIMAG_SFTP_PASSWORD}
     volumes:
       - type: bind
         source: ${TRANSFER_DIR}
