@@ -299,5 +299,5 @@ func archive0503Message(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
-	dimag.TransferToArchive(messageID)
+	dimag.ImportMessage(messageID)
 }

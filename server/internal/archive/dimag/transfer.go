@@ -17,7 +17,7 @@ import (
 
 const PortSFTP uint = 22
 
-func TransferToArchive(messageID uuid.UUID) {
+func TransferToArchive(message db.Message) []string {
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
 		log.Fatal("DIMAG SFTP server URL not set")
@@ -51,43 +51,42 @@ func TransferToArchive(messageID uuid.UUID) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	UploadMessageFiles(sftpClient, messageID)
-	sftpClient.Close()
+	defer sftpClient.Close()
+	return UploadMessageFiles(sftpClient, message)
 }
 
-func UploadMessageFiles(sftpClient *sftp.Client, messageID uuid.UUID) {
-	message, err := db.GetMessageByID(messageID)
+func UploadMessageFiles(sftpClient *sftp.Client, message db.Message) []string {
+	fileRecordObjects, err := db.GetAllFileRecordObjects(message.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileRecordObjects, err := db.GetAllFileRecordObjects(messageID)
-	if err != nil {
-		log.Fatal(err)
-	}
+	importDirs := []string{}
 	for _, fileRecordObject := range fileRecordObjects {
-		err = uploadFileRecordObjectFiles(sftpClient, message, fileRecordObject)
+		importDir, err := uploadFileRecordObjectFiles(sftpClient, message, fileRecordObject)
 		if err != nil {
 			log.Fatal(err)
 		}
+		importDirs = append(importDirs, importDir)
 	}
+	return importDirs
 }
 
 func uploadFileRecordObjectFiles(
 	sftpClient *sftp.Client,
 	message db.Message,
 	fileRecordObject db.FileRecordObject,
-) error {
+) (string, error) {
 	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
 	uniqueImportDir := "xman_import_" + uuid.NewString()
 	importDir := filepath.Join(uploadDir, uniqueImportDir)
 	err := sftpClient.Mkdir(importDir)
 	if err != nil {
 		log.Println(err)
-		return err
+		return importDir, err
 	}
 	err = uploadXdomeaMessageFile(sftpClient, message, fileRecordObject, importDir)
 	if err != nil {
-		return err
+		return importDir, err
 	}
 	primaryDocuments := fileRecordObject.GetPrimaryDocuments()
 	for _, primaryDocument := range primaryDocuments {
@@ -95,15 +94,15 @@ func uploadFileRecordObjectFiles(
 		_, err := os.Stat(filePath)
 		if err != nil {
 			log.Println(err)
-			return err
+			return importDir, err
 		}
 		remotePath := primaryDocument.GetRemotePath(importDir)
 		err = uploadFile(sftpClient, filePath, remotePath)
 		if err != nil {
-			return err
+			return importDir, err
 		}
 	}
-	return uploadControlFile(sftpClient, message, fileRecordObject, importDir)
+	return importDir, uploadControlFile(sftpClient, message, fileRecordObject, importDir)
 }
 
 func uploadXdomeaMessageFile(

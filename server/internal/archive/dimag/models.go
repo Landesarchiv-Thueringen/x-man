@@ -18,3 +18,25 @@ type IndexItem struct {
 	FilePath   string   `xml:"sftp-dateiname"`
 	IndexItems []IndexItem
 }
+
+type SoapEnvelopeImportDoc struct {
+	XMLName xml.Name `xml:"soapenv:Envelope"`
+	Header  SoapEnvelopeHeader
+	Body    SoapEnvelopeBodyImportDoc
+}
+
+type SoapEnvelopeHeader struct {
+	XMLName xml.Name `xml:"soapenv:Header"`
+}
+
+type SoapEnvelopeBodyImportDoc struct {
+	XMLName   xml.Name `xml:"soapenv:Body"`
+	ImportDoc SoapImportDoc
+}
+
+type SoapImportDoc struct {
+	XMLName         xml.Name `xml:"web:importDoc"`
+	UserName        string   `xml:"username"`
+	Password        string   `xml:"password"`
+	ControlFilePath string   `xml:"ControlFile"`
+}
