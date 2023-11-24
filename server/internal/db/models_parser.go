@@ -347,6 +347,60 @@ type RecordObjectConfidentiality struct {
 
 // interfaces and methods
 
+type RecordObjectIter interface {
+	GetChildren() []RecordObjectIter
+	GetPrimaryDocuments() []PrimaryDocument
+}
+
+func (f *FileRecordObject) GetChildren() []RecordObjectIter {
+	recordObjects := []RecordObjectIter{}
+	for _, process := range f.Processes {
+		recordObjects = append(recordObjects, &process)
+		recordObjects = append(recordObjects, process.GetChildren()...)
+	}
+	return recordObjects
+}
+
+func (f *FileRecordObject) GetPrimaryDocuments() []PrimaryDocument {
+	primaryDocuments := []PrimaryDocument{}
+	for _, process := range f.Processes {
+		primaryDocuments = append(primaryDocuments, process.GetPrimaryDocuments()...)
+	}
+	return primaryDocuments
+}
+
+func (p *ProcessRecordObject) GetChildren() []RecordObjectIter {
+	recordObjects := []RecordObjectIter{}
+	for _, document := range p.Documents {
+		recordObjects = append(recordObjects, &document)
+		recordObjects = append(recordObjects, document.GetChildren()...)
+	}
+	return recordObjects
+}
+
+func (p *ProcessRecordObject) GetPrimaryDocuments() []PrimaryDocument {
+	primaryDocuments := []PrimaryDocument{}
+	for _, document := range p.Documents {
+		primaryDocuments = append(primaryDocuments, document.GetPrimaryDocuments()...)
+	}
+	return primaryDocuments
+}
+
+func (d *DocumentRecordObject) GetChildren() []RecordObjectIter {
+	recordObjects := []RecordObjectIter{}
+	return recordObjects
+}
+
+func (d *DocumentRecordObject) GetPrimaryDocuments() []PrimaryDocument {
+	primaryDocuments := []PrimaryDocument{}
+	for _, version := range d.Versions {
+		for _, format := range version.Formats {
+			primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
+		}
+	}
+	return primaryDocuments
+}
+
 type AppraisableRecordObject interface {
 	GetAppraisal() (string, error)
 	SetAppraisal(string) error

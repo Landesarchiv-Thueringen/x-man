@@ -223,6 +223,7 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 		Preload("Processes.ArchiveMetadata").
 		Preload("Processes.Lifetime").
 		Preload("Processes.Documents.GeneralMetadata.FilePlan").
+		Preload("Processes.Documents.Versions.Formats.PrimaryDocument").
 		First(&file, id)
 	return file, result.Error
 }
@@ -234,6 +235,7 @@ func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
 		Preload("Documents.GeneralMetadata.FilePlan").
+		Preload("Documents.Versions.Formats.PrimaryDocument").
 		First(&process, id)
 	return process, result.Error
 }
@@ -253,6 +255,11 @@ func GetAllFileRecordObjects(messageID uuid.UUID) (map[uuid.UUID]FileRecordObjec
 		Preload("GeneralMetadata.FilePlan").
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
+		Preload("Processes.GeneralMetadata.FilePlan").
+		Preload("Processes.ArchiveMetadata").
+		Preload("Processes.Lifetime").
+		Preload("Processes.Documents.GeneralMetadata.FilePlan").
+		Preload("Processes.Documents.Versions.Formats.PrimaryDocument").
 		Where("message_id = ?", messageID.String()).
 		Find(&fileRecordObjects)
 	fileIndex := make(map[uuid.UUID]FileRecordObject)
@@ -268,6 +275,8 @@ func GetAllProcessRecordObjects(messageID uuid.UUID) (map[uuid.UUID]ProcessRecor
 		Preload("GeneralMetadata.FilePlan").
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
+		Preload("Documents.GeneralMetadata.FilePlan").
+		Preload("Documents.Versions.Formats.PrimaryDocument").
 		Where("message_id = ?", messageID.String()).
 		Find(&processRecordObjects)
 	processIndex := make(map[uuid.UUID]ProcessRecordObject)
@@ -281,6 +290,7 @@ func GetAllDocumentRecordObjects(messageID uuid.UUID) (map[uuid.UUID]DocumentRec
 	var documentRecordObjects []DocumentRecordObject
 	result := db.
 		Preload("GeneralMetadata.FilePlan").
+		Preload("Versions.Formats.PrimaryDocument").
 		Where("message_id = ?", messageID.String()).
 		Find(&documentRecordObjects)
 	documentIndex := make(map[uuid.UUID]DocumentRecordObject)
