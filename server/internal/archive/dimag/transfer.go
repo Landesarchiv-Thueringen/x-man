@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/pkg/sftp"
@@ -102,9 +103,7 @@ func uploadFileRecordObjectFiles(
 			return err
 		}
 	}
-	controlFileXml := GenerateControlFile(message, fileRecordObject, importDir)
-	log.Println(controlFileXml)
-	return nil
+	return uploadControlFile(sftpClient, message, fileRecordObject, importDir)
 }
 
 func uploadXdomeaMessageFile(
@@ -115,6 +114,18 @@ func uploadXdomeaMessageFile(
 ) error {
 	remotePath := message.GetRemoteXmlPath(importDir)
 	return uploadFile(sftpClient, message.MessagePath, remotePath)
+}
+
+func uploadControlFile(
+	sftpClient *sftp.Client,
+	message db.Message,
+	fileRecordObject db.FileRecordObject,
+	importDir string,
+) error {
+	remotePath := filepath.Join(importDir, ControlFileName)
+	controlFileXml := GenerateControlFile(message, fileRecordObject, importDir)
+	err := createRemoteTextFile(sftpClient, controlFileXml, remotePath)
+	return err
 }
 
 func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) error {
@@ -132,6 +143,23 @@ func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) er
 	}
 	defer dstFile.Close()
 	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func createRemoteTextFile(sftpClient *sftp.Client, fileContent string, remotePath string) error {
+	stringReader := strings.NewReader(fileContent)
+	// the remote path must already exist
+	dstFile, err := sftpClient.OpenFile(remotePath, (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer dstFile.Close()
+	_, err = io.Copy(dstFile, stringReader)
 	if err != nil {
 		log.Println(err)
 		return err

@@ -7,9 +7,10 @@ import (
 	"log"
 )
 
-const DimagInformationObjectAbbrevation string = "IO"
-const DimagRepresentationAbbrevation string = "R"
-const DimagFileAbbrevation string = "F"
+const ControlFileName string = "controlfile.xml"
+const InformationObjectAbbrevation string = "IO"
+const RepresentationAbbrevation string = "R"
+const FileAbbrevation string = "F"
 
 func GenerateControlFile(
 	message db.Message,
@@ -26,21 +27,21 @@ func GenerateControlFile(
 	}
 	xmlIndexItem := IndexItem{
 		IndexID:  "",
-		ItemType: DimagFileAbbrevation,
+		ItemType: FileAbbrevation,
 		Title:    "xdomea XML-Datei",
 		FilePath: message.GetRemoteXmlPath(importDir),
 	}
 	fileIndexItems = append(fileIndexItems, xmlIndexItem)
 	repIndexItem := IndexItem{
 		IndexID:    "",
-		ItemType:   DimagRepresentationAbbrevation,
+		ItemType:   RepresentationAbbrevation,
 		Title:      fileRecordObject.GetTitle(),
 		IndexItems: fileIndexItems,
 	}
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
-		ItemType:   DimagInformationObjectAbbrevation,
+		ItemType:   InformationObjectAbbrevation,
 		Title:      fileRecordObject.GetTitle(),
 		IndexItems: repItems,
 	}
@@ -63,7 +64,7 @@ func GetIndexItemForPrimaryDocument(
 ) IndexItem {
 	fileIndexItem := IndexItem{
 		IndexID:  "",
-		ItemType: DimagFileAbbrevation,
+		ItemType: FileAbbrevation,
 		Title:    primaryDocument.GetFileName(),
 		FilePath: primaryDocument.GetRemotePath(importDir),
 	}
