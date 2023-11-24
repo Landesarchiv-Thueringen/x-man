@@ -45,5 +45,8 @@ services:
       - type: bind
         source: ${TRANSFER_DIR}
         target: /xman/transfer/
+      - type: bind
+        source: ${MESSAGE_STORE}
+        target: /xman/message_store/
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}

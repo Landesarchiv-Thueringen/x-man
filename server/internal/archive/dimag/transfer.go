@@ -85,6 +85,10 @@ func uploadFileRecordObjectFiles(
 		log.Println(err)
 		return err
 	}
+	err = uploadXdomeaMessageFile(sftpClient, message, fileRecordObject, importDir)
+	if err != nil {
+		return err
+	}
 	primaryDocuments := fileRecordObject.GetPrimaryDocuments()
 	for _, primaryDocument := range primaryDocuments {
 		filePath := path.Join(message.StoreDir, primaryDocument.FileName)
@@ -96,11 +100,20 @@ func uploadFileRecordObjectFiles(
 		remotePath := filepath.Join(importDir, primaryDocument.FileName)
 		err = uploadFile(sftpClient, filePath, remotePath)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
 	}
 	return nil
+}
+
+func uploadXdomeaMessageFile(
+	sftpClient *sftp.Client,
+	message db.Message,
+	fileRecordObject db.FileRecordObject,
+	importDir string,
+) error {
+	remotePath := filepath.Join(importDir, filepath.Base(message.MessagePath))
+	return uploadFile(sftpClient, message.MessagePath, remotePath)
 }
 
 func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) error {
@@ -110,6 +123,7 @@ func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) er
 		return err
 	}
 	defer srcFile.Close()
+	// the remote path must already exist
 	dstFile, err := sftpClient.OpenFile(remotePath, (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
 	if err != nil {
 		log.Println(err)
