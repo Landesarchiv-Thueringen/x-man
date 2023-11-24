@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/xml"
 	"errors"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -347,6 +348,10 @@ type RecordObjectConfidentiality struct {
 
 // interfaces and methods
 
+func (message *Message) GetRemoteXmlPath(importDir string) string {
+	return filepath.Join(importDir, filepath.Base(message.MessagePath))
+}
+
 type RecordObjectIter interface {
 	GetChildren() []RecordObjectIter
 	GetPrimaryDocuments() []PrimaryDocument
@@ -443,6 +448,19 @@ func (f *FileRecordObject) GetID() uuid.UUID {
 	return f.XdomeaID
 }
 
+func (f *FileRecordObject) GetTitle() string {
+	title := "Akte"
+	if f.GeneralMetadata != nil {
+		if f.GeneralMetadata.XdomeaID != nil {
+			title += " " + *f.GeneralMetadata.XdomeaID
+		}
+		if f.GeneralMetadata.Subject != nil {
+			title += ": " + *f.GeneralMetadata.Subject
+		}
+	}
+	return title
+}
+
 func (p *ProcessRecordObject) GetAppraisal() (string, error) {
 	if p.ArchiveMetadata != nil &&
 		p.ArchiveMetadata.AppraisalCode != nil {
@@ -473,4 +491,15 @@ func (p *ProcessRecordObject) GetID() uuid.UUID {
 func (p *ProcessRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 	appraisableObjects := []AppraisableRecordObject{p}
 	return appraisableObjects
+}
+
+func (primaryDocument *PrimaryDocument) GetFileName() string {
+	if primaryDocument.FileNameOriginal == nil {
+		return primaryDocument.FileName
+	}
+	return *primaryDocument.FileNameOriginal
+}
+
+func (primaryDocument *PrimaryDocument) GetRemotePath(importDir string) string {
+	return filepath.Join(importDir, primaryDocument.FileName)
 }

@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -91,18 +90,20 @@ func uploadFileRecordObjectFiles(
 	}
 	primaryDocuments := fileRecordObject.GetPrimaryDocuments()
 	for _, primaryDocument := range primaryDocuments {
-		filePath := path.Join(message.StoreDir, primaryDocument.FileName)
+		filePath := filepath.Join(message.StoreDir, primaryDocument.FileName)
 		_, err := os.Stat(filePath)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
-		remotePath := filepath.Join(importDir, primaryDocument.FileName)
+		remotePath := primaryDocument.GetRemotePath(importDir)
 		err = uploadFile(sftpClient, filePath, remotePath)
 		if err != nil {
 			return err
 		}
 	}
+	controlFileXml := GenerateControlFile(message, fileRecordObject, importDir)
+	log.Println(controlFileXml)
 	return nil
 }
 
@@ -112,7 +113,7 @@ func uploadXdomeaMessageFile(
 	fileRecordObject db.FileRecordObject,
 	importDir string,
 ) error {
-	remotePath := filepath.Join(importDir, filepath.Base(message.MessagePath))
+	remotePath := message.GetRemoteXmlPath(importDir)
 	return uploadFile(sftpClient, message.MessagePath, remotePath)
 }
 
