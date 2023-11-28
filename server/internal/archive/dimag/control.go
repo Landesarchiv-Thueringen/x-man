@@ -8,7 +8,7 @@ import (
 )
 
 const ControlFileName string = "controlfile.xml"
-const InformationObjectAbbrevation string = "IO"
+const InformationObjectAbbrevation string = "O"
 const RepresentationAbbrevation string = "R"
 const FileAbbrevation string = "F"
 
@@ -41,13 +41,14 @@ func GenerateControlFile(
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
+		Lifetime:   "2018-07-24+02:00 - 2018-07-24+02:00",
 		ItemType:   InformationObjectAbbrevation,
 		Title:      fileRecordObject.GetTitle(),
 		IndexItems: repItems,
 	}
 	ioItems := []IndexItem{ioIndexItem}
 	dimagControl := DimagControl{
-		RootID:     "test-1",
+		RootID:     "test-42",
 		IndexItems: ioItems,
 	}
 	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")

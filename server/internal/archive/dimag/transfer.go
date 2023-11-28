@@ -1,6 +1,7 @@
 package dimag
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
@@ -17,18 +18,27 @@ import (
 
 const PortSFTP uint = 22
 
-func TransferToArchive(message db.Message) []string {
+var sshClient *ssh.Client
+var sftpClient *sftp.Client
+
+func InitConnection() error {
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
-		log.Fatal("DIMAG SFTP server URL not set")
+		errorMessage := "DIMAG SFTP server URL not set"
+		log.Println(errorMessage)
+		return errors.New(errorMessage)
 	}
 	url, err := url.Parse(urlString)
 	if err != nil {
-		log.Fatal("could't parse dimag SFTP server URl")
+		errorMessage := "could't parse dimag SFTP server URl"
+		log.Println(errorMessage)
+		return errors.New(errorMessage)
 	}
 	sftpUser := os.Getenv("DIMAG_SFTP_USER")
 	if sftpUser == "" {
-		log.Fatal("DIMAG SFTP user not set")
+		errorMessage := "DIMAG SFTP user not set"
+		log.Println(errorMessage)
+		return errors.New(errorMessage)
 	}
 	// empty password is possible
 	sftpPassword := os.Getenv("DIMAG_SFTP_PASSWORD")
@@ -42,33 +52,22 @@ func TransferToArchive(message db.Message) []string {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	addr := fmt.Sprintf("%s:%d", url.Host, PortSFTP)
-	connection, err := ssh.Dial("tcp", addr, &config)
+	sshClient, err = ssh.Dial("tcp", addr, &config)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
-	defer connection.Close()
-	sftpClient, err := sftp.NewClient(connection)
+	sftpClient, err = sftp.NewClient(sshClient)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
-	defer sftpClient.Close()
-	return UploadMessageFiles(sftpClient, message)
+	return nil
 }
 
-func UploadMessageFiles(sftpClient *sftp.Client, message db.Message) []string {
-	fileRecordObjects, err := db.GetAllFileRecordObjects(message.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	importDirs := []string{}
-	for _, fileRecordObject := range fileRecordObjects {
-		importDir, err := uploadFileRecordObjectFiles(sftpClient, message, fileRecordObject)
-		if err != nil {
-			log.Fatal(err)
-		}
-		importDirs = append(importDirs, importDir)
-	}
-	return importDirs
+func CloseConnection() {
+	sshClient.Close()
+	sftpClient.Close()
 }
 
 func uploadFileRecordObjectFiles(
@@ -77,14 +76,14 @@ func uploadFileRecordObjectFiles(
 	fileRecordObject db.FileRecordObject,
 ) (string, error) {
 	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
-	uniqueImportDir := "xman_import_" + uuid.NewString()
-	importDir := filepath.Join(uploadDir, uniqueImportDir)
-	err := sftpClient.Mkdir(importDir)
+	importDir := "xman_import_" + uuid.NewString()
+	importPath := filepath.Join(uploadDir, importDir)
+	err := sftpClient.Mkdir(importPath)
 	if err != nil {
 		log.Println(err)
 		return importDir, err
 	}
-	err = uploadXdomeaMessageFile(sftpClient, message, fileRecordObject, importDir)
+	err = uploadXdomeaMessageFile(sftpClient, message, fileRecordObject, importPath)
 	if err != nil {
 		return importDir, err
 	}
@@ -96,22 +95,22 @@ func uploadFileRecordObjectFiles(
 			log.Println(err)
 			return importDir, err
 		}
-		remotePath := primaryDocument.GetRemotePath(importDir)
+		remotePath := primaryDocument.GetRemotePath(importPath)
 		err = uploadFile(sftpClient, filePath, remotePath)
 		if err != nil {
 			return importDir, err
 		}
 	}
-	return importDir, uploadControlFile(sftpClient, message, fileRecordObject, importDir)
+	return importDir, uploadControlFile(sftpClient, message, fileRecordObject, importPath, importDir)
 }
 
 func uploadXdomeaMessageFile(
 	sftpClient *sftp.Client,
 	message db.Message,
 	fileRecordObject db.FileRecordObject,
-	importDir string,
+	importPath string,
 ) error {
-	remotePath := message.GetRemoteXmlPath(importDir)
+	remotePath := message.GetRemoteXmlPath(importPath)
 	return uploadFile(sftpClient, message.MessagePath, remotePath)
 }
 
@@ -119,9 +118,10 @@ func uploadControlFile(
 	sftpClient *sftp.Client,
 	message db.Message,
 	fileRecordObject db.FileRecordObject,
+	importPath string,
 	importDir string,
 ) error {
-	remotePath := filepath.Join(importDir, ControlFileName)
+	remotePath := filepath.Join(importPath, ControlFileName)
 	controlFileXml := GenerateControlFile(message, fileRecordObject, importDir)
 	err := createRemoteTextFile(sftpClient, controlFileXml, remotePath)
 	return err
