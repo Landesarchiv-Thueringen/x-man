@@ -2,6 +2,7 @@ package dimag
 
 import (
 	"encoding/xml"
+	"errors"
 	"io/ioutil"
 	"lath/xman/internal/db"
 	"log"
@@ -92,14 +93,16 @@ func processImportResponse(message db.Message, response *http.Response) error {
 			log.Println(err)
 			return err
 		}
-		log.Println(string(body))
 		var parsedResponse EnvelopeImportDocResponse
 		err = xml.Unmarshal(body, &parsedResponse)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
-		log.Println(parsedResponse)
+		if parsedResponse.Body.ImportDocResponse.Status != 200 {
+			log.Println(parsedResponse.Body.ImportDocResponse.Message)
+			return errors.New("DIMAG ingest error")
+		}
 		process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
 		if err != nil {
 			log.Println(err)

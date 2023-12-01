@@ -300,5 +300,7 @@ func archive0503Message(context *gin.Context) {
 		context.JSON(http.StatusUnprocessableEntity, err)
 	}
 	err = dimag.ImportMessage(messageID)
-	context.JSON(http.StatusInternalServerError, err)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, err)
+	}
 }
