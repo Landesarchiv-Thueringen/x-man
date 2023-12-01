@@ -41,7 +41,7 @@ func GenerateControlFile(
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
-		Lifetime:   "2018-07-24+02:00 - 2018-07-24+02:00",
+		Lifetime:   fileRecordObject.GetCombinedLifetime(),
 		ItemType:   InformationObjectAbbrevation,
 		Title:      fileRecordObject.GetTitle(),
 		IndexItems: repItems,
