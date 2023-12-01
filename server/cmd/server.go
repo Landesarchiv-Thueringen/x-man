@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
@@ -81,68 +82,73 @@ func getProcessingErrors(context *gin.Context) {
 func getProcesses(context *gin.Context) {
 	processes, err := db.GetProcesses()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, processes)
-	} else {
-		context.JSON(http.StatusOK, processes)
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
+	context.JSON(http.StatusOK, processes)
 }
 
 func getMessageByID(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	message, err := db.GetCompleteMessageByID(id)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, message)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, message)
 }
 
 func getFileRecordObjectByID(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	fileRecordObject, err := db.GetFileRecordObjectByID(id)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, fileRecordObject)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, fileRecordObject)
 }
 
 func getProcessRecordObjectByID(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	processRecordObject, err := db.GetProcessRecordObjectByID(id)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, processRecordObject)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, processRecordObject)
 }
 
 func getDocumentRecordObjectByID(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	documentRecordObject, err := db.GetDocumentRecordObjectByID(id)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, documentRecordObject)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, documentRecordObject)
 }
 
 func get0501Messages(context *gin.Context) {
 	messages, err := db.GetMessagesByCode("0501")
 	if err != nil {
-		log.Fatal(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	context.JSON(http.StatusOK, messages)
 }
@@ -150,7 +156,8 @@ func get0501Messages(context *gin.Context) {
 func get0503Messages(context *gin.Context) {
 	messages, err := db.GetMessagesByCode("0503")
 	if err != nil {
-		log.Fatal(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	context.JSON(http.StatusOK, messages)
 }
@@ -158,7 +165,8 @@ func get0503Messages(context *gin.Context) {
 func getRecordObjectAppraisals(context *gin.Context) {
 	appraisals, err := db.GetRecordObjectAppraisals()
 	if err != nil {
-		log.Fatal(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	context.JSON(http.StatusOK, appraisals)
 }
@@ -166,7 +174,8 @@ func getRecordObjectAppraisals(context *gin.Context) {
 func getRecordObjectConfidentialities(context *gin.Context) {
 	appraisals, err := db.GetRecordObjectConfidentialities()
 	if err != nil {
-		log.Fatal(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	context.JSON(http.StatusOK, appraisals)
 }
@@ -175,12 +184,14 @@ func setFileRecordObjectAppraisal(context *gin.Context) {
 	fileRecordObjectID := context.Query("id")
 	id, err := uuid.Parse(fileRecordObjectID)
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	appraisalCode := context.Query("appraisal")
 	fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	context.JSON(http.StatusOK, fileRecordObject)
 }
@@ -189,12 +200,14 @@ func setProcessRecordObjectAppraisal(context *gin.Context) {
 	processRecordObjectID := context.Query("id")
 	id, err := uuid.Parse(processRecordObjectID)
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	appraisalCode := context.Query("appraisal")
 	processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, appraisalCode)
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	context.JSON(http.StatusOK, processRecordObject)
 }
@@ -202,76 +215,87 @@ func setProcessRecordObjectAppraisal(context *gin.Context) {
 func finalizeMessageAppraisal(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	message, err := db.GetCompleteMessageByID(id)
 	if err != nil {
 		// message couldn't be found
-		context.JSON(http.StatusNotFound, err)
-	} else if message.AppraisalComplete {
+		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	if message.AppraisalComplete {
 		// appraisal for message is already complete
 		context.AbortWithStatus(http.StatusBadRequest)
-	} else {
-		process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, err)
-		}
-		appraisalStep := process.ProcessState.Appraisal
-		appraisalStep.Complete = true
-		appraisalStep.CompletionTime = time.Now()
-		err = db.UpdateProcessStep(appraisalStep)
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, err)
-		}
-		message.AppraisalComplete = true
-		err = db.UpdateMessage(message)
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, err)
-		}
-		messagestore.Store0502Message(message)
+		return
 	}
+	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	appraisalStep := process.ProcessState.Appraisal
+	appraisalStep.Complete = true
+	appraisalStep.CompletionTime = time.Now()
+	err = db.UpdateProcessStep(appraisalStep)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	message.AppraisalComplete = true
+	err = db.UpdateMessage(message)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	messagestore.Store0502Message(message)
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	appraisalComplete, err := db.IsMessageAppraisalComplete(id)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, appraisalComplete)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, appraisalComplete)
 }
 
 func getMessageTypeCode(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	messageTypeCode, err := db.GetMessageTypeCode(id)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, messageTypeCode)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, messageTypeCode)
 }
 
 func getPrimaryDocument(context *gin.Context) {
 	messageIDParam := context.Query("messageID")
 	messageID, err := uuid.Parse(messageIDParam)
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	primaryDocumentIDParam := context.Query("primaryDocumentID")
 	primaryDocumentID, err := strconv.ParseUint(primaryDocumentIDParam, 10, 32)
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	path, err := db.GetPrimaryFileStorePath(messageID, uint(primaryDocumentID))
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
 	fileName := filepath.Base(path)
 	// context.Header("Content-Description", "File Transfer")
@@ -284,23 +308,40 @@ func getPrimaryDocument(context *gin.Context) {
 func getPrimaryDocuments(context *gin.Context) {
 	messageID, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	primaryDocuments, err := db.GetAllPrimaryDocumentsWithFormatVerification(messageID)
 	if err != nil {
-		context.JSON(http.StatusNotFound, err)
-	} else {
-		context.JSON(http.StatusOK, primaryDocuments)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
 	}
+	context.JSON(http.StatusOK, primaryDocuments)
 }
 
 func archive0503Message(context *gin.Context) {
 	messageID, err := uuid.Parse(context.Param("id"))
 	if err != nil {
-		context.JSON(http.StatusUnprocessableEntity, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
-	err = dimag.ImportMessage(messageID)
+	message, err := db.GetMessageByID(messageID)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, err)
+		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if err != nil {
+		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	if !process.IsArchivable() {
+		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
+		return
+	}
+	err = dimag.ImportMessage(process, message)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 }

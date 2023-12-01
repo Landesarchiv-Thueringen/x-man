@@ -9,6 +9,11 @@ import (
 
 // interfaces and methods
 
+func (process *Process) IsArchivable() bool {
+	state := process.ProcessState
+	return state.FormatVerification.Complete && !state.Archiving.Complete
+}
+
 func (message *Message) GetRemoteXmlPath(importDir string) string {
 	return filepath.Join(importDir, filepath.Base(message.MessagePath))
 }

@@ -11,21 +11,14 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 var DimagApiEndpoint = os.Getenv("DIMAG_CORE_SOAP_ENDPOINT")
 var DimagApiUser = os.Getenv("DIMAG_CORE_USER")
 var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 
-func ImportMessage(messageID uuid.UUID) error {
-	message, err := db.GetMessageByID(messageID)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	err = InitConnection()
+func ImportMessage(process db.Process, message db.Message) error {
+	err := InitConnection()
 	if err != nil {
 		log.Println("couldn't init connection to DIMAG sftp server")
 		return err
@@ -42,7 +35,10 @@ func ImportMessage(messageID uuid.UUID) error {
 			return err
 		}
 	}
-	return nil
+	processStep := process.ProcessState.Archiving
+	processStep.Complete = true
+	processStep.CompletionTime = time.Now()
+	return db.UpdateProcessStep(processStep)
 }
 
 func importFileRecordObject(message db.Message, fileRecordObject db.FileRecordObject) error {
@@ -102,19 +98,6 @@ func processImportResponse(message db.Message, response *http.Response) error {
 		if parsedResponse.Body.ImportDocResponse.Status != 200 {
 			log.Println(parsedResponse.Body.ImportDocResponse.Message)
 			return errors.New("DIMAG ingest error")
-		}
-		process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		processStep := process.ProcessState.Archiving
-		processStep.Complete = true
-		processStep.CompletionTime = time.Now()
-		err = db.UpdateProcessStep(processStep)
-		if err != nil {
-			log.Println(err)
-			return err
 		}
 	}
 	return nil
