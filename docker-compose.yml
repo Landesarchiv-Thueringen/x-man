@@ -3,8 +3,6 @@ services:
   database:
     container_name: xman-database
     restart: unless-stopped
-    healthcheck:
-      test: "exit 0"
     build:
       context: ./server/database
       dockerfile: dockerfile_database
@@ -30,8 +28,7 @@ services:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
     depends_on:
-      database:
-        condition: service_healthy
+      - database
     environment:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
       - HTTP_PROXY=${HTTP_PROXY}

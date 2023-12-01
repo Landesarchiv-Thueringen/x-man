@@ -23,26 +23,44 @@ type IndexItem struct {
 	IndexItems []IndexItem
 }
 
-type SoapEnvelopeImportDoc struct {
+type EnvelopeImportDoc struct {
 	XMLName xml.Name `xml:"soapenv:Envelope"`
 	SoapNs  string   `xml:"xmlns:soapenv,attr"`
 	DimagNs string   `xml:"xmlns:web,attr"`
-	Header  SoapEnvelopeHeader
-	Body    SoapEnvelopeBodyImportDoc
+	Header  EnvelopeHeader
+	Body    EnvelopeBodyImportDoc
 }
 
-type SoapEnvelopeHeader struct {
+type EnvelopeHeader struct {
 	XMLName xml.Name `xml:"soapenv:Header"`
 }
 
-type SoapEnvelopeBodyImportDoc struct {
+type EnvelopeBodyImportDoc struct {
 	XMLName   xml.Name `xml:"soapenv:Body"`
-	ImportDoc SoapImportDoc
+	ImportDoc ImportDoc
 }
 
-type SoapImportDoc struct {
+type ImportDoc struct {
 	XMLName         xml.Name `xml:"web:importDoc"`
 	UserName        string   `xml:"username"`
 	Password        string   `xml:"password"`
 	ControlFilePath string   `xml:"ControlFile"`
+}
+
+type EnvelopeImportDocResponse struct {
+	XMLName xml.Name `xml:"Envelope"`
+	SoapNs  string   `xml:"xmlns:SOAP-ENV,attr"`
+	DimagNs string   `xml:"xmlns:ns1,attr"`
+	Body    ImportDocResponseBody
+}
+
+type ImportDocResponseBody struct {
+	XMLName           xml.Name `xml:"Body"`
+	ImportDocResponse ImportDocResponse
+}
+
+type ImportDocResponse struct {
+	XMLName xml.Name `xml:"importDocResponse"`
+	Status  uint     `xml:"status"`
+	Message string   `xml:"msg"`
 }

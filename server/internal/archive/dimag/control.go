@@ -48,7 +48,7 @@ func GenerateControlFile(
 	}
 	ioItems := []IndexItem{ioIndexItem}
 	dimagControl := DimagControl{
-		RootID:     "test-42",
+		RootID:     "test-219",
 		IndexItems: ioItems,
 	}
 	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")
