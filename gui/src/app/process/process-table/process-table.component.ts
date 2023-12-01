@@ -38,6 +38,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     ];
     this.dataSource = new MatTableDataSource<Process>();
     this.dataSource.sortingDataAccessor = (item: Process, property: string) => {
+      // TODO: fix
       switch (property) {
         case 'receivedAt':
           return item.receivedAt;
@@ -54,7 +55,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
         case 'message0503':
           return (!!item.message0503).toString();
         case 'archivingComplete':
-          return (!!item.archivingComplete).toString();
+          return (!!item.processState.archiving.complete).toString();
         default:
           throw new Error('sorting error: unhandled column');
       }

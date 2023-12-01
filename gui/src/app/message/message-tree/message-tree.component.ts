@@ -27,6 +27,7 @@ import {
   StructureNodeType,
 } from '../message.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
+import { Process, ProcessService } from 'src/app/process/process.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
@@ -49,6 +50,7 @@ export interface FlatNode {
 })
 export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
+  process?: Process;
   message?: Message;
   showAppraisal: boolean;
   messageTreeInit: boolean;
@@ -78,7 +80,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     @Inject(DOCUMENT) private document: Document,
     private messageService: MessageService,
     private notificationService: NotificationService,
-    private route: ActivatedRoute
+    private processService: ProcessService,
+    private route: ActivatedRoute,
   ) {
     this.messageTreeInit = true;
     this.showAppraisal = true;
@@ -109,7 +112,12 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             return this.messageService.getMessage(params['id']);
           }),
           switchMap((message: Message) => {
-            this.initTree(message);
+            this.message = message;
+            return this.processService.getProcessByXdomeaID(message.messageHead.processID);
+          }),
+          switchMap((process: Process) => {
+            this.process = process;
+            this.initTree();
             return this.route.firstChild!.params;
           })
         )
@@ -132,37 +140,43 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         .pipe(
           switchMap((params: Params) => {
             return this.messageService.getMessage(params['id']);
-          })
+          }),
+          switchMap((message: Message) => {
+            this.message = message;
+            return this.processService.getProcessByXdomeaID(message.messageHead.processID);
+          }),
         )
-        .subscribe((message: Message) => {
-          this.initTree(message);
+        .subscribe((process: Process) => {
+          this.process = process;
+          this.initTree();
         });
     }
   }
 
-  initTree(message: Message): void {
-    this.message = message;
-    this.showAppraisal = this.message.messageType.code === '0501';
-    const treeData: StructureNode[] = [];
-    const messageNode = this.messageService.processMessage(message);
-    treeData.push(messageNode);
-    this.dataSource.data = treeData;
-    this.expandNode(messageNode.id);
-    // updating the whole tree loses all informationen on expanded nodes
-    // this.messageService
-    //   .watchStructureNodes()
-    //   .subscribe((nodes: StructureNode[]) => {
-    //     this.dataSource.data = nodes;
-    //   });
-    this.messageService
-      .watchNodeChanges()
-      .subscribe((changedNode: StructureNode) => {
-        // TODO: find better solution than manipulating the flat nodes directly
-        this.updateFlatNodeInTreeControlRec(changedNode);
-        // initialize next nodes with root nodes of tree
-        // update the changed node doesn't trigger updates of the corresponding flat node
-        //this.updateNodeInDataSource(changedNode);
-      });
+  initTree(): void {
+    if (this.message) {
+      this.showAppraisal = this.message.messageType.code === '0501';
+      const treeData: StructureNode[] = [];
+      const messageNode = this.messageService.processMessage(this.message);
+      treeData.push(messageNode);
+      this.dataSource.data = treeData;
+      this.expandNode(messageNode.id);
+      // updating the whole tree loses all informationen on expanded nodes
+      // this.messageService
+      //   .watchStructureNodes()
+      //   .subscribe((nodes: StructureNode[]) => {
+      //     this.dataSource.data = nodes;
+      //   });
+      this.messageService
+        .watchNodeChanges()
+        .subscribe((changedNode: StructureNode) => {
+          // TODO: find better solution than manipulating the flat nodes directly
+          this.updateFlatNodeInTreeControlRec(changedNode);
+          // initialize next nodes with root nodes of tree
+          // update the changed node doesn't trigger updates of the corresponding flat node
+          //this.updateNodeInDataSource(changedNode);
+        });
+    }
   }
 
   // updates flat node and all children

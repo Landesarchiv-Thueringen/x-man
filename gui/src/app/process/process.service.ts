@@ -5,12 +5,14 @@ import { environment } from '../../environments/environment';
 import { Message } from '../message/message.service';
 import { ProcessingError } from '../clearing/clearing.service';
 
+// utility
+import { Observable } from 'rxjs';
+
 export interface Process {
   id: string;
   xdomeaID: string;
   receivedAt: string;
   institution: string;
-  archivingComplete: boolean;
   message0501: Message;
   message0503: Message;
   processingErrors: ProcessingError[];
@@ -45,5 +47,9 @@ export class ProcessService {
 
   getProcesses() {
     return this.httpClient.get<Process[]>(this.apiEndpoint + '/processes');
+  }
+
+  getProcessByXdomeaID(id: string): Observable<Process> {
+    return this.httpClient.get<Process>(this.apiEndpoint + '/process-by-xdomea-id/' + id);
   }
 }

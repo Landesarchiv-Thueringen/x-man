@@ -35,6 +35,7 @@ func main() {
 	router.GET("api", getDefaultResponse)
 	router.GET("api/processing-errors", getProcessingErrors)
 	router.GET("api/processes", getProcesses)
+	router.GET("api/process-by-xdomea-id/:id", getProcessByXdomeaID)
 	router.GET("api/messages/0501", get0501Messages)
 	router.GET("api/messages/0503", get0503Messages)
 	router.GET("api/message/:id", getMessageByID)
@@ -77,6 +78,20 @@ func getDefaultResponse(context *gin.Context) {
 func getProcessingErrors(context *gin.Context) {
 	processingErrors := db.GetProcessingErrors()
 	context.JSON(http.StatusOK, processingErrors)
+}
+
+func getProcessByXdomeaID(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	process, err := db.GetProcessByXdomeaID(id.String())
+	if err != nil {
+		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	context.JSON(http.StatusOK, process)
 }
 
 func getProcesses(context *gin.Context) {

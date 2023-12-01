@@ -116,10 +116,16 @@
                             <span>Abgabe anzeigen</span>
                         </button>
                     </ng-container>
-                    <ng-container *ngIf="process.message0503 && !process.message0503.archivingComplete">
+                    <ng-container *ngIf="process.message0503 && !process.processState.archiving.complete">
                         <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
                             <mat-icon>edit_note</mat-icon>
                             <span>Abgabe bearbeiten</span>
+                        </button>
+                    </ng-container>
+                    <ng-container *ngIf="process.message0503 && process.processState.archiving.complete">
+                        <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
+                            <mat-icon>search</mat-icon>
+                            <span>Abgabe anzeigen</span>
                         </button>
                     </ng-container>
                 </mat-menu>
