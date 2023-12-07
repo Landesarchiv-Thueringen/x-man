@@ -54,6 +54,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   message?: Message;
   showAppraisal: boolean;
   messageTreeInit: boolean;
+  showSelection: boolean;
 
   @ViewChild('messageTree')
   messageTree?: MatTree<StructureNode>;
@@ -81,10 +82,11 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     private messageService: MessageService,
     private notificationService: NotificationService,
     private processService: ProcessService,
-    private route: ActivatedRoute,
+    private route: ActivatedRoute
   ) {
     this.messageTreeInit = true;
     this.showAppraisal = true;
+    this.showSelection = false;
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
       (node) => node.expandable
@@ -113,7 +115,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           }),
           switchMap((message: Message) => {
             this.message = message;
-            return this.processService.getProcessByXdomeaID(message.messageHead.processID);
+            return this.processService.getProcessByXdomeaID(
+              message.messageHead.processID
+            );
           }),
           switchMap((process: Process) => {
             this.process = process;
@@ -131,7 +135,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             const nodeElement: HTMLElement | null =
               this.document.getElementById(nodeID);
             if (nodeElement) {
-              nodeElement.scrollIntoView({block: 'center'});
+              nodeElement.scrollIntoView({ block: 'center' });
             }
           }
         });
@@ -143,14 +147,20 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           }),
           switchMap((message: Message) => {
             this.message = message;
-            return this.processService.getProcessByXdomeaID(message.messageHead.processID);
-          }),
+            return this.processService.getProcessByXdomeaID(
+              message.messageHead.processID
+            );
+          })
         )
         .subscribe((process: Process) => {
           this.process = process;
           this.initTree();
         });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.urlParameterSubscription?.unsubscribe;
   }
 
   initTree(): void {
@@ -265,10 +275,6 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.urlParameterSubscription?.unsubscribe;
-  }
-
   copyMessageUrl() {
     this.clipboard.copy(this.document.location.toString());
     this.notificationService.show(
@@ -284,8 +290,16 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         },
         next: () => {
           console.log('yeah');
-        }
+        },
       });
     }
+  }
+
+  enableSelection(): void {
+    this.showSelection = true;
+  }
+
+  disableSelection(): void {
+    this.showSelection = false;
   }
 }

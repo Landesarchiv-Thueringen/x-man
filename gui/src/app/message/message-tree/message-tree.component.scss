@@ -37,10 +37,11 @@
       border-radius: 30px;
       margin-bottom: 0.8em;
       margin-right: 2.0em;
+      cursor: pointer;
+      
       &:hover {
         background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
       }
-      cursor: pointer;
 
       .node-info {
         display: flex;
