@@ -7,108 +7,122 @@
   flex-direction: column;
   overflow: auto;
   flex-grow: 1;
+}
 
-  mat-sidenav-container  {
-    flex-grow: 1;
+mat-sidenav-container  {
+  flex-grow: 1;
 
-    mat-sidenav {
-      width: 55.0em;
-      padding: 1em;
-      padding-right: 0.0em;
-    }
+  mat-sidenav {
+    width: 55.0em;
   }
+}
+
+.messsage-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+mat-toolbar {
+  margin-top: 0.5em;
+  flex-shrink: 0;
+  background-color: white;
+}
+  
+.message-tree {
+
+  flex-grow: 1;
+  overflow: auto;
+  margin-top: 1.0em;
+  
+  .active {
+    background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
+  }
+
+  .root-node {
+    position: sticky;
+    top: 0px;
+    background-color: white;
+    z-index: 2;
+  }
+
+  .node {
+    display: flex;
+    width: 100%;
+    border-radius: 30px;
+    margin-bottom: 0.8em;
+    margin-right: 2.0em;
+    cursor: pointer;
     
-  .message-tree {
-    
-    .active {
-      background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
+    &:hover {
+      background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
     }
 
-    .root-node {
-      position: sticky;
-      top: 0px;
-      background-color: white;
-      z-index: 2;
-    }
-
-    .node {
+    .node-info {
       display: flex;
-      width: 100%;
-      border-radius: 30px;
-      margin-bottom: 0.8em;
-      margin-right: 2.0em;
-      cursor: pointer;
+      flex-direction: row;
+      align-items:center;
       
-      &:hover {
-        background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
-      }
-
-      .node-info {
-        display: flex;
-        flex-direction: row;
-        align-items:center;
-        
-        .mat-icon {
-          // important icons shrink when overflow occurs
-          flex-shrink: 0;
-        }
-    
-        .node-title {
-          display: flex;
-          flex-direction: column;
-          word-break: break-word;
-          padding-right: 4.0em;
-    
-          .node-subtitle-line {
-            font-weight: 500;
-          }
-        }
-      }
-
-      .file-icon {
-        color: mat.get-color-from-palette(mat.$indigo-palette, 500);
-        margin-right: 0.5em;
-      }
-    
-      .process-icon {
-        color: green;
-        margin-right: 0.5em;
-      }
-    
-      .document-icon {
-        color: orange;
-        margin-right: 0.5em;
-      }
-
-      .primary-documents-icon {
-        color: mat.get-color-from-palette(mat.$indigo-palette, 500);
-        margin-right: 0.5em;
-      }
-
-      .message-menu {
-        display: flex;
-        flex-grow: 1;
-  
-        .spacer {
-          flex: 1 1 auto;
-        }
+      .mat-icon {
+        // important icons shrink when overflow occurs
+        flex-shrink: 0;
       }
   
-      .node-appraisal {
+      .node-title {
         display: flex;
-        align-items: center;
-        flex-grow: 1;
-        font-weight: bold;
+        flex-direction: column;
+        word-break: break-word;
+        padding-right: 4.0em;
   
-        .spacer {
-          flex: 1 1 auto;
-        }
-
-        .appraisal-symbol {
-          width: 48px; // icon width for alignment
-          text-align: center;
+        .node-subtitle-line {
+          font-weight: 500;
         }
       }
     }
+
+    .message-menu {
+      display: flex;
+      flex-grow: 1;
+
+      .spacer {
+        flex: 1 1 auto;
+      }
+    }
+
+    .node-appraisal {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      font-weight: bold;
+
+      .spacer {
+        flex: 1 1 auto;
+      }
+
+      .appraisal-symbol {
+        width: 48px; // icon width for alignment
+        text-align: center;
+      }
+    }
   }
+}
+
+.file-icon {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  margin-right: 0.5em;
+}
+
+.process-icon {
+  color: green;
+  margin-right: 0.5em;
+}
+
+.document-icon {
+  color: orange;
+  margin-right: 0.5em;
+}
+
+.primary-documents-icon {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  margin-right: 0.5em;
 }
