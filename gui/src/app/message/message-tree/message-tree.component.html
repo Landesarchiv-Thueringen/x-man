@@ -77,7 +77,7 @@
               <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
                 <span class="spacer"></span>
                 <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal}}</span>
-                <mat-checkbox *ngIf="showSelection" (click)="$event.stopPropagation()"></mat-checkbox>
+                <mat-checkbox *ngIf="showSelection" (click)="$event.stopPropagation()" (change)="selectItem($event, node.id)"></mat-checkbox>
               </div>
             </div>
 

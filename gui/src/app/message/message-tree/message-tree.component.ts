@@ -55,6 +55,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   showAppraisal: boolean;
   messageTreeInit: boolean;
   showSelection: boolean;
+  selectedNodes: string[];
 
   @ViewChild('messageTree')
   messageTree?: MatTree<StructureNode>;
@@ -85,8 +86,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     private route: ActivatedRoute
   ) {
     this.messageTreeInit = true;
-    this.showAppraisal = true;
+    this.showAppraisal = false;
     this.showSelection = false;
+    this.selectedNodes = [];
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
       (node) => node.expandable
@@ -300,6 +302,15 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   }
 
   disableSelection(): void {
+    this.selectedNodes = [];
     this.showSelection = false;
+  }
+
+  selectItem(event: any, id: string): void {
+    if (event.checked) {
+      this.selectedNodes.push(id);
+    } else {
+      this.selectedNodes = this.selectedNodes.filter(nodeID => nodeID !== id);
+    }
   }
 }
