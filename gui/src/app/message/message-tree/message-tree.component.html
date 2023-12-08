@@ -72,35 +72,12 @@
                   </div>
                   <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
                 </div>
-
-              </div>
-
-              <div *ngIf="node.type === 'message'" class="message-menu">
-                <span class="spacer"></span>
-                <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-                  <mat-icon>more_horiz</mat-icon>
-                </button>
-                <mat-menu #menu="matMenu">
-                  <button *ngIf="!message?.appraisalComplete" mat-menu-item (click)="sendAppraisalMessage()">
-                    <mat-icon>forward_to_inbox</mat-icon>
-                    <span>Bewertung senden</span>
-                  </button>
-                  <button *ngIf="message?.messageType?.code === '0503' && !process?.processState?.archiving?.complete" 
-                    mat-menu-item (click)="archive0503Message()">
-                    <mat-icon>archive</mat-icon>
-                    <span>Abgabe archivieren</span>
-                  </button>
-                  <button mat-menu-item (click)="copyMessageUrl()">
-                    <mat-icon>content_copy</mat-icon>
-                    <span>Nachrichten-Link kopieren</span>
-                  </button>
-                </mat-menu>
               </div>
 
               <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
                 <span class="spacer"></span>
                 <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal}}</span>
-                <mat-checkbox *ngIf="showAppraisal && node.type !== 'message' && showSelection" (click)="$event.stopPropagation()"></mat-checkbox>
+                <mat-checkbox *ngIf="showSelection" (click)="$event.stopPropagation()"></mat-checkbox>
               </div>
             </div>
 
@@ -108,16 +85,30 @@
               
         </mat-tree>
 
-        <mat-toolbar *ngIf="!showSelection" class="message-actions">
-          <button mat-fab extended color="primary" (click)="enableSelection()">
+        <mat-toolbar *ngIf="process && message && !showSelection" class="message-actions">
+          <button mat-fab extended *ngIf="!message.appraisalComplete" (click)="sendAppraisalMessage()">
+            <mat-icon>forward_to_inbox</mat-icon>
+            <span>Bewertung senden</span>
+          </button>
+          <button mat-fab extended 
+            *ngIf="message.messageType.code === '0503' && !process.processState.archiving.complete" 
+            (click)="archive0503Message()">
+            <mat-icon>archive</mat-icon>
+            <span>Abgabe archivieren</span>
+          </button>
+          <button *ngIf="!message.appraisalComplete" mat-fab extended color="primary" (click)="enableSelection()">
             <mat-icon>
               check_box
             </mat-icon>
             Mehrfachbewertung
           </button>
+          <button mat-fab extended (click)="copyMessageUrl()">
+            <mat-icon>content_copy</mat-icon>
+            <span>Objekt-Link kopieren</span>
+          </button>
         </mat-toolbar>
 
-        <mat-toolbar *ngIf="showSelection" class="appraisal-actions">
+        <mat-toolbar *ngIf="process && message && showSelection" class="appraisal-actions">
           <button mat-fab extended color="warn" (click)="disableSelection()">
             <mat-icon>
               cancel

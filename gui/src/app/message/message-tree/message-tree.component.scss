@@ -24,8 +24,10 @@ mat-sidenav-container  {
 }
 
 mat-toolbar {
+  display: flex;
   margin-top: 0.5em;
   flex-shrink: 0;
+  column-gap: 0.5em;
   background-color: white;
 }
   
@@ -77,15 +79,6 @@ mat-toolbar {
         .node-subtitle-line {
           font-weight: 500;
         }
-      }
-    }
-
-    .message-menu {
-      display: flex;
-      flex-grow: 1;
-
-      .spacer {
-        flex: 1 1 auto;
       }
     }
 
