@@ -3,6 +3,11 @@ services:
   database:
     container_name: xman-database
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     build:
       context: ./server/database
       dockerfile: dockerfile_database
@@ -28,7 +33,8 @@ services:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
       - HTTP_PROXY=${HTTP_PROXY}
