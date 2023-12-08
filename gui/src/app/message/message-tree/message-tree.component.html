@@ -86,17 +86,24 @@
         </mat-tree>
 
         <mat-toolbar *ngIf="process && message && !showSelection" class="message-actions">
-          <button mat-fab extended *ngIf="!message.appraisalComplete" (click)="sendAppraisalMessage()">
+          <button mat-fab extended 
+            *ngIf="!message.appraisalComplete"
+            color="primary"
+            (click)="sendAppraisalMessage()">
             <mat-icon>forward_to_inbox</mat-icon>
             <span>Bewertung senden</span>
           </button>
           <button mat-fab extended 
-            *ngIf="message.messageType.code === '0503' && !process.processState.archiving.complete" 
+            *ngIf="message.messageType.code === '0503' && !process.processState.archiving.complete"
+            color="primary"
             (click)="archive0503Message()">
             <mat-icon>archive</mat-icon>
             <span>Abgabe archivieren</span>
           </button>
-          <button *ngIf="!message.appraisalComplete" mat-fab extended color="primary" (click)="enableSelection()">
+          <button mat-fab extended 
+            *ngIf="!message.appraisalComplete"
+            color="primary" 
+            (click)="enableSelection()">
             <mat-icon>
               check_box
             </mat-icon>
