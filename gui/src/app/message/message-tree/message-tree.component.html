@@ -107,7 +107,7 @@
             <mat-icon>
               check_box
             </mat-icon>
-            Mehrfachbewertung
+            Mehrfachauswahl
           </button>
           <button mat-fab extended (click)="copyMessageUrl()">
             <mat-icon>content_copy</mat-icon>
@@ -116,11 +116,20 @@
         </mat-toolbar>
 
         <mat-toolbar *ngIf="process && message && showSelection" class="appraisal-actions">
+          <button mat-fab extended 
+            color="primary" 
+            (click)="disableSelection()" 
+            [disabled]="this.selectedNodes.length === 0">
+            <mat-icon>
+              checklist
+            </mat-icon>
+            Bewerten
+          </button>
           <button mat-fab extended color="warn" (click)="disableSelection()">
             <mat-icon>
               cancel
             </mat-icon>
-            abbrechen
+            Abbrechen
           </button>
         </mat-toolbar>
 

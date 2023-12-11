@@ -684,6 +684,7 @@ func UpdateProcessStep(processStep ProcessStep) error {
 func SetFileRecordObjectAppraisal(
 	id uuid.UUID,
 	appraisalCode string,
+	recursiv bool,
 ) (FileRecordObject, error) {
 	fileRecordObject, err := GetFileRecordObjectByID(id)
 	if err != nil {
@@ -705,10 +706,13 @@ func SetFileRecordObjectAppraisal(
 	if result.Error != nil {
 		return fileRecordObject, result.Error
 	}
-	for _, process := range fileRecordObject.Processes {
-		_, err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
-		if err != nil {
-			return fileRecordObject, err
+	// set appraisal for child elements if recursiv appraisal was choosen
+	if recursiv {
+		for _, process := range fileRecordObject.Processes {
+			_, err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
+			if err != nil {
+				return fileRecordObject, err
+			}
 		}
 	}
 	fileRecordObject, err = GetFileRecordObjectByID(id)

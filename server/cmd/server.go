@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/xml"
 	"errors"
+	"io"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
@@ -51,6 +53,7 @@ func main() {
 	router.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("api/finalize-message-appraisal/:id", finalizeMessageAppraisal)
+	router.PATCH("api/multi-appraisal", setAppraisalForMultipleRecorcObjects)
 	router.PATCH("api/archive-0503-message/:id", archive0503Message)
 	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
 	router.Run(addr)
@@ -203,7 +206,7 @@ func setFileRecordObjectAppraisal(context *gin.Context) {
 		return
 	}
 	appraisalCode := context.Query("appraisal")
-	fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode)
+	fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode, true)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
@@ -264,6 +267,50 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		return
 	}
 	messagestore.Store0502Message(message)
+}
+
+type MultiAppraisalBody struct {
+	FileRecordObjectIDs    []string `json:"fileRecordObjectIDs"`
+	ProcessRecordObjectIDs []string `json:"processRecordObjectIDs"`
+	AppraisalCode          string   `json:"appraisalCode"`
+}
+
+func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
+	jsonBody, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	var parsedBody MultiAppraisalBody
+	err = xml.Unmarshal(jsonBody, &parsedBody)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	for _, objectID := range parsedBody.FileRecordObjectIDs {
+		id, err := uuid.Parse(objectID)
+		if err != nil {
+			context.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		_, err = db.SetFileRecordObjectAppraisal(id, parsedBody.AppraisalCode, false)
+		if err != nil {
+			context.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+	for _, objectID := range parsedBody.ProcessRecordObjectIDs {
+		id, err := uuid.Parse(objectID)
+		if err != nil {
+			context.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		_, err = db.SetProcessRecordObjectAppraisal(id, parsedBody.AppraisalCode)
+		if err != nil {
+			context.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {

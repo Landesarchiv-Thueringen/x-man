@@ -557,6 +557,32 @@ export class MessageService {
     return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 
+  setAppraisalForMultipleRecorcObjects(recordObjectIDs: string[], appraisalCode: string) {
+    const fileRecordObjectIDs: string[] = [];
+    const processRecordObjectIDs: string[] = [];
+    for (let id of recordObjectIDs) {
+      const node: StructureNode|undefined = this.structureNodes.get(id);
+      if (!node) {
+        throw new Error('record object ID not found');
+      }
+      if (node.type === 'file') {
+        fileRecordObjectIDs.push(node.id);
+      } else if (node.type === 'process') {
+        processRecordObjectIDs.push(node.id);
+      } else {
+        throw new Error('appraisal can only be set for file and process record objects');
+      }
+    }
+    const url = this.apiEndpoint + '/multi-appraisal';
+    const body = {
+      fileRecordObjectIDs: fileRecordObjectIDs,
+      processRecordObjectIDs: processRecordObjectIDs,
+      appraisalCode: appraisalCode,
+    }
+    const options = {};
+    return this.httpClient.patch<void>(url, body, options);
+  }
+
   updateStructureNode(
     recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject
   ): void {
