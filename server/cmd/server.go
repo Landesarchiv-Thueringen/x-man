@@ -275,6 +275,11 @@ type MultiAppraisalBody struct {
 	AppraisalCode          string   `json:"appraisalCode"`
 }
 
+type MultiAppraisalResponse struct {
+	UpdatedFileRecordObjects    []db.FileRecordObject    `json:"updatedFileRecordObjects"`
+	UpdatedProcessRecordObjects []db.ProcessRecordObject `json:"updatedProcessRecordObjects"`
+}
+
 func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 	jsonBody, err := io.ReadAll(context.Request.Body)
 	if err != nil {
@@ -287,30 +292,39 @@ func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
+	updatedFileRecordObjects := []db.FileRecordObject{}
 	for _, objectID := range parsedBody.FileRecordObjectIDs {
 		id, err := uuid.Parse(objectID)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		_, err = db.SetFileRecordObjectAppraisal(id, parsedBody.AppraisalCode, false)
+		fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, parsedBody.AppraisalCode, false)
 		if err != nil {
 			context.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+		updatedFileRecordObjects = append(updatedFileRecordObjects, fileRecordObject)
 	}
+	updatedProcessRecordObjects := []db.ProcessRecordObject{}
 	for _, objectID := range parsedBody.ProcessRecordObjectIDs {
 		id, err := uuid.Parse(objectID)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		_, err = db.SetProcessRecordObjectAppraisal(id, parsedBody.AppraisalCode)
+		processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, parsedBody.AppraisalCode)
 		if err != nil {
 			context.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+		updatedProcessRecordObjects = append(updatedProcessRecordObjects, processRecordObject)
 	}
+	response := MultiAppraisalResponse{
+		UpdatedFileRecordObjects:    updatedFileRecordObjects,
+		UpdatedProcessRecordObjects: updatedProcessRecordObjects,
+	}
+	context.JSON(http.StatusOK, response)
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {

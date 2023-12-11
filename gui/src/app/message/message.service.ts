@@ -215,6 +215,11 @@ export interface StructureNode {
   children?: StructureNode[];
 }
 
+export interface MultiAppraisalResponse {
+  updatedFileRecordObjects: FileRecordObject[];
+  updatedProcessRecordObjects: ProcessRecordObject[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -272,7 +277,7 @@ export class MessageService {
 
   processMessage(message: Message): StructureNode {
     const children: StructureNode[] = [];
-    if ((message.messageType?.code === '0503')) {
+    if (message.messageType?.code === '0503') {
       children.push(this.getPrimaryDocumentsNode(message.id));
     }
     for (let recordObject of message.recordObjects) {
@@ -557,11 +562,14 @@ export class MessageService {
     return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 
-  setAppraisalForMultipleRecorcObjects(recordObjectIDs: string[], appraisalCode: string) {
+  setAppraisalForMultipleRecorcObjects(
+    recordObjectIDs: string[],
+    appraisalCode: string
+  ): Observable<MultiAppraisalResponse> {
     const fileRecordObjectIDs: string[] = [];
     const processRecordObjectIDs: string[] = [];
     for (let id of recordObjectIDs) {
-      const node: StructureNode|undefined = this.structureNodes.get(id);
+      const node: StructureNode | undefined = this.structureNodes.get(id);
       if (!node) {
         throw new Error('record object ID not found');
       }
@@ -570,7 +578,9 @@ export class MessageService {
       } else if (node.type === 'process') {
         processRecordObjectIDs.push(node.id);
       } else {
-        throw new Error('appraisal can only be set for file and process record objects');
+        throw new Error(
+          'appraisal can only be set for file and process record objects'
+        );
       }
     }
     const url = this.apiEndpoint + '/multi-appraisal';
@@ -578,10 +588,9 @@ export class MessageService {
       fileRecordObjectIDs: fileRecordObjectIDs,
       processRecordObjectIDs: processRecordObjectIDs,
       appraisalCode: appraisalCode,
-    }
-    console.log(body);
+    };
     const options = {};
-    return this.httpClient.patch<void>(url, body, options);
+    return this.httpClient.patch<MultiAppraisalResponse>(url, body, options);
   }
 
   updateStructureNode(

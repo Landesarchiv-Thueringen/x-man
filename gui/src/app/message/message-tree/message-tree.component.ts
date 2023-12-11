@@ -25,6 +25,7 @@ import {
   DisplayText,
   Message,
   MessageService,
+  MultiAppraisalResponse,
   StructureNode,
   StructureNodeType,
 } from '../message.service';
@@ -252,22 +253,6 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     return undefined;
   }
 
-  sendAppraisalMessage(): void {
-    if (this.message) {
-      this.messageService.finalizeMessageAppraisal(this.message.id).subscribe({
-        error: (error) => {
-          console.error(error);
-        },
-        next: () => {
-          this.notificationService.show(
-            'Bewertungsnachricht wurde erfolgreich versandt'
-          );
-          this.message!.appraisalComplete = true;
-        },
-      });
-    }
-  }
-
   expandNode(id: string): void {
     const node: FlatNode | undefined = this.treeControl.dataNodes.find(
       (n: FlatNode) => n.id === id
@@ -277,26 +262,6 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
       if (node.parentID) {
         this.expandNode(node.parentID);
       }
-    }
-  }
-
-  copyMessageUrl() {
-    this.clipboard.copy(this.document.location.toString());
-    this.notificationService.show(
-      'Nachrichten-Link in Zwischenspeicher kopiert'
-    );
-  }
-
-  archive0503Message() {
-    if (this.message) {
-      this.messageService.archive0503Message(this.message.id).subscribe({
-        error: (error: any) => {
-          console.error(error);
-        },
-        next: () => {
-          console.log('yeah');
-        },
-      });
     }
   }
 
@@ -315,6 +280,13 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     } else {
       this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== id);
     }
+  }
+
+  copyMessageUrl() {
+    this.clipboard.copy(this.document.location.toString());
+    this.notificationService.show(
+      'Nachrichten-Link in Zwischenspeicher kopiert'
+    );
   }
 
   setAppraisalForMultipleRecorcObjects(): void {
@@ -336,10 +308,45 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           this.notificationService.show('Bewertung konnte nicht gespeichert werden');
           this.disableSelection();
         },
-        next: () => {
+        next: (response: MultiAppraisalResponse) => {
+          for (let fileRecordObject of response.updatedFileRecordObjects) {
+            this.messageService.updateStructureNode(fileRecordObject);
+          }
+          for (let processRecordObject of response.updatedProcessRecordObjects) {
+            this.messageService.updateStructureNode(processRecordObject);
+          }
           this.notificationService.show('Bewertung erfolgreich gespeichert');
           this.disableSelection();
         }
       });
+  }
+
+  sendAppraisalMessage(): void {
+    if (this.message) {
+      this.messageService.finalizeMessageAppraisal(this.message.id).subscribe({
+        error: (error) => {
+          console.error(error);
+        },
+        next: () => {
+          this.notificationService.show(
+            'Bewertungsnachricht wurde erfolgreich versandt'
+          );
+          this.message!.appraisalComplete = true;
+        },
+      });
+    }
+  }
+
+  archive0503Message() {
+    if (this.message) {
+      this.messageService.archive0503Message(this.message.id).subscribe({
+        error: (error: any) => {
+          console.error(error);
+        },
+        next: () => {
+          console.log('yeah');
+        },
+      });
+    }
   }
 }
