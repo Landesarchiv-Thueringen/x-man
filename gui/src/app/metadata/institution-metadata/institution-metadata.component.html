@@ -1,19 +1,16 @@
 <form [formGroup]="form">
-    <mat-expansion-panel [expanded]="true"> 
-        <mat-expansion-panel-header>
-            <mat-panel-title>
-                Institution
-        </mat-panel-title>
-        </mat-expansion-panel-header>
-        <div class="metadata">
-            <mat-form-field class="abbrevation-input" appearance="outline">
-                <mat-label>Kurzbezeichnung</mat-label>
-                <input matInput formControlName="abbrevation" readonly>
-            </mat-form-field>
-            <mat-form-field class="name-input" appearance="outline">
-                <mat-label>Name</mat-label>
-                <input matInput formControlName="name" readonly>
-            </mat-form-field>
-        </div>
-    </mat-expansion-panel>
+
+    <h4>Institution</h4>
+
+    <div class="metadata">
+        <mat-form-field class="abbrevation-input" appearance="outline">
+            <mat-label>Kurzbezeichnung</mat-label>
+            <input matInput formControlName="abbrevation" readonly>
+        </mat-form-field>
+        <mat-form-field class="name-input" appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" readonly>
+        </mat-form-field>
+    </div>
+
 </form>
