@@ -17,9 +17,6 @@
       <mat-label>Interner Bewertungsvermerk</mat-label>
       <textarea #appraisalNote matInput formControlName="appraisalNote" rows="7">
       </textarea>
-      <mat-error *ngIf="form.controls['appraisalNote'].hasError('required')">
-        Pflichtfeld
-      </mat-error>
     </mat-form-field>
 
   </mat-dialog-content>

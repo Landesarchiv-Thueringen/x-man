@@ -314,13 +314,14 @@ type Lifetime struct {
 }
 
 type ArchiveMetadata struct {
-	XMLName             xml.Name       `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
-	ID                  uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt           time.Time      `json:"-"`
-	UpdatedAt           time.Time      `json:"-"`
-	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
-	AppraisalCode       *string        `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
-	AppraisalRecommCode *string        `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
+	XMLName               xml.Name       `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
+	ID                    uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt             time.Time      `json:"-"`
+	UpdatedAt             time.Time      `json:"-"`
+	DeletedAt             gorm.DeletedAt `gorm:"index" json:"-"`
+	AppraisalCode         *string        `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
+	AppraisalRecommCode   *string        `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
+	InternalAppraisalNote *string        `json:"internalAppraisalNote"`
 }
 
 // code list entries

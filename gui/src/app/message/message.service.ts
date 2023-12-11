@@ -166,6 +166,7 @@ export interface ArchiveMetadata {
   id: number;
   appraisalCode: string;
   appraisalRecommCode: string;
+  internalAppraisalNote?: string;
 }
 
 export interface RecordObjectAppraisal {

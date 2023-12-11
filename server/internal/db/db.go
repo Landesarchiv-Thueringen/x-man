@@ -690,6 +690,7 @@ func SetFileRecordObjectAppraisal(
 	if err != nil {
 		return fileRecordObject, err
 	}
+	// check if message appraisal is already completed, if true return error
 	message, err := GetCompleteMessageByID(fileRecordObject.MessageID)
 	if err != nil {
 		return fileRecordObject, err
@@ -701,8 +702,16 @@ func SetFileRecordObjectAppraisal(
 	if err != nil {
 		return fileRecordObject, err
 	}
-	fileRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
-	result := db.Save(&fileRecordObject.ArchiveMetadata)
+	// check if archiv metadata exists already, if not create it
+	var archiveMetadata ArchiveMetadata
+	if fileRecordObject.ArchiveMetadata == nil {
+		archiveMetadata = ArchiveMetadata{}
+	} else {
+		archiveMetadata = *fileRecordObject.ArchiveMetadata
+	}
+	// set appraisal
+	archiveMetadata.AppraisalCode = &appraisal.Code
+	result := db.Save(&archiveMetadata)
 	if result.Error != nil {
 		return fileRecordObject, result.Error
 	}
@@ -722,6 +731,38 @@ func SetFileRecordObjectAppraisal(
 	return fileRecordObject, nil
 }
 
+func SetFileRecordObjectAppraisalNote(
+	id uuid.UUID,
+	appraisalNote string,
+) (FileRecordObject, error) {
+	fileRecordObject, err := GetFileRecordObjectByID(id)
+	if err != nil {
+		return fileRecordObject, err
+	}
+	// check if message appraisal is already completed, if true return error
+	message, err := GetCompleteMessageByID(fileRecordObject.MessageID)
+	if err != nil {
+		return fileRecordObject, err
+	}
+	if message.AppraisalComplete {
+		return fileRecordObject, errors.New("message appraisal already finished")
+	}
+	// check if archiv metadata exists already, if not create it
+	var archiveMetadata ArchiveMetadata
+	if fileRecordObject.ArchiveMetadata == nil {
+		archiveMetadata = ArchiveMetadata{}
+	} else {
+		archiveMetadata = *fileRecordObject.ArchiveMetadata
+	}
+	// set note
+	archiveMetadata.InternalAppraisalNote = &appraisalNote
+	result := db.Save(&archiveMetadata)
+	if result.Error != nil {
+		return fileRecordObject, result.Error
+	}
+	return fileRecordObject, nil
+}
+
 func SetProcessRecordObjectAppraisal(
 	id uuid.UUID,
 	appraisalCode string,
@@ -730,6 +771,7 @@ func SetProcessRecordObjectAppraisal(
 	if err != nil {
 		return processRecordObject, err
 	}
+	// check if message appraisal is already completed, if true return error
 	message, err := GetCompleteMessageByID(processRecordObject.MessageID)
 	if err != nil {
 		return processRecordObject, err
@@ -741,8 +783,16 @@ func SetProcessRecordObjectAppraisal(
 	if err != nil {
 		return processRecordObject, err
 	}
-	processRecordObject.ArchiveMetadata.AppraisalCode = &appraisal.Code
-	result := db.Save(&processRecordObject.ArchiveMetadata)
+	// check if archiv metadata exists already, if not create it
+	var archiveMetadata ArchiveMetadata
+	if processRecordObject.ArchiveMetadata == nil {
+		archiveMetadata = ArchiveMetadata{}
+	} else {
+		archiveMetadata = *processRecordObject.ArchiveMetadata
+	}
+	// set appraisal
+	archiveMetadata.AppraisalCode = &appraisal.Code
+	result := db.Save(&archiveMetadata)
 	if result.Error != nil {
 		return processRecordObject, result.Error
 	}
@@ -751,6 +801,38 @@ func SetProcessRecordObjectAppraisal(
 		return processRecordObject, err
 	}
 	return processRecordObject, result.Error
+}
+
+func SetProcessRecordObjectAppraisalNote(
+	id uuid.UUID,
+	appraisalNote string,
+) (ProcessRecordObject, error) {
+	processRecordObject, err := GetProcessRecordObjectByID(id)
+	if err != nil {
+		return processRecordObject, err
+	}
+	// check if message appraisal is already completed, if true return error
+	message, err := GetCompleteMessageByID(processRecordObject.MessageID)
+	if err != nil {
+		return processRecordObject, err
+	}
+	if message.AppraisalComplete {
+		return processRecordObject, errors.New("message appraisal already finished")
+	}
+	// check if archiv metadata exists already, if not create it
+	var archiveMetadata ArchiveMetadata
+	if processRecordObject.ArchiveMetadata == nil {
+		archiveMetadata = ArchiveMetadata{}
+	} else {
+		archiveMetadata = *processRecordObject.ArchiveMetadata
+	}
+	// set note
+	archiveMetadata.InternalAppraisalNote = &appraisalNote
+	result := db.Save(&archiveMetadata)
+	if result.Error != nil {
+		return processRecordObject, result.Error
+	}
+	return processRecordObject, nil
 }
 
 func AddProcessingError(e ProcessingError) {

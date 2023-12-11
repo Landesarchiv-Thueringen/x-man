@@ -51,7 +51,9 @@ func main() {
 	router.GET("api/primary-document", getPrimaryDocument)
 	router.GET("api/primary-documents/:id", getPrimaryDocuments)
 	router.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
+	router.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
 	router.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
+	router.PATCH("api/process-record-object-appraisal-note", setProcessRecordObjectAppraisalNote)
 	router.PATCH("api/finalize-message-appraisal/:id", finalizeMessageAppraisal)
 	router.PATCH("api/multi-appraisal", setAppraisalForMultipleRecorcObjects)
 	router.PATCH("api/archive-0503-message/:id", archive0503Message)
@@ -214,6 +216,22 @@ func setFileRecordObjectAppraisal(context *gin.Context) {
 	context.JSON(http.StatusOK, fileRecordObject)
 }
 
+func setFileRecordObjectAppraisalNote(context *gin.Context) {
+	fileRecordObjectID := context.Query("id")
+	id, err := uuid.Parse(fileRecordObjectID)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	note := context.Query("note")
+	fileRecordObject, err := db.SetFileRecordObjectAppraisalNote(id, note)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	context.JSON(http.StatusOK, fileRecordObject)
+}
+
 func setProcessRecordObjectAppraisal(context *gin.Context) {
 	processRecordObjectID := context.Query("id")
 	id, err := uuid.Parse(processRecordObjectID)
@@ -230,49 +248,20 @@ func setProcessRecordObjectAppraisal(context *gin.Context) {
 	context.JSON(http.StatusOK, processRecordObject)
 }
 
-func finalizeMessageAppraisal(context *gin.Context) {
-	id, err := uuid.Parse(context.Param("id"))
+func setProcessRecordObjectAppraisalNote(context *gin.Context) {
+	processRecordObjectID := context.Query("id")
+	id, err := uuid.Parse(processRecordObjectID)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetCompleteMessageByID(id)
-	if err != nil {
-		// message couldn't be found
-		context.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-	if message.AppraisalComplete {
-		// appraisal for message is already complete
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	note := context.Query("note")
+	fileRecordObject, err := db.SetProcessRecordObjectAppraisalNote(id, note)
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	appraisalStep := process.ProcessState.Appraisal
-	appraisalStep.Complete = true
-	appraisalStep.CompletionTime = time.Now()
-	err = db.UpdateProcessStep(appraisalStep)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	message.AppraisalComplete = true
-	err = db.UpdateMessage(message)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	messagestore.Store0502Message(message)
-}
-
-type MultiAppraisalBody struct {
-	FileRecordObjectIDs    []string `json:"fileRecordObjectIDs"`
-	ProcessRecordObjectIDs []string `json:"processRecordObjectIDs"`
-	AppraisalCode          string   `json:"appraisalCode"`
+	context.JSON(http.StatusOK, fileRecordObject)
 }
 
 type MultiAppraisalResponse struct {
@@ -325,6 +314,51 @@ func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 		UpdatedProcessRecordObjects: updatedProcessRecordObjects,
 	}
 	context.JSON(http.StatusOK, response)
+}
+
+func finalizeMessageAppraisal(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	message, err := db.GetCompleteMessageByID(id)
+	if err != nil {
+		// message couldn't be found
+		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	if message.AppraisalComplete {
+		// appraisal for message is already complete
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	appraisalStep := process.ProcessState.Appraisal
+	appraisalStep.Complete = true
+	appraisalStep.CompletionTime = time.Now()
+	err = db.UpdateProcessStep(appraisalStep)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	message.AppraisalComplete = true
+	err = db.UpdateMessage(message)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	messagestore.Store0502Message(message)
+}
+
+type MultiAppraisalBody struct {
+	FileRecordObjectIDs    []string `json:"fileRecordObjectIDs"`
+	ProcessRecordObjectIDs []string `json:"processRecordObjectIDs"`
+	AppraisalCode          string   `json:"appraisalCode"`
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {

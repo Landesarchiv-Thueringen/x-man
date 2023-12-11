@@ -43,6 +43,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       lifeEnd: new FormControl<string | null>(null),
       appraisal: new FormControl<string | null>(null),
       appraisalRecomm: new FormControl<string | null>(null),
+      appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
     });
   }
@@ -116,6 +117,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
       appraisal: appraisal,
       appraisalRecomm: appraisalRecomm,
+      appraisalNote: fileRecordObject.archiveMetadata?.internalAppraisalNote,
       confidentiality: recordObjectConfidentialities.find(
         (c: RecordObjectConfidentiality) =>
           c.code === this.fileRecordObject?.generalMetadata?.confidentialityCode
