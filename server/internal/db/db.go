@@ -724,6 +724,7 @@ func SetFileRecordObjectAppraisal(
 			}
 		}
 	}
+	// return updated file record object
 	fileRecordObject, err = GetFileRecordObjectByID(id)
 	if err != nil {
 		return fileRecordObject, err
@@ -796,6 +797,7 @@ func SetProcessRecordObjectAppraisal(
 	if result.Error != nil {
 		return processRecordObject, result.Error
 	}
+	// return updated process record object
 	processRecordObject, err = GetProcessRecordObjectByID(id)
 	if err != nil {
 		return processRecordObject, err
