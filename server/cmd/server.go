@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"errors"
 	"io"
 	"lath/xman/internal/archive/dimag"
@@ -282,7 +282,7 @@ func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 		return
 	}
 	var parsedBody MultiAppraisalBody
-	err = xml.Unmarshal(jsonBody, &parsedBody)
+	err = json.Unmarshal(jsonBody, &parsedBody)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return

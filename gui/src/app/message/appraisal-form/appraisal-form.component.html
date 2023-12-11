@@ -1,0 +1,32 @@
+<form class="appraisal-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+  <h4 mat-dialog-title>Bewertungsentscheidung für ausgewählte Schriftgutobjekte hinterlegen</h4>
+
+  <mat-dialog-content>
+
+    <mat-form-field class="appraisal-input" appearance="outline">
+      <mat-label>Bewertungsentscheidung</mat-label>
+      <mat-select formControlName="appraisal" [(value)]="selectedAppraisal">
+        <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
+          {{ appraisal.shortDesc }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="internal-appraisal-note" appearance="outline">
+      <mat-label>Interner Bewertungsvermerk</mat-label>
+      <textarea #appraisalNote matInput formControlName="appraisalNote" rows="7">
+      </textarea>
+      <mat-error *ngIf="form.controls['appraisalNote'].hasError('required')">
+        Pflichtfeld
+      </mat-error>
+    </mat-form-field>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-raised-button mat-dialog-close>Abbrechen</button>
+    <button mat-raised-button type="submit" color="primary">Speichern</button>
+  </mat-dialog-actions>
+
+</form>

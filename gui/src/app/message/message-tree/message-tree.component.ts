@@ -12,6 +12,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 
 // material
 import { FlatTreeControl } from '@angular/cdk/tree';
+import { MatDialog } from '@angular/material/dialog';
 import {
   MatTree,
   MatTreeFlatDataSource,
@@ -19,6 +20,7 @@ import {
 } from '@angular/material/tree';
 
 // project
+import { AppraisalFormComponent } from '../appraisal-form/appraisal-form.component';
 import {
   DisplayText,
   Message,
@@ -30,7 +32,7 @@ import { NotificationService } from 'src/app/utility/notification/notification.s
 import { Process, ProcessService } from 'src/app/process/process.service';
 
 // utility
-import { Subscription, switchMap } from 'rxjs';
+import { filter, Subscription, switchMap } from 'rxjs';
 
 export interface FlatNode {
   id: string;
@@ -79,6 +81,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private clipboard: Clipboard,
+    private dialog: MatDialog,
     @Inject(DOCUMENT) private document: Document,
     private messageService: MessageService,
     private notificationService: NotificationService,
@@ -310,7 +313,33 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     if (event.checked) {
       this.selectedNodes.push(id);
     } else {
-      this.selectedNodes = this.selectedNodes.filter(nodeID => nodeID !== id);
+      this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== id);
     }
+  }
+
+  setAppraisalForMultipleRecorcObjects(): void {
+    this.dialog
+      .open(AppraisalFormComponent)
+      .afterClosed()
+      .pipe(
+        filter((formResult) => !!formResult),
+        switchMap((formResult: any) => {
+          return this.messageService.setAppraisalForMultipleRecorcObjects(
+            this.selectedNodes,
+            formResult.appraisalCode
+          );
+        })
+      )
+      .subscribe({
+        error: (error: any) => {
+          console.error(error);
+          this.notificationService.show('Bewertung konnte nicht gespeichert werden');
+          this.disableSelection();
+        },
+        next: () => {
+          this.notificationService.show('Bewertung erfolgreich gespeichert');
+          this.disableSelection();
+        }
+      });
   }
 }

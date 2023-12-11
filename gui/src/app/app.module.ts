@@ -47,6 +47,7 @@ import { DocumentVersionMetadataComponent } from './metadata/document-version-me
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
 import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
 import { FileOverviewComponent } from './metadata/primary-document/primary-document-metadata.component';
+import { AppraisalFormComponent } from './message/appraisal-form/appraisal-form.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { FileOverviewComponent } from './metadata/primary-document/primary-docum
     DocumentVersionMetadataComponent,
     ClearingTableComponent,
     PrimaryDocumentsTableComponent,
+    AppraisalFormComponent,
   ],
   imports: [
     BrowserModule,

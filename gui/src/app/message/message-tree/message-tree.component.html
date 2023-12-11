@@ -118,7 +118,7 @@
         <mat-toolbar *ngIf="process && message && showSelection" class="appraisal-actions">
           <button mat-fab extended 
             color="primary" 
-            (click)="disableSelection()" 
+            (click)="setAppraisalForMultipleRecorcObjects()" 
             [disabled]="this.selectedNodes.length === 0">
             <mat-icon>
               checklist

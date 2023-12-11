@@ -579,6 +579,7 @@ export class MessageService {
       processRecordObjectIDs: processRecordObjectIDs,
       appraisalCode: appraisalCode,
     }
+    console.log(body);
     const options = {};
     return this.httpClient.patch<void>(url, body, options);
   }
