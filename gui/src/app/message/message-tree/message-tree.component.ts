@@ -291,7 +291,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   setAppraisalForMultipleRecorcObjects(): void {
     this.dialog
-      .open(AppraisalFormComponent)
+      .open(AppraisalFormComponent, { autoFocus: false })
       .afterClosed()
       .pipe(
         filter((formResult) => !!formResult),
@@ -305,7 +305,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         error: (error: any) => {
           console.error(error);
-          this.notificationService.show('Bewertung konnte nicht gespeichert werden');
+          this.notificationService.show(
+            'Bewertung konnte nicht gespeichert werden'
+          );
           this.disableSelection();
         },
         next: (response: MultiAppraisalResponse) => {
@@ -317,7 +319,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           }
           this.notificationService.show('Bewertung erfolgreich gespeichert');
           this.disableSelection();
-        }
+        },
       });
   }
 
