@@ -14,6 +14,7 @@ import { NotificationService } from 'src/app/utility/notification/notification.s
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
+import { debounceTime, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-file-metadata',
@@ -46,6 +47,11 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
     });
+    this.form.controls['appraisalNote'].valueChanges
+      .pipe(skip(1), debounceTime(400))
+      .subscribe((value: string) => {
+        this.setAppraisalNote(value);
+      });
   }
 
   ngAfterViewInit(): void {
@@ -91,7 +97,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   setMetadata(
     fileRecordObject: FileRecordObject,
     recordObjectAppraisals: RecordObjectAppraisal[],
-    recordObjectConfidentialities: RecordObjectConfidentiality[],
+    recordObjectConfidentialities: RecordObjectConfidentiality[]
   ): void {
     let appraisal: string | undefined;
     const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
@@ -137,6 +143,18 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
             this.messageService.updateStructureNode(fileRecordObject);
             this.notificationService.show('Bewertung erfolgreich gespeichert');
           },
+        });
+    }
+  }
+
+  setAppraisalNote(note: string): void {
+    if (this.fileRecordObject) {
+      this.messageService
+        .setFileRecordObjectAppraisalNote(this.fileRecordObject.id, note)
+        .subscribe({
+          error: (error: any) => {
+            console.error(error);
+          }
         });
     }
   }

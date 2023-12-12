@@ -548,6 +548,18 @@ export class MessageService {
     return this.httpClient.patch<FileRecordObject>(url, body, options);
   }
 
+  setFileRecordObjectAppraisalNote(
+    id: string,
+    note: string
+  ): Observable<FileRecordObject> {
+    const url = this.apiEndpoint + '/file-record-object-appraisal-note';
+    const body = {};
+    const options = {
+      params: new HttpParams().set('id', id).set('note', note),
+    };
+    return this.httpClient.patch<FileRecordObject>(url, body, options);
+  }
+
   setProcessRecordObjectAppraisal(
     id: string,
     appraisalCode: string
@@ -557,9 +569,18 @@ export class MessageService {
     const options = {
       params: new HttpParams().set('id', id).set('appraisal', appraisalCode),
     };
-    if (this.structureNodes.get(id)) {
-      this.structureNodes.get(id)!.appraisal = appraisalCode;
-    }
+    return this.httpClient.patch<ProcessRecordObject>(url, body, options);
+  }
+
+  setProcessRecordObjectAppraisalNote(
+    id: string,
+    appraisalCode: string
+  ): Observable<ProcessRecordObject> {
+    const url = this.apiEndpoint + '/process-record-object-appraisal-note';
+    const body = {};
+    const options = {
+      params: new HttpParams().set('id', id).set('note', appraisalCode),
+    };
     return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 

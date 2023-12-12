@@ -88,18 +88,38 @@ func (f *FileRecordObject) GetAppraisal() (string, error) {
 }
 
 func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
-	if appraisalCode != "A" && appraisalCode != "V" && appraisalCode != "B" {
+	appraisal, err := GetAppraisalByCode(appraisalCode)
+	// unknown appraisal code
+	if err != nil {
 		return errors.New("unknown appraisal code")
 	}
+	// archive metadata not created
 	if f.ArchiveMetadata == nil {
 		archiveMetadata := ArchiveMetadata{
-			AppraisalCode: &appraisalCode,
+			AppraisalCode: &appraisal.Code,
 		}
 		f.ArchiveMetadata = &archiveMetadata
 	} else {
-		f.ArchiveMetadata.AppraisalCode = &appraisalCode
+		f.ArchiveMetadata.AppraisalCode = &appraisal.Code
 	}
-	return nil
+	// save archive metadata
+	result := db.Save(&f.ArchiveMetadata)
+	return result.Error
+}
+
+func (f *FileRecordObject) SetAppraisalNote(note string) error {
+	// archive metadata not created
+	if f.ArchiveMetadata == nil {
+		archiveMetadata := ArchiveMetadata{
+			InternalAppraisalNote: &note,
+		}
+		f.ArchiveMetadata = &archiveMetadata
+	} else {
+		f.ArchiveMetadata.InternalAppraisalNote = &note
+	}
+	// save archive metadata
+	result := db.Save(&f.ArchiveMetadata)
+	return result.Error
 }
 
 func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
@@ -149,18 +169,38 @@ func (p *ProcessRecordObject) GetAppraisal() (string, error) {
 }
 
 func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
-	if appraisalCode != "A" && appraisalCode != "V" && appraisalCode != "B" {
+	appraisal, err := GetAppraisalByCode(appraisalCode)
+	// unknown appraisal code
+	if err != nil {
 		return errors.New("unknown appraisal code")
 	}
+	// archive metadata not created
 	if p.ArchiveMetadata == nil {
 		archiveMetadata := ArchiveMetadata{
-			AppraisalCode: &appraisalCode,
+			AppraisalCode: &appraisal.Code,
 		}
 		p.ArchiveMetadata = &archiveMetadata
 	} else {
-		p.ArchiveMetadata.AppraisalCode = &appraisalCode
+		p.ArchiveMetadata.AppraisalCode = &appraisal.Code
 	}
-	return nil
+	// save archive metadata
+	result := db.Save(&p.ArchiveMetadata)
+	return result.Error
+}
+
+func (p *ProcessRecordObject) SetAppraisalNote(note string) error {
+	// archive metadata not created
+	if p.ArchiveMetadata == nil {
+		archiveMetadata := ArchiveMetadata{
+			InternalAppraisalNote: &note,
+		}
+		p.ArchiveMetadata = &archiveMetadata
+	} else {
+		p.ArchiveMetadata.InternalAppraisalNote = &note
+	}
+	// save archive metadata
+	result := db.Save(&p.ArchiveMetadata)
+	return result.Error
 }
 
 func (p *ProcessRecordObject) GetID() uuid.UUID {

@@ -698,22 +698,10 @@ func SetFileRecordObjectAppraisal(
 	if message.AppraisalComplete {
 		return fileRecordObject, errors.New("message appraisal already finished")
 	}
-	appraisal, err := GetAppraisalByCode(appraisalCode)
+	// set appraisal
+	err = fileRecordObject.SetAppraisal(appraisalCode)
 	if err != nil {
 		return fileRecordObject, err
-	}
-	// check if archiv metadata exists already, if not create it
-	var archiveMetadata ArchiveMetadata
-	if fileRecordObject.ArchiveMetadata == nil {
-		archiveMetadata = ArchiveMetadata{}
-	} else {
-		archiveMetadata = *fileRecordObject.ArchiveMetadata
-	}
-	// set appraisal
-	archiveMetadata.AppraisalCode = &appraisal.Code
-	result := db.Save(&archiveMetadata)
-	if result.Error != nil {
-		return fileRecordObject, result.Error
 	}
 	// set appraisal for child elements if recursiv appraisal was choosen
 	if recursiv {
@@ -725,11 +713,7 @@ func SetFileRecordObjectAppraisal(
 		}
 	}
 	// return updated file record object
-	fileRecordObject, err = GetFileRecordObjectByID(id)
-	if err != nil {
-		return fileRecordObject, err
-	}
-	return fileRecordObject, nil
+	return GetFileRecordObjectByID(id)
 }
 
 func SetFileRecordObjectAppraisalNote(
@@ -748,20 +732,13 @@ func SetFileRecordObjectAppraisalNote(
 	if message.AppraisalComplete {
 		return fileRecordObject, errors.New("message appraisal already finished")
 	}
-	// check if archiv metadata exists already, if not create it
-	var archiveMetadata ArchiveMetadata
-	if fileRecordObject.ArchiveMetadata == nil {
-		archiveMetadata = ArchiveMetadata{}
-	} else {
-		archiveMetadata = *fileRecordObject.ArchiveMetadata
-	}
 	// set note
-	archiveMetadata.InternalAppraisalNote = &appraisalNote
-	result := db.Save(&archiveMetadata)
-	if result.Error != nil {
-		return fileRecordObject, result.Error
+	err = fileRecordObject.SetAppraisalNote(appraisalNote)
+	if err != nil {
+		return fileRecordObject, err
 	}
-	return fileRecordObject, nil
+	// return updated file record object
+	return GetFileRecordObjectByID(id)
 }
 
 func SetProcessRecordObjectAppraisal(
@@ -780,29 +757,13 @@ func SetProcessRecordObjectAppraisal(
 	if message.AppraisalComplete {
 		return processRecordObject, errors.New("message appraisal already finished")
 	}
-	appraisal, err := GetAppraisalByCode(appraisalCode)
+	// set appraisal
+	err = processRecordObject.SetAppraisal(appraisalCode)
 	if err != nil {
 		return processRecordObject, err
-	}
-	// check if archiv metadata exists already, if not create it
-	var archiveMetadata ArchiveMetadata
-	if processRecordObject.ArchiveMetadata == nil {
-		archiveMetadata = ArchiveMetadata{}
-	} else {
-		archiveMetadata = *processRecordObject.ArchiveMetadata
-	}
-	// set appraisal
-	archiveMetadata.AppraisalCode = &appraisal.Code
-	result := db.Save(&archiveMetadata)
-	if result.Error != nil {
-		return processRecordObject, result.Error
 	}
 	// return updated process record object
-	processRecordObject, err = GetProcessRecordObjectByID(id)
-	if err != nil {
-		return processRecordObject, err
-	}
-	return processRecordObject, result.Error
+	return GetProcessRecordObjectByID(id)
 }
 
 func SetProcessRecordObjectAppraisalNote(
@@ -821,20 +782,13 @@ func SetProcessRecordObjectAppraisalNote(
 	if message.AppraisalComplete {
 		return processRecordObject, errors.New("message appraisal already finished")
 	}
-	// check if archiv metadata exists already, if not create it
-	var archiveMetadata ArchiveMetadata
-	if processRecordObject.ArchiveMetadata == nil {
-		archiveMetadata = ArchiveMetadata{}
-	} else {
-		archiveMetadata = *processRecordObject.ArchiveMetadata
-	}
 	// set note
-	archiveMetadata.InternalAppraisalNote = &appraisalNote
-	result := db.Save(&archiveMetadata)
-	if result.Error != nil {
-		return processRecordObject, result.Error
+	err = processRecordObject.SetAppraisalNote(appraisalNote)
+	if err != nil {
+		return processRecordObject, err
 	}
-	return processRecordObject, nil
+	// return updated process record object
+	return GetProcessRecordObjectByID(id)
 }
 
 func AddProcessingError(e ProcessingError) {
