@@ -48,8 +48,11 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       confidentiality: new FormControl<string | null>(null),
     });
     this.form.controls['appraisalNote'].valueChanges
-      .pipe(skip(1), debounceTime(400))
-      .subscribe((value: string) => {
+      .pipe(
+        skip(1),
+        debounceTime(400),
+      )
+      .subscribe((value: string|null) => {
         this.setAppraisalNote(value);
       });
   }
@@ -147,14 +150,14 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  setAppraisalNote(note: string): void {
+  setAppraisalNote(note: string|null): void {
     if (this.fileRecordObject) {
       this.messageService
         .setFileRecordObjectAppraisalNote(this.fileRecordObject.id, note)
         .subscribe({
           error: (error: any) => {
             console.error(error);
-          }
+          },
         });
     }
   }

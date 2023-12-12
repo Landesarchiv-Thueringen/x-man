@@ -85,6 +85,15 @@
                 <input matInput formControlName="appraisalRecomm" readonly>
               </mat-form-field>
             </div>
+            <mat-form-field class="internal-appraisal-note" appearance="outline">
+              <mat-label>Interner Bewertungsvermerk</mat-label>
+              <textarea #appraisalNote 
+                matInput 
+                formControlName="appraisalNote"
+                [readonly]="messageAppraisalComplete"
+                rows="5">
+              </textarea>
+            </mat-form-field>
           </div>
         </mat-expansion-panel>
     

@@ -14,6 +14,7 @@ import { NotificationService } from 'src/app/utility/notification/notification.s
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
+import { debounceTime, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-process-metadata',
@@ -43,7 +44,16 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
       lifeEnd: new FormControl<string | null>(null),
       appraisal: new FormControl<string | null>(null),
       appraisalRecomm: new FormControl<string | null>(null),
+      appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
+    });
+    this.form.controls['appraisalNote'].valueChanges
+    .pipe(
+      skip(1),
+      debounceTime(400),
+    )
+    .subscribe((value: string|null) => {
+      this.setAppraisalNote(value);
     });
   }
 
@@ -118,6 +128,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
       ),
       appraisal: appraisal,
       appraisalRecomm: appraisalRecomm,
+      appraisalNote: processRecordObject.archiveMetadata?.internalAppraisalNote,
       confidentiality: recordObjectConfidentialities.find(
         (c: RecordObjectConfidentiality) =>
           c.code === this.processRecordObject?.generalMetadata?.confidentialityCode
@@ -139,6 +150,18 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
           next: (processRecordObject: ProcessRecordObject) => {
             this.messageService.updateStructureNode(processRecordObject);
             this.notificationService.show('Bewertung erfolgreich gespeichert');
+          },
+        });
+    }
+  }
+
+  setAppraisalNote(note: string|null): void {
+    if (this.processRecordObject) {
+      this.messageService
+        .setProcessRecordObjectAppraisalNote(this.processRecordObject.id, note)
+        .subscribe({
+          error: (error: any) => {
+            console.error(error);
           },
         });
     }
