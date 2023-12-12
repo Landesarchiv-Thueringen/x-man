@@ -264,6 +264,13 @@ func setProcessRecordObjectAppraisalNote(context *gin.Context) {
 	context.JSON(http.StatusOK, fileRecordObject)
 }
 
+type MultiAppraisalBody struct {
+	FileRecordObjectIDs    []string `json:"fileRecordObjectIDs"`
+	ProcessRecordObjectIDs []string `json:"processRecordObjectIDs"`
+	AppraisalCode          string   `json:"appraisalCode"`
+	AppraisalNote          *string  `json:"appraisalNote"`
+}
+
 type MultiAppraisalResponse struct {
 	UpdatedFileRecordObjects    []db.FileRecordObject    `json:"updatedFileRecordObjects"`
 	UpdatedProcessRecordObjects []db.ProcessRecordObject `json:"updatedProcessRecordObjects"`
@@ -281,33 +288,23 @@ func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	updatedFileRecordObjects := []db.FileRecordObject{}
-	for _, objectID := range parsedBody.FileRecordObjectIDs {
-		id, err := uuid.Parse(objectID)
-		if err != nil {
-			context.AbortWithError(http.StatusUnprocessableEntity, err)
-			return
-		}
-		fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, parsedBody.AppraisalCode, false)
-		if err != nil {
-			context.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		updatedFileRecordObjects = append(updatedFileRecordObjects, fileRecordObject)
+	updatedFileRecordObjects, err := xdomea.SetAppraisalForFileRecorcdObjects(
+		parsedBody.FileRecordObjectIDs,
+		parsedBody.AppraisalCode,
+		parsedBody.AppraisalNote,
+	)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
-	updatedProcessRecordObjects := []db.ProcessRecordObject{}
-	for _, objectID := range parsedBody.ProcessRecordObjectIDs {
-		id, err := uuid.Parse(objectID)
-		if err != nil {
-			context.AbortWithError(http.StatusUnprocessableEntity, err)
-			return
-		}
-		processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, parsedBody.AppraisalCode)
-		if err != nil {
-			context.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		updatedProcessRecordObjects = append(updatedProcessRecordObjects, processRecordObject)
+	updatedProcessRecordObjects, err := xdomea.SetAppraisalForProcessRecorcdObjects(
+		parsedBody.ProcessRecordObjectIDs,
+		parsedBody.AppraisalCode,
+		parsedBody.AppraisalNote,
+	)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	response := MultiAppraisalResponse{
 		UpdatedFileRecordObjects:    updatedFileRecordObjects,
@@ -353,12 +350,6 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		return
 	}
 	messagestore.Store0502Message(message)
-}
-
-type MultiAppraisalBody struct {
-	FileRecordObjectIDs    []string `json:"fileRecordObjectIDs"`
-	ProcessRecordObjectIDs []string `json:"processRecordObjectIDs"`
-	AppraisalCode          string   `json:"appraisalCode"`
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {

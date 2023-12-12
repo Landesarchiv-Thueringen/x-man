@@ -39,6 +39,7 @@ export class AppraisalFormComponent {
     if (this.form.valid) {
       this.dialogRef.close({
         appraisalCode: this.selectedAppraisal,
+        appraisalNote: this.form.get('appraisalNote')!.value
       })
     }
   }

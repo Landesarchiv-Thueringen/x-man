@@ -298,7 +298,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         switchMap((formResult: any) => {
           return this.messageService.setAppraisalForMultipleRecorcObjects(
             this.selectedNodes,
-            formResult.appraisalCode
+            formResult.appraisalCode,
+            formResult.appraisalNote,
           );
         })
       )

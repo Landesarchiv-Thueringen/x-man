@@ -586,7 +586,8 @@ export class MessageService {
 
   setAppraisalForMultipleRecorcObjects(
     recordObjectIDs: string[],
-    appraisalCode: string
+    appraisalCode: string,
+    appraisalNote: string|null,
   ): Observable<MultiAppraisalResponse> {
     const fileRecordObjectIDs: string[] = [];
     const processRecordObjectIDs: string[] = [];
@@ -610,6 +611,7 @@ export class MessageService {
       fileRecordObjectIDs: fileRecordObjectIDs,
       processRecordObjectIDs: processRecordObjectIDs,
       appraisalCode: appraisalCode,
+      appraisalNote: appraisalNote,
     };
     const options = {};
     return this.httpClient.patch<MultiAppraisalResponse>(url, body, options);
