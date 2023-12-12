@@ -9,12 +9,13 @@ import {
   MessageService,
   RecordObjectAppraisal,
   RecordObjectConfidentiality,
+  StructureNode,
 } from '../../message/message.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
-import { debounceTime, skip } from 'rxjs/operators';
+import { debounceTime, filter, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-process-metadata',
@@ -48,16 +49,14 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
       confidentiality: new FormControl<string | null>(null),
     });
     this.form.controls['appraisalNote'].valueChanges
-    .pipe(
-      skip(1),
-      debounceTime(400),
-    )
-    .subscribe((value: string|null) => {
-      this.setAppraisalNote(value);
-    });
+      .pipe(skip(1), debounceTime(400))
+      .subscribe((value: string | null) => {
+        this.setAppraisalNote(value);
+      });
   }
 
   ngAfterViewInit(): void {
+    // fetch metadata of record object everytime the object ID changes
     this.urlParameterSubscription = this.route.params
       .pipe(
         switchMap((params: Params) => {
@@ -84,56 +83,73 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
         },
         next: (confidentialities: RecordObjectConfidentiality[]) => {
           this.recordObjectConfidentialities = confidentialities;
-          this.setMetadata(
-            this.processRecordObject!,
-            this.recordObjectAppraisals!,
-            this.recordObjectConfidentialities,
-          );
+          this.setMetadata();
         },
       });
+    // update metadata if record object changes
+    this.messageService
+    .watchNodeChanges()
+    .pipe(
+      filter((changedNode: StructureNode) => {
+        return changedNode.id === this.processRecordObject?.id;
+      }),
+      switchMap((changedNode: StructureNode) => {
+        return this.messageService.getProcessRecordObject(changedNode.id);
+      })
+    )
+    .subscribe((processRecordObject: ProcessRecordObject) => {
+      this.processRecordObject = processRecordObject;
+      this.setMetadata();
+    });
   }
 
   ngOnDestroy(): void {
     this.urlParameterSubscription?.unsubscribe;
   }
 
-  setMetadata(
-    processRecordObject: ProcessRecordObject,
-    recordObjectAppraisals: RecordObjectAppraisal[],
-    recordObjectConfidentialities: RecordObjectConfidentiality[],
-  ): void {
-    let appraisal: string | undefined;
-    const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
-      processRecordObject.archiveMetadata?.appraisalRecommCode,
-      recordObjectAppraisals
-    )?.shortDesc;
-    if (this.messageAppraisalComplete) {
-      appraisal = this.messageService.getRecordObjectAppraisalByCode(
-        processRecordObject.archiveMetadata?.appraisalCode,
-        recordObjectAppraisals
-      )?.shortDesc;
-    } else {
-      appraisal = processRecordObject.archiveMetadata?.appraisalCode;
+  setMetadata(): void {
+    if (
+      this.processRecordObject &&
+      this.recordObjectAppraisals &&
+      this.recordObjectConfidentialities
+    ) {
+      let appraisal: string | undefined;
+      const appraisalRecomm =
+        this.messageService.getRecordObjectAppraisalByCode(
+          this.processRecordObject.archiveMetadata?.appraisalRecommCode,
+          this.recordObjectAppraisals
+        )?.shortDesc;
+      if (this.messageAppraisalComplete) {
+        appraisal = this.messageService.getRecordObjectAppraisalByCode(
+          this.processRecordObject.archiveMetadata?.appraisalCode,
+          this.recordObjectAppraisals
+        )?.shortDesc;
+      } else {
+        appraisal = this.processRecordObject.archiveMetadata?.appraisalCode;
+      }
+      this.form.patchValue({
+        recordPlanId:
+          this.processRecordObject.generalMetadata?.filePlan?.xdomeaID,
+        fileId: this.processRecordObject.generalMetadata?.xdomeaID,
+        subject: this.processRecordObject.generalMetadata?.subject,
+        processType: this.processRecordObject.type,
+        lifeStart: this.messageService.getDateText(
+          this.processRecordObject.lifetime?.start
+        ),
+        lifeEnd: this.messageService.getDateText(
+          this.processRecordObject.lifetime?.end
+        ),
+        appraisal: appraisal,
+        appraisalRecomm: appraisalRecomm,
+        appraisalNote:
+          this.processRecordObject.archiveMetadata?.internalAppraisalNote,
+        confidentiality: this.recordObjectConfidentialities.find(
+          (c: RecordObjectConfidentiality) =>
+            c.code ===
+            this.processRecordObject?.generalMetadata?.confidentialityCode
+        )?.desc,
+      });
     }
-    this.form.patchValue({
-      recordPlanId: processRecordObject.generalMetadata?.filePlan?.xdomeaID,
-      fileId: processRecordObject.generalMetadata?.xdomeaID,
-      subject: processRecordObject.generalMetadata?.subject,
-      processType: processRecordObject.type,
-      lifeStart: this.messageService.getDateText(
-        processRecordObject.lifetime?.start
-      ),
-      lifeEnd: this.messageService.getDateText(
-        processRecordObject.lifetime?.end
-      ),
-      appraisal: appraisal,
-      appraisalRecomm: appraisalRecomm,
-      appraisalNote: processRecordObject.archiveMetadata?.internalAppraisalNote,
-      confidentiality: recordObjectConfidentialities.find(
-        (c: RecordObjectConfidentiality) =>
-          c.code === this.processRecordObject?.generalMetadata?.confidentialityCode
-      )?.desc,
-    });
   }
 
   setAppraisal(event: any): void {
@@ -155,7 +171,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  setAppraisalNote(note: string|null): void {
+  setAppraisalNote(note: string | null): void {
     if (this.processRecordObject) {
       this.messageService
         .setProcessRecordObjectAppraisalNote(this.processRecordObject.id, note)

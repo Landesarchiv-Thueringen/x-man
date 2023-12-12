@@ -48,7 +48,7 @@ func SetAppraisalForProcessRecorcdObjects(
 			log.Println(err)
 			return updatedProcessRecordObjects, err
 		}
-		processRecordObject, err := db.SetProcessRecordObjectAppraisalNote(id, appraisalCode)
+		processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, appraisalCode)
 		if err != nil {
 			log.Println(err)
 			return updatedProcessRecordObjects, err

@@ -1,5 +1,5 @@
 // angular
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, Query } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 
@@ -9,12 +9,13 @@ import {
   MessageService,
   RecordObjectConfidentiality,
   RecordObjectAppraisal,
+  StructureNode,
 } from '../../message/message.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
-import { debounceTime, skip } from 'rxjs/operators';
+import { debounceTime, filter, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-file-metadata',
@@ -22,7 +23,8 @@ import { debounceTime, skip } from 'rxjs/operators';
   styleUrls: ['./file-metadata.component.scss'],
 })
 export class FileMetadataComponent implements AfterViewInit, OnDestroy {
-  urlParameterSubscription?: Subscription;
+  metadataQuery?: Query;
+  metadataSubscription?: Subscription;
   messageAppraisalComplete?: boolean;
   fileRecordObject?: FileRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
@@ -48,17 +50,15 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       confidentiality: new FormControl<string | null>(null),
     });
     this.form.controls['appraisalNote'].valueChanges
-      .pipe(
-        skip(1),
-        debounceTime(400),
-      )
-      .subscribe((value: string|null) => {
+      .pipe(skip(1), debounceTime(400))
+      .subscribe((value: string | null) => {
         this.setAppraisalNote(value);
       });
   }
 
   ngAfterViewInit(): void {
-    this.urlParameterSubscription = this.route.params
+    // fetch metadata of record object everytime the object ID changes
+    this.metadataSubscription = this.route.params
       .pipe(
         switchMap((params: Params) => {
           return this.messageService.getFileRecordObject(params['id']);
@@ -84,54 +84,72 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         },
         next: (confidentialities: RecordObjectConfidentiality[]) => {
           this.recordObjectConfidentialities = confidentialities;
-          this.setMetadata(
-            this.fileRecordObject!,
-            this.recordObjectAppraisals!,
-            this.recordObjectConfidentialities
-          );
+          this.setMetadata();
         },
+      });
+    // update metadata if record object changes
+    this.messageService
+      .watchNodeChanges()
+      .pipe(
+        filter((changedNode: StructureNode) => {
+          return changedNode.id === this.fileRecordObject?.id;
+        }),
+        switchMap((changedNode: StructureNode) => {
+          return this.messageService.getFileRecordObject(changedNode.id);
+        })
+      )
+      .subscribe((fileRecordObject: FileRecordObject) => {
+        this.fileRecordObject = fileRecordObject;
+        this.setMetadata();
       });
   }
 
   ngOnDestroy(): void {
-    this.urlParameterSubscription?.unsubscribe;
+    this.metadataSubscription?.unsubscribe;
   }
 
-  setMetadata(
-    fileRecordObject: FileRecordObject,
-    recordObjectAppraisals: RecordObjectAppraisal[],
-    recordObjectConfidentialities: RecordObjectConfidentiality[]
-  ): void {
-    let appraisal: string | undefined;
-    const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
-      fileRecordObject.archiveMetadata?.appraisalRecommCode,
-      recordObjectAppraisals
-    )?.shortDesc;
-    if (this.messageAppraisalComplete) {
-      appraisal = this.messageService.getRecordObjectAppraisalByCode(
-        fileRecordObject.archiveMetadata?.appraisalCode,
-        recordObjectAppraisals
-      )?.shortDesc;
-    } else {
-      appraisal = fileRecordObject.archiveMetadata?.appraisalCode;
+  setMetadata(): void {
+    if (
+      this.fileRecordObject &&
+      this.recordObjectAppraisals &&
+      this.recordObjectConfidentialities
+    ) {
+      let appraisal: string | undefined;
+      const appraisalRecomm =
+        this.messageService.getRecordObjectAppraisalByCode(
+          this.fileRecordObject.archiveMetadata?.appraisalRecommCode,
+          this.recordObjectAppraisals
+        )?.shortDesc;
+      if (this.messageAppraisalComplete) {
+        appraisal = this.messageService.getRecordObjectAppraisalByCode(
+          this.fileRecordObject.archiveMetadata?.appraisalCode,
+          this.recordObjectAppraisals
+        )?.shortDesc;
+      } else {
+        appraisal = this.fileRecordObject.archiveMetadata?.appraisalCode;
+      }
+      this.form.patchValue({
+        recordPlanId: this.fileRecordObject.generalMetadata?.filePlan?.xdomeaID,
+        fileId: this.fileRecordObject.generalMetadata?.xdomeaID,
+        subject: this.fileRecordObject.generalMetadata?.subject,
+        fileType: this.fileRecordObject.type,
+        lifeStart: this.messageService.getDateText(
+          this.fileRecordObject.lifetime?.start
+        ),
+        lifeEnd: this.messageService.getDateText(
+          this.fileRecordObject.lifetime?.end
+        ),
+        appraisal: appraisal,
+        appraisalRecomm: appraisalRecomm,
+        appraisalNote:
+          this.fileRecordObject.archiveMetadata?.internalAppraisalNote,
+        confidentiality: this.recordObjectConfidentialities.find(
+          (c: RecordObjectConfidentiality) =>
+            c.code ===
+            this.fileRecordObject?.generalMetadata?.confidentialityCode
+        )?.shortDesc,
+      });
     }
-    this.form.patchValue({
-      recordPlanId: fileRecordObject.generalMetadata?.filePlan?.xdomeaID,
-      fileId: fileRecordObject.generalMetadata?.xdomeaID,
-      subject: fileRecordObject.generalMetadata?.subject,
-      fileType: fileRecordObject.type,
-      lifeStart: this.messageService.getDateText(
-        fileRecordObject.lifetime?.start
-      ),
-      lifeEnd: this.messageService.getDateText(fileRecordObject.lifetime?.end),
-      appraisal: appraisal,
-      appraisalRecomm: appraisalRecomm,
-      appraisalNote: fileRecordObject.archiveMetadata?.internalAppraisalNote,
-      confidentiality: recordObjectConfidentialities.find(
-        (c: RecordObjectConfidentiality) =>
-          c.code === this.fileRecordObject?.generalMetadata?.confidentialityCode
-      )?.shortDesc,
-    });
   }
 
   setAppraisal(event: any): void {
@@ -150,7 +168,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  setAppraisalNote(note: string|null): void {
+  setAppraisalNote(note: string | null): void {
     if (this.fileRecordObject) {
       this.messageService
         .setFileRecordObjectAppraisalNote(this.fileRecordObject.id, note)
