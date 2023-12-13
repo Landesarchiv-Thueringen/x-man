@@ -131,6 +131,7 @@ func GetMessageName(id string, messageType db.MessageType) string {
 }
 
 func AddMessage(
+	agency db.Agency,
 	xdomeaID string,
 	messageType db.MessageType,
 	processStoreDir string,
@@ -156,7 +157,7 @@ func AddMessage(
 		AppraisalComplete:      appraisalComplete,
 	}
 	// xsd schema validation
-	err = IsMessageValid(message)
+	err = IsMessageValid(agency, message)
 	messageIsValid := err == nil
 	message.SchemaValidation = messageIsValid
 	if err != nil {
@@ -169,7 +170,7 @@ func AddMessage(
 		log.Fatal(err)
 	}
 	// store message metadata in database
-	process, message, err = db.AddMessage(xdomeaID, processStoreDir, message)
+	process, message, err = db.AddMessage(agency, xdomeaID, processStoreDir, message)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -189,7 +190,7 @@ func AddMessage(
 }
 
 // performs xsd schema validation
-func IsMessageValid(message db.Message) error {
+func IsMessageValid(agency db.Agency, message db.Message) error {
 	xdomeaVersion, err := ExtractVersionFromMessage(message)
 	if err != nil {
 		return err
@@ -222,6 +223,7 @@ func IsMessageValid(message db.Message) error {
 			log.Printf("error: %s", e.Error())
 		}
 		processingErr := db.ProcessingError{
+			Agency:           agency,
 			Description:      "Schema-Validierung ungültig",
 			MessageID:        &message.ID,
 			TransferDirPath:  &message.TransferDirMessagePath,
@@ -245,6 +247,7 @@ func checkMessage0503Integrity(
 		if err != nil {
 			log.Println(err.Error())
 			processingErr := db.ProcessingError{
+				Agency:           process.Agency,
 				Description:      "Primärdatei fehlt in Abgabe",
 				MessageID:        &message0503.ID,
 				TransferDirPath:  &message0503.TransferDirMessagePath,
@@ -272,6 +275,7 @@ func checkMessage0503Integrity(
 	if !process.ProcessState.Appraisal.Complete {
 		errorMessage := "die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
 		processingErr := db.ProcessingError{
+			Agency:           process.Agency,
 			Description:      errorMessage,
 			MessageID:        &message0503.ID,
 			TransferDirPath:  &message0503.TransferDirMessagePath,
@@ -310,6 +314,7 @@ func checkRecordObjetcsOfMessage0503(
 	if message0503Incomplete {
 		errorMessage := "die Abgabe ist nicht vollständig"
 		processingErr := db.ProcessingError{
+			Agency:           process.Agency,
 			Description:      errorMessage,
 			AdditionalInfo:   &additionalInfo,
 			MessageID:        &message0503.ID,

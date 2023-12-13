@@ -26,6 +26,8 @@ type Process struct {
 	CreatedAt        time.Time         `json:"receivedAt"`
 	UpdatedAt        time.Time         `json:"-"`
 	DeletedAt        gorm.DeletedAt    `gorm:"index" json:"-"`
+	AgencyID         uint              `json:"-"`
+	Agency           Agency            `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
 	XdomeaID         string            `json:"xdomeaID"`
 	StoreDir         string            `json:"-"`
 	Institution      *string           `json:"institution"`

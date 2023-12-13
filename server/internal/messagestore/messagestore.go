@@ -14,7 +14,7 @@ import (
 
 var storeDir = "message_store"
 
-func StoreMessage(messagePath string) {
+func StoreMessage(agency db.Agency, messagePath string) {
 	id := xdomea.GetMessageID(messagePath)
 	transferDir := filepath.Dir(messagePath)
 	messageName := filepath.Base(messagePath)
@@ -42,10 +42,11 @@ func StoreMessage(messagePath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	extractMessage(transferDir, messagePath, copyPath, id)
+	extractMessage(agency, transferDir, messagePath, copyPath, id)
 }
 
 func extractMessage(
+	agency db.Agency,
 	transferDir string,
 	transferDirMessagePath string,
 	messagePath string,
@@ -88,6 +89,7 @@ func extractMessage(
 	}
 	process, message, err :=
 		xdomea.AddMessage(
+			agency,
 			id,
 			messageType,
 			processStoreDir,

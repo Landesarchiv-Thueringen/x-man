@@ -51,6 +51,7 @@ func Migrate() {
 	// Migrate the complete schema.
 	db.AutoMigrate(
 		&ServerState{},
+		&Agency{},
 		&XdomeaVersion{},
 		&Code{},
 		&Process{},
@@ -113,13 +114,26 @@ func InitRecordObjectConfidentialities(confidentialities []*RecordObjectConfiden
 	}
 }
 
+func InitAgencies(agencies []Agency) {
+	result := db.Create(agencies)
+	if result.Error != nil {
+		log.Fatal("Failed to initialize agency configuration!")
+	}
+}
+
 func GetProcessingErrors() []ProcessingError {
 	var processingErrors []ProcessingError
-	result := db.Find(&processingErrors)
+	result := db.Preload("Agency").Find(&processingErrors)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
 	return processingErrors
+}
+
+func GetAgencies() ([]Agency, error) {
+	var agencies []Agency
+	result := db.Find(&agencies)
+	return agencies, result.Error
 }
 
 func GetSupportedXdomeaVersions() []XdomeaVersion {
@@ -142,11 +156,13 @@ func GetXdomeaVersionByCode(code string) (XdomeaVersion, error) {
 func GetProcesses() ([]Process, error) {
 	var processes []Process
 	result := db.
+		Preload("Agency").
 		Preload("Message0501.MessageHead").
 		Preload("Message0501.MessageType").
 		Preload("Message0503.MessageHead").
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
+		Preload("ProcessingErrors.Agency").
 		Preload("ProcessState.Receive0501").
 		Preload("ProcessState.Appraisal").
 		Preload("ProcessState.Receive0505").
@@ -454,6 +470,7 @@ func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
 	// if first is used instead of find the error will get logged, that is not desired
 	result := db.Model(&Process{}).
+		Preload("Agency").
 		Preload("Message0501.MessageHead").
 		Preload("Message0501.MessageType").
 		Preload("Message0503.MessageHead").
@@ -495,6 +512,7 @@ func GetPrimaryFileStorePath(messageID uuid.UUID, primaryDocumentID uint) (strin
 }
 
 func AddProcess(
+	agency Agency,
 	xdomeaID string,
 	processStoreDir string,
 	institution *string,
@@ -505,6 +523,7 @@ func AddProcess(
 		return process, err
 	}
 	process = Process{
+		Agency:       agency,
 		XdomeaID:     xdomeaID,
 		StoreDir:     processStoreDir,
 		Institution:  institution,
@@ -559,6 +578,7 @@ func AddProcessState() (ProcessState, error) {
 }
 
 func AddMessage(
+	agency Agency,
 	xdomeaID string,
 	processStoreDir string,
 	message Message,
@@ -581,7 +601,7 @@ func AddMessage(
 		if message.MessageHead.Sender.Institution != nil {
 			institution = message.MessageHead.Sender.Institution.Name
 		}
-		process, err = AddProcess(xdomeaID, processStoreDir, institution)
+		process, err = AddProcess(agency, xdomeaID, processStoreDir, institution)
 		// The Database failed to create the process for the message.
 		if err != nil {
 			return process, message, err

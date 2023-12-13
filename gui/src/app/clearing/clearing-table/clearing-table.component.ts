@@ -1,5 +1,5 @@
 // project
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 
 // material
 import { MatPaginator } from '@angular/material/paginator';
@@ -17,10 +17,10 @@ import { interval, switchMap, Subscription } from 'rxjs';
   templateUrl: './clearing-table.component.html',
   styleUrls: ['./clearing-table.component.scss'],
 })
-export class ClearingTableComponent implements OnDestroy {
+export class ClearingTableComponent implements AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<ProcessingError>;
   displayedColumns: string[];
-  errorsSubscription: Subscription;
+  errorsSubscription?: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -28,12 +28,16 @@ export class ClearingTableComponent implements OnDestroy {
   constructor(private clearingService: ClearingService) {
     this.displayedColumns = [
       'detectedAt',
+      'agency',
       'description',
-      'transferDirPath',
-      'messageStorePath',
       'actions',
     ];
     this.dataSource = new MatTableDataSource<ProcessingError>();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
     this.clearingService.getProcessingErrors().subscribe({
       error: (error: any) => {
         console.error(error);
@@ -43,7 +47,7 @@ export class ClearingTableComponent implements OnDestroy {
       },
     });
     // // refetch processes every 10 seconds
-    this.errorsSubscription = interval(10000)
+    this.errorsSubscription = interval(1000000)
     .pipe(switchMap(() => this.clearingService.getProcessingErrors()))
     .subscribe({
       error: (error: any) => {
@@ -57,6 +61,6 @@ export class ClearingTableComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.errorsSubscription.unsubscribe();
+    this.errorsSubscription?.unsubscribe();
   }
 }

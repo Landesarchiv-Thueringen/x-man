@@ -8,23 +8,17 @@
         <td mat-cell *matCellDef="let error"> {{error.detectedAt | date:'short'}} </td>
       </ng-container>
   
-      <!-- description column -->
-      <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Problembeschreibung</th>
-          <td mat-cell *matCellDef="let error"> {{error.description}} </td>
-      </ng-container>
-  
       <!-- transfer dir path column -->
-      <ng-container matColumnDef="transferDirPath">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Pfad im Transferverzeichnis</th>
-          <td mat-cell *matCellDef="let error"> {{error.transferDirPath}} </td>
+      <ng-container matColumnDef="agency">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
+          <td mat-cell *matCellDef="let error"> {{error.agency.name}} </td>
       </ng-container>
 
-      <!-- message store path column -->
-      <ng-container matColumnDef="messageStorePath">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Pfad im temporären Nachrichtenspeicher</th>
-        <td mat-cell *matCellDef="let error"> {{error.messageStorePath}} </td>
-      </ng-container>
+      <!-- description column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Problembeschreibung</th>
+        <td mat-cell *matCellDef="let error"> {{error.description}} </td>
+    </ng-container>
 
       <!-- actions column -->
       <ng-container matColumnDef="actions" stickyEnd>

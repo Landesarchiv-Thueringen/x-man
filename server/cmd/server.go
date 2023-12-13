@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
-	"lath/xman/internal/transferdir"
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
@@ -71,9 +71,10 @@ func initServer() {
 		xdomea.InitXdomeaVersions()
 		xdomea.InitRecordObjectAppraisals()
 		xdomea.InitRecordObjectConfidentialities()
+		agency.InitAgencies()
 		db.SetMigrationCompleted()
 	}
-	go transferdir.Watch("/xman/transfer/tmik")
+	agency.MonitorTransferDirs()
 }
 
 func getDefaultResponse(context *gin.Context) {

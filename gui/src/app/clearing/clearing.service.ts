@@ -1,10 +1,15 @@
+// angular
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
+// project
+import { Agency } from '../process/process.service';
+
 export interface ProcessingError {
   id: number;
   detectedAt: string;
+  agency: Agency;
   description: string;
   messageStorePath?: string;
   transferDirPath?: string;

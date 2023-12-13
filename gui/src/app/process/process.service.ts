@@ -8,8 +8,14 @@ import { ProcessingError } from '../clearing/clearing.service';
 // utility
 import { Observable } from 'rxjs';
 
+export interface Agency {
+  name: string;
+  abbreviation: string;
+}
+
 export interface Process {
   id: string;
+  agency: Agency;
   xdomeaID: string;
   receivedAt: string;
   institution: string;

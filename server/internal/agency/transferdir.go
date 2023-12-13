@@ -1,6 +1,7 @@
-package transferdir
+package agency
 
 import (
+	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/xdomea"
 	"log"
@@ -20,9 +21,9 @@ import (
 // The general strategy to deal with this is to wait a short time for more write
 // events, resetting the wait period for every new event.
 
-func Watch(paths ...string) {
-	if len(paths) < 1 {
-		log.Fatal("no transfer directories given")
+func watchTransferDirs(agencies []db.Agency) {
+	if len(agencies) < 1 {
+		log.Fatal("no agencies directories given")
 	}
 
 	// Create new watcher.
@@ -33,13 +34,13 @@ func Watch(paths ...string) {
 	defer watcher.Close()
 
 	// Start listening for events.
-	go watchLoop(watcher)
+	go watchLoop(watcher, agencies)
 
 	// Add all paths from the commandline.
-	for _, path := range paths {
-		err = watcher.Add(path)
+	for _, agency := range agencies {
+		err = watcher.Add(agency.TransferDir)
 		if err != nil {
-			log.Fatal(path, err)
+			log.Fatal(agency.TransferDir, err)
 		}
 	}
 
@@ -53,7 +54,7 @@ func isProcessableMessage(event fsnotify.Event) bool {
 	return xdomea.IsMessage(event.Name) && event.Has(fsnotify.Create)
 }
 
-func watchLoop(watcher *fsnotify.Watcher) {
+func watchLoop(watcher *fsnotify.Watcher, agencies []db.Agency) {
 	var (
 		// Wait 100ms for new events; each new event resets the timer.
 		waitFor = 100 * time.Millisecond
@@ -64,8 +65,9 @@ func watchLoop(watcher *fsnotify.Watcher) {
 
 		// Callback we run.
 		processEvent = func(event fsnotify.Event) {
-			if isProcessableMessage(event) {
-				go messagestore.StoreMessage(event.Name)
+			agency, err := GetAgencyFromMessagePath(event.Name)
+			if isProcessableMessage(event) && err == nil {
+				go messagestore.StoreMessage(agency, event.Name)
 			}
 
 			// Don't need to remove the timer if you don't have a lot of files.
