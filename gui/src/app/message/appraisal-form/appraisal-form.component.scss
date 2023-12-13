@@ -1,3 +1,6 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
 .appraisal-form {
   width: 55.0em;
   display: flex;
@@ -11,4 +14,12 @@
 
 .internal-appraisal-note {
   width: 100%;
+}
+
+.confirm-button {
+  border: 2px solid mat.get-color-from-palette(mat.$pink-palette, 300) !important;
+}
+
+.abort-button {
+  border: 2px solid mat.get-color-from-palette(mat.$indigo-palette, 300) !important;
 }

@@ -86,12 +86,12 @@
         </mat-tree>
 
         <mat-toolbar *ngIf="process && message && !showSelection" class="message-actions">
-          <button mat-fab extended 
-            *ngIf="!message.appraisalComplete"
-            color="primary"
-            (click)="sendAppraisalMessage()">
-            <mat-icon>forward_to_inbox</mat-icon>
-            <span>Bewertung senden</span>
+          <button 
+            mat-fab extended
+            color="primary"  
+            (click)="copyMessageUrl()">
+            <mat-icon>content_copy</mat-icon>
+            <span>Objekt-Link kopieren</span>
           </button>
           <button mat-fab extended 
             *ngIf="message.messageType.code === '0503' && !process.processState.archiving.complete"
@@ -109,27 +109,28 @@
             </mat-icon>
             Mehrfachauswahl
           </button>
-          <button mat-fab extended (click)="copyMessageUrl()">
-            <mat-icon>content_copy</mat-icon>
-            <span>Objekt-Link kopieren</span>
+          <button mat-fab extended 
+            *ngIf="!message.appraisalComplete"
+            (click)="sendAppraisalMessage()">
+            <mat-icon>forward_to_inbox</mat-icon>
+            <span>Bewertung senden</span>
           </button>
         </mat-toolbar>
 
         <mat-toolbar *ngIf="process && message && showSelection" class="appraisal-actions">
+          <button class="abort-button" mat-fab extended (click)="disableSelection()" color="primary">
+            <mat-icon>
+              cancel
+            </mat-icon>
+            Abbrechen
+          </button>
           <button mat-fab extended 
-            color="primary" 
             (click)="setAppraisalForMultipleRecorcObjects()" 
             [disabled]="this.selectedNodes.length === 0">
             <mat-icon>
               checklist
             </mat-icon>
             Bewerten
-          </button>
-          <button mat-fab extended color="warn" (click)="disableSelection()">
-            <mat-icon>
-              cancel
-            </mat-icon>
-            Abbrechen
           </button>
         </mat-toolbar>
 
