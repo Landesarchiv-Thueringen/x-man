@@ -630,7 +630,7 @@ export class MessageService {
     return this.httpClient.patch<MultiAppraisalResponse>(url, body, options);
   }
 
-  updateStructureNode(
+  updateStructureNodeForRecordObject(
     recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject
   ): void {
     const node: StructureNode | undefined = this.structureNodes.get(
@@ -672,9 +672,8 @@ export class MessageService {
     }
   }
 
-  update(changedNode: StructureNode) {
+  updateStructureNode(changedNode: StructureNode) {
     this.structureNodes.set(changedNode.id, changedNode)
-    // we accept you my node
     this.propagateNodeChangeToParents(changedNode);
     this.nodesSubject.next(this.getRootStructureNodes());
     this.changedNodeSubject.next(changedNode);

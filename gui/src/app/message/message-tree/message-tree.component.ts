@@ -275,6 +275,13 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   }
 
   disableSelection(): void {
+    this.selectedNodes.forEach((nodeID: string) => {
+      const node: StructureNode|undefined = this.messageService.getStructureNode(nodeID);
+      if (node) {
+        node.selected = false;
+        this.messageService.updateStructureNode(node);
+      }
+    });
     this.selectedNodes = [];
     this.showSelection = false;
   }
@@ -293,7 +300,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           this.selectItem(selected, nodeChild.id);
         }
       });
-      this.messageService.update(node);
+      this.messageService.updateStructureNode(node);
     }
   }
 
@@ -328,10 +335,10 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         },
         next: (response: MultiAppraisalResponse) => {
           for (let fileRecordObject of response.updatedFileRecordObjects) {
-            this.messageService.updateStructureNode(fileRecordObject);
+            this.messageService.updateStructureNodeForRecordObject(fileRecordObject);
           }
           for (let processRecordObject of response.updatedProcessRecordObjects) {
-            this.messageService.updateStructureNode(processRecordObject);
+            this.messageService.updateStructureNodeForRecordObject(processRecordObject);
           }
           this.notificationService.show('Bewertung erfolgreich gespeichert');
           this.disableSelection();

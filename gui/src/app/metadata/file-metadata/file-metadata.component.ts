@@ -167,7 +167,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
             console.error(error);
           },
           next: (fileRecordObject: FileRecordObject) => {
-            this.messageService.updateStructureNode(fileRecordObject);
+            this.messageService.updateStructureNodeForRecordObject(fileRecordObject);
             this.notificationService.show('Bewertung erfolgreich gespeichert');
           },
         });
