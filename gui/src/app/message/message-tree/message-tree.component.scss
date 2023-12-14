@@ -37,7 +37,8 @@ mat-toolbar {
 
   flex-grow: 1;
   overflow: auto;
-  margin-top: 1.0em;
+  margin-top: 2.0em;
+  margin-left: 2.0em;
   
   .active {
     background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
@@ -56,6 +57,7 @@ mat-toolbar {
     border-radius: 30px;
     margin-bottom: 0.8em;
     margin-right: 2.0em;
+    
     cursor: pointer;
     
     &:hover {
@@ -100,6 +102,11 @@ mat-toolbar {
       }
     }
   }
+}
+
+.message-icon {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  margin-right: 0.5em;
 }
 
 .file-icon {

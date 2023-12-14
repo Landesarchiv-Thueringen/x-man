@@ -170,10 +170,10 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   }
 
   initTree(): void {
-    if (this.message) {
+    if (this.message && this.process) {
       this.showAppraisal = this.message.messageType.code === '0501';
       const treeData: StructureNode[] = [];
-      const messageNode = this.messageService.processMessage(this.message);
+      const messageNode = this.messageService.processMessage(this.process, this.message);
       treeData.push(messageNode);
       this.dataSource.data = treeData;
       this.expandNode(messageNode.id);

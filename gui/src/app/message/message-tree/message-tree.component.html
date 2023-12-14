@@ -56,6 +56,9 @@
                 <!-- use a disabled button to provide padding for tree leaf -->
                 <button *ngIf="node.type === 'message'" mat-icon-button disabled></button>
 
+                <mat-icon *ngIf="node.type === 'message'" class="message-icon">
+                  assignment
+                </mat-icon>
                 <mat-icon *ngIf="node.type === 'file'" class="file-icon">
                   folder
                 </mat-icon>

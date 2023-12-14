@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 // utility
 import { Observable, BehaviorSubject, Subject, Subscriber } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { Process } from '../process/process.service';
 
 export interface Message {
   id: string;
@@ -276,7 +277,7 @@ export class MessageService {
     ]);
   }
 
-  processMessage(message: Message): StructureNode {
+  processMessage(process: Process, message: Message): StructureNode {
     const children: StructureNode[] = [];
     if (message.messageType?.code === '0503') {
       children.push(this.getPrimaryDocumentsNode(message.id));
@@ -293,11 +294,13 @@ export class MessageService {
       case '0501':
         displayText = {
           title: 'Anbietung',
+          subtitle: process.agency.name,
         };
         break;
       case '0503':
         displayText = {
           title: 'Abgabe',
+          subtitle: process.agency.name,
         };
         break;
       default:
