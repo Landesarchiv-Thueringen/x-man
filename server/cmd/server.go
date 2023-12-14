@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -332,21 +331,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	appraisalStep := process.ProcessState.Appraisal
-	appraisalStep.Complete = true
-	appraisalStep.CompletionTime = time.Now()
-	err = db.UpdateProcessStep(appraisalStep)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	message.AppraisalComplete = true
-	err = db.UpdateMessage(message)
+	message, err = xdomea.FinalizeMessageAppraisal(message)
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return

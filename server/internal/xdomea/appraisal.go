@@ -3,6 +3,7 @@ package xdomea
 import (
 	"lath/xman/internal/db"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -80,4 +81,46 @@ func SetAppraisalForProcessRecorcdObjects(
 		updatedProcessRecordObjects = append(updatedProcessRecordObjects, processRecordObject)
 	}
 	return updatedProcessRecordObjects, nil
+}
+
+func FinalizeMessageAppraisal(message db.Message) (db.Message, error) {
+	err := markUnappraisedRecordObjectsAsDiscardable(message)
+	if err != nil {
+		return message, err
+	}
+	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if err != nil {
+		log.Println(err)
+		return message, err
+	}
+	appraisalStep := process.ProcessState.Appraisal
+	appraisalStep.Complete = true
+	appraisalStep.CompletionTime = time.Now()
+	err = db.UpdateProcessStep(appraisalStep)
+	if err != nil {
+		log.Println(err)
+		return message, err
+	}
+	message.AppraisalComplete = true
+	err = db.UpdateMessage(message)
+	if err != nil {
+		log.Println(err)
+		return message, err
+	}
+	return message, nil
+}
+
+func markUnappraisedRecordObjectsAsDiscardable(message db.Message) error {
+	for _, recordObject := range message.RecordObjects {
+		for _, appraisableObject := range recordObject.GetAppraisableObjects() {
+			appraisalCode, err := appraisableObject.GetAppraisal()
+			if err != nil || appraisalCode == "B" {
+				err := appraisableObject.SetAppraisal("V")
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
