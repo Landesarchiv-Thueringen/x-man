@@ -47,7 +47,7 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
       },
     });
     // // refetch processes every 10 seconds
-    this.errorsSubscription = interval(1000000)
+    this.errorsSubscription = interval(10000)
     .pipe(switchMap(() => this.clearingService.getProcessingErrors()))
     .subscribe({
       error: (error: any) => {
