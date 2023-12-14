@@ -3,7 +3,7 @@ import { NgModule, LOCALE_ID } from '@angular/core';
 import { DatePipe, registerLocaleData } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { ClipboardModule } from '@angular/cdk/clipboard'; 
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import localeDe from '@angular/common/locales/de';
 registerLocaleData(localeDe);
@@ -74,6 +74,7 @@ import { AppraisalFormComponent } from './message/appraisal-form/appraisal-form.
     AppRoutingModule,
     BrowserAnimationsModule,
     ClipboardModule,
+    FormsModule,
     HttpClientModule,
     MatButtonModule,
     MatCheckboxModule,

@@ -37,6 +37,7 @@ import { filter, Subscription, switchMap } from 'rxjs';
 
 export interface FlatNode {
   id: string;
+  selected: boolean;
   parentID?: string;
   expandable: boolean;
   level: number;
@@ -70,6 +71,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   private _transformer = (node: StructureNode, level: number): FlatNode => {
     return {
       id: node.id,
+      selected: node.selected,
       parentID: node.parentID,
       expandable: !!node.children && node.children.length > 0,
       level: level,
@@ -212,46 +214,49 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     const flatNode: FlatNode = this.treeControl.dataNodes.find(
       (n: FlatNode) => n.id === changedNode.id
     )!;
+    flatNode.selected = changedNode.selected;
     flatNode.appraisal = changedNode.appraisal;
     flatNode.displayText = changedNode.displayText;
     flatNode.routerLink = changedNode.routerLink;
     flatNode.type = changedNode.type;
   }
 
-  updateNodeInDataSource(changedNode: StructureNode): void {
-    const oldNode: StructureNode = this.findNodeInDataSource(changedNode.id)!;
-    if (oldNode.parentID) {
-      const parentNode: StructureNode = this.findNodeInDataSource(
-        oldNode.parentID
-      )!;
-      const oldNodeIndex: number = parentNode.children!.findIndex(
-        (node: StructureNode) => node.id === oldNode.id
-      )!;
-      parentNode.children![oldNodeIndex] = changedNode;
-    } else {
-      // element must be root element
-      const oldNodeIndex: number = this.dataSource.data.findIndex(
-        (node: StructureNode) => node.id === oldNode.id
-      )!;
-      this.dataSource.data[oldNodeIndex] = changedNode;
-    }
-  }
+  // The following functions doesn't work as expected 
 
-  findNodeInDataSource(targetID: string): StructureNode | undefined {
-    // initialize next nodes with root nodes of tree
-    const nextNodes: StructureNode[] = [...this.dataSource.data];
-    while (nextNodes.length !== 0) {
-      // shift is breadth-first search, pop is depth-first search
-      const currentNode: StructureNode = nextNodes.shift()!;
-      if (currentNode.id === targetID) {
-        return currentNode;
-      }
-      if (currentNode.children) {
-        nextNodes.push(...currentNode.children);
-      }
-    }
-    return undefined;
-  }
+  // updateNodeInDataSource(changedNode: StructureNode): void {
+  //   const oldNode: StructureNode = this.findNodeInDataSource(changedNode.id)!;
+  //   if (oldNode.parentID) {
+  //     const parentNode: StructureNode = this.findNodeInDataSource(
+  //       oldNode.parentID
+  //     )!;
+  //     const oldNodeIndex: number = parentNode.children!.findIndex(
+  //       (node: StructureNode) => node.id === oldNode.id
+  //     )!;
+  //     parentNode.children![oldNodeIndex] = changedNode;
+  //   } else {
+  //     // element must be root element
+  //     const oldNodeIndex: number = this.dataSource.data.findIndex(
+  //       (node: StructureNode) => node.id === oldNode.id
+  //     )!;
+  //     this.dataSource.data[oldNodeIndex] = changedNode;
+  //   }
+  // }
+
+  // findNodeInDataSource(targetID: string): StructureNode | undefined {
+  //   // initialize next nodes with root nodes of tree
+  //   const nextNodes: StructureNode[] = [...this.dataSource.data];
+  //   while (nextNodes.length !== 0) {
+  //     // shift is breadth-first search, pop is depth-first search
+  //     const currentNode: StructureNode = nextNodes.shift()!;
+  //     if (currentNode.id === targetID) {
+  //       return currentNode;
+  //     }
+  //     if (currentNode.children) {
+  //       nextNodes.push(...currentNode.children);
+  //     }
+  //   }
+  //   return undefined;
+  // }
 
   expandNode(id: string): void {
     const node: FlatNode | undefined = this.treeControl.dataNodes.find(
@@ -274,11 +279,21 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     this.showSelection = false;
   }
 
-  selectItem(event: any, id: string): void {
-    if (event.checked) {
+  selectItem(selected: boolean, id: string): void {
+    if (selected) {
       this.selectedNodes.push(id);
     } else {
       this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== id);
+    }
+    const node: StructureNode|undefined = this.messageService.getStructureNode(id);
+    if (node) {
+      node.selected = selected;
+      node.children?.forEach((nodeChild: StructureNode) => {
+        if (nodeChild.type === 'file' || nodeChild.type === 'process') {
+          this.selectItem(selected, nodeChild.id);
+        }
+      });
+      this.messageService.update(node);
     }
   }
 

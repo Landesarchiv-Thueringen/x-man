@@ -209,6 +209,7 @@ export interface DisplayText {
 
 export interface StructureNode {
   id: string;
+  selected: boolean;
   displayText: DisplayText;
   type: StructureNodeType;
   routerLink: string;
@@ -309,6 +310,7 @@ export class MessageService {
     const routerLink: string = 'details';
     const messageNode: StructureNode = {
       id: message.id,
+      selected: true,
       displayText: displayText,
       type: 'message',
       routerLink: routerLink,
@@ -327,6 +329,7 @@ export class MessageService {
     const routerLink: string = 'formatverifikation';
     const primaryDocumentsNode: StructureNode = {
       id: uuidv4(),
+      selected: false,
       displayText: displayText,
       type: 'primaryDocuments',
       routerLink: routerLink,
@@ -350,6 +353,7 @@ export class MessageService {
     const routerLink: string = 'akte/' + fileRecordObject.id;
     const fileNode: StructureNode = {
       id: fileRecordObject.id,
+      selected: false,
       displayText: displayText,
       type: 'file',
       routerLink: routerLink,
@@ -378,6 +382,7 @@ export class MessageService {
     const routerLink: string = 'vorgang/' + processRecordObject.id;
     const processNode: StructureNode = {
       id: processRecordObject.id,
+      selected: false,
       displayText: displayText,
       type: 'process',
       routerLink: routerLink,
@@ -400,6 +405,7 @@ export class MessageService {
     const routerLink: string = 'dokument/' + documentRecordObject.id;
     const documentNode: StructureNode = {
       id: documentRecordObject.id,
+      selected: false,
       displayText: displayText,
       type: 'document',
       routerLink: routerLink,
@@ -419,6 +425,10 @@ export class MessageService {
 
   addStructureNode(node: StructureNode): void {
     this.structureNodes.set(node.id, node);
+  }
+
+  getStructureNode(id: string): StructureNode|undefined {
+    return this.structureNodes.get(id);
   }
 
   propagateNodeChangeToParents(node: StructureNode): void {
@@ -660,6 +670,14 @@ export class MessageService {
         'no structure node for record object with ID: ' + recordObject.id
       );
     }
+  }
+
+  update(changedNode: StructureNode) {
+    this.structureNodes.set(changedNode.id, changedNode)
+    // we accept you my node
+    this.propagateNodeChangeToParents(changedNode);
+    this.nodesSubject.next(this.getRootStructureNodes());
+    this.changedNodeSubject.next(changedNode);
   }
 
   getRecordObjectAppraisalByCode(
