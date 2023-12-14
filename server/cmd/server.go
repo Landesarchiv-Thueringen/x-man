@@ -47,6 +47,7 @@ func main() {
 	router.GET("api/record-object-appraisals", getRecordObjectAppraisals)
 	router.GET("api/record-object-confidentialities", getRecordObjectConfidentialities)
 	router.GET("api/message-appraisal-complete/:id", isMessageAppraisalComplete)
+	router.GET("api/all-record-objects-appraised/:id", AreAllRecordObjectsAppraised)
 	router.GET("api/message-type-code/:id", getMessageTypeCode)
 	router.GET("api/primary-document", getPrimaryDocument)
 	router.GET("api/primary-documents/:id", getPrimaryDocuments)
@@ -362,6 +363,20 @@ func isMessageAppraisalComplete(context *gin.Context) {
 	appraisalComplete, err := db.IsMessageAppraisalComplete(id)
 	if err != nil {
 		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	context.JSON(http.StatusOK, appraisalComplete)
+}
+
+func AreAllRecordObjectsAppraised(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	appraisalComplete, err := xdomea.AreAllRecordObjectsAppraised(id)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	context.JSON(http.StatusOK, appraisalComplete)

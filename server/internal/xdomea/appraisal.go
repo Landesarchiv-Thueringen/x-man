@@ -7,6 +7,23 @@ import (
 	"github.com/google/uuid"
 )
 
+func AreAllRecordObjectsAppraised(messageID uuid.UUID) (bool, error) {
+	recordObjects, err := db.GetRecordObjects(messageID)
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+	for _, recordObject := range recordObjects {
+		for _, appraisableObject := range recordObject.GetAppraisableObjects() {
+			appraisalCode, err := appraisableObject.GetAppraisal()
+			if err != nil || appraisalCode == "B" {
+				return false, nil
+			}
+		}
+	}
+	return true, nil
+}
+
 func SetAppraisalForFileRecorcdObjects(
 	fileRecordObjectIDs []string,
 	appraisalCode string,

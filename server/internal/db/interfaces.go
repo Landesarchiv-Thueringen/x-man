@@ -79,6 +79,15 @@ type AppraisableRecordObject interface {
 	GetAppraisableObjects() []AppraisableRecordObject
 }
 
+func (r *RecordObject) GetAppraisableObjects() []AppraisableRecordObject {
+	appraisableObjects := []AppraisableRecordObject{}
+	if r.FileRecordObject != nil {
+		appraisableObjects = append(appraisableObjects, r.FileRecordObject.GetAppraisableObjects()...)
+	}
+	// TODO: add process and document
+	return appraisableObjects
+}
+
 func (f *FileRecordObject) GetAppraisal() (string, error) {
 	if f.ArchiveMetadata != nil &&
 		f.ArchiveMetadata.AppraisalCode != nil {

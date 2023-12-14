@@ -703,6 +703,12 @@ export class MessageService {
     );
   }
 
+  areAllRecordObjectsAppraised(id: string): Observable<boolean> {
+    return this.httpClient.get<boolean>(
+      this.apiEndpoint + '/all-record-objects-appraised/' + id
+    );
+  }
+
   getMessageTypeCode(id: string): Observable<string> {
     return this.httpClient.get<string>(
       this.apiEndpoint + '/message-type-code/' + id

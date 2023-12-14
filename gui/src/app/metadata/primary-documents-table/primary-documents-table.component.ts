@@ -108,6 +108,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
       const id: string = fileOverview['id'].value
       const primaryDocument: PrimaryDocument|undefined = this.primaryDocuments.get(id);
       this.dialog.open(FileOverviewComponent, {
+        autoFocus: false,
         data: {
           primaryDocument: primaryDocument,
         },

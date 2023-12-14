@@ -1,0 +1,20 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  width: 45.0em;
+}
+
+.appraisal-warning {
+  color: mat.get-color-from-palette(mat.$red-palette, 500);
+  font-weight: 500;
+}
+
+.confirm-button {
+  border: 2px solid mat.get-color-from-palette(mat.$pink-palette, 300) !important;
+}
+
+.abort-button {
+  border: 2px solid mat.get-color-from-palette(mat.$indigo-palette, 300) !important;
+}

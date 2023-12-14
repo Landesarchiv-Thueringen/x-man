@@ -48,6 +48,7 @@ import { ClearingTableComponent } from './clearing/clearing-table/clearing-table
 import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
 import { FileOverviewComponent } from './metadata/primary-document/primary-document-metadata.component';
 import { AppraisalFormComponent } from './message/appraisal-form/appraisal-form.component';
+import { FinalizeAppraisalDialogComponent } from './message/finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 
 @NgModule({
   declarations: [
@@ -68,6 +69,7 @@ import { AppraisalFormComponent } from './message/appraisal-form/appraisal-form.
     ClearingTableComponent,
     PrimaryDocumentsTableComponent,
     AppraisalFormComponent,
+    FinalizeAppraisalDialogComponent,
   ],
   imports: [
     BrowserModule,

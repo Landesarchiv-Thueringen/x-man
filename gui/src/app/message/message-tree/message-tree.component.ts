@@ -29,6 +29,7 @@ import {
   StructureNode,
   StructureNodeType,
 } from '../message.service';
+import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { Process, ProcessService } from 'src/app/process/process.service';
 
@@ -175,7 +176,10 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     if (this.message && this.process) {
       this.showAppraisal = this.message.messageType.code === '0501';
       const treeData: StructureNode[] = [];
-      const messageNode = this.messageService.processMessage(this.process, this.message);
+      const messageNode = this.messageService.processMessage(
+        this.process,
+        this.message
+      );
       treeData.push(messageNode);
       this.dataSource.data = treeData;
       this.expandNode(messageNode.id);
@@ -221,7 +225,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     flatNode.type = changedNode.type;
   }
 
-  // The following functions doesn't work as expected 
+  // The following functions doesn't work as expected
 
   // updateNodeInDataSource(changedNode: StructureNode): void {
   //   const oldNode: StructureNode = this.findNodeInDataSource(changedNode.id)!;
@@ -276,7 +280,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   disableSelection(): void {
     this.selectedNodes.forEach((nodeID: string) => {
-      const node: StructureNode|undefined = this.messageService.getStructureNode(nodeID);
+      const node: StructureNode | undefined =
+        this.messageService.getStructureNode(nodeID);
       if (node) {
         node.selected = false;
         this.messageService.updateStructureNode(node);
@@ -292,7 +297,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     } else {
       this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== id);
     }
-    const node: StructureNode|undefined = this.messageService.getStructureNode(id);
+    const node: StructureNode | undefined =
+      this.messageService.getStructureNode(id);
     if (node) {
       node.selected = selected;
       node.children?.forEach((nodeChild: StructureNode) => {
@@ -321,7 +327,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
           return this.messageService.setAppraisalForMultipleRecorcObjects(
             this.selectedNodes,
             formResult.appraisalCode,
-            formResult.appraisalNote,
+            formResult.appraisalNote
           );
         })
       )
@@ -335,10 +341,14 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         },
         next: (response: MultiAppraisalResponse) => {
           for (let fileRecordObject of response.updatedFileRecordObjects) {
-            this.messageService.updateStructureNodeForRecordObject(fileRecordObject);
+            this.messageService.updateStructureNodeForRecordObject(
+              fileRecordObject
+            );
           }
           for (let processRecordObject of response.updatedProcessRecordObjects) {
-            this.messageService.updateStructureNodeForRecordObject(processRecordObject);
+            this.messageService.updateStructureNodeForRecordObject(
+              processRecordObject
+            );
           }
           this.notificationService.show('Bewertung erfolgreich gespeichert');
           this.disableSelection();
@@ -348,17 +358,31 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   sendAppraisalMessage(): void {
     if (this.message) {
-      this.messageService.finalizeMessageAppraisal(this.message.id).subscribe({
-        error: (error) => {
-          console.error(error);
-        },
-        next: () => {
-          this.notificationService.show(
-            'Bewertungsnachricht wurde erfolgreich versandt'
-          );
-          this.message!.appraisalComplete = true;
-        },
-      });
+      this.dialog
+        .open(FinalizeAppraisalDialogComponent, {
+          autoFocus: false,
+          data: { messageID: this.message.id },
+        })
+        .afterClosed()
+        .pipe(
+          filter((formResult) => !!formResult),
+          switchMap((formResult: any) => {
+            return this.messageService.finalizeMessageAppraisal(
+              this.message!.id
+            );
+          })
+        )
+        .subscribe({
+          error: (error: any) => {
+            console.error(error);
+          },
+          next: () => {
+            this.notificationService.show(
+              'Bewertungsnachricht wurde erfolgreich versandt'
+            );
+            this.message!.appraisalComplete = true;
+          },
+        });
     }
   }
 

@@ -229,6 +229,21 @@ func IsMessageAppraisalComplete(id uuid.UUID) (bool, error) {
 	return message.AppraisalComplete, err
 }
 
+func GetRecordObjects(messageID uuid.UUID) ([]RecordObject, error) {
+	var recordObjects []RecordObject
+	// TODO: add process and document
+	result := db.
+		Preload("FileRecordObject.GeneralMetadata.FilePlan").
+		Preload("FileRecordObject.ArchiveMetadata").
+		Preload("FileRecordObject.Lifetime").
+		Preload("FileRecordObject.Processes.GeneralMetadata.FilePlan").
+		Preload("FileRecordObject.Processes.ArchiveMetadata").
+		Preload("FileRecordObject.Processes.Lifetime").
+		Preload("FileRecordObject.Processes.Documents.GeneralMetadata.FilePlan").
+		Find(&recordObjects)
+	return recordObjects, result.Error
+}
+
 func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 	var file FileRecordObject
 	result := db.
