@@ -49,11 +49,6 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
     });
-    this.form.controls['appraisalNote'].valueChanges
-      .pipe(skip(1), debounceTime(400))
-      .subscribe((value: string | null) => {
-        this.setAppraisalNote(value);
-      });
   }
 
   ngAfterViewInit(): void {
@@ -71,6 +66,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         }),
         switchMap((messageAppraisalComplete: boolean) => {
           this.messageAppraisalComplete = messageAppraisalComplete;
+          this.saveAppraisalNoteChanges();
           return this.messageService.getRecordObjectAppraisals();
         }),
         switchMap((appraisals: RecordObjectAppraisal[]) => {
@@ -102,6 +98,16 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         this.fileRecordObject = fileRecordObject;
         this.setMetadata();
       });
+  }
+
+  saveAppraisalNoteChanges(): void {
+    if (!this.messageAppraisalComplete) {
+      this.form.controls['appraisalNote'].valueChanges
+      .pipe(skip(1), debounceTime(400))
+      .subscribe((value: string | null) => {
+        this.setAppraisalNote(value);
+      });
+    }
   }
 
   ngOnDestroy(): void {
