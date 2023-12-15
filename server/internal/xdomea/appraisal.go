@@ -1,6 +1,7 @@
 package xdomea
 
 import (
+	"errors"
 	"lath/xman/internal/db"
 	"log"
 	"time"
@@ -120,6 +121,56 @@ func markUnappraisedRecordObjectsAsDiscardable(message db.Message) error {
 					return err
 				}
 			}
+		}
+	}
+	return nil
+}
+
+func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
+	fileRecordObjects0501, err := db.GetAllFileRecordObjects(process.Message0501.ID)
+	if err != nil {
+		return err
+	}
+	processRecordObjects0501, err := db.GetAllProcessRecordObjects(process.Message0501.ID)
+	if err != nil {
+		return err
+	}
+	fileRecordObjects0503, err := db.GetAllFileRecordObjects(process.Message0503.ID)
+	if err != nil {
+		return err
+	}
+	processRecordObjects0503, err := db.GetAllProcessRecordObjects(process.Message0503.ID)
+	if err != nil {
+		return err
+	}
+	for recordObjectID, file0503 := range fileRecordObjects0503 {
+		file0501, ok := fileRecordObjects0501[recordObjectID]
+		if !ok {
+			return errors.New("file record object with ID " +
+				recordObjectID.String() + " not found in 0501 message")
+		}
+		note, err := file0501.GetAppraisalNote()
+		if err != nil {
+			return err
+		}
+		err = file0503.SetAppraisalNote(note)
+		if err != nil {
+			return err
+		}
+	}
+	for recordObjectID, process0503 := range processRecordObjects0503 {
+		process0501, ok := processRecordObjects0501[recordObjectID]
+		if !ok {
+			return errors.New("process record object with ID " +
+				recordObjectID.String() + " not found in 0501 message")
+		}
+		note, err := process0501.GetAppraisalNote()
+		if err != nil {
+			return err
+		}
+		err = process0503.SetAppraisalNote(note)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

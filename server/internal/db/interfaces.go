@@ -116,6 +116,14 @@ func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
 	return result.Error
 }
 
+func (f *FileRecordObject) GetAppraisalNote() (string, error) {
+	if f.ArchiveMetadata != nil &&
+		f.ArchiveMetadata.InternalAppraisalNote != nil {
+		return *f.ArchiveMetadata.InternalAppraisalNote, nil
+	}
+	return "", errors.New("no appraisal note existing")
+}
+
 func (f *FileRecordObject) SetAppraisalNote(note string) error {
 	// archive metadata not created
 	if f.ArchiveMetadata == nil {
@@ -195,6 +203,14 @@ func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
 	// save archive metadata
 	result := db.Save(&p.ArchiveMetadata)
 	return result.Error
+}
+
+func (p *ProcessRecordObject) GetAppraisalNote() (string, error) {
+	if p.ArchiveMetadata != nil &&
+		p.ArchiveMetadata.InternalAppraisalNote != nil {
+		return *p.ArchiveMetadata.InternalAppraisalNote, nil
+	}
+	return "", errors.New("no appraisal note existing")
 }
 
 func (p *ProcessRecordObject) SetAppraisalNote(note string) error {
