@@ -32,6 +32,7 @@ services:
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=.tsa.thlv.de,.thlv.de
     depends_on:
       database:
         condition: service_healthy
@@ -39,7 +40,7 @@ services:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
-      - NO_PROXY=borg.tsa.thlv.de,dimag.tsa.thlv.de
+      - NO_PROXY=${NO_PROXY}
       - DIMAG_SFTP_SERVER_URL=${DIMAG_SFTP_SERVER_URL}
       - DIMAG_SFTP_UPLOAD_DIR=${DIMAG_SFTP_UPLOAD_DIR}
       - DIMAG_SFTP_USER=${DIMAG_SFTP_USER}
@@ -48,11 +49,16 @@ services:
       - DIMAG_CORE_USER=${DIMAG_CORE_USER}
       - DIMAG_CORE_PASSWORD=${DIMAG_CORE_PASSWORD}
     volumes:
-      - type: bind
-        source: ${TRANSFER_DIR}
-        target: /xman/transfer/
+      - transfer_dir:/xman/transfer/
       - type: bind
         source: ${MESSAGE_STORE}
         target: /xman/message_store/
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}
+
+volumes:
+  transfer_dir:
+    driver_opts:
+      type: cifs
+      device: ${TRANSFER_DIR_PATH}
+      o: "rw,addr=${TRANSFER_DIR_ADDRESS},username=${TRANSFER_DIR_USER},password=${TRANSFER_DIR_PASSWORD},file_mode=0777,dir_mode=0777"

@@ -1,119 +1,49 @@
 package agency
 
 import (
+	"io/ioutil"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/xdomea"
 	"log"
-	"math"
-	"sync"
+	"path/filepath"
 	"time"
-
-	"github.com/fsnotify/fsnotify"
 )
 
-// example: https://github.com/fsnotify/fsnotify/blob/main/cmd/fsnotify/dedup.go
+var ticker time.Ticker
+var stop chan bool
 
-// Depending on the system, a single "write" can generate many Write events; for
-// example compiling a large Go program can generate hundreds of Write events on
-// the binary.
-//
-// The general strategy to deal with this is to wait a short time for more write
-// events, resetting the wait period for every new event.
-
-func watchTransferDirs(agencies []db.Agency) {
-	if len(agencies) < 1 {
-		log.Fatal("no agencies directories given")
-	}
-
-	// Create new watcher.
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer watcher.Close()
-
-	// Start listening for events.
-	go watchLoop(watcher, agencies)
-
-	// Add all paths from the commandline.
-	for _, agency := range agencies {
-		err = watcher.Add(agency.TransferDir)
-		if err != nil {
-			log.Fatal(agency.TransferDir, err)
-		}
-	}
-
-	<-make(chan struct{}) // Block forever
+func watchTransferDirectories(agencies []db.Agency) {
+	ticker = *time.NewTicker(time.Second * 5)
+	stop = make(chan bool)
+	go watchLoop(agencies, ticker, stop)
 }
 
-// Checks if a file event represents the creation of a new processable xdomea message.
-// The corresponding file must match the xdomea naming conventions.
-// The event must be a create event. It could be necessarry to add write events.
-func isProcessableMessage(event fsnotify.Event) bool {
-	return xdomea.IsMessage(event.Name) && event.Has(fsnotify.Create)
-}
-
-func watchLoop(watcher *fsnotify.Watcher, agencies []db.Agency) {
-	var (
-		// Wait 100ms for new events; each new event resets the timer.
-		waitFor = 100 * time.Millisecond
-
-		// Keep track of the timers, as path → timer.
-		mutex  sync.Mutex
-		timers = make(map[string]*time.Timer)
-
-		// Callback we run.
-		processEvent = func(event fsnotify.Event) {
-			agency, err := GetAgencyFromMessagePath(event.Name)
-			if isProcessableMessage(event) && err == nil {
-				go messagestore.StoreMessage(agency, event.Name)
-			}
-
-			// Don't need to remove the timer if you don't have a lot of files.
-			mutex.Lock()
-			delete(timers, event.Name)
-			mutex.Unlock()
-		}
-	)
-
+func watchLoop(agencies []db.Agency, timer time.Ticker, stop chan bool) {
 	for {
 		select {
-		// Read from Errors.
-		case err, ok := <-watcher.Errors:
-			if !ok { // Channel was closed (i.e. Watcher.Close() was called).
-				return
-			}
+		case <-stop:
+			timer.Stop()
+			return
+		case <-timer.C:
+			readMessages(agencies)
+		}
+	}
+}
+
+func readMessages(agencies []db.Agency) {
+	for _, agency := range agencies {
+		files, err := ioutil.ReadDir(agency.TransferDir)
+		if err != nil {
 			log.Fatal(err)
-		// Read from Events.
-		case event, ok := <-watcher.Events:
-			if !ok { // Channel was closed (i.e. Watcher.Close() was called).
-				return
+		}
+		for _, file := range files {
+			if !file.IsDir() && xdomea.IsMessage(file.Name()) {
+				fullPath := filepath.Join(agency.TransferDir, file.Name())
+				if !db.IsMessageAlreadyProcessed(fullPath) {
+					go messagestore.StoreMessage(agency, fullPath)
+				}
 			}
-
-			// We just want to watch for file creation, so ignore everything
-			// outside of Create and Write.
-			if !event.Has(fsnotify.Create) && !event.Has(fsnotify.Write) {
-				continue
-			}
-
-			// Get timer.
-			mutex.Lock()
-			timer, ok := timers[event.Name]
-			mutex.Unlock()
-
-			// No timer yet, so create one.
-			if !ok {
-				timer = time.AfterFunc(math.MaxInt64, func() { processEvent(event) })
-				timer.Stop()
-
-				mutex.Lock()
-				timers[event.Name] = timer
-				mutex.Unlock()
-			}
-
-			// Reset the timer for this path, so it will start from 100ms again.
-			timer.Reset(waitFor)
 		}
 	}
 }

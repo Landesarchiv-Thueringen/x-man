@@ -2,6 +2,6 @@ FROM golang
 WORKDIR /xman
 COPY . ./
 RUN apt-get update
-RUN apt-get install -y libxml2 libxml2-dev
+RUN apt-get install -y libxml2 libxml2-dev cifs-utils
 RUN go mod download
 CMD ["go", "run", "cmd/server.go"]

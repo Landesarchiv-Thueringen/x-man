@@ -210,6 +210,12 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 	return message, result.Error
 }
 
+func IsMessageAlreadyProcessed(path string) bool {
+	var message Message
+	result := db.Where("transfer_dir_message_path = ?", path).First(&message)
+	return result.Error == nil
+}
+
 func GetMessageTypeCode(id uuid.UUID) (string, error) {
 	var message Message
 	result := db.

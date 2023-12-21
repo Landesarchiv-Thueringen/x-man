@@ -11,7 +11,7 @@
 !/README.md
 
 # allow environment file
-!/.env
+!/sample.env
 
 # allow docker compose file
 !/docker-compose.yml
