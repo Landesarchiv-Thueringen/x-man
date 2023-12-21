@@ -32,6 +32,7 @@ import {
 import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { Process, ProcessService } from 'src/app/process/process.service';
+import { StartArchivingDialogComponent } from '../start-archiving-dialog/start-archiving-dialog.component';
 
 // utility
 import { filter, Subscription, switchMap } from 'rxjs';
@@ -313,7 +314,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   copyMessageUrl() {
     this.clipboard.copy(this.document.location.toString());
     this.notificationService.show(
-      'Nachrichten-Link in Zwischenspeicher kopiert'
+      'Objekt-Link in Zwischenspeicher kopiert'
     );
   }
 
@@ -388,14 +389,23 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
 
   archive0503Message() {
     if (this.message) {
-      this.messageService.archive0503Message(this.message.id).subscribe({
-        error: (error: any) => {
-          console.error(error);
-        },
-        next: () => {
-          console.log('yeah');
-        },
-      });
+      this.dialog
+        .open(StartArchivingDialogComponent, {
+          autoFocus: false,
+        })
+        .afterClosed()
+        .pipe(
+          filter((formResult) => !!formResult),
+        ).subscribe();
+        
+      // this.messageService.archive0503Message(this.message.id).subscribe({
+      //   error: (error: any) => {
+      //     console.error(error);
+      //   },
+      //   next: () => {
+      //     console.log('yeah');
+      //   },
+      // });
     }
   }
 }

@@ -49,6 +49,7 @@ import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-tab
 import { FileOverviewComponent } from './metadata/primary-document/primary-document-metadata.component';
 import { AppraisalFormComponent } from './message/appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from './message/finalize-appraisal-dialog/finalize-appraisal-dialog.component';
+import { StartArchivingDialogComponent } from './message/start-archiving-dialog/start-archiving-dialog.component';
 
 @NgModule({
   declarations: [
@@ -70,6 +71,7 @@ import { FinalizeAppraisalDialogComponent } from './message/finalize-appraisal-d
     PrimaryDocumentsTableComponent,
     AppraisalFormComponent,
     FinalizeAppraisalDialogComponent,
+    StartArchivingDialogComponent,
   ],
   imports: [
     BrowserModule,
