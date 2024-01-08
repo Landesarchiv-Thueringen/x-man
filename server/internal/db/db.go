@@ -28,12 +28,14 @@ func Init() {
 	db = database
 }
 
+// MigrationCompleted checks if the database must be initialized.
 func MigrationCompleted() bool {
 	var serverState ServerState
-	result := db.First(&serverState)
-	return result.Error == nil
+	result := db.Limit(1).Find(&serverState)
+	return result.RowsAffected > 0
 }
 
+// SetMigrationCompleted marks the migration as completed.
 func SetMigrationCompleted() {
 	serverState := ServerState{
 		MigrationComplete: true,
@@ -44,6 +46,7 @@ func SetMigrationCompleted() {
 	}
 }
 
+// Migrate migrates all database tables and relations.
 func Migrate() {
 	if db == nil {
 		log.Fatal("database wasn't initialized")
@@ -210,10 +213,11 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 	return message, result.Error
 }
 
+// IsMessageAlreadyProcessed checks if a message exists, which was already processed,
+// determined by the path in the transfer directory.
 func IsMessageAlreadyProcessed(path string) bool {
-	var message Message
-	result := db.Where("transfer_dir_message_path = ?", path).First(&message)
-	return result.Error == nil
+	result := db.Where("transfer_dir_message_path = ?", path).Limit(1).Find(&Message{})
+	return result.RowsAffected > 0
 }
 
 func GetMessageTypeCode(id uuid.UUID) (string, error) {
