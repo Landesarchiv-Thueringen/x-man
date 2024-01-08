@@ -38,9 +38,6 @@ services:
         condition: service_healthy
     environment:
       - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
-      - HTTP_PROXY=${HTTP_PROXY}
-      - HTTPS_PROXY=${HTTPS_PROXY}
-      - NO_PROXY=${NO_PROXY}
       - DIMAG_SFTP_SERVER_URL=${DIMAG_SFTP_SERVER_URL}
       - DIMAG_SFTP_UPLOAD_DIR=${DIMAG_SFTP_UPLOAD_DIR}
       - DIMAG_SFTP_USER=${DIMAG_SFTP_USER}
