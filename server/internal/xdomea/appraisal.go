@@ -127,6 +127,9 @@ func markUnappraisedRecordObjectsAsDiscardable(message db.Message) error {
 }
 
 func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
+	if (process.Message0501 == nil) {
+		return errors.New("0501 message doesn't exist")
+	}
 	fileRecordObjects0501, err := db.GetAllFileRecordObjects(process.Message0501.ID)
 	if err != nil {
 		return err

@@ -183,11 +183,13 @@ func AddMessage(
 		}
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
-			// transfer the internal appraisal note from 0501 to 0503 message
-			err = TransferAppraisalNoteFrom0501To0503(process)
-			if err != nil {
-				log.Println(err)
-				return process, message, err
+			// if 0501 message exists, transfer the internal appraisal note from 0501 to 0503 message
+			if (process.Message0501 != nil) {
+				err = TransferAppraisalNoteFrom0501To0503(process)
+				if err != nil {
+					log.Println(err)
+					return process, message, err
+				}
 			}
 			// start format verification
 			format.VerifyFileFormats(process, message)
