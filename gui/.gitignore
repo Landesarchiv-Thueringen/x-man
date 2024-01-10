@@ -21,3 +21,9 @@
 
 # allow assets
 !/src/assets/**/*.*
+
+# allow dockerfile
+!Dockerfile
+
+# allow build files
+!/build/**/*
