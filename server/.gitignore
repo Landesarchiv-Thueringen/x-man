@@ -18,4 +18,4 @@
 !/xsd/**/*.xsd
 
 # allow server dockerfile
-!dockerfile_server
+!Dockerfile

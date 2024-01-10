@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -14,11 +15,11 @@ import (
 var db *gorm.DB
 
 func Init() {
-	dsn := `host=xman-database 
-		user=xman
-		password=test1234
-		dbname=xman 
-		port=5432 
+	dsn := `host=database
+		user=` + os.Getenv("XMAN_DATABASE_USER") + `
+		password=` + os.Getenv("XMAN_DATABASE_PASSWORD") + `
+		dbname=` + os.Getenv("XMAN_DATABASE_NAME") + `
+		port=5432
 		sslmode=disable 
 		TimeZone=Europe/Berlin`
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
