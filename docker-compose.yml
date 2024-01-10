@@ -19,7 +19,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ./server/database/data:/var/lib/postgresql/data
+      - database:/var/lib/postgresql/data
     ports:
       - ${XMAN_DATABASE_HOST_PORT}:5432
 
@@ -47,11 +47,13 @@ services:
       - DIMAG_CORE_PASSWORD=${DIMAG_CORE_PASSWORD}
     volumes:
       - transfer_dir:/xman/transfer/
-      - ./server/message_store:/xman/message_store
+      - message_store:/xman/message_store
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}
 
 volumes:
+  database:
+  message_store:
   transfer_dir:
     driver_opts:
       type: cifs
