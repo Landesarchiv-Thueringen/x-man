@@ -35,6 +35,7 @@ export interface ProcessState {
 }
 
 export interface ProcessStep {
+  startTime?: string;
   complete: boolean;
   completionTime: string;
   itemCount: number;

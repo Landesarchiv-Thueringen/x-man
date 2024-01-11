@@ -421,6 +421,7 @@ func getPrimaryDocuments(context *gin.Context) {
 	context.JSON(http.StatusOK, primaryDocuments)
 }
 
+// archive0503Message archives all metadata and primary files in the digital archive.
 func archive0503Message(context *gin.Context) {
 	messageID, err := uuid.Parse(context.Param("id"))
 	if err != nil {

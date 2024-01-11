@@ -17,8 +17,16 @@ var DimagApiEndpoint = os.Getenv("DIMAG_CORE_SOAP_ENDPOINT")
 var DimagApiUser = os.Getenv("DIMAG_CORE_USER")
 var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 
+// ImportMessage archives 0503 message in DIMAG.
 func ImportMessage(process db.Process, message db.Message) error {
-	err := InitConnection()
+	processStep := process.ProcessState.Archiving
+	startTime := time.Now()
+	processStep.StartTime = &startTime
+	err := db.UpdateProcessStep(processStep)
+	if err != nil {
+		return err
+	}
+	err = InitConnection()
 	if err != nil {
 		log.Println("couldn't init connection to DIMAG sftp server")
 		return err
@@ -35,12 +43,12 @@ func ImportMessage(process db.Process, message db.Message) error {
 			return err
 		}
 	}
-	processStep := process.ProcessState.Archiving
 	processStep.Complete = true
 	processStep.CompletionTime = time.Now()
 	return db.UpdateProcessStep(processStep)
 }
 
+// importFileRecordObject archives a file record object in DIMAG.
 func importFileRecordObject(message db.Message, fileRecordObject db.FileRecordObject) error {
 	importDir, err := uploadFileRecordObjectFiles(sftpClient, message, fileRecordObject)
 	if err != nil {
