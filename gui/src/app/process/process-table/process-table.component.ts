@@ -78,7 +78,9 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
         },
         next: (processes: Process[]) => {
           console.log(processes);
-          this.dataSource.data = processes;
+          if (JSON.stringify(this.dataSource.data) !== JSON.stringify(processes)) {
+            this.dataSource.data = processes;
+          }
         },
       });
   }
