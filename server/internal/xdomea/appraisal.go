@@ -127,7 +127,7 @@ func markUnappraisedRecordObjectsAsDiscardable(message db.Message) error {
 }
 
 func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
-	if (process.Message0501 == nil) {
+	if process.Message0501 == nil {
 		return errors.New("0501 message doesn't exist")
 	}
 	fileRecordObjects0501, err := db.GetAllFileRecordObjects(process.Message0501.ID)
@@ -153,8 +153,9 @@ func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
 				recordObjectID.String() + " not found in 0501 message")
 		}
 		note, err := file0501.GetAppraisalNote()
+		// if no appraisal note for the file record object exists, continue with next
 		if err != nil {
-			return err
+			continue
 		}
 		err = file0503.SetAppraisalNote(note)
 		if err != nil {
@@ -168,8 +169,9 @@ func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
 				recordObjectID.String() + " not found in 0501 message")
 		}
 		note, err := process0501.GetAppraisalNote()
+		// if no appraisal note for the process record object exists, continue with next
 		if err != nil {
-			return err
+			continue
 		}
 		err = process0503.SetAppraisalNote(note)
 		if err != nil {
