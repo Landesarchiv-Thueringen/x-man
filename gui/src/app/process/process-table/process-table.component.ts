@@ -8,9 +8,11 @@ import { MatTableDataSource } from '@angular/material/table';
 
 // project
 import { Process, ProcessService } from '../process.service';
+import { environment } from '../../../environments/environment';
 
 // utility
-import { interval, switchMap, Subscription } from 'rxjs';
+import { interval, switchMap, Subscription, startWith } from 'rxjs';
+
 
 @Component({
   selector: 'app-process-table',
@@ -51,7 +53,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
             ? item.message0501.appraisalComplete.toString()
             : (!!item.message0501).toString();
         case 'received0502':
-          return (!!item.message0501 && !!item.message0503).toString()
+          return (!!item.message0501 && !!item.message0503).toString();
         case 'message0503':
           return (!!item.message0503).toString();
         case 'archivingComplete':
@@ -60,25 +62,21 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
           throw new Error('sorting error: unhandled column');
       }
     };
-    this.processService.getProcesses().subscribe({
-      error: (error) => {
-        console.error(error);
-      },
-      next: (processes: Process[]) => {
-        console.log(processes);
-        this.dataSource.data = processes;
-      },
-    });
-    // refetch processes every 10 seconds
-    this.processSubscription = interval(10000)
-      .pipe(switchMap(() => this.processService.getProcesses()))
+    // refetch processes every `updateInterval` milliseconds
+    this.processSubscription = interval(environment.updateInterval)
+      .pipe(
+        startWith(void 0), // initial fetch
+        switchMap(() => this.processService.getProcesses())
+      )
       .subscribe({
         error: (error) => {
           console.error(error);
         },
         next: (processes: Process[]) => {
-          console.log(processes);
-          if (JSON.stringify(this.dataSource.data) !== JSON.stringify(processes)) {
+          if (
+            JSON.stringify(this.dataSource.data) !== JSON.stringify(processes)
+          ) {
+            console.log('Updated processes', processes);
             this.dataSource.data = processes;
           }
         },

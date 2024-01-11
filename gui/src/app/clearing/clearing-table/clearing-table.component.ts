@@ -8,9 +8,10 @@ import { MatTableDataSource } from '@angular/material/table';
 
 // project
 import { ClearingService, ProcessingError } from '../clearing.service';
+import { environment } from '../../../environments/environment';
 
 // utility
-import { interval, switchMap, Subscription } from 'rxjs';
+import { interval, switchMap, Subscription, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-clearing-table',
@@ -38,24 +39,20 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-    this.clearingService.getProcessingErrors().subscribe({
+    // refetch errors every `updateInterval` milliseconds
+    this.errorsSubscription = interval(environment.updateInterval)
+    .pipe(
+      startWith(void 0), // initial fetch
+      switchMap(() => this.clearingService.getProcessingErrors())
+    ).subscribe({
       error: (error: any) => {
         console.error(error);
       },
       next: (errors: ProcessingError[]) => {
-        this.dataSource.data = errors
-      },
-    });
-    // // refetch processes every 10 seconds
-    this.errorsSubscription = interval(10000)
-    .pipe(switchMap(() => this.clearingService.getProcessingErrors()))
-    .subscribe({
-      error: (error: any) => {
-        console.error(error);
-      },
-      next: (errors: ProcessingError[]) => {
-        console.log(errors);
-        this.dataSource.data = errors
+        if (JSON.stringify(this.dataSource.data) !== JSON.stringify(errors)) {
+          console.log('Updated errors', errors);
+          this.dataSource.data = errors
+        }
       },
     });
   }
