@@ -38,7 +38,7 @@ export interface ProcessStep {
   complete: boolean;
   completionTime: string;
   itemCount: number;
-  itemCompletetCount: number;
+  itemCompletedCount: number;
 }
 
 @Injectable({
