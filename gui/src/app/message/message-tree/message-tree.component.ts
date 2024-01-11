@@ -226,7 +226,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     flatNode.type = changedNode.type;
   }
 
-  // The following functions doesn't work as expected
+  // The following functions don't work as expected
 
   // updateNodeInDataSource(changedNode: StructureNode): void {
   //   const oldNode: StructureNode = this.findNodeInDataSource(changedNode.id)!;
@@ -396,16 +396,19 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         .afterClosed()
         .pipe(
           filter((formResult) => !!formResult),
-        ).subscribe();
-        
-      // this.messageService.archive0503Message(this.message.id).subscribe({
-      //   error: (error: any) => {
-      //     console.error(error);
-      //   },
-      //   next: () => {
-      //     console.log('yeah');
-      //   },
-      // });
+          switchMap(() => {
+            return this.messageService.archive0503Message(this.message!.id);
+          }),
+        ).subscribe(
+          {
+            error: (error: any) => {
+              this.notificationService.show('Archivierung fehlgeschlagen');
+              console.error(error);
+            },
+            next: () => {
+              this.notificationService.show('Archivierung erfolgreich abgeschlossen');
+            },
+          });
     }
   }
 }
