@@ -57,9 +57,9 @@ services:
       - XMAN_DATABASE_USER=${XMAN_DATABASE_USER}
       - XMAN_DATABASE_PASSWORD=${XMAN_DATABASE_PASSWORD}
       - XMAN_DATABASE_NAME=${XMAN_DATABASE_NAME}
+      - WEBDAV_USERNAME=${WEBDAV_USERNAME}
     volumes:
       - message_store:/xman/message_store
-      - ./transfer_dir:/xman/transfer_dir
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}
   

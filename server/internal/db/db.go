@@ -55,6 +55,7 @@ func Migrate() {
 	// Migrate the complete schema.
 	db.AutoMigrate(
 		&ServerState{},
+		&TransferDirectory{},
 		&Agency{},
 		&XdomeaVersion{},
 		&Code{},
@@ -535,6 +536,17 @@ func GetPrimaryFileStorePath(messageID uuid.UUID, primaryDocumentID uint) (strin
 		return "", result.Error
 	}
 	return filepath.Join(message.StoreDir, primaryDocument.FileName), nil
+}
+
+// AddTransferDirectory creates and returns a metadata object for transfer directory.
+func AddTransferDirectory(url string, user string, password string) (TransferDirectory, error) {
+	transferDir := TransferDirectory{
+		URL:      url,
+		User:     user,
+		Password: password,
+	}
+	result := db.Create(&transferDir)
+	return transferDir, result.Error
 }
 
 func AddProcess(

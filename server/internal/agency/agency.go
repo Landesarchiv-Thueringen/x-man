@@ -6,11 +6,15 @@ import (
 )
 
 func InitAgencies() {
+	transferDir, err := db.AddTransferDirectory("http://localhost:4100", "xman", "secret")
+	if err != nil {
+		log.Fatal(err)
+	}
 	agencies := []db.Agency{
 		{
-			Name:         "Thüringer Ministerium für Inneres und Kommunales",
-			Abbreviation: "TMIK",
-			TransferDir:  "/xman/transfer_dir",
+			Name:              "Thüringer Ministerium für Inneres und Kommunales",
+			Abbreviation:      "TMIK",
+			TransferDirectory: &transferDir,
 		},
 	}
 	db.InitAgencies(agencies)
