@@ -58,17 +58,24 @@ services:
       - XMAN_DATABASE_PASSWORD=${XMAN_DATABASE_PASSWORD}
       - XMAN_DATABASE_NAME=${XMAN_DATABASE_NAME}
     volumes:
-      # - transfer_dir:/xman/transfer/
       - message_store:/xman/message_store
       - ./transfer_dir:/xman/transfer_dir
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}
+  
+  webdav:
+    image: bytemark/webdav
+    restart: always
+    environment:
+      AUTH_TYPE: Digest
+      USERNAME: ${WEBDAV_USERNAME}
+      PASSWORD: ${WEBDAV_PASSWORD}
+    volumes:
+      - webdav:/var/lib/dav
+    ports:
+      - ${WEBDAV_HOST_PORT}:80
 
 volumes:
   database:
   message_store:
-  # transfer_dir:
-  #   driver_opts:
-  #     type: cifs
-  #     device: ${TRANSFER_DIR_PATH}
-  #     o: "rw,addr=${TRANSFER_DIR_ADDRESS},username=${TRANSFER_DIR_USER},password=${TRANSFER_DIR_PASSWORD},file_mode=0777,dir_mode=0777"
+  webdav:
