@@ -1,13 +1,8 @@
-// angular
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
-
-// project
-import { DocumentRecordObject, MessageService, RecordObjectConfidentiality } from '../../message/message.service';
-
-// utility
 import { Subscription, switchMap } from 'rxjs';
+import { DocumentRecordObject, MessageService, RecordObjectConfidentiality } from '../../message/message.service';
 
 @Component({
   selector: 'app-document-metadata',

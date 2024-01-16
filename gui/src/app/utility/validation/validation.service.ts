@@ -1,4 +1,3 @@
-// angular
 import { Injectable } from '@angular/core';
 import { ValidatorFn, Validators } from '@angular/forms';
 

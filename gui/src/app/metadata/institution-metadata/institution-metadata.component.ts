@@ -1,8 +1,5 @@
-// angular
 import { Component, Input } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-
-// project
 import { Institution } from '../../message/message.service';
 
 @Component({

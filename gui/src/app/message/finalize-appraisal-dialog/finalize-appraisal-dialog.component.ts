@@ -1,11 +1,5 @@
-// angular
 import { Component, Inject } from '@angular/core';
-
-// material
-import { MatDialogRef } from '@angular/material/dialog';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-
-// project
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MessageService } from '../message.service';
 
 export interface DialogData {

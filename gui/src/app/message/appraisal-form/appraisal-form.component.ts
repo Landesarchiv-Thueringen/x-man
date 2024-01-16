@@ -1,11 +1,6 @@
-// angular
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-
-// material
 import { MatDialogRef } from '@angular/material/dialog';
-
-// project
 import { MessageService, RecordObjectAppraisal } from '../../message/message.service';
 
 @Component({

@@ -1,17 +1,10 @@
-// project
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-
-// material
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-
-// project
-import { ClearingService, ProcessingError } from '../clearing.service';
+import { Subscription, interval, startWith, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-// utility
-import { interval, switchMap, Subscription, startWith } from 'rxjs';
+import { ClearingService, ProcessingError } from '../clearing.service';
 
 @Component({
   selector: 'app-clearing-table',

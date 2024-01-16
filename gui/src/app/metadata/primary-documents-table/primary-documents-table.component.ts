@@ -1,18 +1,11 @@
-// angular
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-
-// material
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-
-// project
+import { ActivatedRoute } from '@angular/router';
+import { v4 as uuidv4 } from 'uuid';
 import { Feature, MessageService, PrimaryDocument } from '../../message/message.service';
 import { FileOverviewComponent } from '../primary-document/primary-document-metadata.component';
-
-// utility
-import { v4 as uuidv4 } from 'uuid';
 
 interface FileOverview {
   [key: string]: FileFeature;

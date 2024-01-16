@@ -1,14 +1,9 @@
-// angular
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-
-// project
-import { Message, MessageService } from '../../message/message.service';
-
-// utility
 import { Subscription } from 'rxjs';
+import { Message, MessageService } from '../../message/message.service';
 
 @Component({
   selector: 'app-message-metadata',

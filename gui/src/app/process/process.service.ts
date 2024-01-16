@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-
-import { Message } from '../message/message.service';
 import { ProcessingError } from '../clearing/clearing.service';
+import { Message } from '../message/message.service';
 
 // utility
 import { Observable } from 'rxjs';

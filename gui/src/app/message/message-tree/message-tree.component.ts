@@ -1,16 +1,15 @@
-// angular
-import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { DOCUMENT } from '@angular/common';
-import { ActivatedRoute, Params } from '@angular/router';
-
-// material
 import { FlatTreeControl } from '@angular/cdk/tree';
+import { DOCUMENT } from '@angular/common';
+import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
-
-// project
+import { ActivatedRoute, Params } from '@angular/router';
+import { Subscription, filter, switchMap } from 'rxjs';
+import { Process, ProcessService } from 'src/app/process/process.service';
+import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { AppraisalFormComponent } from '../appraisal-form/appraisal-form.component';
+import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import {
   DisplayText,
   Message,
@@ -19,13 +18,7 @@ import {
   StructureNode,
   StructureNodeType,
 } from '../message.service';
-import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
-import { NotificationService } from 'src/app/utility/notification/notification.service';
-import { Process, ProcessService } from 'src/app/process/process.service';
 import { StartArchivingDialogComponent } from '../start-archiving-dialog/start-archiving-dialog.component';
-
-// utility
-import { filter, Subscription, switchMap } from 'rxjs';
 
 export interface FlatNode {
   id: string;

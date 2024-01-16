@@ -1,21 +1,16 @@
-// angular
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
-
-// project
+import { Subscription, switchMap } from 'rxjs';
+import { debounceTime, filter, skip } from 'rxjs/operators';
+import { NotificationService } from 'src/app/utility/notification/notification.service';
 import {
-  ProcessRecordObject,
   MessageService,
+  ProcessRecordObject,
   RecordObjectAppraisal,
   RecordObjectConfidentiality,
   StructureNode,
 } from '../../message/message.service';
-import { NotificationService } from 'src/app/utility/notification/notification.service';
-
-// utility
-import { Subscription, switchMap } from 'rxjs';
-import { debounceTime, filter, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-process-metadata',

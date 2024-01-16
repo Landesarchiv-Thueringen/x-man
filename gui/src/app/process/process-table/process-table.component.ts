@@ -1,17 +1,10 @@
-// angular
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-
-// material
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-
-// project
-import { Process, ProcessService } from '../process.service';
+import { Subscription, interval, startWith, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-// utility
-import { interval, switchMap, Subscription, startWith } from 'rxjs';
+import { Process, ProcessService } from '../process.service';
 
 @Component({
   selector: 'app-process-table',

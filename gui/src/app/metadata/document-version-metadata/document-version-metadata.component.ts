@@ -1,15 +1,8 @@
-// angular
-import { Component, Input } from '@angular/core';
-
-// material
 import { FlatTreeControl } from '@angular/cdk/tree';
+import { Component, Input } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
-
-// project
-import { DocumentRecordObject, MessageService } from 'src/app/message/message.service';
-
-// utility
 import { saveAs } from 'file-saver';
+import { DocumentRecordObject, MessageService } from 'src/app/message/message.service';
 
 export type NodeType = 'version' | 'format';
 
