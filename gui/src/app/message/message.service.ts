@@ -67,6 +67,7 @@ export interface FileRecordObject {
   lifetime?: Lifetime;
   type?: string;
   processes: ProcessRecordObject[];
+  subfiles: FileRecordObject[];
   recordObjectType: RecordObjectType;
 }
 
@@ -197,6 +198,7 @@ export interface Code {
 export type StructureNodeType =
   | 'message'
   | 'file'
+  | 'subfile'
   | 'process'
   | 'document'
   | 'primaryDocuments';
@@ -286,7 +288,7 @@ export class MessageService {
     for (let recordObject of message.recordObjects) {
       if (recordObject.fileRecordObject) {
         children.push(
-          this.getFileStructureNode(recordObject.fileRecordObject, message.id)
+          this.getFileStructureNode(recordObject.fileRecordObject, false, message.id)
         );
       }
     }
@@ -340,22 +342,30 @@ export class MessageService {
 
   getFileStructureNode(
     fileRecordObject: FileRecordObject,
-    parentID?: string
+    subfile: boolean,
+    parentID?: string,
   ): StructureNode {
     const children: StructureNode[] = [];
+    // generate child nodes for all sub files (de: Teilakten)
+    for (let subfile of fileRecordObject.subfiles) {
+      children.push(this.getFileStructureNode(subfile, true, fileRecordObject.id));
+    }
+    // generate child nodes for all processes (de: Vorgänge)
     for (let process of fileRecordObject.processes) {
       children.push(this.getProcessStructureNode(process, fileRecordObject.id));
     }
+    const nodeName = subfile ? 'Teilakte' : 'Akte';
     const displayText: DisplayText = {
-      title: 'Akte: ' + fileRecordObject.generalMetadata?.xdomeaID,
+      title: nodeName + ': ' + fileRecordObject.generalMetadata?.xdomeaID,
       subtitle: fileRecordObject.generalMetadata?.subject,
     };
     const routerLink: string = 'akte/' + fileRecordObject.id;
+    const type = subfile ? 'subfile' : 'file';
     const fileNode: StructureNode = {
       id: fileRecordObject.id,
       selected: false,
       displayText: displayText,
-      type: 'file',
+      type: type,
       routerLink: routerLink,
       appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
       parentID: parentID,
@@ -642,6 +652,7 @@ export class MessageService {
         case 'file': {
           changedNode = this.getFileStructureNode(
             recordObject as FileRecordObject,
+            node.type === 'subfile',
             node.parentID
           );
           break;

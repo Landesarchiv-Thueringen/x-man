@@ -195,22 +195,25 @@ type RecordObject struct {
 }
 
 type FileRecordObject struct {
-	XMLName           xml.Name              `gorm:"-" xml:"Akte" json:"-"`
-	ID                uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID          uuid.UUID             `xml:"Identifikation>ID" json:"xdomeaID"`
-	CreatedAt         time.Time             `json:"-"`
-	UpdatedAt         time.Time             `json:"-"`
-	DeletedAt         gorm.DeletedAt        `gorm:"index" json:"-"`
-	GeneralMetadataID *uint                 `json:"-"`
-	GeneralMetadata   *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	ArchiveMetadataID *uint                 `json:"-"`
-	ArchiveMetadata   *ArchiveMetadata      `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
-	LifetimeID        *uint                 `json:"-"`
-	Lifetime          *Lifetime             `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
-	Type              *string               `json:"type" xml:"Typ"`
-	Processes         []ProcessRecordObject `gorm:"many2many:file_processes;" xml:"Akteninhalt>Vorgang" json:"processes"`
-	MessageID         uuid.UUID             `json:"messageID"`
-	RecorcObjectType  string                `gorm:"default:file" json:"recordObjectType"`
+	XMLName                      xml.Name              `gorm:"-" json:"-"`
+	ID                           uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID                     uuid.UUID             `xml:"Identifikation>ID" json:"xdomeaID"`
+	CreatedAt                    time.Time             `json:"-"`
+	UpdatedAt                    time.Time             `json:"-"`
+	DeletedAt                    gorm.DeletedAt        `gorm:"index" json:"-"`
+	RecorcObjectType             string                `gorm:"default:file" json:"recordObjectType"`
+	MessageID                    uuid.UUID             `json:"messageID"`
+	GeneralMetadataID            *uint                 `json:"-"`
+	GeneralMetadata              *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	ArchiveMetadataID            *uint                 `json:"-"`
+	ArchiveMetadata              *ArchiveMetadata      `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
+	LifetimeID                   *uint                 `json:"-"`
+	Lifetime                     *Lifetime             `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Type                         *string               `json:"type" xml:"Typ"`
+	Processes                    []ProcessRecordObject `gorm:"many2many:file_processes;" xml:"Akteninhalt>Vorgang" json:"processes"`
+	SubFileRecordObjects         []FileRecordObject    `gorm:"many2many:file_subfiles;" json:"subfiles"`
+	SubFilesPreXdomeaVersion300  []FileRecordObject    `gorm:"-" xml:"Teilakte" json:"-"`
+	SubFilesFromXdomeaVersion300 []FileRecordObject    `gorm:"-" xml:"Akteninhalt>Teilakte" json:"-"`
 }
 
 type ProcessRecordObject struct {

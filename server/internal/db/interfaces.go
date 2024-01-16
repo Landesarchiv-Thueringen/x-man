@@ -18,16 +18,38 @@ func (message *Message) GetRemoteXmlPath(importDir string) string {
 	return filepath.Join(importDir, filepath.Base(message.MessagePath))
 }
 
+// SetVersionIndependentSubFiles appends the version specific sub files to the version independent sub files.
+func (f *FileRecordObject) SetVersionIndependentSubFiles() {
+	if f.SubFilesPreXdomeaVersion300 != nil {
+		f.SubFileRecordObjects = append(f.SubFileRecordObjects, f.SubFilesPreXdomeaVersion300...)
+	}
+	if f.SubFilesFromXdomeaVersion300 != nil {
+		f.SubFileRecordObjects = append(f.SubFileRecordObjects, f.SubFilesFromXdomeaVersion300...)
+	}
+	if f.SubFileRecordObjects != nil {
+		for subFileIndex := range f.SubFileRecordObjects {
+			f.SubFileRecordObjects[subFileIndex].SetVersionIndependentSubFiles()
+		}
+	}
+}
+
 type RecordObjectIter interface {
 	GetChildren() []RecordObjectIter
 	GetPrimaryDocuments() []PrimaryDocument
+	SetMessageID(messageID uuid.UUID)
 }
 
+// GetChildren returns all list of all record objects contained in the file record object.
+// The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
 func (f *FileRecordObject) GetChildren() []RecordObjectIter {
 	recordObjects := []RecordObjectIter{}
-	for _, process := range f.Processes {
-		recordObjects = append(recordObjects, &process)
-		recordObjects = append(recordObjects, process.GetChildren()...)
+	for subfileIndex := range f.SubFileRecordObjects {
+		recordObjects = append(recordObjects, &f.SubFileRecordObjects[subfileIndex])
+		recordObjects = append(recordObjects, f.SubFileRecordObjects[subfileIndex].GetChildren()...)
+	}
+	for processIndex := range f.Processes {
+		recordObjects = append(recordObjects, &f.Processes[processIndex])
+		recordObjects = append(recordObjects, f.Processes[processIndex].GetChildren()...)
 	}
 	return recordObjects
 }
@@ -40,11 +62,17 @@ func (f *FileRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 	return primaryDocuments
 }
 
+func (f *FileRecordObject) SetMessageID(messageID uuid.UUID) {
+	f.MessageID = messageID
+}
+
+// GetChildren returns all list of all record objects contained in the process record object.
+// The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
 func (p *ProcessRecordObject) GetChildren() []RecordObjectIter {
 	recordObjects := []RecordObjectIter{}
-	for _, document := range p.Documents {
-		recordObjects = append(recordObjects, &document)
-		recordObjects = append(recordObjects, document.GetChildren()...)
+	for documentIndex := range p.Documents {
+		recordObjects = append(recordObjects, &p.Documents[documentIndex])
+		recordObjects = append(recordObjects, p.Documents[documentIndex].GetChildren()...)
 	}
 	return recordObjects
 }
@@ -57,6 +85,13 @@ func (p *ProcessRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 	return primaryDocuments
 }
 
+func (p *ProcessRecordObject) SetMessageID(messageID uuid.UUID) {
+	p.MessageID = messageID
+}
+
+// GetChildren Returns an empty list.
+// Document record objects do not have any other record objects as their children.
+// This might change in future xdomea versions.
 func (d *DocumentRecordObject) GetChildren() []RecordObjectIter {
 	recordObjects := []RecordObjectIter{}
 	return recordObjects
@@ -70,6 +105,10 @@ func (d *DocumentRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 		}
 	}
 	return primaryDocuments
+}
+
+func (d *DocumentRecordObject) SetMessageID(messageID uuid.UUID) {
+	d.MessageID = messageID
 }
 
 type AppraisableRecordObject interface {
@@ -141,8 +180,13 @@ func (f *FileRecordObject) SetAppraisalNote(note string) error {
 
 func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 	appraisableObjects := []AppraisableRecordObject{f}
-	for _, p := range f.Processes {
-		appraisableObjects = append(appraisableObjects, &p)
+	// add all subfiles (de: Teilakten)
+	for subfileIndex := range f.SubFileRecordObjects {
+		appraisableObjects = append(appraisableObjects, &f.SubFileRecordObjects[subfileIndex])
+	}
+	// add all processes (de: Vorgänge)
+	for processIndex := range f.Processes {
+		appraisableObjects = append(appraisableObjects, &f.Processes[processIndex])
 	}
 	return appraisableObjects
 }
@@ -164,6 +208,7 @@ func (f *FileRecordObject) GetTitle() string {
 	return title
 }
 
+// GetCombinedLifetime returns a string representation of lifetime start and end.
 func (f *FileRecordObject) GetCombinedLifetime() string {
 	if f.Lifetime != nil {
 		if f.Lifetime.Start != nil && f.Lifetime.End != nil {

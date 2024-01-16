@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var db *gorm.DB
@@ -195,21 +196,20 @@ func GetMessageByID(id uuid.UUID) (Message, error) {
 func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 	var message Message
 	result := db.
-		Preload("MessageType").
-		Preload("MessageHead.Sender.Institution").
-		Preload("MessageHead.Sender.AgencyIdentification").
-		Preload("MessageHead.Sender.AgencyIdentification.Code").
-		Preload("MessageHead.Sender.AgencyIdentification.Prefix").
-		Preload("MessageHead.Receiver.Institution").
-		Preload("MessageHead.Receiver.AgencyIdentification.Code").
-		Preload("MessageHead.Receiver.AgencyIdentification.Prefix").
-		Preload("RecordObjects.FileRecordObject.GeneralMetadata.FilePlan").
-		Preload("RecordObjects.FileRecordObject.ArchiveMetadata").
-		Preload("RecordObjects.FileRecordObject.Lifetime").
-		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata.FilePlan").
-		Preload("RecordObjects.FileRecordObject.Processes.ArchiveMetadata").
-		Preload("RecordObjects.FileRecordObject.Processes.Lifetime").
-		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata.FilePlan").
+		Preload(clause.Associations).
+		Preload("MessageHead.Sender."+clause.Associations).
+		Preload("MessageHead.Sender.AgencyIdentification."+clause.Associations).
+		Preload("MessageHead.Receiver."+clause.Associations).
+		Preload("MessageHead.Receiver.AgencyIdentification."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.GeneralMetadata."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.Processes."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.Processes.Documents."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.SubFileRecordObjects."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.SubFileRecordObjects.Processes."+clause.Associations).
+		Preload("RecordObjects.FileRecordObject.SubFileRecordObjects.Processes.Documents."+clause.Associations).
 		First(&message, id)
 	return message, result.Error
 }
@@ -266,6 +266,7 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 		Preload("Processes.Lifetime").
 		Preload("Processes.Documents.GeneralMetadata.FilePlan").
 		Preload("Processes.Documents.Versions.Formats.PrimaryDocument").
+		Preload("SubFileRecordObjects").
 		First(&file, id)
 	return file, result.Error
 }
@@ -675,36 +676,17 @@ func AddMessage(
 	return process, message, result.Error
 }
 
+// setRecordObjectsMessageID sets the message ID for all record objects of the message.
+// This information helps to retrieve the message if only the record object is known.
 func setRecordObjectsMessageID(message *Message) {
 	for _, r := range message.RecordObjects {
 		if r.FileRecordObject != nil {
-			setFileRecordObjectMessageID(message.ID, r.FileRecordObject)
+			recordObjects := append(r.FileRecordObject.GetChildren(), r.FileRecordObject)
+			for recordObjectIndex := range recordObjects {
+				recordObjects[recordObjectIndex].SetMessageID(message.ID)
+			}
 		}
 	}
-}
-
-func setFileRecordObjectMessageID(messageID uuid.UUID, fileRecordObject *FileRecordObject) {
-	fileRecordObject.MessageID = messageID
-	for i := range fileRecordObject.Processes {
-		setProcessRecordObjectMessageID(messageID, &fileRecordObject.Processes[i])
-	}
-}
-
-func setProcessRecordObjectMessageID(
-	messageID uuid.UUID,
-	processRecordObject *ProcessRecordObject,
-) {
-	processRecordObject.MessageID = messageID
-	for i := range processRecordObject.Documents {
-		setDocumentRecordObjectMessageID(messageID, &processRecordObject.Documents[i])
-	}
-}
-
-func setDocumentRecordObjectMessageID(
-	messageID uuid.UUID,
-	documentRecordObject *DocumentRecordObject,
-) {
-	documentRecordObject.MessageID = messageID
 }
 
 func UpdateProcess(process Process) error {
