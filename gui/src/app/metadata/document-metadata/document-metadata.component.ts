@@ -4,11 +4,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 
 // project
-import {
-  DocumentRecordObject,
-  MessageService,
-  RecordObjectConfidentiality,
-} from '../../message/message.service';
+import { DocumentRecordObject, MessageService, RecordObjectConfidentiality } from '../../message/message.service';
 
 // utility
 import { Subscription, switchMap } from 'rxjs';
@@ -28,7 +24,7 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   constructor(
     private formBuilder: FormBuilder,
     private messageService: MessageService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
@@ -44,44 +40,37 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.urlParameterSubscription = this.route.params.pipe(
-      switchMap((params: Params) => {
-        return this.messageService.getDocumentRecordObject(params['id'])
-      }),
-      switchMap((document: DocumentRecordObject) => {
-        console.log(document);
-        this.documentRecordObject = document;
-        return this.messageService.getMessageTypeCode(document.messageID)
-      }),
-      switchMap((messageTypeCode: string) => {
-        this.messageTypeCode = messageTypeCode;
-        return this.messageService.getRecordObjectConfidentialities();
-      }),
-    ).subscribe(
-      (confidentialities: RecordObjectConfidentiality[]) => {
+    this.urlParameterSubscription = this.route.params
+      .pipe(
+        switchMap((params: Params) => {
+          return this.messageService.getDocumentRecordObject(params['id']);
+        }),
+        switchMap((document: DocumentRecordObject) => {
+          console.log(document);
+          this.documentRecordObject = document;
+          return this.messageService.getMessageTypeCode(document.messageID);
+        }),
+        switchMap((messageTypeCode: string) => {
+          this.messageTypeCode = messageTypeCode;
+          return this.messageService.getRecordObjectConfidentialities();
+        }),
+      )
+      .subscribe((confidentialities: RecordObjectConfidentiality[]) => {
         this.recordObjectConfidentialities = confidentialities;
         this.form.patchValue({
-          recordPlanId:
-          this.documentRecordObject!.generalMetadata?.filePlan?.xdomeaID,
+          recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.xdomeaID,
           fileId: this.documentRecordObject!.generalMetadata?.xdomeaID,
           subject: this.documentRecordObject!.generalMetadata?.subject,
           documentType: this.documentRecordObject!.type,
-          incomingDate: this.messageService.getDateText(
-            this.documentRecordObject!.incomingDate
-          ),
-          outgoingDate: this.messageService.getDateText(
-            this.documentRecordObject!.outgoingDate
-          ),
-          documentDate: this.messageService.getDateText(
-            this.documentRecordObject!.documentDate
-          ),
+          incomingDate: this.messageService.getDateText(this.documentRecordObject!.incomingDate),
+          outgoingDate: this.messageService.getDateText(this.documentRecordObject!.outgoingDate),
+          documentDate: this.messageService.getDateText(this.documentRecordObject!.documentDate),
           confidentiality: this.recordObjectConfidentialities.find(
             (c: RecordObjectConfidentiality) =>
-              c.code === this.documentRecordObject?.generalMetadata?.confidentialityCode
+              c.code === this.documentRecordObject?.generalMetadata?.confidentialityCode,
           )?.desc,
         });
-      }
-    );
+      });
   }
 
   ngOnDestroy(): void {

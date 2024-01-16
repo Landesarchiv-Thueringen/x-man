@@ -8,7 +8,7 @@ describe('InstitutMetadataComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [InstitutMetadataComponent]
+      declarations: [InstitutMetadataComponent],
     });
     fixture = TestBed.createComponent(InstitutMetadataComponent);
     component = fixture.componentInstance;

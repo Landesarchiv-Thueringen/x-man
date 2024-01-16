@@ -8,7 +8,7 @@ describe('FinalizeAppraisalDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [FinalizeAppraisalDialogComponent]
+      declarations: [FinalizeAppraisalDialogComponent],
     });
     fixture = TestBed.createComponent(FinalizeAppraisalDialogComponent);
     component = fixture.componentInstance;

@@ -8,7 +8,7 @@ describe('ProcessTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ProcessTableComponent]
+      declarations: [ProcessTableComponent],
     });
     fixture = TestBed.createComponent(ProcessTableComponent);
     component = fixture.componentInstance;

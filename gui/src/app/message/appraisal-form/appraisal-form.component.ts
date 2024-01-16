@@ -6,14 +6,12 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { MatDialogRef } from '@angular/material/dialog';
 
 // project
-import {
-  MessageService, RecordObjectAppraisal,
-} from '../../message/message.service';
+import { MessageService, RecordObjectAppraisal } from '../../message/message.service';
 
 @Component({
   selector: 'app-appraisal-form',
   templateUrl: './appraisal-form.component.html',
-  styleUrls: ['./appraisal-form.component.scss']
+  styleUrls: ['./appraisal-form.component.scss'],
 })
 export class AppraisalFormComponent {
   form: FormGroup;
@@ -29,8 +27,7 @@ export class AppraisalFormComponent {
       appraisal: new FormControl<string | null>(null, Validators.required),
       appraisalNote: new FormControl<string | null>(null),
     });
-    this.messageService.getRecordObjectAppraisals().subscribe(
-      (appraisals: RecordObjectAppraisal[]) => {
+    this.messageService.getRecordObjectAppraisals().subscribe((appraisals: RecordObjectAppraisal[]) => {
       this.recordObjectAppraisals = appraisals;
     });
   }
@@ -39,8 +36,8 @@ export class AppraisalFormComponent {
     if (this.form.valid) {
       this.dialogRef.close({
         appraisalCode: this.selectedAppraisal,
-        appraisalNote: this.form.get('appraisalNote')!.value
-      })
+        appraisalNote: this.form.get('appraisalNote')!.value,
+      });
     }
   }
 }

@@ -8,7 +8,7 @@ describe('PrimaryDocumentsTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [PrimaryDocumentsTableComponent]
+      declarations: [PrimaryDocumentsTableComponent],
     });
     fixture = TestBed.createComponent(PrimaryDocumentsTableComponent);
     component = fixture.componentInstance;

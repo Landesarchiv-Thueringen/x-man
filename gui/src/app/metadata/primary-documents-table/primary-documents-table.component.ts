@@ -8,11 +8,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 
 // project
-import {
-  Feature,
-  MessageService,
-  PrimaryDocument,
-} from '../../message/message.service';
+import { Feature, MessageService, PrimaryDocument } from '../../message/message.service';
 import { FileOverviewComponent } from '../primary-document/primary-document-metadata.component';
 
 // utility
@@ -45,7 +41,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
   constructor(
     private dialog: MatDialog,
     private messageService: MessageService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.primaryDocuments = new Map<string, PrimaryDocument>();
     this.dataSource = new MatTableDataSource<FileOverview>([]);
@@ -81,12 +77,8 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
           value: primaryDocument.fileName,
         };
         fileOverview[featureKey] = {
-          value:
-            primaryDocument.formatVerification.summary[featureKey].values[0]
-              .value,
-          confidence:
-            primaryDocument.formatVerification.summary[featureKey].values[0]
-              .score,
+          value: primaryDocument.formatVerification.summary[featureKey].values[0].value,
+          confidence: primaryDocument.formatVerification.summary[featureKey].values[0].score,
           feature: primaryDocument.formatVerification.summary[featureKey],
         };
         fileOverview['id'] = { value: primaryDocumentID };
@@ -96,8 +88,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
     }
     this.dataSource.data = data;
     const features = [...new Set(featureKeys)];
-    const selectedFeatures =
-      this.messageService.selectOverviewFeatures(features);
+    const selectedFeatures = this.messageService.selectOverviewFeatures(features);
     const sortedFeatures = this.messageService.sortFeatures(selectedFeatures);
     this.generatedTableColumnList = sortedFeatures;
     this.tableColumnList = sortedFeatures.concat(['actions']);
@@ -105,8 +96,8 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
 
   openDetails(fileOverview: FileOverview): void {
     if (fileOverview) {
-      const id: string = fileOverview['id'].value
-      const primaryDocument: PrimaryDocument|undefined = this.primaryDocuments.get(id);
+      const id: string = fileOverview['id'].value;
+      const primaryDocument: PrimaryDocument | undefined = this.primaryDocuments.get(id);
       this.dialog.open(FileOverviewComponent, {
         autoFocus: false,
         data: {

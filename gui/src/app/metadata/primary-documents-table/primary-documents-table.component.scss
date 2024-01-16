@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     margin-top: 2em;
-  
+
     .file-analysis-table {
       width: 100%;
       min-width: 70em;
@@ -23,47 +23,47 @@
         }
 
         .path-cell {
-          max-width: 15.0em!important;
+          max-width: 15em !important;
           word-break: break-word;
         }
 
         .name-cell {
-          max-width: 15.0em!important;
+          max-width: 15em !important;
           word-break: break-word;
         }
 
         .mime-type-cell {
-          max-width: 10.0em!important;
+          max-width: 10em !important;
           word-break: break-word;
         }
 
         .high-confidence-cell {
-          background-color: rgba(0,150,0,0.1);
+          background-color: rgba(0, 150, 0, 0.1);
         }
 
         .mid-confidence-cell {
-          background-color: rgba(255,165,0,0.2);
+          background-color: rgba(255, 165, 0, 0.2);
         }
 
         .low-confidence-cell {
-          background-color: rgba(150,0,0,0.1);
+          background-color: rgba(150, 0, 0, 0.1);
         }
       }
 
       .table-toolbar {
         background-color: white;
-        column-gap: 1.0em;
+        column-gap: 1em;
 
         mat-paginator {
           background: transparent;
         }
-        
+
         .spacer {
-            flex: 1 1 auto;
+          flex: 1 1 auto;
         }
-        
+
         input[type="file"] {
-            display: none;
+          display: none;
         }
       }
     }

@@ -8,7 +8,7 @@ describe('DocumentVersionMetadataComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [DocumentVersionMetadataComponent]
+      declarations: [DocumentVersionMetadataComponent],
     });
     fixture = TestBed.createComponent(DocumentVersionMetadataComponent);
     component = fixture.componentInstance;

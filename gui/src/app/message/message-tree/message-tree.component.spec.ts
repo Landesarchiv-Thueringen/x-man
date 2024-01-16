@@ -8,7 +8,7 @@ describe('MessageViewComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [MessageTreeComponent]
+      declarations: [MessageTreeComponent],
     });
     fixture = TestBed.createComponent(MessageTreeComponent);
     component = fixture.componentInstance;

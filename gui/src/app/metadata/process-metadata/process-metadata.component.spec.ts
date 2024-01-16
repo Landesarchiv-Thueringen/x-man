@@ -8,7 +8,7 @@ describe('ProcessMetadataComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ProcessMetadataComponent]
+      declarations: [ProcessMetadataComponent],
     });
     fixture = TestBed.createComponent(ProcessMetadataComponent);
     component = fixture.componentInstance;

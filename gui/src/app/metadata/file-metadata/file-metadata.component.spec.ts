@@ -8,7 +8,7 @@ describe('FileMetadataComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [FileMetadataComponent]
+      declarations: [FileMetadataComponent],
     });
     fixture = TestBed.createComponent(FileMetadataComponent);
     component = fixture.componentInstance;

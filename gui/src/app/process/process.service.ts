@@ -43,7 +43,7 @@ export interface ProcessStep {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProcessService {
   apiEndpoint: string;

@@ -16,7 +16,7 @@ export interface ProcessingError {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClearingService {
   apiEndpoint: string;

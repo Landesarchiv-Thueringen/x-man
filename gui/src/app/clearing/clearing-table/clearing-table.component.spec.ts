@@ -8,7 +8,7 @@ describe('ClearingTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ClearingTableComponent]
+      declarations: [ClearingTableComponent],
     });
     fixture = TestBed.createComponent(ClearingTableComponent);
     component = fixture.componentInstance;

@@ -1,104 +1,96 @@
 <div class="metadata-section">
+  <form *ngIf="processRecordObject" [formGroup]="form">
+    <!--<h2>{{structureNode.displayText.title}} - {{structureNode.displayText.subtitle}}</h2> -->
 
-    <form *ngIf="processRecordObject" [formGroup]="form">
-  
-      <!--<h2>{{structureNode.displayText.title}} - {{structureNode.displayText.subtitle}}</h2> -->
-    
-      <mat-accordion multi>
-    
-        <mat-expansion-panel [expanded]="true">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Metadaten
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-    
-          <div class="metadata">
-            <div class="metadata-row">
-              <mat-form-field class="record-plan-id-input" appearance="outline" floatLabel="always">
-                <mat-label>Aktenplanschlüssel</mat-label>
-                <input matInput formControlName="recordPlanId" readonly>
-              </mat-form-field>
-    
-              <mat-form-field class="process-id-input" appearance="outline" floatLabel="always">
-                <mat-label>Vorgangszeichen</mat-label>
-                <input matInput formControlName="fileId" readonly>
-              </mat-form-field>
-            </div>
-    
-            <mat-form-field class="subject-input" appearance="outline" floatLabel="always">
-              <mat-label>Behördlicher Vorgangsbetreff</mat-label>
-              <input matInput formControlName="subject" readonly>
+    <mat-accordion multi>
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Metadaten </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="metadata">
+          <div class="metadata-row">
+            <mat-form-field class="record-plan-id-input" appearance="outline" floatLabel="always">
+              <mat-label>Aktenplanschlüssel</mat-label>
+              <input matInput formControlName="recordPlanId" readonly />
             </mat-form-field>
-    
-            <div class="metadata-row">
-              <mat-form-field class="process-type-input" appearance="outline" floatLabel="always">
-                <mat-label>Vorgangstyp</mat-label>
-                <input matInput formControlName="processType" readonly>
-              </mat-form-field>
-              <mat-form-field class="confidentiality-input" appearance="outline" floatLabel="always">
-                <mat-label>Vertraulichkeitsstufe</mat-label>
-                <input matInput formControlName="confidentiality" readonly>
-              </mat-form-field>
-            </div>
-            <div class="metadata-row">
-              <mat-form-field class="life-start-input" appearance="outline" floatLabel="always">
-                <mat-label>Laufzeit Beginn</mat-label>
-                <input matInput formControlName="lifeStart" readonly>
-              </mat-form-field>
-    
-              <mat-form-field class="life-end-input" appearance="outline" floatLabel="always">
-                <mat-label>Laufzeit Ende</mat-label>
-                <input matInput formControlName="lifeEnd" readonly>
-              </mat-form-field>
-            </div>
-          </div>
-        </mat-expansion-panel>
 
-        <mat-expansion-panel [expanded]="true">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Bewertung
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <div class="metadata">
-            <div class="metadata-row">
-              <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly else appraisalInputEditable"></div>
-              <ng-template #appraisalInputReadonly>
-                <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
-                  <mat-label>Bewertungsentscheidung</mat-label>
-                  <input matInput formControlName="appraisal" readonly>
-                </mat-form-field>
-              </ng-template>
-              <ng-template #appraisalInputEditable>
-                <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
-                  <mat-label>Bewertungsentscheidung</mat-label>
-                  <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
-                    <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
-                      {{ appraisal.shortDesc }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </ng-template>
-              <mat-form-field class="appraisal-recomm-input" appearance="outline" floatLabel="always">
-                <mat-label>Behördlicher Bewertungsvorschlag</mat-label>
-                <input matInput formControlName="appraisalRecomm" readonly>
-              </mat-form-field>
-            </div>
-            <mat-form-field class="internal-appraisal-note" appearance="outline" floatLabel="always">
-              <mat-label>Interner Bewertungsvermerk</mat-label>
-              <textarea #appraisalNote 
-                matInput 
-                formControlName="appraisalNote"
-                [readonly]="messageAppraisalComplete"
-                rows="5">
-              </textarea>
+            <mat-form-field class="process-id-input" appearance="outline" floatLabel="always">
+              <mat-label>Vorgangszeichen</mat-label>
+              <input matInput formControlName="fileId" readonly />
             </mat-form-field>
           </div>
-        </mat-expansion-panel>
-    
-      </mat-accordion>
-    
-    </form>
-  
-  </div>
+
+          <mat-form-field class="subject-input" appearance="outline" floatLabel="always">
+            <mat-label>Behördlicher Vorgangsbetreff</mat-label>
+            <input matInput formControlName="subject" readonly />
+          </mat-form-field>
+
+          <div class="metadata-row">
+            <mat-form-field class="process-type-input" appearance="outline" floatLabel="always">
+              <mat-label>Vorgangstyp</mat-label>
+              <input matInput formControlName="processType" readonly />
+            </mat-form-field>
+            <mat-form-field class="confidentiality-input" appearance="outline" floatLabel="always">
+              <mat-label>Vertraulichkeitsstufe</mat-label>
+              <input matInput formControlName="confidentiality" readonly />
+            </mat-form-field>
+          </div>
+          <div class="metadata-row">
+            <mat-form-field class="life-start-input" appearance="outline" floatLabel="always">
+              <mat-label>Laufzeit Beginn</mat-label>
+              <input matInput formControlName="lifeStart" readonly />
+            </mat-form-field>
+
+            <mat-form-field class="life-end-input" appearance="outline" floatLabel="always">
+              <mat-label>Laufzeit Ende</mat-label>
+              <input matInput formControlName="lifeEnd" readonly />
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Bewertung </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="metadata">
+          <div class="metadata-row">
+            <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"></div>
+            <ng-template #appraisalInputReadonly>
+              <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
+                <mat-label>Bewertungsentscheidung</mat-label>
+                <input matInput formControlName="appraisal" readonly />
+              </mat-form-field>
+            </ng-template>
+            <ng-template #appraisalInputEditable>
+              <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
+                <mat-label>Bewertungsentscheidung</mat-label>
+                <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
+                  <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
+                    {{ appraisal.shortDesc }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ng-template>
+            <mat-form-field class="appraisal-recomm-input" appearance="outline" floatLabel="always">
+              <mat-label>Behördlicher Bewertungsvorschlag</mat-label>
+              <input matInput formControlName="appraisalRecomm" readonly />
+            </mat-form-field>
+          </div>
+          <mat-form-field class="internal-appraisal-note" appearance="outline" floatLabel="always">
+            <mat-label>Interner Bewertungsvermerk</mat-label>
+            <textarea
+              #appraisalNote
+              matInput
+              formControlName="appraisalNote"
+              [readonly]="messageAppraisalComplete"
+              rows="5"
+            >
+            </textarea>
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </form>
+</div>

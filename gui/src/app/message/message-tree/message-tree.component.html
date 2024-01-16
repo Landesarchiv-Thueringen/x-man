@@ -1,150 +1,129 @@
 <mat-sidenav-container>
-
   <mat-sidenav mode="side" opened>
-
     <div class="messsage-view">
-
       <mat-tree #messageTree [dataSource]="dataSource" [treeControl]="treeControl" class="message-tree">
-
         <!-- This is the tree node template for leaf nodes -->
-        <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding >
-          
+        <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding>
           <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']">
             <div class="node-info">
               <!-- use a disabled button to provide padding for tree leaf -->
               <button mat-icon-button disabled></button>
-              <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon">
-                folder
-              </mat-icon>
-              <mat-icon *ngIf="node.type === 'process'" class="process-icon">
-                folder
-              </mat-icon>
-              <mat-icon *ngIf="node.type === 'document'" class="document-icon">
-                article
-              </mat-icon>
-              <mat-icon *ngIf="node.type === 'primaryDocuments'" class="primary-documents-icon">
-                fact_check
-              </mat-icon>
+              <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon"> folder </mat-icon>
+              <mat-icon *ngIf="node.type === 'process'" class="process-icon"> folder </mat-icon>
+              <mat-icon *ngIf="node.type === 'document'" class="document-icon"> article </mat-icon>
+              <mat-icon *ngIf="node.type === 'primaryDocuments'" class="primary-documents-icon"> fact_check </mat-icon>
               <div class="node-title">
                 <div class="node-title-line">
-                  {{node.displayText.title}}
+                  {{ node.displayText.title }}
                 </div>
-                <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
+                <div class="node-subtitle-line">{{ node.displayText.subtitle }}</div>
               </div>
             </div>
 
             <div *ngIf="showAppraisal" class="node-appraisal">
               <span class="spacer"></span>
-              <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal}}</span>
+              <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal }}</span>
             </div>
           </div>
-
         </mat-tree-node>
-        
+
         <!-- This is the tree node template for expandable nodes -->
-        <mat-tree-node *matTreeNodeDef="let node; when: hasChild" 
-          id="{{ node.id }}" [ngClass]="node.type === 'message' ? 'root-node' : ''" matTreeNodePadding>
-          
+        <mat-tree-node
+          *matTreeNodeDef="let node; when: hasChild"
+          id="{{ node.id }}"
+          [ngClass]="node.type === 'message' ? 'root-node' : ''"
+          matTreeNodePadding
+        >
           <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']">
             <div class="node-info">
-
-              <button *ngIf="node.type !== 'message'" 
-                mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
+              <button
+                *ngIf="node.type !== 'message'"
+                mat-icon-button
+                matTreeNodeToggle
+                [attr.aria-label]="'Toggle ' + node.name"
+              >
                 <mat-icon class="mat-icon-rtl-mirror">
-                  {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                  {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
                 </mat-icon>
               </button>
 
               <!-- use a disabled button to provide padding for tree leaf -->
               <button *ngIf="node.type === 'message'" mat-icon-button disabled></button>
 
-              <mat-icon *ngIf="node.type === 'message'" class="message-icon">
-                assignment
-              </mat-icon>
-              <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon">
-                folder
-              </mat-icon>
-              <mat-icon *ngIf="node.type === 'process'" class="process-icon">
-                folder
-              </mat-icon>
-              <mat-icon *ngIf="node.type === 'document'" class="document-icon">
-                article
-              </mat-icon>
+              <mat-icon *ngIf="node.type === 'message'" class="message-icon"> assignment </mat-icon>
+              <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon"> folder </mat-icon>
+              <mat-icon *ngIf="node.type === 'process'" class="process-icon"> folder </mat-icon>
+              <mat-icon *ngIf="node.type === 'document'" class="document-icon"> article </mat-icon>
 
               <div class="node-title">
                 <div class="node-title-line">
-                  {{node.displayText.title}}
+                  {{ node.displayText.title }}
                 </div>
-                <div class="node-subtitle-line">{{node.displayText.subtitle}}</div>
+                <div class="node-subtitle-line">{{ node.displayText.subtitle }}</div>
               </div>
             </div>
 
             <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
               <span class="spacer"></span>
-              <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal}}</span>
-              <mat-checkbox *ngIf="showSelection" [(ngModel)]="node.selected"
-                (click)="$event.stopPropagation()" (ngModelChange)="selectItem($event, node.id)"></mat-checkbox>
+              <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal }}</span>
+              <mat-checkbox
+                *ngIf="showSelection"
+                [(ngModel)]="node.selected"
+                (click)="$event.stopPropagation()"
+                (ngModelChange)="selectItem($event, node.id)"
+              ></mat-checkbox>
             </div>
           </div>
-
         </mat-tree-node>
-            
       </mat-tree>
 
       <mat-toolbar *ngIf="process && message && !showSelection" class="message-actions">
-        <button 
-          mat-fab extended
-          color="primary"  
-          (click)="copyMessageUrl()">
+        <button mat-fab extended color="primary" (click)="copyMessageUrl()">
           <mat-icon>content_copy</mat-icon>
           <span>Objekt-Link kopieren</span>
         </button>
-        <button mat-fab extended 
-          *ngIf="!message.appraisalComplete"
-          color="primary" 
-          (click)="enableSelection()">
-          <mat-icon>
-            check_box
-          </mat-icon>
+        <button mat-fab extended *ngIf="!message.appraisalComplete" color="primary" (click)="enableSelection()">
+          <mat-icon> check_box </mat-icon>
           Mehrfachauswahl
         </button>
-        <button mat-fab extended 
-          *ngIf="!message.appraisalComplete"
-          (click)="sendAppraisalMessage()">
+        <button mat-fab extended *ngIf="!message.appraisalComplete" (click)="sendAppraisalMessage()">
           <mat-icon>forward_to_inbox</mat-icon>
           <span>Bewertung senden</span>
         </button>
-        <button mat-fab extended 
-        *ngIf="message.messageType.code === '0503' && process.processState.formatVerification.complete && !process.processState.archiving.complete"
-        (click)="archive0503Message()">
-        <mat-icon>archive</mat-icon>
-        <span>Abgabe archivieren</span>
-      </button>
+        <button
+          mat-fab
+          extended
+          *ngIf="
+            message.messageType.code === '0503' &&
+            process.processState.formatVerification.complete &&
+            !process.processState.archiving.complete
+          "
+          (click)="archive0503Message()"
+        >
+          <mat-icon>archive</mat-icon>
+          <span>Abgabe archivieren</span>
+        </button>
       </mat-toolbar>
 
       <mat-toolbar *ngIf="process && message && showSelection" class="appraisal-actions">
         <button class="abort-button" mat-fab extended (click)="disableSelection()" color="primary">
-          <mat-icon>
-            cancel
-          </mat-icon>
+          <mat-icon> cancel </mat-icon>
           Abbrechen
         </button>
-        <button mat-fab extended 
-          (click)="setAppraisalForMultipleRecorcObjects()" 
-          [disabled]="this.selectedNodes.length === 0">
-          <mat-icon>
-            checklist
-          </mat-icon>
+        <button
+          mat-fab
+          extended
+          (click)="setAppraisalForMultipleRecorcObjects()"
+          [disabled]="this.selectedNodes.length === 0"
+        >
+          <mat-icon> checklist </mat-icon>
           Bewerten
         </button>
       </mat-toolbar>
-
     </div>
-    
   </mat-sidenav>
 
   <mat-sidenav-content>
-      <router-outlet></router-outlet>
+    <router-outlet></router-outlet>
   </mat-sidenav-content>
-    
 </mat-sidenav-container>

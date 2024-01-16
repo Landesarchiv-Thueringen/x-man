@@ -1,16 +1,14 @@
 <form [formGroup]="form">
+  <h4>Institution</h4>
 
-    <h4>Institution</h4>
-
-    <div class="metadata">
-        <mat-form-field class="abbrevation-input" appearance="outline" floatLabel="always">
-            <mat-label>Kurzbezeichnung</mat-label>
-            <input matInput formControlName="abbrevation" readonly>
-        </mat-form-field>
-        <mat-form-field class="name-input" appearance="outline" floatLabel="always">
-            <mat-label>Name</mat-label>
-            <input matInput formControlName="name" readonly>
-        </mat-form-field>
-    </div>
-
+  <div class="metadata">
+    <mat-form-field class="abbrevation-input" appearance="outline" floatLabel="always">
+      <mat-label>Kurzbezeichnung</mat-label>
+      <input matInput formControlName="abbrevation" readonly />
+    </mat-form-field>
+    <mat-form-field class="name-input" appearance="outline" floatLabel="always">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" readonly />
+    </mat-form-field>
+  </div>
 </form>

@@ -1,14 +1,14 @@
-@use 'sass:map';
-@use '@angular/material' as mat;
+@use "sass:map";
+@use "@angular/material" as mat;
 
 .appraisal-form {
-  width: 55.0em;
+  width: 55em;
   display: flex;
   flex-direction: column;
 }
 
 .appraisal-input {
-  margin-top: 1.0em;
+  margin-top: 1em;
   width: 22.5em;
 }
 

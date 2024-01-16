@@ -35,7 +35,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private notificationService: NotificationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
@@ -60,9 +60,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         }),
         switchMap((fileRecordObject: FileRecordObject) => {
           this.fileRecordObject = fileRecordObject;
-          return this.messageService.isMessageAppraisalComplete(
-            this.route.parent!.snapshot.params['id']
-          );
+          return this.messageService.isMessageAppraisalComplete(this.route.parent!.snapshot.params['id']);
         }),
         switchMap((messageAppraisalComplete: boolean) => {
           this.messageAppraisalComplete = messageAppraisalComplete;
@@ -72,7 +70,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         switchMap((appraisals: RecordObjectAppraisal[]) => {
           this.recordObjectAppraisals = appraisals;
           return this.messageService.getRecordObjectConfidentialities();
-        })
+        }),
       )
       .subscribe({
         error: (error: any) => {
@@ -92,7 +90,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         }),
         switchMap((changedNode: StructureNode) => {
           return this.messageService.getFileRecordObject(changedNode.id);
-        })
+        }),
       )
       .subscribe((fileRecordObject: FileRecordObject) => {
         this.fileRecordObject = fileRecordObject;
@@ -103,10 +101,10 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   saveAppraisalNoteChanges(): void {
     if (!this.messageAppraisalComplete) {
       this.form.controls['appraisalNote'].valueChanges
-      .pipe(skip(1), debounceTime(400))
-      .subscribe((value: string | null) => {
-        this.setAppraisalNote(value);
-      });
+        .pipe(skip(1), debounceTime(400))
+        .subscribe((value: string | null) => {
+          this.setAppraisalNote(value);
+        });
     }
   }
 
@@ -115,21 +113,16 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   setMetadata(): void {
-    if (
-      this.fileRecordObject &&
-      this.recordObjectAppraisals &&
-      this.recordObjectConfidentialities
-    ) {
+    if (this.fileRecordObject && this.recordObjectAppraisals && this.recordObjectConfidentialities) {
       let appraisal: string | undefined;
-      const appraisalRecomm =
-        this.messageService.getRecordObjectAppraisalByCode(
-          this.fileRecordObject.archiveMetadata?.appraisalRecommCode,
-          this.recordObjectAppraisals
-        )?.shortDesc;
+      const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
+        this.fileRecordObject.archiveMetadata?.appraisalRecommCode,
+        this.recordObjectAppraisals,
+      )?.shortDesc;
       if (this.messageAppraisalComplete) {
         appraisal = this.messageService.getRecordObjectAppraisalByCode(
           this.fileRecordObject.archiveMetadata?.appraisalCode,
-          this.recordObjectAppraisals
+          this.recordObjectAppraisals,
         )?.shortDesc;
       } else {
         appraisal = this.fileRecordObject.archiveMetadata?.appraisalCode;
@@ -139,20 +132,13 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         fileId: this.fileRecordObject.generalMetadata?.xdomeaID,
         subject: this.fileRecordObject.generalMetadata?.subject,
         fileType: this.fileRecordObject.type,
-        lifeStart: this.messageService.getDateText(
-          this.fileRecordObject.lifetime?.start
-        ),
-        lifeEnd: this.messageService.getDateText(
-          this.fileRecordObject.lifetime?.end
-        ),
+        lifeStart: this.messageService.getDateText(this.fileRecordObject.lifetime?.start),
+        lifeEnd: this.messageService.getDateText(this.fileRecordObject.lifetime?.end),
         appraisal: appraisal,
         appraisalRecomm: appraisalRecomm,
-        appraisalNote:
-          this.fileRecordObject.archiveMetadata?.internalAppraisalNote,
+        appraisalNote: this.fileRecordObject.archiveMetadata?.internalAppraisalNote,
         confidentiality: this.recordObjectConfidentialities.find(
-          (c: RecordObjectConfidentiality) =>
-            c.code ===
-            this.fileRecordObject?.generalMetadata?.confidentialityCode
+          (c: RecordObjectConfidentiality) => c.code === this.fileRecordObject?.generalMetadata?.confidentialityCode,
         )?.shortDesc,
       });
     }
@@ -160,29 +146,25 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
 
   setAppraisal(event: any): void {
     if (this.fileRecordObject) {
-      this.messageService
-        .setFileRecordObjectAppraisal(this.fileRecordObject.id, event.value)
-        .subscribe({
-          error: (error) => {
-            console.error(error);
-          },
-          next: (fileRecordObject: FileRecordObject) => {
-            this.messageService.updateStructureNodeForRecordObject(fileRecordObject);
-            this.notificationService.show('Bewertung erfolgreich gespeichert');
-          },
-        });
+      this.messageService.setFileRecordObjectAppraisal(this.fileRecordObject.id, event.value).subscribe({
+        error: (error) => {
+          console.error(error);
+        },
+        next: (fileRecordObject: FileRecordObject) => {
+          this.messageService.updateStructureNodeForRecordObject(fileRecordObject);
+          this.notificationService.show('Bewertung erfolgreich gespeichert');
+        },
+      });
     }
   }
 
   setAppraisalNote(note: string | null): void {
     if (this.fileRecordObject) {
-      this.messageService
-        .setFileRecordObjectAppraisalNote(this.fileRecordObject.id, note)
-        .subscribe({
-          error: (error: any) => {
-            console.error(error);
-          },
-        });
+      this.messageService.setFileRecordObjectAppraisalNote(this.fileRecordObject.id, note).subscribe({
+        error: (error: any) => {
+          console.error(error);
+        },
+      });
     }
   }
 }

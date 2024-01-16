@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({name: 'featureBreak'})
+@Pipe({ name: 'featureBreak' })
 export class FeatureBreakPipe implements PipeTransform {
   transform(value: string): string {
     let valueWithBreakOppertunities = value.replaceAll('_', '_<wbr>');

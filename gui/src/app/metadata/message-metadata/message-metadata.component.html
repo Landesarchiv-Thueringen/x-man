@@ -1,52 +1,39 @@
 <div class="metadata-section">
+  <form *ngIf="message" [formGroup]="form">
+    <mat-accordion multi>
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Metadaten </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="metadata-row">
+          <mat-form-field class="process-id-input" appearance="outline" floatLabel="always">
+            <mat-label>Prozess-ID</mat-label>
+            <input matInput formControlName="processID" readonly />
+          </mat-form-field>
+          <mat-form-field class="creation-time-input" appearance="outline" floatLabel="always">
+            <mat-label>Erstellungszeitpunkt</mat-label>
+            <input matInput formControlName="creationTime" readonly />
+          </mat-form-field>
+          <mat-form-field class="xdomea-version-input" appearance="outline" floatLabel="always">
+            <mat-label>xdomea Version</mat-label>
+            <input matInput formControlName="xdomeaVersion" readonly />
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
 
-    <form *ngIf="message" [formGroup]="form">
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Sender </mat-panel-title>
+        </mat-expansion-panel-header>
+        <app-institution-metadata [institution]="message.messageHead.sender.institution"></app-institution-metadata>
+      </mat-expansion-panel>
 
-        <mat-accordion multi>
-
-            <mat-expansion-panel [expanded]="true">
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        Metadaten
-                    </mat-panel-title>
-                </mat-expansion-panel-header>
-                <div class="metadata-row">
-                    <mat-form-field class="process-id-input" appearance="outline" floatLabel="always">
-                        <mat-label>Prozess-ID</mat-label>
-                        <input matInput formControlName="processID" readonly>
-                    </mat-form-field>
-                    <mat-form-field class="creation-time-input" appearance="outline" floatLabel="always">
-                        <mat-label>Erstellungszeitpunkt</mat-label>
-                        <input matInput formControlName="creationTime" readonly>
-                    </mat-form-field>
-                    <mat-form-field class="xdomea-version-input" appearance="outline" floatLabel="always">
-                        <mat-label>xdomea Version</mat-label>
-                        <input matInput formControlName="xdomeaVersion" readonly>
-                    </mat-form-field>
-                </div>
-            </mat-expansion-panel>
-
-            <mat-expansion-panel [expanded]="true">
-                <mat-expansion-panel-header>
-                <mat-panel-title>
-                    Sender
-                </mat-panel-title>
-                </mat-expansion-panel-header>
-                <app-institution-metadata [institution]="message.messageHead.sender.institution"></app-institution-metadata>
-            </mat-expansion-panel>
-
-            <mat-expansion-panel [expanded]="true">
-            
-                <mat-expansion-panel-header>
-                <mat-panel-title>
-                    Empfänger
-                </mat-panel-title>
-                </mat-expansion-panel-header>
-                <app-institution-metadata [institution]="message.messageHead.receiver.institution"></app-institution-metadata>
-            </mat-expansion-panel>
-
-        </mat-accordion>
-
-    </form>
-    
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Empfänger </mat-panel-title>
+        </mat-expansion-panel-header>
+        <app-institution-metadata [institution]="message.messageHead.receiver.institution"></app-institution-metadata>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </form>
 </div>

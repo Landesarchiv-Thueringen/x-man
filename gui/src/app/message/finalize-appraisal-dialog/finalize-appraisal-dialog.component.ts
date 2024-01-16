@@ -15,7 +15,7 @@ export interface DialogData {
 @Component({
   selector: 'app-finalize-appraisal-dialog',
   templateUrl: './finalize-appraisal-dialog.component.html',
-  styleUrls: ['./finalize-appraisal-dialog.component.scss']
+  styleUrls: ['./finalize-appraisal-dialog.component.scss'],
 })
 export class FinalizeAppraisalDialogComponent {
   appraisalComplete: boolean;
@@ -32,13 +32,13 @@ export class FinalizeAppraisalDialogComponent {
       },
       next: (appraisalComplete: boolean) => {
         this.appraisalComplete = appraisalComplete;
-      }
+      },
     });
   }
 
   sendAppraisalMessage(): void {
     this.dialogRef.close({
       finalizeAppraisal: true,
-    })
+    });
   }
 }

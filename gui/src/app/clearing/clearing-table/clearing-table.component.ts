@@ -27,12 +27,7 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(private clearingService: ClearingService) {
-    this.displayedColumns = [
-      'detectedAt',
-      'agency',
-      'description',
-      'actions',
-    ];
+    this.displayedColumns = ['detectedAt', 'agency', 'description', 'actions'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
   }
 
@@ -41,20 +36,21 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
     this.dataSource.sort = this.sort;
     // refetch errors every `updateInterval` milliseconds
     this.errorsSubscription = interval(environment.updateInterval)
-    .pipe(
-      startWith(void 0), // initial fetch
-      switchMap(() => this.clearingService.getProcessingErrors())
-    ).subscribe({
-      error: (error: any) => {
-        console.error(error);
-      },
-      next: (errors: ProcessingError[]) => {
-        if (JSON.stringify(this.dataSource.data) !== JSON.stringify(errors)) {
-          console.log('Updated errors', errors);
-          this.dataSource.data = errors
-        }
-      },
-    });
+      .pipe(
+        startWith(void 0), // initial fetch
+        switchMap(() => this.clearingService.getProcessingErrors()),
+      )
+      .subscribe({
+        error: (error: any) => {
+          console.error(error);
+        },
+        next: (errors: ProcessingError[]) => {
+          if (JSON.stringify(this.dataSource.data) !== JSON.stringify(errors)) {
+            console.log('Updated errors', errors);
+            this.dataSource.data = errors;
+          }
+        },
+      });
   }
 
   ngOnDestroy(): void {

@@ -12,12 +12,14 @@ import { ProcessMetadataComponent } from './metadata/process-metadata/process-me
 import { ProcessTableComponent } from './process/process-table/process-table.component';
 
 const routes: Routes = [
-  { 
-    path: '',  component: MainNavigationComponent,
+  {
+    path: '',
+    component: MainNavigationComponent,
     children: [
-      { path: 'aussonderungen',  component: ProcessTableComponent },
-      { 
-        path: 'nachricht/:id',  component: MessageTreeComponent,
+      { path: 'aussonderungen', component: ProcessTableComponent },
+      {
+        path: 'nachricht/:id',
+        component: MessageTreeComponent,
         children: [
           { path: 'details', component: MessageMetadataComponent },
           { path: 'akte/:id', component: FileMetadataComponent },
@@ -33,6 +35,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

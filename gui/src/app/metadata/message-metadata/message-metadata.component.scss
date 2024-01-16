@@ -1,19 +1,19 @@
 :host {
-    display: block;
-    padding: 2.0em;
+  display: block;
+  padding: 2em;
 
-    .metadata-section {
-        min-width: 60.0em;
-        max-width: 80.0em;
+  .metadata-section {
+    min-width: 60em;
+    max-width: 80em;
 
-        .metadata-row {
-            display: flex;
-            flex-direction: row;
-            column-gap: 1.5em;
-        }
-
-        .process-id-input {
-            flex-grow: 1;
-        }
+    .metadata-row {
+      display: flex;
+      flex-direction: row;
+      column-gap: 1.5em;
     }
+
+    .process-id-input {
+      flex-grow: 1;
+    }
+  }
 }

@@ -13,7 +13,6 @@ import { environment } from '../../../environments/environment';
 // utility
 import { interval, switchMap, Subscription, startWith } from 'rxjs';
 
-
 @Component({
   selector: 'app-process-table',
   templateUrl: './process-table.component.html',
@@ -49,9 +48,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
         case 'message0501':
           return (!!item.message0501).toString();
         case 'appraisalComplete':
-          return item.message0501
-            ? item.message0501.appraisalComplete.toString()
-            : (!!item.message0501).toString();
+          return item.message0501 ? item.message0501.appraisalComplete.toString() : (!!item.message0501).toString();
         case 'received0502':
           return (!!item.message0501 && !!item.message0503).toString();
         case 'message0503':
@@ -66,16 +63,14 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     this.processSubscription = interval(environment.updateInterval)
       .pipe(
         startWith(void 0), // initial fetch
-        switchMap(() => this.processService.getProcesses())
+        switchMap(() => this.processService.getProcesses()),
       )
       .subscribe({
         error: (error) => {
           console.error(error);
         },
         next: (processes: Process[]) => {
-          if (
-            JSON.stringify(this.dataSource.data) !== JSON.stringify(processes)
-          ) {
+          if (JSON.stringify(this.dataSource.data) !== JSON.stringify(processes)) {
             console.log('Updated processes', processes);
             this.dataSource.data = processes;
           }

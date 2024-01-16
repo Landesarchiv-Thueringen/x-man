@@ -2,16 +2,18 @@
 
 <mat-dialog-content>
   <p>
-    Wollen Sie die Bewertung der Anbietung endgültig abschließen und die Bewertungsnachricht an die Abgebende Stelle senden?
-    Anschließend haben Sie keine Möglichkeit mehr, Ihre Bewertungsentscheidungen rückgängig zu machen.
+    Wollen Sie die Bewertung der Anbietung endgültig abschließen und die Bewertungsnachricht an die Abgebende Stelle
+    senden? Anschließend haben Sie keine Möglichkeit mehr, Ihre Bewertungsentscheidungen rückgängig zu machen.
   </p>
   <p *ngIf="!appraisalComplete" class="appraisal-warning">
-    Sie haben noch nicht alle Akten, bzw. Vorgänge der Anbietung bewertet. Wenn Sie die Bewertung abschließen, 
-    werden alle nicht bewerteten Schriftgutobjekte automatisch mit "Vernichten" bewertet.
+    Sie haben noch nicht alle Akten, bzw. Vorgänge der Anbietung bewertet. Wenn Sie die Bewertung abschließen, werden
+    alle nicht bewerteten Schriftgutobjekte automatisch mit "Vernichten" bewertet.
   </p>
 </mat-dialog-content>
 
 <mat-dialog-actions>
   <button class="abort-button" mat-stroked-button mat-dialog-close color="primary">Abbrechen</button>
-  <button class="confirm-button" mat-stroked-button (click)="sendAppraisalMessage()" color="accent">Bewertung senden</button>
+  <button class="confirm-button" mat-stroked-button (click)="sendAppraisalMessage()" color="accent">
+    Bewertung senden
+  </button>
 </mat-dialog-actions>

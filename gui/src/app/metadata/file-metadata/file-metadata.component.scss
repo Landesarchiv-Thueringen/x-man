@@ -3,8 +3,8 @@
   display: block;
 
   .metadata-section {
-    min-width: 60.0em;
-    max-width: 80.0em;
+    min-width: 60em;
+    max-width: 80em;
 
     .metadata {
       display: flex;
@@ -15,11 +15,11 @@
         flex-direction: row;
         column-gap: 1.5em;
       }
-  
+
       .subject-input {
         flex-grow: 1;
       }
-  
+
       .appraisal-input {
         width: 10em;
       }
@@ -62,4 +62,3 @@
     }
   }
 }
-  

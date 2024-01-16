@@ -10,7 +10,7 @@
     display: flex;
     flex-direction: column;
     margin-top: 2em;
-  
+
     .process-table {
       width: 100%;
       min-width: 80em;
@@ -19,7 +19,7 @@
       .task-cell {
         display: flex;
         align-items: center;
-        column-gap: 1.0em;
+        column-gap: 1em;
 
         mat-icon {
           font-weight: 600;
@@ -37,7 +37,7 @@
         font-weight: 400;
 
         mat-spinner {
-          margin-left: 1.0em;
+          margin-left: 1em;
         }
       }
     }

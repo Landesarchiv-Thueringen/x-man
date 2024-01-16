@@ -40,7 +40,7 @@ export class FileOverviewComponent {
   tableColumnList: string[];
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {
     this.dataSource = new MatTableDataSource<FileFeatures>();
     this.tableColumnList = ['Attribut'];
@@ -54,12 +54,9 @@ export class FileOverviewComponent {
       const summary = this.primaryDocument.formatVerification.summary;
       const toolNames: string[] = [];
       let featureNames: string[] = [];
-      let toolResults: ToolResult[] =
-        this.primaryDocument.formatVerification.fileIdentificationResults;
+      let toolResults: ToolResult[] = this.primaryDocument.formatVerification.fileIdentificationResults;
       if (this.primaryDocument.formatVerification.fileValidationResults) {
-        toolResults = toolResults.concat(
-          this.primaryDocument.formatVerification.fileValidationResults
-        );
+        toolResults = toolResults.concat(this.primaryDocument.formatVerification.fileValidationResults);
       }
       toolResults.forEach((toolResult: ToolResult) => {
         toolNames.push(toolResult.toolName);
@@ -68,24 +65,13 @@ export class FileOverviewComponent {
         featureNames.push(featureKey);
       }
       featureNames = this.messageService.selectOverviewFeatures(featureNames);
-      this.dataSource.data = this.getTableRows(
-        summary,
-        toolNames,
-        featureNames
-      );
+      this.dataSource.data = this.getTableRows(summary, toolNames, featureNames);
     }
   }
 
-  getTableRows(
-    summary: Summary,
-    toolNames: string[],
-    featureNames: string[]
-  ): FileFeatures[] {
-    const rows: FileFeatures[] = [
-      this.getCumulativeResult(summary, featureNames),
-    ];
-    const sortedFeatures: string[] =
-      this.messageService.sortFeatures(featureNames);
+  getTableRows(summary: Summary, toolNames: string[], featureNames: string[]): FileFeatures[] {
+    const rows: FileFeatures[] = [this.getCumulativeResult(summary, featureNames)];
+    const sortedFeatures: string[] = this.messageService.sortFeatures(featureNames);
     this.tableColumnList = ['Werkzeug', ...sortedFeatures];
     for (let toolName of toolNames) {
       const featureValues: FileFeatures = {};
@@ -95,11 +81,9 @@ export class FileOverviewComponent {
       for (let featureName of featureNames) {
         for (let featureValue of summary[featureName].values) {
           if (this.featureOfTool(featureValue, toolName)) {
-            const toolInfo: ToolConfidence = featureValue.tools.find(
-              (toolInfo: ToolConfidence) => {
-                return toolInfo.toolName === toolName;
-              }
-            )!;
+            const toolInfo: ToolConfidence = featureValue.tools.find((toolInfo: ToolConfidence) => {
+              return toolInfo.toolName === toolName;
+            })!;
             featureValues[featureName] = {
               value: featureValue.value,
               confidence: toolInfo.confidence,

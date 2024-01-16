@@ -195,13 +195,7 @@ export interface Code {
   name?: string;
 }
 
-export type StructureNodeType =
-  | 'message'
-  | 'file'
-  | 'subfile'
-  | 'process'
-  | 'document'
-  | 'primaryDocuments';
+export type StructureNodeType = 'message' | 'file' | 'subfile' | 'process' | 'document' | 'primaryDocuments';
 export type RecordObjectType = 'file' | 'process' | 'document';
 
 export interface DisplayText {
@@ -240,32 +234,21 @@ export class MessageService {
   featureOrder: Map<string, number>;
   overviewFeatures: string[];
 
-  constructor(private datePipe: DatePipe, private httpClient: HttpClient) {
+  constructor(
+    private datePipe: DatePipe,
+    private httpClient: HttpClient,
+  ) {
     this.apiEndpoint = environment.endpoint;
     this.structureNodes = new Map<string, StructureNode>();
-    this.nodesSubject = new BehaviorSubject<StructureNode[]>(
-      this.getRootStructureNodes()
-    );
+    this.nodesSubject = new BehaviorSubject<StructureNode[]>(this.getRootStructureNodes());
     this.changedNodeSubject = new Subject<StructureNode>();
-    this.getRecordObjectAppraisals().subscribe(
-      (appraisals: RecordObjectAppraisal[]) => {
-        this.appraisals = appraisals;
-      }
-    );
-    this.getRecordObjectConfidentialities().subscribe(
-      (confidentialities: RecordObjectConfidentiality[]) => {
-        this.confidentialities = confidentialities;
-      }
-    );
-    this.overviewFeatures = [
-      'relativePath',
-      'fileName',
-      'fileSize',
-      'puid',
-      'mimeType',
-      'formatVersion',
-      'valid',
-    ];
+    this.getRecordObjectAppraisals().subscribe((appraisals: RecordObjectAppraisal[]) => {
+      this.appraisals = appraisals;
+    });
+    this.getRecordObjectConfidentialities().subscribe((confidentialities: RecordObjectConfidentiality[]) => {
+      this.confidentialities = confidentialities;
+    });
+    this.overviewFeatures = ['relativePath', 'fileName', 'fileSize', 'puid', 'mimeType', 'formatVersion', 'valid'];
     this.featureOrder = new Map<string, number>([
       ['relativePath', 1],
       ['fileName', 2],
@@ -287,9 +270,7 @@ export class MessageService {
     }
     for (let recordObject of message.recordObjects) {
       if (recordObject.fileRecordObject) {
-        children.push(
-          this.getFileStructureNode(recordObject.fileRecordObject, false, message.id)
-        );
+        children.push(this.getFileStructureNode(recordObject.fileRecordObject, false, message.id));
       }
     }
     let displayText: DisplayText;
@@ -340,11 +321,7 @@ export class MessageService {
     return primaryDocumentsNode;
   }
 
-  getFileStructureNode(
-    fileRecordObject: FileRecordObject,
-    subfile: boolean,
-    parentID?: string,
-  ): StructureNode {
+  getFileStructureNode(fileRecordObject: FileRecordObject, subfile: boolean, parentID?: string): StructureNode {
     const children: StructureNode[] = [];
     // generate child nodes for all sub files (de: Teilakten)
     for (let subfile of fileRecordObject.subfiles) {
@@ -375,15 +352,10 @@ export class MessageService {
     return fileNode;
   }
 
-  getProcessStructureNode(
-    processRecordObject: ProcessRecordObject,
-    parentID?: string
-  ): StructureNode {
+  getProcessStructureNode(processRecordObject: ProcessRecordObject, parentID?: string): StructureNode {
     const children: StructureNode[] = [];
     for (let document of processRecordObject.documents) {
-      children.push(
-        this.getDocumentStructureNode(document, processRecordObject.id)
-      );
+      children.push(this.getDocumentStructureNode(document, processRecordObject.id));
     }
     const displayText: DisplayText = {
       title: 'Vorgang: ' + processRecordObject.generalMetadata?.xdomeaID,
@@ -404,10 +376,7 @@ export class MessageService {
     return processNode;
   }
 
-  getDocumentStructureNode(
-    documentRecordObject: DocumentRecordObject,
-    parentID?: string
-  ): StructureNode {
+  getDocumentStructureNode(documentRecordObject: DocumentRecordObject, parentID?: string): StructureNode {
     const displayText: DisplayText = {
       title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
       subtitle: documentRecordObject.generalMetadata?.subject,
@@ -437,7 +406,7 @@ export class MessageService {
     this.structureNodes.set(node.id, node);
   }
 
-  getStructureNode(id: string): StructureNode|undefined {
+  getStructureNode(id: string): StructureNode | undefined {
     return this.structureNodes.get(id);
   }
 
@@ -445,18 +414,14 @@ export class MessageService {
     if (!node.parentID) {
       throw new Error('no parent for node change propagation existing');
     }
-    const parent: StructureNode | undefined = this.structureNodes.get(
-      node.parentID
-    );
+    const parent: StructureNode | undefined = this.structureNodes.get(node.parentID);
     if (!parent) {
       throw new Error('parent node doesn"t exist, ID: ' + node.parentID);
     }
     if (!parent.children) {
       throw new Error('parent and children are not connected');
     }
-    const nodeIndex: number = parent.children.findIndex(
-      (child: StructureNode) => child.id === node.id
-    );
+    const nodeIndex: number = parent.children.findIndex((child: StructureNode) => child.id === node.id);
     if (nodeIndex === -1) {
       throw new Error('parent and child are not connected');
     }
@@ -469,21 +434,15 @@ export class MessageService {
   }
 
   getFileRecordObject(id: string): Observable<FileRecordObject> {
-    return this.httpClient.get<FileRecordObject>(
-      this.apiEndpoint + '/file-record-object/' + id
-    );
+    return this.httpClient.get<FileRecordObject>(this.apiEndpoint + '/file-record-object/' + id);
   }
 
   getProcessRecordObject(id: string): Observable<ProcessRecordObject> {
-    return this.httpClient.get<ProcessRecordObject>(
-      this.apiEndpoint + '/process-record-object/' + id
-    );
+    return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
   }
 
   getDocumentRecordObject(id: string): Observable<DocumentRecordObject> {
-    return this.httpClient.get<DocumentRecordObject>(
-      this.apiEndpoint + '/document-record-object/' + id
-    );
+    return this.httpClient.get<DocumentRecordObject>(this.apiEndpoint + '/document-record-object/' + id);
   }
 
   get0501Messages(): Observable<Message[]> {
@@ -494,15 +453,10 @@ export class MessageService {
     return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
   }
 
-  getPrimaryDocument(
-    messageID: string,
-    primaryDocumentID: number
-  ): Observable<Blob> {
+  getPrimaryDocument(messageID: string, primaryDocumentID: number): Observable<Blob> {
     const url = this.apiEndpoint + '/primary-document';
     const options = {
-      params: new HttpParams()
-        .set('messageID', messageID)
-        .set('primaryDocumentID', primaryDocumentID),
+      params: new HttpParams().set('messageID', messageID).set('primaryDocumentID', primaryDocumentID),
       responseType: 'blob' as 'json', // https://github.com/angular/angular/issues/18586
     };
     return this.httpClient.get<Blob>(url, options);
@@ -529,40 +483,27 @@ export class MessageService {
 
   getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
     if (this.appraisals) {
-      return new Observable(
-        (subscriber: Subscriber<RecordObjectAppraisal[]>) => {
-          subscriber.next(this.appraisals);
-          subscriber.complete();
-        }
-      );
+      return new Observable((subscriber: Subscriber<RecordObjectAppraisal[]>) => {
+        subscriber.next(this.appraisals);
+        subscriber.complete();
+      });
     } else {
-      return this.httpClient.get<RecordObjectAppraisal[]>(
-        this.apiEndpoint + '/record-object-appraisals'
-      );
+      return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
     }
   }
 
-  getRecordObjectConfidentialities(): Observable<
-    RecordObjectConfidentiality[]
-  > {
+  getRecordObjectConfidentialities(): Observable<RecordObjectConfidentiality[]> {
     if (this.confidentialities) {
-      return new Observable(
-        (subscriber: Subscriber<RecordObjectConfidentiality[]>) => {
-          subscriber.next(this.confidentialities);
-          subscriber.complete();
-        }
-      );
+      return new Observable((subscriber: Subscriber<RecordObjectConfidentiality[]>) => {
+        subscriber.next(this.confidentialities);
+        subscriber.complete();
+      });
     } else {
-      return this.httpClient.get<RecordObjectConfidentiality[]>(
-        this.apiEndpoint + '/record-object-confidentialities'
-      );
+      return this.httpClient.get<RecordObjectConfidentiality[]>(this.apiEndpoint + '/record-object-confidentialities');
     }
   }
 
-  setFileRecordObjectAppraisal(
-    id: string,
-    appraisalCode: string
-  ): Observable<FileRecordObject> {
+  setFileRecordObjectAppraisal(id: string, appraisalCode: string): Observable<FileRecordObject> {
     const url = this.apiEndpoint + '/file-record-object-appraisal';
     const body = {};
     const options = {
@@ -571,10 +512,7 @@ export class MessageService {
     return this.httpClient.patch<FileRecordObject>(url, body, options);
   }
 
-  setFileRecordObjectAppraisalNote(
-    id: string,
-    note?: string|null,
-  ): Observable<FileRecordObject> {
+  setFileRecordObjectAppraisalNote(id: string, note?: string | null): Observable<FileRecordObject> {
     const url = this.apiEndpoint + '/file-record-object-appraisal-note';
     const body = {};
     const options = {
@@ -583,10 +521,7 @@ export class MessageService {
     return this.httpClient.patch<FileRecordObject>(url, body, options);
   }
 
-  setProcessRecordObjectAppraisal(
-    id: string,
-    appraisalCode: string
-  ): Observable<ProcessRecordObject> {
+  setProcessRecordObjectAppraisal(id: string, appraisalCode: string): Observable<ProcessRecordObject> {
     const url = this.apiEndpoint + '/process-record-object-appraisal';
     const body = {};
     const options = {
@@ -595,10 +530,7 @@ export class MessageService {
     return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 
-  setProcessRecordObjectAppraisalNote(
-    id: string,
-    note: string|null,
-  ): Observable<ProcessRecordObject> {
+  setProcessRecordObjectAppraisalNote(id: string, note: string | null): Observable<ProcessRecordObject> {
     const url = this.apiEndpoint + '/process-record-object-appraisal-note';
     const body = {};
     const options = {
@@ -610,7 +542,7 @@ export class MessageService {
   setAppraisalForMultipleRecorcObjects(
     recordObjectIDs: string[],
     appraisalCode: string,
-    appraisalNote: string|null,
+    appraisalNote: string | null,
   ): Observable<MultiAppraisalResponse> {
     const fileRecordObjectIDs: string[] = [];
     const processRecordObjectIDs: string[] = [];
@@ -624,9 +556,7 @@ export class MessageService {
       } else if (node.type === 'process') {
         processRecordObjectIDs.push(node.id);
       } else {
-        throw new Error(
-          'appraisal can only be set for file and process record objects'
-        );
+        throw new Error('appraisal can only be set for file and process record objects');
       }
     }
     const url = this.apiEndpoint + '/multi-appraisal';
@@ -641,11 +571,9 @@ export class MessageService {
   }
 
   updateStructureNodeForRecordObject(
-    recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject
+    recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject,
   ): void {
-    const node: StructureNode | undefined = this.structureNodes.get(
-      recordObject.id
-    );
+    const node: StructureNode | undefined = this.structureNodes.get(recordObject.id);
     if (node) {
       let changedNode: StructureNode;
       switch (recordObject.recordObjectType) {
@@ -653,22 +581,16 @@ export class MessageService {
           changedNode = this.getFileStructureNode(
             recordObject as FileRecordObject,
             node.type === 'subfile',
-            node.parentID
+            node.parentID,
           );
           break;
         }
         case 'process': {
-          changedNode = this.getProcessStructureNode(
-            recordObject as ProcessRecordObject,
-            node.parentID
-          );
+          changedNode = this.getProcessStructureNode(recordObject as ProcessRecordObject, node.parentID);
           break;
         }
         case 'document': {
-          changedNode = this.getDocumentStructureNode(
-            recordObject as DocumentRecordObject,
-            node.parentID
-          );
+          changedNode = this.getDocumentStructureNode(recordObject as DocumentRecordObject, node.parentID);
           break;
         }
       }
@@ -677,14 +599,12 @@ export class MessageService {
       this.nodesSubject.next(this.getRootStructureNodes());
       this.changedNodeSubject.next(changedNode);
     } else {
-      console.error(
-        'no structure node for record object with ID: ' + recordObject.id
-      );
+      console.error('no structure node for record object with ID: ' + recordObject.id);
     }
   }
 
   updateStructureNode(changedNode: StructureNode) {
-    this.structureNodes.set(changedNode.id, changedNode)
+    this.structureNodes.set(changedNode.id, changedNode);
     this.propagateNodeChangeToParents(changedNode);
     this.nodesSubject.next(this.getRootStructureNodes());
     this.changedNodeSubject.next(changedNode);
@@ -692,38 +612,28 @@ export class MessageService {
 
   getRecordObjectAppraisalByCode(
     code: string | undefined,
-    appraisals: RecordObjectAppraisal[]
+    appraisals: RecordObjectAppraisal[],
   ): RecordObjectAppraisal | null {
     if (!code) {
       return null;
     }
-    const appraisal = appraisals.find(
-      (appraisal: RecordObjectAppraisal) => appraisal.code === code
-    );
+    const appraisal = appraisals.find((appraisal: RecordObjectAppraisal) => appraisal.code === code);
     if (!appraisal) {
-      throw new Error(
-        'record object appraisal with code <' + code + "> wasn't found"
-      );
+      throw new Error('record object appraisal with code <' + code + "> wasn't found");
     }
     return appraisal;
   }
 
   isMessageAppraisalComplete(id: string): Observable<boolean> {
-    return this.httpClient.get<boolean>(
-      this.apiEndpoint + '/message-appraisal-complete/' + id
-    );
+    return this.httpClient.get<boolean>(this.apiEndpoint + '/message-appraisal-complete/' + id);
   }
 
   areAllRecordObjectsAppraised(id: string): Observable<boolean> {
-    return this.httpClient.get<boolean>(
-      this.apiEndpoint + '/all-record-objects-appraised/' + id
-    );
+    return this.httpClient.get<boolean>(this.apiEndpoint + '/all-record-objects-appraised/' + id);
   }
 
   getMessageTypeCode(id: string): Observable<string> {
-    return this.httpClient.get<string>(
-      this.apiEndpoint + '/message-type-code/' + id
-    );
+    return this.httpClient.get<string>(this.apiEndpoint + '/message-type-code/' + id);
   }
 
   sortFeatures(features: string[]): string[] {

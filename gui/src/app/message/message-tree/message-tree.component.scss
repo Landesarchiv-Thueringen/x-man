@@ -1,5 +1,5 @@
-@use 'sass:map';
-@use '@angular/material' as mat;
+@use "sass:map";
+@use "@angular/material" as mat;
 
 :host {
   display: flex;
@@ -9,11 +9,11 @@
   flex-grow: 1;
 }
 
-mat-sidenav-container  {
+mat-sidenav-container {
   flex-grow: 1;
 
   mat-sidenav {
-    width: 55.0em;
+    width: 55em;
   }
 }
 
@@ -32,14 +32,13 @@ mat-toolbar {
   justify-content: center;
   background-color: white;
 }
-  
-.message-tree {
 
+.message-tree {
   flex-grow: 1;
   overflow: auto;
-  margin-top: 2.0em;
-  margin-left: 2.0em;
-  
+  margin-top: 2em;
+  margin-left: 2em;
+
   .active {
     background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
   }
@@ -56,10 +55,10 @@ mat-toolbar {
     width: 100%;
     border-radius: 30px;
     margin-bottom: 0.8em;
-    margin-right: 2.0em;
-    
+    margin-right: 2em;
+
     cursor: pointer;
-    
+
     &:hover {
       background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
     }
@@ -67,19 +66,19 @@ mat-toolbar {
     .node-info {
       display: flex;
       flex-direction: row;
-      align-items:center;
-      
+      align-items: center;
+
       .mat-icon {
         // important icons shrink when overflow occurs
         flex-shrink: 0;
       }
-  
+
       .node-title {
         display: flex;
         flex-direction: column;
         word-break: break-word;
-        padding-right: 4.0em;
-  
+        padding-right: 4em;
+
         .node-subtitle-line {
           font-weight: 500;
         }

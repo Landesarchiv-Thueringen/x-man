@@ -8,7 +8,7 @@ describe('StartArchivingDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [StartArchivingDialogComponent]
+      declarations: [StartArchivingDialogComponent],
     });
     fixture = TestBed.createComponent(StartArchivingDialogComponent);
     component = fixture.componentInstance;

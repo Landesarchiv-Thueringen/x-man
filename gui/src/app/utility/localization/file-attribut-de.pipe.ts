@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({name: 'fileFeature'})
+@Pipe({ name: 'fileFeature' })
 export class FileFeaturePipe implements PipeTransform {
   transform(value: string): string {
     switch (value) {

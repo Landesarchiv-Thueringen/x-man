@@ -3,16 +3,10 @@ import { Component, Input } from '@angular/core';
 
 // material
 import { FlatTreeControl } from '@angular/cdk/tree';
-import {
-  MatTreeFlatDataSource,
-  MatTreeFlattener,
-} from '@angular/material/tree';
+import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 
 // project
-import {
-  DocumentRecordObject,
-  MessageService,
-} from 'src/app/message/message.service';
+import { DocumentRecordObject, MessageService } from 'src/app/message/message.service';
 
 // utility
 import { saveAs } from 'file-saver';
@@ -49,18 +43,15 @@ export class DocumentVersionMetadataComponent {
   constructor(private messageService: MessageService) {
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
-      (node) => node.expandable
+      (node) => node.expandable,
     );
     this.treeFlattener = new MatTreeFlattener(
       this._transformer,
       (node) => node.level,
       (node) => node.expandable,
-      (node) => node.children
+      (node) => node.children,
     );
-    this.dataSource = new MatTreeFlatDataSource(
-      this.treeControl,
-      this.treeFlattener
-    );
+    this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   }
 
   private _transformer = (node: Node, level: number): FlatNode => {
@@ -116,10 +107,7 @@ export class DocumentVersionMetadataComponent {
 
   downloadPrimaryFile(fileID: number, fileName: string): void {
     if (this.d) {
-      this.messageService.getPrimaryDocument(
-        this.d.messageID,
-        fileID
-      ).subscribe({
+      this.messageService.getPrimaryDocument(this.d.messageID, fileID).subscribe({
         error: (error) => {
           console.error(error);
         },

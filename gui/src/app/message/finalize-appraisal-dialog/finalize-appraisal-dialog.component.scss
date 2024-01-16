@@ -1,9 +1,9 @@
-@use 'sass:map';
-@use '@angular/material' as mat;
+@use "sass:map";
+@use "@angular/material" as mat;
 
 :host {
   display: block;
-  width: 45.0em;
+  width: 45em;
 }
 
 .appraisal-warning {
