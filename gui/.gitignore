@@ -8,12 +8,6 @@
 !/tsconfig.json
 !/tsconfig.spec.json
 
-# allow visual studio code config
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
 # allow source code
 !/src/**/*.ts
 !/src/**/*.html
