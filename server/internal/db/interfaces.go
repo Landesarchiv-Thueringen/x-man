@@ -70,6 +70,12 @@ func (f *FileRecordObject) SetMessageID(messageID uuid.UUID) {
 // The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
 func (p *ProcessRecordObject) GetChildren() []RecordObject {
 	recordObjects := []RecordObject{}
+	// de: Teilvorgänge
+	for subprocessIndex := range p.SubProcessRecordObjects {
+		recordObjects = append(recordObjects, &p.SubProcessRecordObjects[subprocessIndex])
+		recordObjects = append(recordObjects, p.SubProcessRecordObjects[subprocessIndex].GetChildren()...)
+	}
+	// de: Dokumente
 	for documentIndex := range p.Documents {
 		recordObjects = append(recordObjects, &p.Documents[documentIndex])
 		recordObjects = append(recordObjects, p.Documents[documentIndex].GetChildren()...)
@@ -185,6 +191,7 @@ func (f *FileRecordObject) SetAppraisalNote(note string) error {
 	return result.Error
 }
 
+// GetAppraisableObjects returns a child record objects of file which are appraisable.
 func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 	appraisableObjects := []AppraisableRecordObject{f}
 	// add all subfiles (de: Teilakten)
@@ -284,8 +291,13 @@ func (p *ProcessRecordObject) GetID() uuid.UUID {
 	return p.XdomeaID
 }
 
+// GetAppraisableObjects returns a child record objects of process which are appraisable.
 func (p *ProcessRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 	appraisableObjects := []AppraisableRecordObject{p}
+	// add all subprocesses (de: Teilvorgänge)
+	for index := range p.SubProcessRecordObjects {
+		appraisableObjects = append(appraisableObjects, &p.SubProcessRecordObjects[index])
+	}
 	return appraisableObjects
 }
 

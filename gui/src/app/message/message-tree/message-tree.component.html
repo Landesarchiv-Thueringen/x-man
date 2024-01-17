@@ -9,7 +9,7 @@
               <!-- use a disabled button to provide padding for tree leaf -->
               <button mat-icon-button disabled></button>
               <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon"> folder </mat-icon>
-              <mat-icon *ngIf="node.type === 'process'" class="process-icon"> folder </mat-icon>
+              <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'"> folder </mat-icon>
               <mat-icon *ngIf="node.type === 'document'" class="document-icon"> article </mat-icon>
               <mat-icon *ngIf="node.type === 'primaryDocuments'" class="primary-documents-icon"> fact_check </mat-icon>
               <div class="node-title">
@@ -52,7 +52,9 @@
 
               <mat-icon *ngIf="node.type === 'message'" class="message-icon"> assignment </mat-icon>
               <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon"> folder </mat-icon>
-              <mat-icon *ngIf="node.type === 'process'" class="process-icon"> folder </mat-icon>
+              <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon">
+                folder
+              </mat-icon>
               <mat-icon *ngIf="node.type === 'document'" class="document-icon"> article </mat-icon>
 
               <div class="node-title">

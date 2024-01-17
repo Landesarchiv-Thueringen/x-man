@@ -200,15 +200,37 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 		Preload("MessageHead.Sender.AgencyIdentification."+clause.Associations).
 		Preload("MessageHead.Receiver."+clause.Associations).
 		Preload("MessageHead.Receiver.AgencyIdentification."+clause.Associations).
+		// load root level files (de: Akten)
 		Preload("FileRecordObjects."+clause.Associations).
 		Preload("FileRecordObjects.GeneralMetadata."+clause.Associations).
 		Preload("FileRecordObjects.Processes."+clause.Associations).
 		Preload("FileRecordObjects.Processes.GeneralMetadata."+clause.Associations).
 		Preload("FileRecordObjects.Processes.Documents."+clause.Associations).
 		Preload("FileRecordObjects.Processes.Documents.GeneralMetadata."+clause.Associations).
+		Preload("FileRecordObjects.Processes.SubProcessRecordObjects."+clause.Associations).
+		Preload("FileRecordObjects.Processes.SubProcessRecordObjects.GeneralMetadata."+clause.Associations).
+		Preload("FileRecordObjects.Processes.SubProcessRecordObjects.Documents."+clause.Associations).
+		Preload("FileRecordObjects.Processes.SubProcessRecordObjects.Documents.GeneralMetadata."+clause.Associations).
 		Preload("FileRecordObjects.SubFileRecordObjects."+clause.Associations).
 		Preload("FileRecordObjects.SubFileRecordObjects.Processes."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes.GeneralMetadata."+clause.Associations).
 		Preload("FileRecordObjects.SubFileRecordObjects.Processes.Documents."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes.SubProcessRecordObjects."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes.SubProcessRecordObjects.GeneralMetadata."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes.SubProcessRecordObjects.Documents."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes.SubProcessRecordObjects.Documents.GeneralMetadata."+clause.Associations).
+		// load root level processes (de: Vorgänge)
+		Preload("ProcessRecordObjects."+clause.Associations).
+		Preload("ProcessRecordObjects.GeneralMetadata."+clause.Associations).
+		Preload("ProcessRecordObjects.Documents."+clause.Associations).
+		Preload("ProcessRecordObjects.Documents.GeneralMetadata."+clause.Associations).
+		Preload("ProcessRecordObjects.SubProcessRecordObjects."+clause.Associations).
+		Preload("ProcessRecordObjects.SubProcessRecordObjects.GeneralMetadata."+clause.Associations).
+		Preload("ProcessRecordObjects.SubProcessRecordObjects.Documents."+clause.Associations).
+		Preload("ProcessRecordObjects.SubProcessRecordObjects.Documents.GeneralMetadata."+clause.Associations).
+		// load root level documents (de: Dokumente)
+		Preload("DocumentRecordObjects."+clause.Associations).
+		Preload("DocumentRecordObjects.GeneralMetadata."+clause.Associations).
 		First(&message, id)
 	return message, result.Error
 }

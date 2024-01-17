@@ -59,35 +59,36 @@ export interface Institution {
 export interface FileRecordObject {
   id: string;
   messageID: string;
+  recordObjectType: RecordObjectType;
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
   type?: string;
-  processes: ProcessRecordObject[];
   subfiles: FileRecordObject[];
-  recordObjectType: RecordObjectType;
+  processes: ProcessRecordObject[];
 }
 
 export interface ProcessRecordObject {
   id: string;
   messageID: string;
+  recordObjectType: RecordObjectType;
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
   type?: string;
+  subprocesses: ProcessRecordObject[];
   documents: DocumentRecordObject[];
-  recordObjectType: RecordObjectType;
 }
 
 export interface DocumentRecordObject {
   id: string;
   messageID: string;
+  recordObjectType: RecordObjectType;
   generalMetadata?: GeneralMetadata;
   type?: string;
   incomingDate?: string;
   outgoingDate?: string;
   documentDate?: string;
-  recordObjectType: RecordObjectType;
   versions?: DocumentVersion[];
 }
 
@@ -192,7 +193,14 @@ export interface Code {
   name?: string;
 }
 
-export type StructureNodeType = 'message' | 'file' | 'subfile' | 'process' | 'document' | 'primaryDocuments';
+export type StructureNodeType =
+  | 'message'
+  | 'file'
+  | 'subfile'
+  | 'process'
+  | 'subprocess'
+  | 'document'
+  | 'primaryDocuments';
 export type RecordObjectType = 'file' | 'process' | 'document';
 
 export interface DisplayText {
@@ -318,13 +326,13 @@ export class MessageService {
 
   getFileStructureNode(fileRecordObject: FileRecordObject, subfile: boolean, parentID?: string): StructureNode {
     const children: StructureNode[] = [];
-    // generate child nodes for all sub files (de: Teilakten)
+    // generate child nodes for all subfiles (de: Teilakten)
     for (let subfile of fileRecordObject.subfiles) {
       children.push(this.getFileStructureNode(subfile, true, fileRecordObject.id));
     }
     // generate child nodes for all processes (de: Vorgänge)
     for (let process of fileRecordObject.processes) {
-      children.push(this.getProcessStructureNode(process, fileRecordObject.id));
+      children.push(this.getProcessStructureNode(process, false, fileRecordObject.id));
     }
     const nodeName = subfile ? 'Teilakte' : 'Akte';
     const displayText: DisplayText = {
@@ -347,21 +355,32 @@ export class MessageService {
     return fileNode;
   }
 
-  getProcessStructureNode(processRecordObject: ProcessRecordObject, parentID?: string): StructureNode {
+  getProcessStructureNode(
+    processRecordObject: ProcessRecordObject,
+    subprocess: boolean,
+    parentID?: string,
+  ): StructureNode {
     const children: StructureNode[] = [];
+    // generate child nodes for all subprocesses (de: Teilvorgänge)
+    for (let subprocess of processRecordObject.subprocesses) {
+      children.push(this.getProcessStructureNode(subprocess, true, processRecordObject.id));
+    }
+    // generate child nodes for all documents (de: Dokumente)
     for (let document of processRecordObject.documents) {
       children.push(this.getDocumentStructureNode(document, processRecordObject.id));
     }
+    const nodeName = subprocess ? 'Teilvorgang' : 'Vorgang';
     const displayText: DisplayText = {
-      title: 'Vorgang: ' + processRecordObject.generalMetadata?.xdomeaID,
+      title: nodeName + ': ' + processRecordObject.generalMetadata?.xdomeaID,
       subtitle: processRecordObject.generalMetadata?.subject,
     };
     const routerLink: string = 'vorgang/' + processRecordObject.id;
+    const type = subprocess ? 'subprocess' : 'process';
     const processNode: StructureNode = {
       id: processRecordObject.id,
       selected: false,
       displayText: displayText,
-      type: 'process',
+      type: type,
       routerLink: routerLink,
       appraisal: processRecordObject.archiveMetadata?.appraisalCode,
       parentID: parentID,
@@ -581,7 +600,11 @@ export class MessageService {
           break;
         }
         case 'process': {
-          changedNode = this.getProcessStructureNode(recordObject as ProcessRecordObject, node.parentID);
+          changedNode = this.getProcessStructureNode(
+            recordObject as ProcessRecordObject,
+            node.type === 'subprocess',
+            node.parentID,
+          );
           break;
         }
         case 'document': {
