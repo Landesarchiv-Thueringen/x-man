@@ -68,7 +68,6 @@ func Migrate() {
 		&Contact{},
 		&AgencyIdentification{},
 		&Institution{},
-		&RecordObject{},
 		&FileRecordObject{},
 		&ProcessRecordObject{},
 		&DocumentRecordObject{},
@@ -201,15 +200,15 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 		Preload("MessageHead.Sender.AgencyIdentification."+clause.Associations).
 		Preload("MessageHead.Receiver."+clause.Associations).
 		Preload("MessageHead.Receiver.AgencyIdentification."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.GeneralMetadata."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.Processes."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.Processes.GeneralMetadata."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.Processes.Documents."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.Processes.Documents.GeneralMetadata."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.SubFileRecordObjects."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.SubFileRecordObjects.Processes."+clause.Associations).
-		Preload("RecordObjects.FileRecordObject.SubFileRecordObjects.Processes.Documents."+clause.Associations).
+		Preload("FileRecordObjects."+clause.Associations).
+		Preload("FileRecordObjects.GeneralMetadata."+clause.Associations).
+		Preload("FileRecordObjects.Processes."+clause.Associations).
+		Preload("FileRecordObjects.Processes.GeneralMetadata."+clause.Associations).
+		Preload("FileRecordObjects.Processes.Documents."+clause.Associations).
+		Preload("FileRecordObjects.Processes.Documents.GeneralMetadata."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes."+clause.Associations).
+		Preload("FileRecordObjects.SubFileRecordObjects.Processes.Documents."+clause.Associations).
 		First(&message, id)
 	return message, result.Error
 }
@@ -238,21 +237,6 @@ func IsMessageAppraisalComplete(id uuid.UUID) (bool, error) {
 		return false, err
 	}
 	return message.AppraisalComplete, err
-}
-
-func GetRecordObjects(messageID uuid.UUID) ([]RecordObject, error) {
-	var recordObjects []RecordObject
-	// TODO: add process and document
-	result := db.
-		Preload("FileRecordObject.GeneralMetadata.FilePlan").
-		Preload("FileRecordObject.ArchiveMetadata").
-		Preload("FileRecordObject.Lifetime").
-		Preload("FileRecordObject.Processes.GeneralMetadata.FilePlan").
-		Preload("FileRecordObject.Processes.ArchiveMetadata").
-		Preload("FileRecordObject.Processes.Lifetime").
-		Preload("FileRecordObject.Processes.Documents.GeneralMetadata.FilePlan").
-		Find(&recordObjects)
-	return recordObjects, result.Error
 }
 
 func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
@@ -679,12 +663,10 @@ func AddMessage(
 // setRecordObjectsMessageID sets the message ID for all record objects of the message.
 // This information helps to retrieve the message if only the record object is known.
 func setRecordObjectsMessageID(message *Message) {
-	for _, r := range message.RecordObjects {
-		if r.FileRecordObject != nil {
-			recordObjects := append(r.FileRecordObject.GetChildren(), r.FileRecordObject)
-			for recordObjectIndex := range recordObjects {
-				recordObjects[recordObjectIndex].SetMessageID(message.ID)
-			}
+	for _, recordObject := range message.GetRecordObjects() {
+		recordObject.SetMessageID(message.ID)
+		for _, childRecordObject := range recordObject.GetChildren() {
+			childRecordObject.SetMessageID(message.ID)
 		}
 	}
 }
@@ -712,7 +694,7 @@ func UpdateProcessStep(processStep ProcessStep) error {
 func SetFileRecordObjectAppraisal(
 	id uuid.UUID,
 	appraisalCode string,
-	recursiv bool,
+	recursive bool,
 ) (FileRecordObject, error) {
 	fileRecordObject, err := GetFileRecordObjectByID(id)
 	if err != nil {
@@ -731,8 +713,8 @@ func SetFileRecordObjectAppraisal(
 	if err != nil {
 		return fileRecordObject, err
 	}
-	// set appraisal for child elements if recursiv appraisal was choosen
-	if recursiv {
+	// set appraisal for child elements if recursive appraisal was choosen
+	if recursive {
 		for _, process := range fileRecordObject.Processes {
 			_, err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
 			if err != nil {

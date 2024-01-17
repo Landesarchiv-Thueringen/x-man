@@ -22,13 +22,12 @@ func Generate0502Message(message db.Message) string {
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
 	}
-	for _, r := range message.RecordObjects {
-		if r.FileRecordObject != nil {
-			for _, o := range r.FileRecordObject.GetAppraisableObjects() {
-				appraisedObject, err := GenerateAppraisedObject(o)
-				if err == nil {
-					message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
-				}
+	// TODO: think about root level process and document record objects
+	for _, fileRecordObject := range message.FileRecordObjects {
+		for _, o := range fileRecordObject.GetAppraisableObjects() {
+			appraisedObject, err := GenerateAppraisedObject(o)
+			if err == nil {
+				message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 			}
 		}
 	}

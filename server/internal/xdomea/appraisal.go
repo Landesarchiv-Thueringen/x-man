@@ -9,18 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func AreAllRecordObjectsAppraised(messageID uuid.UUID) (bool, error) {
-	recordObjects, err := db.GetRecordObjects(messageID)
-	if err != nil {
-		log.Println(err)
-		return false, err
-	}
-	for _, recordObject := range recordObjects {
-		for _, appraisableObject := range recordObject.GetAppraisableObjects() {
-			appraisalCode, err := appraisableObject.GetAppraisal()
-			if err != nil || appraisalCode == "B" {
-				return false, nil
-			}
+// AreAllRecordObjectsAppraised verifies whether every file, subfile, process, and subprocess has been appraised
+// with either an 'A' (de: archivieren) or 'V' (de: vernichten).
+func AreAllRecordObjectsAppraised(message db.Message) (bool, error) {
+	for _, appraisableObject := range message.GetAppraisableObjects() {
+		appraisalCode, err := appraisableObject.GetAppraisal()
+		if err != nil || appraisalCode == "B" {
+			return false, nil
 		}
 	}
 	return true, nil
@@ -112,14 +107,12 @@ func FinalizeMessageAppraisal(message db.Message) (db.Message, error) {
 }
 
 func markUnappraisedRecordObjectsAsDiscardable(message db.Message) error {
-	for _, recordObject := range message.RecordObjects {
-		for _, appraisableObject := range recordObject.GetAppraisableObjects() {
-			appraisalCode, err := appraisableObject.GetAppraisal()
-			if err != nil || appraisalCode == "B" {
-				err := appraisableObject.SetAppraisal("V")
-				if err != nil {
-					return err
-				}
+	for _, appraisableObject := range message.GetAppraisableObjects() {
+		appraisalCode, err := appraisableObject.GetAppraisal()
+		if err != nil || appraisalCode == "B" {
+			err := appraisableObject.SetAppraisal("V")
+			if err != nil {
+				return err
 			}
 		}
 	}

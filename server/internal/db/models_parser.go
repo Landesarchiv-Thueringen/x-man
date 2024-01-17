@@ -26,9 +26,9 @@ type Process struct {
 	CreatedAt        time.Time         `json:"receivedAt"`
 	UpdatedAt        time.Time         `json:"-"`
 	DeletedAt        gorm.DeletedAt    `gorm:"index" json:"-"`
+	XdomeaID         string            `json:"xdomeaID"`
 	AgencyID         uint              `json:"-"`
 	Agency           Agency            `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
-	XdomeaID         string            `json:"xdomeaID"`
 	StoreDir         string            `json:"-"`
 	Institution      *string           `json:"institution"`
 	Message0501ID    *uuid.UUID        `json:"-"`
@@ -75,22 +75,24 @@ type ProcessStep struct {
 }
 
 type Message struct {
-	ID                     uuid.UUID      `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CreatedAt              time.Time      `json:"-"`
-	UpdatedAt              time.Time      `json:"-"`
-	DeletedAt              gorm.DeletedAt `gorm:"index" json:"-"`
-	TransferDir            string         `json:"-"`
-	TransferDirMessagePath string         `json:"-"`
-	StoreDir               string         `json:"-"`
-	MessagePath            string         `json:"-"`
-	XdomeaVersion          string         `json:"xdomeaVersion"`
-	MessageHeadID          *uint          `json:"-"`
-	MessageHead            MessageHead    `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
-	MessageTypeID          *uint          `json:"-"`
-	MessageType            MessageType    `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
-	RecordObjects          []RecordObject `gorm:"many2many:message_record_objects;" json:"recordObjects"`
-	AppraisalComplete      bool           `json:"appraisalComplete"`
-	SchemaValidation       bool           `gorm:"default:true" json:"schemaValidation"`
+	ID                     uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	CreatedAt              time.Time              `json:"-"`
+	UpdatedAt              time.Time              `json:"-"`
+	DeletedAt              gorm.DeletedAt         `gorm:"index" json:"-"`
+	TransferDir            string                 `json:"-"`
+	TransferDirMessagePath string                 `json:"-"`
+	StoreDir               string                 `json:"-"`
+	MessagePath            string                 `json:"-"`
+	XdomeaVersion          string                 `json:"xdomeaVersion"`
+	MessageHeadID          *uint                  `json:"-"`
+	MessageHead            MessageHead            `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
+	MessageTypeID          *uint                  `json:"-"`
+	MessageType            MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
+	AppraisalComplete      bool                   `json:"appraisalComplete"`
+	SchemaValidation       bool                   `gorm:"default:true" json:"schemaValidation"`
+	FileRecordObjects      []FileRecordObject     `gorm:"many2many:message_file_record_objects;" json:"fileRecordObjects"`
+	ProcessRecordObjects   []ProcessRecordObject  `gorm:"many2many:message_process_record_objects;" json:"processRecordObjects"`
+	DocumentRecordObjects  []DocumentRecordObject `gorm:"many2many:message_document_record_objects;" json:"documentRecordObjects"`
 }
 
 type MessageType struct {
@@ -102,9 +104,11 @@ type MessageType struct {
 }
 
 type Message0501 struct {
-	XMLName       xml.Name       `gorm:"-" xml:"Aussonderung.Anbieteverzeichnis.0501" json:"-"`
-	MessageHead   MessageHead    `xml:"Kopf" json:"messageHead"`
-	RecordObjects []RecordObject `xml:"Schriftgutobjekt" json:"recordObjects"`
+	XMLName               xml.Name               `gorm:"-" xml:"Aussonderung.Anbieteverzeichnis.0501" json:"-"`
+	MessageHead           MessageHead            `xml:"Kopf" json:"messageHead"`
+	FileRecordObjects     []FileRecordObject     `xml:"Schriftgutobjekt>Akte" json:"fileRecordObjects"`
+	ProcessRecordObjects  []ProcessRecordObject  `xml:"Schriftgutobjekt>Vorgang" json:"processRecordObjects"`
+	DocumentRecordObjects []DocumentRecordObject `xml:"Schriftgutobjekt>Dokument" json:"documentRecordObjects"`
 }
 
 type MessageBody0501 struct {
@@ -112,9 +116,11 @@ type MessageBody0501 struct {
 }
 
 type Message0503 struct {
-	XMLName       xml.Name       `gorm:"-" xml:"Aussonderung.Aussonderung.0503" json:"-"`
-	MessageHead   MessageHead    `xml:"Kopf" json:"messageHead"`
-	RecordObjects []RecordObject `xml:"Schriftgutobjekt" json:"recordObjects"`
+	XMLName               xml.Name               `gorm:"-" xml:"Aussonderung.Aussonderung.0503" json:"-"`
+	MessageHead           MessageHead            `xml:"Kopf" json:"messageHead"`
+	FileRecordObjects     []FileRecordObject     `xml:"Schriftgutobjekt>Akte" json:"fileRecordObjects"`
+	ProcessRecordObjects  []ProcessRecordObject  `xml:"Schriftgutobjekt>Vorgang" json:"processRecordObjects"`
+	DocumentRecordObjects []DocumentRecordObject `xml:"Schriftgutobjekt>Dokument" json:"documentRecordObjects"`
 }
 
 type MessageBody0503 struct {
@@ -184,16 +190,6 @@ type Institution struct {
 	Abbreviation *string        `xml:"Kurzbezeichnung" json:"abbreviation"`
 }
 
-type RecordObject struct {
-	XMLName            xml.Name          `gorm:"-" xml:"Schriftgutobjekt" json:"-"`
-	ID                 uint              `gorm:"primaryKey" json:"id"`
-	CreatedAt          time.Time         `json:"-"`
-	UpdatedAt          time.Time         `json:"-"`
-	DeletedAt          gorm.DeletedAt    `gorm:"index" json:"-"`
-	FileRecordObjectID *uuid.UUID        `json:"-"`
-	FileRecordObject   *FileRecordObject `gorm:"foreignKey:FileRecordObjectID;references:ID" xml:"Akte" json:"fileRecordObject"`
-}
-
 type FileRecordObject struct {
 	XMLName                      xml.Name              `gorm:"-" json:"-"`
 	ID                           uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
@@ -201,8 +197,8 @@ type FileRecordObject struct {
 	CreatedAt                    time.Time             `json:"-"`
 	UpdatedAt                    time.Time             `json:"-"`
 	DeletedAt                    gorm.DeletedAt        `gorm:"index" json:"-"`
-	RecorcObjectType             string                `gorm:"default:file" json:"recordObjectType"`
 	MessageID                    uuid.UUID             `json:"messageID"`
+	RecordObjectType             string                `gorm:"default:file" json:"recordObjectType"`
 	GeneralMetadataID            *uint                 `json:"-"`
 	GeneralMetadata              *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	ArchiveMetadataID            *uint                 `json:"-"`
@@ -223,6 +219,8 @@ type ProcessRecordObject struct {
 	CreatedAt         time.Time              `json:"-"`
 	UpdatedAt         time.Time              `json:"-"`
 	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
+	MessageID         uuid.UUID              `json:"messageID"`
+	RecordObjectType  string                 `gorm:"default:process" json:"recordObjectType"`
 	GeneralMetadataID *uint                  `json:"-"`
 	GeneralMetadata   *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	ArchiveMetadataID *uint                  `json:"-"`
@@ -231,8 +229,6 @@ type ProcessRecordObject struct {
 	Lifetime          *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type              *string                `json:"type" xml:"Typ"`
 	Documents         []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
-	MessageID         uuid.UUID              `json:"messageID"`
-	RecorcObjectType  string                 `gorm:"default:process" json:"recordObjectType"`
 }
 
 type DocumentRecordObject struct {
@@ -242,14 +238,14 @@ type DocumentRecordObject struct {
 	CreatedAt         time.Time        `json:"-"`
 	UpdatedAt         time.Time        `json:"-"`
 	DeletedAt         gorm.DeletedAt   `gorm:"index" json:"-"`
+	MessageID         uuid.UUID        `json:"messageID"`
+	RecordObjectType  string           `gorm:"default:document" json:"recordObjectType"`
 	GeneralMetadataID *uint            `json:"-"`
 	GeneralMetadata   *GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	Type              *string          `json:"type" xml:"Typ"`
 	IncomingDate      *string          `xml:"Posteingangsdatum" json:"incomingDate"`
 	OutgoingDate      *string          `xml:"Postausgangsdatum" json:"outgoingDate"`
 	DocumentDate      *string          `xml:"DatumDesSchreibens" json:"documentDate"`
-	MessageID         uuid.UUID        `json:"messageID"`
-	RecorcObjectType  string           `gorm:"default:document" json:"recordObjectType"`
 	Versions          []Version        `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
 }
 

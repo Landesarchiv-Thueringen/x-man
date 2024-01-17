@@ -33,16 +33,16 @@ func (f *FileRecordObject) SetVersionIndependentSubFiles() {
 	}
 }
 
-type RecordObjectIter interface {
-	GetChildren() []RecordObjectIter
+type RecordObject interface {
+	GetChildren() []RecordObject
 	GetPrimaryDocuments() []PrimaryDocument
 	SetMessageID(messageID uuid.UUID)
 }
 
 // GetChildren returns all list of all record objects contained in the file record object.
 // The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
-func (f *FileRecordObject) GetChildren() []RecordObjectIter {
-	recordObjects := []RecordObjectIter{}
+func (f *FileRecordObject) GetChildren() []RecordObject {
+	recordObjects := []RecordObject{}
 	for subfileIndex := range f.SubFileRecordObjects {
 		recordObjects = append(recordObjects, &f.SubFileRecordObjects[subfileIndex])
 		recordObjects = append(recordObjects, f.SubFileRecordObjects[subfileIndex].GetChildren()...)
@@ -68,8 +68,8 @@ func (f *FileRecordObject) SetMessageID(messageID uuid.UUID) {
 
 // GetChildren returns all list of all record objects contained in the process record object.
 // The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
-func (p *ProcessRecordObject) GetChildren() []RecordObjectIter {
-	recordObjects := []RecordObjectIter{}
+func (p *ProcessRecordObject) GetChildren() []RecordObject {
+	recordObjects := []RecordObject{}
 	for documentIndex := range p.Documents {
 		recordObjects = append(recordObjects, &p.Documents[documentIndex])
 		recordObjects = append(recordObjects, p.Documents[documentIndex].GetChildren()...)
@@ -92,8 +92,8 @@ func (p *ProcessRecordObject) SetMessageID(messageID uuid.UUID) {
 // GetChildren Returns an empty list.
 // Document record objects do not have any other record objects as their children.
 // This might change in future xdomea versions.
-func (d *DocumentRecordObject) GetChildren() []RecordObjectIter {
-	recordObjects := []RecordObjectIter{}
+func (d *DocumentRecordObject) GetChildren() []RecordObject {
+	recordObjects := []RecordObject{}
 	return recordObjects
 }
 
@@ -111,20 +111,27 @@ func (d *DocumentRecordObject) SetMessageID(messageID uuid.UUID) {
 	d.MessageID = messageID
 }
 
+// GetRecordObjects retrieves all record objects from the root level of the message.
+// The child record objects at the root level are not separately returned from their parent record object.
+func (m *Message) GetRecordObjects() []RecordObject {
+	var recordObjects []RecordObject
+	for index := range m.FileRecordObjects {
+		recordObjects = append(recordObjects, &m.FileRecordObjects[index])
+	}
+	for index := range m.ProcessRecordObjects {
+		recordObjects = append(recordObjects, &m.ProcessRecordObjects[index])
+	}
+	for index := range m.DocumentRecordObjects {
+		recordObjects = append(recordObjects, &m.DocumentRecordObjects[index])
+	}
+	return recordObjects
+}
+
 type AppraisableRecordObject interface {
 	GetAppraisal() (string, error)
 	SetAppraisal(string) error
 	GetID() uuid.UUID
 	GetAppraisableObjects() []AppraisableRecordObject
-}
-
-func (r *RecordObject) GetAppraisableObjects() []AppraisableRecordObject {
-	appraisableObjects := []AppraisableRecordObject{}
-	if r.FileRecordObject != nil {
-		appraisableObjects = append(appraisableObjects, r.FileRecordObject.GetAppraisableObjects()...)
-	}
-	// TODO: add process and document
-	return appraisableObjects
 }
 
 func (f *FileRecordObject) GetAppraisal() (string, error) {
@@ -279,6 +286,18 @@ func (p *ProcessRecordObject) GetID() uuid.UUID {
 
 func (p *ProcessRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 	appraisableObjects := []AppraisableRecordObject{p}
+	return appraisableObjects
+}
+
+// GetAppraisableObjects returns all files, subfiles, processes and subprocesses of message.
+func (m *Message) GetAppraisableObjects() []AppraisableRecordObject {
+	var appraisableObjects []AppraisableRecordObject
+	for index := range m.FileRecordObjects {
+		appraisableObjects = append(appraisableObjects, m.FileRecordObjects[index].GetAppraisableObjects()...)
+	}
+	for index := range m.ProcessRecordObjects {
+		appraisableObjects = append(appraisableObjects, m.FileRecordObjects[index].GetAppraisableObjects()...)
+	}
 	return appraisableObjects
 }
 

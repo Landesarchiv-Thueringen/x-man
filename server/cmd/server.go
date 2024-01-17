@@ -359,7 +359,12 @@ func AreAllRecordObjectsAppraised(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisalComplete, err := xdomea.AreAllRecordObjectsAppraised(id)
+	message, err := db.GetMessageByID(id)
+	if err != nil {
+		context.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	appraisalComplete, err := xdomea.AreAllRecordObjectsAppraised(message)
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return

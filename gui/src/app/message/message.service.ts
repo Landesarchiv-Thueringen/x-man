@@ -1,11 +1,11 @@
 // angular
-import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 // utility
-import { Observable, BehaviorSubject, Subject, Subscriber } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscriber } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Process } from '../process/process.service';
 
@@ -16,11 +16,13 @@ export interface Message {
   xdomeaVersion: string;
   schemaValidation: boolean;
   messageHead: MessageHead;
-  recordObjects: RecordObject[];
   appraisalComplete: boolean;
   formatVerificationComplete: boolean;
   primaryDocumentCount: number;
   verificationCompleteCount: number;
+  fileRecordObjects: FileRecordObject[];
+  processRecordObjects: ProcessRecordObject[];
+  documentRecordObjects: DocumentRecordObject[];
 }
 
 export interface MessageType {
@@ -52,11 +54,6 @@ export interface Institution {
   id: number;
   name?: string;
   abbreviation?: string;
-}
-
-export interface RecordObject {
-  id: number;
-  fileRecordObject?: FileRecordObject;
 }
 
 export interface FileRecordObject {
@@ -268,10 +265,8 @@ export class MessageService {
     if (message.messageType?.code === '0503') {
       children.push(this.getPrimaryDocumentsNode(message.id));
     }
-    for (let recordObject of message.recordObjects) {
-      if (recordObject.fileRecordObject) {
-        children.push(this.getFileStructureNode(recordObject.fileRecordObject, false, message.id));
-      }
+    for (let fileRecordObject of message.fileRecordObjects) {
+      children.push(this.getFileStructureNode(fileRecordObject, false, message.id));
     }
     let displayText: DisplayText;
     switch (message.messageType.code) {
