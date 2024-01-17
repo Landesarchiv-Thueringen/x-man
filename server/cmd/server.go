@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
+	"lath/xman/internal/report"
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
@@ -50,6 +52,7 @@ func main() {
 	router.GET("api/message-type-code/:id", getMessageTypeCode)
 	router.GET("api/primary-document", getPrimaryDocument)
 	router.GET("api/primary-documents/:id", getPrimaryDocuments)
+	router.GET("api/report/:processId", getReport)
 	router.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
 	router.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
 	router.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
@@ -424,6 +427,31 @@ func getPrimaryDocuments(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, primaryDocuments)
+}
+
+func getReport(context *gin.Context) {
+	processId := context.Param("processId")
+	if processId == "" {
+		context.String(http.StatusBadRequest, "Missing query parameter: processId")
+		return
+	}
+	values, err := report.GetReportData(processId)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	jsonValue, _ := json.Marshal(values)
+	resp, err := http.Post("http://report/render", "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	} else if resp.StatusCode != http.StatusOK {
+		context.String(http.StatusInternalServerError, "Internal server error")
+		body, _ := io.ReadAll(resp.Body)
+		println(string(body))
+		return
+	}
+	context.DataFromReader(http.StatusOK, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
 }
 
 // archive0503Message archives all metadata and primary files in the digital archive.

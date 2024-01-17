@@ -1,11 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ProcessingError } from '../clearing/clearing.service';
 import { Message } from '../message/message.service';
-
-// utility
-import { Observable } from 'rxjs';
 
 export interface Agency {
   name: string;
@@ -57,5 +55,9 @@ export class ProcessService {
 
   getProcessByXdomeaID(id: string): Observable<Process> {
     return this.httpClient.get<Process>(this.apiEndpoint + '/process-by-xdomea-id/' + id);
+  }
+
+  getReport(processId: string): Observable<Blob> {
+    return this.httpClient.get(this.apiEndpoint + '/report/' + processId, { responseType: 'blob' });
   }
 }

@@ -79,4 +79,15 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.processSubscription.unsubscribe();
   }
+
+  downloadReport(process: Process) {
+    this.processService.getReport(process.xdomeaID).subscribe((report) => {
+      const a = document.createElement('a');
+      document.body.appendChild(a);
+      a.download = `Übernahmebericht ${process.agency.abbreviation} ${process.receivedAt}.pdf`;
+      a.href = window.URL.createObjectURL(report);
+      a.click();
+      document.body.removeChild(a);
+    });
+  }
 }

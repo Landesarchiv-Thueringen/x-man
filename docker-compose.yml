@@ -1,5 +1,4 @@
 services:
-
   gui:
     restart: unless-stopped
     build:
@@ -62,7 +61,18 @@ services:
       - ./transfer_dir:/xman/transfer_dir
     ports:
       - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}
-  
+
+  report:
+    restart: unless-stopped
+    build:
+      context: ./report
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=.tsa.thlv.de,.thlv.de
+    environment:
+      - GIN_MODE=${GIN_MODE}
+
   webdav:
     image: bytemark/webdav
     restart: always

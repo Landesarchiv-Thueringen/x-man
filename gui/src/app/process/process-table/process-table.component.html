@@ -144,6 +144,12 @@
                 <span>Abgabe anzeigen</span>
               </button>
             </ng-container>
+            <ng-container *ngIf="process.processState.archiving.complete">
+              <button mat-menu-item (click)="downloadReport(process)">
+                <mat-icon>summarize</mat-icon>
+                <span>Übernahmebericht herunterladen</span>
+              </button>
+            </ng-container>
           </mat-menu>
         </td>
       </ng-container>

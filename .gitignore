@@ -19,3 +19,7 @@
 
 # allow docker compose file
 !/docker-compose.yml
+
+# allow go workspace files
+!/go.work
+!/go.work.sum
