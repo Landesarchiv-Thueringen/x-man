@@ -5,4 +5,5 @@ RUN apt-get install -y libxml2 libxml2-dev
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
-CMD ["go", "run", "cmd/server.go"]
+RUN go build cmd/server.go
+CMD ["./server"]
