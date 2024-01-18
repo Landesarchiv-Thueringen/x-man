@@ -238,6 +238,10 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 // determined by the path in the transfer directory.
 func IsMessageAlreadyProcessed(path string) bool {
 	result := db.Where("transfer_dir_message_path = ?", path).Limit(1).Find(&Message{})
+	if result.RowsAffected > 0 {
+		return true
+	}
+	result = db.Where("transfer_dir_path = ?", path).Limit(1).Find(&ProcessingError{})
 	return result.RowsAffected > 0
 }
 
