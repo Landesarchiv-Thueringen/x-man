@@ -21,7 +21,7 @@ func AreAllRecordObjectsAppraised(message db.Message) (bool, error) {
 	return true, nil
 }
 
-func SetAppraisalForFileRecorcdObjects(
+func SetAppraisalForFileRecordObjects(
 	fileRecordObjectIDs []string,
 	appraisalCode string,
 	appraisalNote *string,
@@ -50,7 +50,7 @@ func SetAppraisalForFileRecorcdObjects(
 	return updatedFileRecordObjects, nil
 }
 
-func SetAppraisalForProcessRecorcdObjects(
+func SetAppraisalForProcessRecordObjects(
 	processRecordObjectIDs []string,
 	appraisalCode string,
 	appraisalNote *string,

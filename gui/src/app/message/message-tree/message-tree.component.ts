@@ -267,7 +267,12 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     if (node) {
       node.selected = selected;
       node.children?.forEach((nodeChild: StructureNode) => {
-        if (nodeChild.type === 'file' || nodeChild.type === 'process') {
+        if (
+          nodeChild.type === 'file' ||
+          nodeChild.type === 'subfile' ||
+          nodeChild.type === 'process' ||
+          nodeChild.type === 'subprocess'
+        ) {
           this.selectItem(selected, nodeChild.id);
         }
       });
@@ -323,7 +328,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         .afterClosed()
         .pipe(
           filter((formResult) => !!formResult),
-          switchMap((formResult: any) => {
+          switchMap(() => {
             return this.messageService.finalizeMessageAppraisal(this.message!.id);
           }),
         )

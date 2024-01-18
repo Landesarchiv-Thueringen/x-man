@@ -272,7 +272,8 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 		Preload("Processes.Lifetime").
 		Preload("Processes.Documents.GeneralMetadata.FilePlan").
 		Preload("Processes.Documents.Versions.Formats.PrimaryDocument").
-		Preload("SubFileRecordObjects").
+		Preload("SubFileRecordObjects.GeneralMetadata").
+		Preload("SubFileRecordObjects.ArchiveMetadata").
 		First(&file, id)
 	return file, result.Error
 }
@@ -285,6 +286,9 @@ func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
 		Preload("Lifetime").
 		Preload("Documents.GeneralMetadata.FilePlan").
 		Preload("Documents.Versions.Formats.PrimaryDocument").
+		Preload("SubProcessRecordObjects.GeneralMetadata").
+		Preload("SubProcessRecordObjects.ArchiveMetadata").
+		Preload(clause.Associations).
 		First(&process, id)
 	return process, result.Error
 }
@@ -735,7 +739,7 @@ func SetFileRecordObjectAppraisal(
 	if err != nil {
 		return fileRecordObject, err
 	}
-	// set appraisal for child elements if recursive appraisal was choosen
+	// set appraisal for child elements if recursive appraisal was chosen
 	if recursive {
 		for _, process := range fileRecordObject.Processes {
 			_, err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)

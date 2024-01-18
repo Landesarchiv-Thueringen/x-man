@@ -55,7 +55,7 @@ func main() {
 	router.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("api/process-record-object-appraisal-note", setProcessRecordObjectAppraisalNote)
 	router.PATCH("api/finalize-message-appraisal/:id", finalizeMessageAppraisal)
-	router.PATCH("api/multi-appraisal", setAppraisalForMultipleRecorcObjects)
+	router.PATCH("api/multi-appraisal", setAppraisalForMultipleRecordObjects)
 	router.PATCH("api/archive-0503-message/:id", archive0503Message)
 	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
 	router.Run(addr)
@@ -277,7 +277,7 @@ type MultiAppraisalResponse struct {
 	UpdatedProcessRecordObjects []db.ProcessRecordObject `json:"updatedProcessRecordObjects"`
 }
 
-func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
+func setAppraisalForMultipleRecordObjects(context *gin.Context) {
 	jsonBody, err := io.ReadAll(context.Request.Body)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -289,7 +289,7 @@ func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	updatedFileRecordObjects, err := xdomea.SetAppraisalForFileRecorcdObjects(
+	updatedFileRecordObjects, err := xdomea.SetAppraisalForFileRecordObjects(
 		parsedBody.FileRecordObjectIDs,
 		parsedBody.AppraisalCode,
 		parsedBody.AppraisalNote,
@@ -298,7 +298,7 @@ func setAppraisalForMultipleRecorcObjects(context *gin.Context) {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	updatedProcessRecordObjects, err := xdomea.SetAppraisalForProcessRecorcdObjects(
+	updatedProcessRecordObjects, err := xdomea.SetAppraisalForProcessRecordObjects(
 		parsedBody.ProcessRecordObjectIDs,
 		parsedBody.AppraisalCode,
 		parsedBody.AppraisalNote,

@@ -327,12 +327,16 @@ export class MessageService {
   getFileStructureNode(fileRecordObject: FileRecordObject, subfile: boolean, parentID?: string): StructureNode {
     const children: StructureNode[] = [];
     // generate child nodes for all subfiles (de: Teilakten)
-    for (let subfile of fileRecordObject.subfiles) {
-      children.push(this.getFileStructureNode(subfile, true, fileRecordObject.id));
+    if (fileRecordObject.subfiles) {
+      for (let subfile of fileRecordObject.subfiles) {
+        children.push(this.getFileStructureNode(subfile, true, fileRecordObject.id));
+      }
     }
     // generate child nodes for all processes (de: Vorgänge)
-    for (let process of fileRecordObject.processes) {
-      children.push(this.getProcessStructureNode(process, false, fileRecordObject.id));
+    if (fileRecordObject.processes) {
+      for (let process of fileRecordObject.processes) {
+        children.push(this.getProcessStructureNode(process, false, fileRecordObject.id));
+      }
     }
     const nodeName = subfile ? 'Teilakte' : 'Akte';
     const displayText: DisplayText = {
@@ -362,12 +366,16 @@ export class MessageService {
   ): StructureNode {
     const children: StructureNode[] = [];
     // generate child nodes for all subprocesses (de: Teilvorgänge)
-    for (let subprocess of processRecordObject.subprocesses) {
-      children.push(this.getProcessStructureNode(subprocess, true, processRecordObject.id));
+    if (processRecordObject.subprocesses) {
+      for (let subprocess of processRecordObject.subprocesses) {
+        children.push(this.getProcessStructureNode(subprocess, true, processRecordObject.id));
+      }
     }
     // generate child nodes for all documents (de: Dokumente)
-    for (let document of processRecordObject.documents) {
-      children.push(this.getDocumentStructureNode(document, processRecordObject.id));
+    if (processRecordObject.documents) {
+      for (let document of processRecordObject.documents) {
+        children.push(this.getDocumentStructureNode(document, processRecordObject.id));
+      }
     }
     const nodeName = subprocess ? 'Teilvorgang' : 'Vorgang';
     const displayText: DisplayText = {
@@ -430,7 +438,7 @@ export class MessageService {
     }
     const parent: StructureNode | undefined = this.structureNodes.get(node.parentID);
     if (!parent) {
-      throw new Error('parent node doesn"t exist, ID: ' + node.parentID);
+      throw new Error('parent node does not exist, ID: ' + node.parentID);
     }
     if (!parent.children) {
       throw new Error('parent and children are not connected');
@@ -565,9 +573,9 @@ export class MessageService {
       if (!node) {
         throw new Error('record object ID not found');
       }
-      if (node.type === 'file') {
+      if (node.type === 'file' || node.type === 'subfile') {
         fileRecordObjectIDs.push(node.id);
-      } else if (node.type === 'process') {
+      } else if (node.type === 'process' || node.type === 'subprocess') {
         processRecordObjectIDs.push(node.id);
       } else {
         throw new Error('appraisal can only be set for file and process record objects');
@@ -592,19 +600,13 @@ export class MessageService {
       let changedNode: StructureNode;
       switch (recordObject.recordObjectType) {
         case 'file': {
-          changedNode = this.getFileStructureNode(
-            recordObject as FileRecordObject,
-            node.type === 'subfile',
-            node.parentID,
-          );
+          const isSubfile = node.type === 'subfile';
+          changedNode = this.getFileStructureNode(recordObject as FileRecordObject, isSubfile, node.parentID);
           break;
         }
         case 'process': {
-          changedNode = this.getProcessStructureNode(
-            recordObject as ProcessRecordObject,
-            node.type === 'subprocess',
-            node.parentID,
-          );
+          const isSubprocess = node.type === 'subprocess';
+          changedNode = this.getProcessStructureNode(recordObject as ProcessRecordObject, isSubprocess, node.parentID);
           break;
         }
         case 'document': {
@@ -612,7 +614,6 @@ export class MessageService {
           break;
         }
       }
-      // we accept you my node
       this.propagateNodeChangeToParents(changedNode);
       this.nodesSubject.next(this.getRootStructureNodes());
       this.changedNodeSubject.next(changedNode);
