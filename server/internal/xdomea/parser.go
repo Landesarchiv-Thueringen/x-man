@@ -94,7 +94,6 @@ func parse0501Message(message db.Message, xmlBytes []byte) (db.Message, error) {
 	message.ProcessRecordObjects = m.ProcessRecordObjects
 	message.DocumentRecordObjects = m.DocumentRecordObjects
 	message.XdomeaVersion = version.Code
-	CorrectXdomeaVersionDifferences(message)
 	return message, nil
 }
 
@@ -114,7 +113,6 @@ func parse0503Message(message db.Message, xmlBytes []byte) (db.Message, error) {
 	message.ProcessRecordObjects = m.ProcessRecordObjects
 	message.DocumentRecordObjects = m.DocumentRecordObjects
 	message.XdomeaVersion = version.Code
-	CorrectXdomeaVersionDifferences(message)
 	return message, nil
 }
 
@@ -150,11 +148,4 @@ func extractVersion(namespace string) (db.XdomeaVersion, error) {
 		return xdomeaVersion, errors.New(errorMessage)
 	}
 	return xdomeaVersion, nil
-}
-
-// CorrectXdomeaVersionDifferences corrects all differences between xdomea versions for further processing.
-func CorrectXdomeaVersionDifferences(message db.Message) {
-	for index := range message.FileRecordObjects {
-		message.FileRecordObjects[index].SetVersionIndependentSubFiles()
-	}
 }

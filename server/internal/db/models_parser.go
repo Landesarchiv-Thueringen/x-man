@@ -166,19 +166,30 @@ type AgencyIdentification struct {
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	CodeID    *uint          `json:"-"`
-	Code      *Code          `gorm:"foreignKey:CodeID;references:ID" xml:"Behoerdenschluessel" json:"code"`
-	PrefixID  *uint          `json:"-"`
-	Prefix    *Code          `gorm:"foreignKey:PrefixID;references:ID" xml:"Praefix" json:"prefix"`
+	Code      *string        `xml:"Behoerdenschluessel>code" json:"code"`
+	Prefix    *string        `xml:"Praefix>code" json:"prefix"`
 }
 
-type Code struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      *string        `xml:"code" json:"code"`
-	Name      *string        `xml:"name" json:"name"`
+type AgencyIdentificationVersionIndependent struct {
+	Code       *string `xml:"Behoerdenschluessel>code"`
+	CodePre300 *string `xml:"Kennung>code"`
+	Prefix     *string `xml:"Praefix>code"`
+}
+
+// UnmarshalXML corrects version specific differences of the agency identification.
+func (agencyIdentification *AgencyIdentification) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var temp AgencyIdentificationVersionIndependent
+	err := d.DecodeElement(&temp, &start)
+	if err != nil {
+		return err
+	}
+	agencyIdentification.Prefix = temp.Prefix
+	if temp.Code != nil {
+		agencyIdentification.Code = temp.Code
+	} else if temp.CodePre300 != nil {
+		agencyIdentification.Code = temp.CodePre300
+	}
+	return nil
 }
 
 type Institution struct {
@@ -191,29 +202,55 @@ type Institution struct {
 }
 
 type FileRecordObject struct {
-	XMLName                      xml.Name              `gorm:"-" json:"-"`
-	ID                           uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID                     uuid.UUID             `xml:"Identifikation>ID" json:"xdomeaID"`
-	CreatedAt                    time.Time             `json:"-"`
-	UpdatedAt                    time.Time             `json:"-"`
-	DeletedAt                    gorm.DeletedAt        `gorm:"index" json:"-"`
-	MessageID                    uuid.UUID             `json:"messageID"`
-	RecordObjectType             string                `gorm:"default:file" json:"recordObjectType"`
-	GeneralMetadataID            *uint                 `json:"-"`
-	GeneralMetadata              *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	ArchiveMetadataID            *uint                 `json:"-"`
-	ArchiveMetadata              *ArchiveMetadata      `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
-	LifetimeID                   *uint                 `json:"-"`
-	Lifetime                     *Lifetime             `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
-	Type                         *string               `json:"type" xml:"Typ"`
-	Processes                    []ProcessRecordObject `gorm:"many2many:file_processes;" xml:"Akteninhalt>Vorgang" json:"processes"`
-	SubFileRecordObjects         []FileRecordObject    `gorm:"many2many:file_subfiles;" json:"subfiles"`
-	SubFilesPreXdomeaVersion300  []FileRecordObject    `gorm:"-" xml:"Teilakte" json:"-"`
-	SubFilesFromXdomeaVersion300 []FileRecordObject    `gorm:"-" xml:"Akteninhalt>Teilakte" json:"-"`
+	ID                   uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID             uuid.UUID             `xml:"Identifikation>ID" json:"xdomeaID"`
+	CreatedAt            time.Time             `json:"-"`
+	UpdatedAt            time.Time             `json:"-"`
+	DeletedAt            gorm.DeletedAt        `gorm:"index" json:"-"`
+	MessageID            uuid.UUID             `json:"messageID"`
+	RecordObjectType     string                `gorm:"default:file" json:"recordObjectType"`
+	GeneralMetadataID    *uint                 `json:"-"`
+	GeneralMetadata      *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" json:"generalMetadata"`
+	ArchiveMetadataID    *uint                 `json:"-"`
+	ArchiveMetadata      *ArchiveMetadata      `gorm:"foreignKey:ArchiveMetadataID;references:ID" json:"archiveMetadata"`
+	LifetimeID           *uint                 `json:"-"`
+	Lifetime             *Lifetime             `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Type                 *string               `json:"type"`
+	Processes            []ProcessRecordObject `gorm:"many2many:file_processes;" json:"processes"`
+	SubFileRecordObjects []FileRecordObject    `gorm:"many2many:file_subfiles;" json:"subfiles"`
+}
+
+type FileRecordObjectVersionDifferences struct {
+	GeneralMetadata            *GeneralMetadata      `xml:"AllgemeineMetadaten"`
+	ArchiveMetadata            *ArchiveMetadata      `xml:"ArchivspezifischeMetadaten"`
+	Lifetime                   *Lifetime             `xml:"Laufzeit"`
+	Type                       *string               `xml:"Typ" json:"type"`
+	Processes                  []ProcessRecordObject `xml:"Akteninhalt>Vorgang"`
+	SubFileRecordObjects       []FileRecordObject    `xml:"Akteninhalt>Teilakte"`
+	SubFileRecordObjectsPre300 []FileRecordObject    `xml:"Teilakte" json:"-"`
+}
+
+// UnmarshalXML corrects version specific differences of file record objects.
+func (fileRecordObject *FileRecordObject) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var temp FileRecordObjectVersionDifferences
+	err := d.DecodeElement(&temp, &start)
+	if err != nil {
+		return err
+	}
+	fileRecordObject.GeneralMetadata = temp.GeneralMetadata
+	fileRecordObject.ArchiveMetadata = temp.ArchiveMetadata
+	fileRecordObject.Lifetime = temp.Lifetime
+	fileRecordObject.Type = temp.Type
+	fileRecordObject.Processes = temp.Processes
+	if temp.SubFileRecordObjects != nil {
+		fileRecordObject.SubFileRecordObjects = temp.SubFileRecordObjects
+	} else if temp.SubFileRecordObjectsPre300 != nil {
+		fileRecordObject.SubFileRecordObjects = temp.SubFileRecordObjectsPre300
+	}
+	return nil
 }
 
 type ProcessRecordObject struct {
-	XMLName                 xml.Name               `gorm:"-" json:"-"`
 	ID                      uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	XdomeaID                uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
 	CreatedAt               time.Time              `json:"-"`
@@ -325,6 +362,28 @@ type ArchiveMetadata struct {
 	AppraisalCode         *string        `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
 	AppraisalRecommCode   *string        `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
 	InternalAppraisalNote *string        `json:"internalAppraisalNote"`
+}
+
+type ArchiveMetadataVersionIndependent struct {
+	AppraisalCode       *string `xml:"Aussonderungsart>Aussonderungsart>code"`
+	AppraisalCodePre300 *string `xml:"Aussonderungsart>code"`
+	AppraisalRecommCode *string `xml:"Bewertungsvorschlag>code"`
+}
+
+// UnmarshalXML corrects version specific differences of the archive metadata.
+func (archiveMetadata *ArchiveMetadata) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var temp ArchiveMetadataVersionIndependent
+	err := d.DecodeElement(&temp, &start)
+	if err != nil {
+		return err
+	}
+	archiveMetadata.AppraisalRecommCode = temp.AppraisalRecommCode
+	if temp.AppraisalCode != nil {
+		archiveMetadata.AppraisalCode = temp.AppraisalCode
+	} else if temp.AppraisalCodePre300 != nil {
+		archiveMetadata.AppraisalCode = temp.AppraisalCodePre300
+	}
+	return nil
 }
 
 // code list entries

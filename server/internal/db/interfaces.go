@@ -18,21 +18,6 @@ func (message *Message) GetRemoteXmlPath(importDir string) string {
 	return filepath.Join(importDir, filepath.Base(message.MessagePath))
 }
 
-// SetVersionIndependentSubFiles appends the version specific sub files to the version independent sub files.
-func (f *FileRecordObject) SetVersionIndependentSubFiles() {
-	if f.SubFilesPreXdomeaVersion300 != nil {
-		f.SubFileRecordObjects = append(f.SubFileRecordObjects, f.SubFilesPreXdomeaVersion300...)
-	}
-	if f.SubFilesFromXdomeaVersion300 != nil {
-		f.SubFileRecordObjects = append(f.SubFileRecordObjects, f.SubFilesFromXdomeaVersion300...)
-	}
-	if f.SubFileRecordObjects != nil {
-		for subFileIndex := range f.SubFileRecordObjects {
-			f.SubFileRecordObjects[subFileIndex].SetVersionIndependentSubFiles()
-		}
-	}
-}
-
 type RecordObject interface {
 	GetChildren() []RecordObject
 	GetPrimaryDocuments() []PrimaryDocument

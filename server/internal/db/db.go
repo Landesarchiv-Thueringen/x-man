@@ -58,7 +58,6 @@ func Migrate() {
 		&ServerState{},
 		&Agency{},
 		&XdomeaVersion{},
-		&Code{},
 		&Process{},
 		&ProcessState{},
 		&ProcessStep{},
