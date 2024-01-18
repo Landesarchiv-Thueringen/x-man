@@ -5,23 +5,29 @@
   min-width: 90em;
   align-content: flex-start;
   flex-direction: column;
+}
 
-  mat-toolbar {
-    z-index: 2;
-    flex-shrink: 0;
+mat-toolbar {
+  z-index: 2;
+  flex-shrink: 0;
+}
 
-    .active {
-      text-decoration: underline;
-    }
+mat-icon.title-icon {
+  height: 26px;
+  width: 26px;
+  font-size: 26px;
+}
 
-    .spacer {
-      flex: 1 1 auto;
-    }
+.active {
+  background: rgba(0, 0, 0, 0.3);
+}
 
-    .user_label {
-      display: flex;
-      gap: 0.2em;
-      margin-right: 1em;
-    }
-  }
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user_label {
+  display: flex;
+  gap: 0.2em;
+  margin-right: 1em;
 }

@@ -1,11 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
-import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
-import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
+import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
+import { FileMetadataComponent } from './metadata/file-metadata/file-metadata.component';
 import { MessageMetadataComponent } from './metadata/message-metadata/message-metadata.component';
 import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
@@ -29,6 +28,7 @@ const routes: Routes = [
         ],
       },
       { path: 'steuerungsstelle', component: ClearingTableComponent },
+      { path: '', redirectTo: '/aussonderungen', pathMatch: 'full' },
     ],
   },
 ];
