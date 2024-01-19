@@ -1,15 +1,20 @@
 :host {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
   padding-top: 3em;
   padding-bottom: 3em;
   padding-left: 5em;
   padding-right: 5em;
-  overflow: auto;
+  margin: auto;
 }
+
+$maxWidth: 150em;
 
 .filters {
   display: flex;
+  max-width: $maxWidth;
   gap: 1em;
   .string-field {
     flex-grow: 1;
@@ -21,8 +26,18 @@
 
 .process-table {
   width: 100%;
-  min-width: 80em;
-  max-width: 150em;
+  max-width: $maxWidth;
+}
+
+.table-container {
+  overflow-x: auto;
+  table {
+    min-width: max(100%, 100em);
+  }
+}
+
+.institution-cell {
+  max-width: 15vw;
 }
 
 .note-cell {
