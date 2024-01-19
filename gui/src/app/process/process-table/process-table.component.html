@@ -17,7 +17,14 @@
 </form>
 
 <div class="process-table mat-elevation-z8">
-  <table mat-table [dataSource]="dataSource" matSort matSortActive="receivedAt" matSortDirection="desc">
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    [trackBy]="trackProcess"
+    matSort
+    matSortActive="receivedAt"
+    matSortDirection="desc"
+  >
     <!-- agency column -->
     <ng-container matColumnDef="institution">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>

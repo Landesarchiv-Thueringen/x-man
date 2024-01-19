@@ -81,10 +81,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
           console.error(error);
         },
         next: (processes: Process[]) => {
-          if (JSON.stringify(this.dataSource.data) !== JSON.stringify(processes)) {
-            console.log('Updated processes', processes);
             this.dataSource.data = processes;
-          }
         },
       });
   }
@@ -136,6 +133,13 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
       })()
     );
   };
+
+  /**
+   * Implements a track-by predicate for Angular to match table rows on data updates.
+   */
+  trackProcess(index: number, item: Process): string {
+    return item.xdomeaID;
+  }
 
   /**
    * Returns the number of processes that match the given state filter.
