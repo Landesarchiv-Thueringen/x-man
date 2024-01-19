@@ -1,163 +1,179 @@
-<div class="process-section">
-  <div class="process-table mat-elevation-z8">
-    <table mat-table [dataSource]="dataSource" matSort matSortActive="receivedAt" matSortDirection="desc">
-      <!-- agency column -->
-      <ng-container matColumnDef="institution">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
-        <td mat-cell *matCellDef="let process">{{ process.institution }}</td>
-      </ng-container>
+<form [formGroup]="filter" class="filters">
+  <mat-form-field class="string-field">
+    <mat-label>Filter</mat-label>
+    <input matInput formControlName="string" />
+  </mat-form-field>
+  <mat-form-field class="status-field">
+    <mat-label>Status</mat-label>
+    <mat-select formControlName="state">
+      <mat-option>Alle anzeigen ({{ getElementsForState($any("")) }})</mat-option>
+      @for (value of stateValues; track value) {
+        <mat-option [value]="value.value" [disabled]="getElementsForState(value.value) === 0"
+          >{{ value.viewValue }} ({{ getElementsForState(value.value) }})</mat-option
+        >
+      }
+    </mat-select>
+  </mat-form-field>
+</form>
 
-      <!-- 0501 message column -->
-      <ng-container matColumnDef="message0501">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
-        <td mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.receive0501.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.receive0501.completionTime | date: "short" }}
-            </span>
-          </div>
-        </td>
-      </ng-container>
+<div class="process-table mat-elevation-z8">
+  <table mat-table [dataSource]="dataSource" matSort matSortActive="receivedAt" matSortDirection="desc">
+    <!-- agency column -->
+    <ng-container matColumnDef="institution">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
+      <td mat-cell *matCellDef="let process">{{ process.institution }}</td>
+    </ng-container>
 
-      <!-- appraisal complete column -->
-      <ng-container matColumnDef="appraisalComplete">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</th>
-        <td mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.appraisal.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.appraisal.completionTime | date: "short" }}
-            </span>
-          </div>
-        </td>
-      </ng-container>
+    <!-- 0501 message column -->
+    <ng-container matColumnDef="message0501">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
+      <td mat-cell *matCellDef="let process">
+        <div *ngIf="process.processState.receive0501.complete" class="task-cell">
+          <mat-icon>check</mat-icon>
+          <span class="task-completion-time">
+            {{ process.processState.receive0501.completionTime | date: "short" }}
+          </span>
+        </div>
+      </td>
+    </ng-container>
 
-      <!-- dms received 0502 column -->
-      <ng-container matColumnDef="received0502">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</th>
-        <td mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.receive0505.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.receive0505.completionTime | date: "short" }}
-            </span>
-          </div>
-        </td>
-      </ng-container>
+    <!-- appraisal complete column -->
+    <ng-container matColumnDef="appraisalComplete">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</th>
+      <td mat-cell *matCellDef="let process">
+        <div *ngIf="process.processState.appraisal.complete" class="task-cell">
+          <mat-icon>check</mat-icon>
+          <span class="task-completion-time">
+            {{ process.processState.appraisal.completionTime | date: "short" }}
+          </span>
+        </div>
+      </td>
+    </ng-container>
 
-      <!-- 0503 message column -->
-      <ng-container matColumnDef="message0503">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe erhalten</th>
-        <td mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.receive0503.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.receive0503.completionTime | date: "short" }}
-            </span>
-          </div>
-        </td>
-      </ng-container>
+    <!-- dms received 0502 column -->
+    <ng-container matColumnDef="received0502">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</th>
+      <td mat-cell *matCellDef="let process">
+        <div *ngIf="process.processState.receive0505.complete" class="task-cell">
+          <mat-icon>check</mat-icon>
+          <span class="task-completion-time">
+            {{ process.processState.receive0505.completionTime | date: "short" }}
+          </span>
+        </div>
+      </td>
+    </ng-container>
 
-      <!-- format verification column -->
-      <ng-container matColumnDef="formatVerification">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</th>
-        <td mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.formatVerification.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.formatVerification.completionTime | date: "short" }}
-            </span>
-          </div>
-          <div
-            *ngIf="process.processState.receive0503.complete && !process.processState.formatVerification.complete"
-            class="progress-cell"
-          >
-            {{ process.processState.formatVerification.itemCompletetCount }}/{{
-              process.processState.formatVerification.itemCount
-            }}
-            <mat-spinner diameter="25"></mat-spinner>
-          </div>
-        </td>
-      </ng-container>
+    <!-- 0503 message column -->
+    <ng-container matColumnDef="message0503">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe erhalten</th>
+      <td mat-cell *matCellDef="let process">
+        <div *ngIf="process.processState.receive0503.complete" class="task-cell">
+          <mat-icon>check</mat-icon>
+          <span class="task-completion-time">
+            {{ process.processState.receive0503.completionTime | date: "short" }}
+          </span>
+        </div>
+      </td>
+    </ng-container>
 
-      <!-- archiving complete column -->
-      <ng-container matColumnDef="archivingComplete">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</th>
-        <td mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.archiving.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.archiving.completionTime | date: "short" }}
-            </span>
-          </div>
-          <div
-            *ngIf="process.processState.archiving.startTime && !process.processState.archiving.complete"
-            class="progress-cell"
-          >
-            Archivierung läuft
-            <mat-spinner diameter="25"></mat-spinner>
-          </div>
-        </td>
-      </ng-container>
+    <!-- format verification column -->
+    <ng-container matColumnDef="formatVerification">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</th>
+      <td mat-cell *matCellDef="let process">
+        <div *ngIf="process.processState.formatVerification.complete" class="task-cell">
+          <mat-icon>check</mat-icon>
+          <span class="task-completion-time">
+            {{ process.processState.formatVerification.completionTime | date: "short" }}
+          </span>
+        </div>
+        <div
+          *ngIf="process.processState.receive0503.complete && !process.processState.formatVerification.complete"
+          class="progress-cell"
+        >
+          {{ process.processState.formatVerification.itemCompletetCount }}/{{
+            process.processState.formatVerification.itemCount
+          }}
+          <mat-spinner diameter="25"></mat-spinner>
+        </div>
+      </td>
+    </ng-container>
 
-      <!-- actions column -->
-      <ng-container matColumnDef="actions" stickyEnd>
-        <th mat-header-cell *matHeaderCellDef>Aktionen</th>
-        <td mat-cell *matCellDef="let process">
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="menu"
-            aria-hidden="false"
-            aria-label="Aktionen für Nachricht anzeigen"
-          >
-            <mat-icon>more_horiz</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <ng-container *ngIf="process.message0501 && process.message0501.appraisalComplete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
-                <mat-icon>search</mat-icon>
-                <span>Anbietung anzeigen</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0501 && !process.message0501.appraisalComplete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
-                <mat-icon>checklist</mat-icon>
-                <span>Anbietung bewerten</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0503 && process.message0503.archivingComplete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                <mat-icon>search</mat-icon>
-                <span>Abgabe anzeigen</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0503 && !process.processState.archiving.complete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                <mat-icon>edit_note</mat-icon>
-                <span>Abgabe bearbeiten</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0503 && process.processState.archiving.complete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                <mat-icon>search</mat-icon>
-                <span>Abgabe anzeigen</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.processState.archiving.complete">
-              <button mat-menu-item (click)="downloadReport(process)">
-                <mat-icon>summarize</mat-icon>
-                <span>Übernahmebericht herunterladen</span>
-              </button>
-            </ng-container>
-          </mat-menu>
-        </td>
-      </ng-container>
+    <!-- archiving complete column -->
+    <ng-container matColumnDef="archivingComplete">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</th>
+      <td mat-cell *matCellDef="let process">
+        <div *ngIf="process.processState.archiving.complete" class="task-cell">
+          <mat-icon>check</mat-icon>
+          <span class="task-completion-time">
+            {{ process.processState.archiving.completionTime | date: "short" }}
+          </span>
+        </div>
+        <div
+          *ngIf="process.processState.archiving.startTime && !process.processState.archiving.complete"
+          class="progress-cell"
+        >
+          Archivierung läuft
+          <mat-spinner diameter="25"></mat-spinner>
+        </div>
+      </td>
+    </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
+    <!-- actions column -->
+    <ng-container matColumnDef="actions" stickyEnd>
+      <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+      <td mat-cell *matCellDef="let process">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu"
+          aria-hidden="false"
+          aria-label="Aktionen für Nachricht anzeigen"
+        >
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <ng-container *ngIf="process.message0501 && process.message0501.appraisalComplete">
+            <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
+              <mat-icon>search</mat-icon>
+              <span>Anbietung anzeigen</span>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="process.message0501 && !process.message0501.appraisalComplete">
+            <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
+              <mat-icon>checklist</mat-icon>
+              <span>Anbietung bewerten</span>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="process.message0503 && process.message0503.archivingComplete">
+            <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
+              <mat-icon>search</mat-icon>
+              <span>Abgabe anzeigen</span>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="process.message0503 && !process.processState.archiving.complete">
+            <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
+              <mat-icon>edit_note</mat-icon>
+              <span>Abgabe bearbeiten</span>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="process.message0503 && process.processState.archiving.complete">
+            <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
+              <mat-icon>search</mat-icon>
+              <span>Abgabe anzeigen</span>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="process.processState.archiving.complete">
+            <button mat-menu-item (click)="downloadReport(process)">
+              <mat-icon>summarize</mat-icon>
+              <span>Übernahmebericht herunterladen</span>
+            </button>
+          </ng-container>
+        </mat-menu>
+      </td>
+    </ng-container>
 
-    <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Anbietung auswählen"></mat-paginator>
-  </div>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Anbietung auswählen"></mat-paginator>
 </div>

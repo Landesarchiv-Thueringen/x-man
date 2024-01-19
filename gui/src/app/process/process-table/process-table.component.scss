@@ -1,45 +1,51 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding-top: 3em;
   padding-bottom: 3em;
   padding-left: 5em;
   padding-right: 5em;
   overflow: auto;
+}
 
-  .process-section {
-    display: flex;
-    flex-direction: column;
-    margin-top: 2em;
+.filters {
+  display: flex;
+  gap: 1em;
+  .string-field {
+    flex-grow: 1;
+  }
+  .status-field {
+    width: 400px;
+  }
+}
 
-    .process-table {
-      width: 100%;
-      min-width: 80em;
-      max-width: 150em;
+.process-table {
+  width: 100%;
+  min-width: 80em;
+  max-width: 150em;
+}
 
-      .task-cell {
-        display: flex;
-        align-items: center;
-        column-gap: 1em;
+.task-cell {
+  display: flex;
+  align-items: center;
+  column-gap: 1em;
 
-        mat-icon {
-          font-weight: 600;
-        }
+  mat-icon {
+    font-weight: 600;
+  }
+}
 
-        .task-completion-time {
-          color: gray;
-        }
-      }
+.task-completion-time {
+  color: gray;
+}
 
-      .progress-cell {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        font-weight: 400;
+.progress-cell {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  font-weight: 400;
 
-        mat-spinner {
-          margin-left: 1em;
-        }
-      }
-    }
+  mat-spinner {
+    margin-left: 1em;
   }
 }

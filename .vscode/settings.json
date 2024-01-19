@@ -15,5 +15,11 @@
   },
 
   // Spell checking
-  "cSpell.words": ["Anbietung", "typst", "xdomea", "Xdomea"]
+  "cSpell.words": [
+    "Anbietung",
+    "Formatverifikation",
+    "typst",
+    "xdomea",
+    "Xdomea"
+  ]
 }
