@@ -57,6 +57,7 @@ func main() {
 	router.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
 	router.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
 	router.PATCH("api/process-record-object-appraisal-note", setProcessRecordObjectAppraisalNote)
+	router.PATCH("api/process-note/:processId", setProcessNote)
 	router.PATCH("api/finalize-message-appraisal/:id", finalizeMessageAppraisal)
 	router.PATCH("api/multi-appraisal", setAppraisalForMultipleRecordObjects)
 	router.PATCH("api/archive-0503-message/:id", archive0503Message)
@@ -266,6 +267,16 @@ func setProcessRecordObjectAppraisalNote(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, fileRecordObject)
+}
+
+func setProcessNote(context *gin.Context) {
+	processId := context.Query("processId")
+	note, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	db.SetProcessNote(processId, string(note))
 }
 
 type MultiAppraisalBody struct {

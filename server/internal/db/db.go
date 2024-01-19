@@ -573,6 +573,20 @@ func AddProcess(
 	return process, result.Error
 }
 
+func SetProcessNote(
+	xdomeaID string,
+	note string,
+) error {
+	process := Process{XdomeaID: xdomeaID}
+	result := db.Model(&Process{}).Where(&process).Limit(1).Find(&process)
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	process.Note = &note
+	result = db.Save(&process)
+	return result.Error
+}
+
 func AddProcessState() (ProcessState, error) {
 	var processState ProcessState
 	Receive0501 := ProcessStep{}

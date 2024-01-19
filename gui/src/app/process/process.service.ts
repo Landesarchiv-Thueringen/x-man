@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { ProcessingError } from '../clearing/clearing.service';
 import { Message } from '../message/message.service';
@@ -16,6 +17,7 @@ export interface Process {
   xdomeaID: string;
   receivedAt: string;
   institution: string;
+  note: string;
   message0501: Message;
   message0503: Message;
   processingErrors: ProcessingError[];
@@ -55,6 +57,10 @@ export class ProcessService {
 
   getProcessByXdomeaID(id: string): Observable<Process> {
     return this.httpClient.get<Process>(this.apiEndpoint + '/process-by-xdomea-id/' + id);
+  }
+
+  setNote(processId: string, note: string): Observable<void> {
+    return this.httpClient.patch(this.apiEndpoint + '/process-note/' + processId, note).pipe(map(() => void 0));
   }
 
   getReport(processId: string): Observable<Blob> {

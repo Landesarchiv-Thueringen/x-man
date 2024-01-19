@@ -31,6 +31,7 @@ type Process struct {
 	Agency           Agency            `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
 	StoreDir         string            `json:"-"`
 	Institution      *string           `json:"institution"`
+	Note             *string           `json:"note"`
 	Message0501ID    *uuid.UUID        `json:"-"`
 	Message0501      *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
 	Message0503ID    *uuid.UUID        `json:"-"`

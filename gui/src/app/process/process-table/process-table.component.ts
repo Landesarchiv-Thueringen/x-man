@@ -4,6 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
+import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { environment } from '../../../environments/environment';
 import { Process, ProcessService } from '../process.service';
 
@@ -16,6 +17,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   readonly dataSource: MatTableDataSource<Process> = new MatTableDataSource<Process>();
   readonly displayedColumns: string[] = [
     'institution',
+    'note',
     'message0501',
     'appraisalComplete',
     'received0502',
@@ -44,6 +46,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   constructor(
     private processService: ProcessService,
     private formBuilder: FormBuilder,
+    private notification: NotificationService,
   ) {
     this.dataSource.sortingDataAccessor = (item: Process, property: string) => {
       // TODO: fix
@@ -81,7 +84,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
           console.error(error);
         },
         next: (processes: Process[]) => {
-            this.dataSource.data = processes;
+          this.dataSource.data = processes;
         },
       });
   }
@@ -150,6 +153,15 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     return this.dataSource.data.filter((process) =>
       this.filterPredicate(process, { ...(this.dataSource.filter as ProcessTableComponent['filter']['value']), state }),
     ).length;
+  }
+
+  setProcessNote(process: Process, note: string) {
+    note = note.trim();
+    if (process.note !== note) {
+      this.processService.setNote(process.id, note).subscribe(() => {
+        this.notification.show('Notiz gespeichert');
+      });
+    }
   }
 
   downloadReport(process: Process) {

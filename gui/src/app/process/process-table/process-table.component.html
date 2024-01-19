@@ -31,6 +31,22 @@
       <td mat-cell *matCellDef="let process">{{ process.institution }}</td>
     </ng-container>
 
+    <!-- note column -->
+    <ng-container matColumnDef="note">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Notiz</th>
+        <td mat-cell *matCellDef="let process" class="note-cell">
+          <mat-form-field appearance="outline">
+            <input
+              #input
+              matInput
+              [value]="process.note"
+              (keydown.enter)="setProcessNote(process, input.value)"
+              (blur)="setProcessNote(process, input.value)"
+            />
+          </mat-form-field>
+      </td>
+    </ng-container>
+
     <!-- 0501 message column -->
     <ng-container matColumnDef="message0501">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
