@@ -203,7 +203,7 @@ type Institution struct {
 
 type FileRecordObject struct {
 	ID                   uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID             uuid.UUID             `xml:"Identifikation>ID" json:"xdomeaID"`
+	XdomeaID             uuid.UUID             `json:"xdomeaID"`
 	CreatedAt            time.Time             `json:"-"`
 	UpdatedAt            time.Time             `json:"-"`
 	DeletedAt            gorm.DeletedAt        `gorm:"index" json:"-"`
@@ -221,6 +221,7 @@ type FileRecordObject struct {
 }
 
 type FileRecordObjectVersionDifferences struct {
+	XdomeaID                   uuid.UUID             `xml:"Identifikation>ID"`
 	GeneralMetadata            *GeneralMetadata      `xml:"AllgemeineMetadaten"`
 	ArchiveMetadata            *ArchiveMetadata      `xml:"ArchivspezifischeMetadaten"`
 	Lifetime                   *Lifetime             `xml:"Laufzeit"`
@@ -237,6 +238,7 @@ func (fileRecordObject *FileRecordObject) UnmarshalXML(d *xml.Decoder, start xml
 	if err != nil {
 		return err
 	}
+	fileRecordObject.XdomeaID = temp.XdomeaID
 	fileRecordObject.GeneralMetadata = temp.GeneralMetadata
 	fileRecordObject.ArchiveMetadata = temp.ArchiveMetadata
 	fileRecordObject.Lifetime = temp.Lifetime
