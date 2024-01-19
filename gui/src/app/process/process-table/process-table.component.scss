@@ -1,20 +1,15 @@
 :host {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  box-sizing: border-box;
-  padding-top: 3em;
-  padding-bottom: 3em;
-  padding-left: 5em;
-  padding-right: 5em;
-  margin: auto;
+  padding: 3em;
+  @media (min-width: 1600px) {
+    padding-left: 5em;
+    padding-right: 5em;
+  }
 }
-
-$maxWidth: 150em;
 
 .filters {
   display: flex;
-  max-width: $maxWidth;
   gap: 1em;
   .string-field {
     flex-grow: 1;
@@ -24,26 +19,22 @@ $maxWidth: 150em;
   }
 }
 
-.process-table {
-  width: 100%;
-  max-width: $maxWidth;
-}
-
 .table-container {
   overflow-x: auto;
-  table {
-    min-width: max(100%, 100em);
-  }
 }
 
-.institution-cell {
-  max-width: 15vw;
+.mat-mdc-header-cell,
+.mat-mdc-cell {
+  min-width: 140px;
 }
 
-.note-cell {
-  padding: 0;
+.mat-mdc-cell.cdk-column-note {
   --mdc-outlined-text-field-hover-outline-color: var(--mdc-outlined-text-field-outline-color);
+  overflow: visible;
+  z-index: 1;
   mat-form-field {
+    margin: 0 -16px;
+    flex-grow: 1;
     font-size: unset;
     &:not(:focus-within):not(:hover) {
       --mdc-outlined-text-field-outline-color: transparent;
@@ -64,12 +55,18 @@ $maxWidth: 150em;
   }
 }
 
+.cdk-column-actions {
+  min-width: 8em;
+  flex-grow: 0;
+}
+
 .task-cell {
   display: flex;
   align-items: center;
   column-gap: 1em;
 
   mat-icon {
+    flex-shrink: 0;
     font-weight: 600;
   }
 }

@@ -16,10 +16,9 @@
   </mat-form-field>
 </form>
 
-<div class="process-table mat-elevation-z8">
+<div class="mat-elevation-z8">
   <div class="table-container">
-    <table
-      mat-table
+    <mat-table
       [dataSource]="dataSource"
       [trackBy]="trackProcess"
       matSort
@@ -28,14 +27,14 @@
     >
       <!-- agency column -->
       <ng-container matColumnDef="institution">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
-        <td mat-cell *matCellDef="let process" class="institution-cell">{{ process.institution }}</td>
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</mat-header-cell>
+        <mat-cell *matCellDef="let process">{{ process.institution }}</mat-cell>
       </ng-container>
 
       <!-- note column -->
       <ng-container matColumnDef="note">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Notiz</th>
-        <td mat-cell *matCellDef="let process" class="note-cell">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Notiz</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <mat-form-field appearance="outline">
             <input
               #input
@@ -45,65 +44,65 @@
               (blur)="setProcessNote(process, input.value)"
             />
           </mat-form-field>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- 0501 message column -->
       <ng-container matColumnDef="message0501">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <div *ngIf="process.processState.receive0501.complete" class="task-cell">
             <mat-icon>check</mat-icon>
             <span class="task-completion-time">
               {{ process.processState.receive0501.completionTime | date: "short" }}
             </span>
           </div>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- appraisal complete column -->
       <ng-container matColumnDef="appraisalComplete">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <div *ngIf="process.processState.appraisal.complete" class="task-cell">
             <mat-icon>check</mat-icon>
             <span class="task-completion-time">
               {{ process.processState.appraisal.completionTime | date: "short" }}
             </span>
           </div>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- dms received 0502 column -->
       <ng-container matColumnDef="received0502">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <div *ngIf="process.processState.receive0505.complete" class="task-cell">
             <mat-icon>check</mat-icon>
             <span class="task-completion-time">
               {{ process.processState.receive0505.completionTime | date: "short" }}
             </span>
           </div>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- 0503 message column -->
       <ng-container matColumnDef="message0503">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe erhalten</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe erhalten</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <div *ngIf="process.processState.receive0503.complete" class="task-cell">
             <mat-icon>check</mat-icon>
             <span class="task-completion-time">
               {{ process.processState.receive0503.completionTime | date: "short" }}
             </span>
           </div>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- format verification column -->
       <ng-container matColumnDef="formatVerification">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <div *ngIf="process.processState.formatVerification.complete" class="task-cell">
             <mat-icon>check</mat-icon>
             <span class="task-completion-time">
@@ -119,13 +118,13 @@
             }}
             <mat-spinner diameter="25"></mat-spinner>
           </div>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- archiving complete column -->
       <ng-container matColumnDef="archivingComplete">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</mat-header-cell>
+        <mat-cell *matCellDef="let process">
           <div *ngIf="process.processState.archiving.complete" class="task-cell">
             <mat-icon>check</mat-icon>
             <span class="task-completion-time">
@@ -139,13 +138,13 @@
             Archivierung läuft
             <mat-spinner diameter="25"></mat-spinner>
           </div>
-        </td>
+        </mat-cell>
       </ng-container>
 
       <!-- actions column -->
       <ng-container matColumnDef="actions" stickyEnd>
-        <th mat-header-cell *matHeaderCellDef>Aktionen</th>
-        <td mat-cell *matCellDef="let process">
+        <mat-header-cell *matHeaderCellDef class="actions-cell">Aktionen</mat-header-cell>
+        <mat-cell *matCellDef="let process" class="actions-cell">
           <button
             mat-icon-button
             [matMenuTriggerFor]="menu"
@@ -192,12 +191,12 @@
               </button>
             </ng-container>
           </mat-menu>
-        </td>
+        </mat-cell>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
   </div>
 
   <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Anbietung auswählen"></mat-paginator>
