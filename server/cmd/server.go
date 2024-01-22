@@ -46,7 +46,7 @@ func main() {
 	router.GET("api/process-record-object/:id", getProcessRecordObjectByID)
 	router.GET("api/document-record-object/:id", getDocumentRecordObjectByID)
 	router.GET("api/record-object-appraisals", getRecordObjectAppraisals)
-	router.GET("api/record-object-confidentialities", getRecordObjectConfidentialities)
+	router.GET("api/confidentiality-level-codelist", getConfidentialityLevelCodelist)
 	router.GET("api/message-appraisal-complete/:id", isMessageAppraisalComplete)
 	router.GET("api/all-record-objects-appraised/:id", AreAllRecordObjectsAppraised)
 	router.GET("api/message-type-code/:id", getMessageTypeCode)
@@ -74,7 +74,8 @@ func initServer() {
 		xdomea.InitMessageTypes()
 		xdomea.InitXdomeaVersions()
 		xdomea.InitRecordObjectAppraisals()
-		xdomea.InitRecordObjectConfidentialities()
+		xdomea.InitConfidentialityLevelCodelist()
+		xdomea.InitMediumCodelist()
 		agency.InitAgencies()
 		db.SetMigrationCompleted()
 	}
@@ -196,13 +197,13 @@ func getRecordObjectAppraisals(context *gin.Context) {
 	context.JSON(http.StatusOK, appraisals)
 }
 
-func getRecordObjectConfidentialities(context *gin.Context) {
-	appraisals, err := db.GetRecordObjectConfidentialities()
+func getConfidentialityLevelCodelist(context *gin.Context) {
+	codelist, err := db.GetConfidentialityLevelCodelist()
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	context.JSON(http.StatusOK, appraisals)
+	context.JSON(http.StatusOK, codelist)
 }
 
 func setFileRecordObjectAppraisal(context *gin.Context) {

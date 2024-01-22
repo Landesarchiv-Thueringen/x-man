@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
-import { DocumentRecordObject, MessageService, RecordObjectConfidentiality } from '../../message/message.service';
+import { DocumentRecordObject, MessageService } from '../../message/message.service';
 
 @Component({
   selector: 'app-document-metadata',
@@ -12,7 +12,6 @@ import { DocumentRecordObject, MessageService, RecordObjectConfidentiality } fro
 export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
   documentRecordObject?: DocumentRecordObject;
-  recordObjectConfidentialities?: RecordObjectConfidentiality[];
   messageTypeCode?: string;
   form: FormGroup;
 
@@ -31,6 +30,7 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
       documentDate: new FormControl<string | null>(null),
       appraisal: new FormControl<number | null>(null),
       confidentiality: new FormControl<string | null>(null),
+      medium: new FormControl<string | null>(null),
     });
   }
 
@@ -45,13 +45,9 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
           this.documentRecordObject = document;
           return this.messageService.getMessageTypeCode(document.messageID);
         }),
-        switchMap((messageTypeCode: string) => {
-          this.messageTypeCode = messageTypeCode;
-          return this.messageService.getRecordObjectConfidentialities();
-        }),
       )
-      .subscribe((confidentialities: RecordObjectConfidentiality[]) => {
-        this.recordObjectConfidentialities = confidentialities;
+      .subscribe((messageTypeCode: string) => {
+        this.messageTypeCode = messageTypeCode;
         this.form.patchValue({
           recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.xdomeaID,
           fileId: this.documentRecordObject!.generalMetadata?.xdomeaID,
@@ -60,10 +56,8 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
           incomingDate: this.messageService.getDateText(this.documentRecordObject!.incomingDate),
           outgoingDate: this.messageService.getDateText(this.documentRecordObject!.outgoingDate),
           documentDate: this.messageService.getDateText(this.documentRecordObject!.documentDate),
-          confidentiality: this.recordObjectConfidentialities.find(
-            (c: RecordObjectConfidentiality) =>
-              c.code === this.documentRecordObject?.generalMetadata?.confidentialityCode,
-          )?.desc,
+          confidentiality: this.documentRecordObject?.generalMetadata?.confidentialityLevel?.shortDesc,
+          medium: this.documentRecordObject?.generalMetadata?.medium?.shortDesc,
         });
       });
   }

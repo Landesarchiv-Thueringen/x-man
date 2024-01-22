@@ -1,7 +1,5 @@
 <div class="metadata-section">
   <form *ngIf="processRecordObject" [formGroup]="form">
-    <!--<h2>{{structureNode.displayText.title}} - {{structureNode.displayText.subtitle}}</h2> -->
-
     <mat-accordion multi>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -30,6 +28,10 @@
             <mat-form-field class="process-type-input" appearance="outline" floatLabel="always">
               <mat-label>Vorgangstyp</mat-label>
               <input matInput formControlName="processType" readonly />
+            </mat-form-field>
+            <mat-form-field class="medium-input" appearance="outline" floatLabel="always">
+              <mat-label>Medium</mat-label>
+              <input matInput formControlName="medium" readonly />
             </mat-form-field>
             <mat-form-field class="confidentiality-input" appearance="outline" floatLabel="always">
               <mat-label>Vertraulichkeitsstufe</mat-label>

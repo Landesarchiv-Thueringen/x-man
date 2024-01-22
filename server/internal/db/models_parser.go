@@ -325,16 +325,19 @@ type PrimaryDocument struct {
 }
 
 type GeneralMetadata struct {
-	XMLName             xml.Name       `gorm:"-" xml:"AllgemeineMetadaten" json:"-"`
-	ID                  uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt           time.Time      `json:"-"`
-	UpdatedAt           time.Time      `json:"-"`
-	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
-	Subject             *string        `xml:"Betreff" json:"subject"`
-	XdomeaID            *string        `xml:"Kennzeichen" json:"xdomeaID"`
-	FilePlanID          *uint          `json:"-"`
-	FilePlan            FilePlan       `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
-	ConfidentialityCode *string        `xml:"Vertraulichkeitsstufe>code" json:"confidentialityCode"`
+	XMLName              xml.Name              `gorm:"-" xml:"AllgemeineMetadaten" json:"-"`
+	ID                   uint                  `gorm:"primaryKey" json:"id"`
+	CreatedAt            time.Time             `json:"-"`
+	UpdatedAt            time.Time             `json:"-"`
+	DeletedAt            gorm.DeletedAt        `gorm:"index" json:"-"`
+	Subject              *string               `xml:"Betreff" json:"subject"`
+	XdomeaID             *string               `xml:"Kennzeichen" json:"xdomeaID"`
+	FilePlanID           *uint                 `json:"-"`
+	FilePlan             *FilePlan             `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
+	ConfidentialityID    *string               `xml:"Vertraulichkeitsstufe>code" json:"-"`
+	ConfidentialityLevel *ConfidentialityLevel `gorm:"foreignKey:ConfidentialityID;references:ID" xml:"-" json:"confidentialityLevel"`
+	MediumID             *string               `xml:"Medium>code" json:"-"`
+	Medium               *Medium               `gorm:"foreignKey:MediumID;references:ID" xml:"-" json:"medium"`
 }
 
 type FilePlan struct {
@@ -387,25 +390,4 @@ func (archiveMetadata *ArchiveMetadata) UnmarshalXML(d *xml.Decoder, start xml.S
 		archiveMetadata.AppraisalCode = temp.AppraisalCodePre300
 	}
 	return nil
-}
-
-// code list entries
-
-type RecordObjectAppraisal struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      string         `gorm:"unique" xml:"code" json:"code"`
-	ShortDesc string         `json:"shortDesc"`
-	Desc      string         `json:"desc"`
-}
-
-type RecordObjectConfidentiality struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      string         `gorm:"unique" xml:"code" json:"code"`
-	Desc      string         `json:"desc"`
 }

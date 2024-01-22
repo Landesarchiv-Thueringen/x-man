@@ -80,15 +80,24 @@ func InitRecordObjectAppraisals() {
 	db.InitRecordObjectAppraisals(appraisals)
 }
 
-func InitRecordObjectConfidentialities() {
-	confidentialities := []*db.RecordObjectConfidentiality{
-		{Code: "001", Desc: "Geheim: Das Schriftgutobjekt ist als geheim eingestuft."},
-		{Code: "002", Desc: "NfD: Das Schriftgutobjekt ist als \"nur für den Dienstgebrauch (nfD)\" eingestuft."},
-		{Code: "003", Desc: "Offen: Das Schriftgutobjekt ist nicht eingestuft."},
-		{Code: "004", Desc: "Streng geheim: Das Schriftgutobjekt ist als streng geheim eingestuft."},
-		{Code: "005", Desc: "Vertraulich: Das Schriftgutobjekt ist als vertraulich eingestuft."},
+func InitConfidentialityLevelCodelist() {
+	confidentialityLevelCodelist := []*db.ConfidentialityLevel{
+		{ID: "001", ShortDesc: "Geheim", Desc: "Geheim: Das Schriftgutobjekt ist als geheim eingestuft."},
+		{ID: "002", ShortDesc: "NfD", Desc: "NfD: Das Schriftgutobjekt ist als \"nur für den Dienstgebrauch (nfD)\" eingestuft."},
+		{ID: "003", ShortDesc: "Offen", Desc: "Offen: Das Schriftgutobjekt ist nicht eingestuft."},
+		{ID: "004", ShortDesc: "Streng geheim", Desc: "Streng geheim: Das Schriftgutobjekt ist als streng geheim eingestuft."},
+		{ID: "005", ShortDesc: "Vertraulich", Desc: "Vertraulich: Das Schriftgutobjekt ist als vertraulich eingestuft."},
 	}
-	db.InitRecordObjectConfidentialities(confidentialities)
+	db.InitConfidentialityLevelCodelist(confidentialityLevelCodelist)
+}
+
+func InitMediumCodelist() {
+	mediumCodelist := []*db.Medium{
+		{ID: "001", ShortDesc: "Elektronisch", Desc: "Elektronisch: Das Schriftgutobjekt liegt ausschließlich in elektronischer Form vor."},
+		{ID: "002", ShortDesc: "Hybrid", Desc: "Hybrid: Das Schriftgutobjekt liegt teilweise in	elektronischer Form und teilweise als Papier vor."},
+		{ID: "003", ShortDesc: "Papier", Desc: "Papier: Das Schriftgutobjekt liegt ausschließlich als Papier vor."},
+	}
+	db.InitMediumCodelist(mediumCodelist)
 }
 
 func IsMessage(path string) bool {
@@ -184,7 +193,7 @@ func AddMessage(
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
 			// if 0501 message exists, transfer the internal appraisal note from 0501 to 0503 message
-			if (process.Message0501 != nil) {
+			if process.Message0501 != nil {
 				err = TransferAppraisalNoteFrom0501To0503(process)
 				if err != nil {
 					log.Println(err)

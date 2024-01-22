@@ -75,7 +75,7 @@ func Migrate() {
 		&Lifetime{},
 		&ArchiveMetadata{},
 		&RecordObjectAppraisal{},
-		&RecordObjectConfidentiality{},
+		&ConfidentialityLevel{},
 		&Version{},
 		&Format{},
 		&PrimaryDocument{},
@@ -110,10 +110,17 @@ func InitRecordObjectAppraisals(appraisals []*RecordObjectAppraisal) {
 	}
 }
 
-func InitRecordObjectConfidentialities(confidentialities []*RecordObjectConfidentiality) {
-	result := db.Create(confidentialities)
+func InitConfidentialityLevelCodelist(codelist []*ConfidentialityLevel) {
+	result := db.Create(codelist)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize record object confidentialitiy values!")
+		log.Fatal("Failed to initialize confidentiality level codelist!")
+	}
+}
+
+func InitMediumCodelist(mediumCodelist []*Medium) {
+	result := db.Create(mediumCodelist)
+	if result.Error != nil {
+		log.Fatal("Failed to initialize medium code list")
 	}
 }
 
@@ -268,9 +275,12 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 	var file FileRecordObject
 	result := db.
 		Preload("GeneralMetadata.FilePlan").
+		Preload("GeneralMetadata.Medium").
+		Preload("GeneralMetadata.ConfidentialityLevel").
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
 		Preload("Processes.GeneralMetadata.FilePlan").
+		Preload("Processes.GeneralMetadata.Medium").
 		Preload("Processes.ArchiveMetadata").
 		Preload("Processes.Lifetime").
 		Preload("Processes.Documents.GeneralMetadata.FilePlan").
@@ -285,6 +295,8 @@ func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
 	var process ProcessRecordObject
 	result := db.
 		Preload("GeneralMetadata.FilePlan").
+		Preload("GeneralMetadata.Medium").
+		Preload("GeneralMetadata.ConfidentialityLevel").
 		Preload("ArchiveMetadata").
 		Preload("Lifetime").
 		Preload("Documents.GeneralMetadata.FilePlan").
@@ -300,6 +312,8 @@ func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
 	var document DocumentRecordObject
 	result := db.
 		Preload("GeneralMetadata.FilePlan").
+		Preload("GeneralMetadata.Medium").
+		Preload("GeneralMetadata.ConfidentialityLevel").
 		Preload("Versions.Formats.PrimaryDocument").
 		First(&document, id)
 	return document, result.Error
@@ -449,10 +463,10 @@ func GetRecordObjectAppraisals() ([]RecordObjectAppraisal, error) {
 	return appraisals, result.Error
 }
 
-func GetRecordObjectConfidentialities() ([]RecordObjectConfidentiality, error) {
-	var confidentialities []RecordObjectConfidentiality
-	result := db.Find(&confidentialities)
-	return confidentialities, result.Error
+func GetConfidentialityLevelCodelist() ([]ConfidentialityLevel, error) {
+	var codelist []ConfidentialityLevel
+	result := db.Find(&codelist)
+	return codelist, result.Error
 }
 
 func GetMessageOfProcessByCode(process Process, code string) (Message, error) {

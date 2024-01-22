@@ -46,8 +46,8 @@ export interface Contact {
 
 export interface AgencyIdentification {
   id: number;
-  code?: Code;
-  prefix?: Code;
+  code?: string;
+  prefix?: string;
 }
 
 export interface Institution {
@@ -152,14 +152,14 @@ export interface GeneralMetadata {
   subject?: string;
   xdomeaID?: string;
   filePlan?: FilePlan;
-  confidentialityCode?: string;
+  confidentialityLevel?: ConfidentialityLevel;
+  medium?: Medium;
 }
 
-export interface RecordObjectConfidentiality {
-  id: number;
+export interface ConfidentialityLevel {
   code: string;
-  desc: string;
   shortDesc: string;
+  desc: string;
 }
 
 export interface ArchiveMetadata {
@@ -176,6 +176,12 @@ export interface RecordObjectAppraisal {
   desc: string;
 }
 
+export interface Medium {
+  code: string;
+  desc: string;
+  shortDesc: string;
+}
+
 export interface FilePlan {
   id: number;
   xdomeaID?: number;
@@ -185,12 +191,6 @@ export interface Lifetime {
   id: number;
   start?: string;
   end?: string;
-}
-
-export interface Code {
-  id: number;
-  code?: string;
-  name?: string;
 }
 
 export type StructureNodeType =
@@ -230,7 +230,7 @@ export interface MultiAppraisalResponse {
 export class MessageService {
   apiEndpoint: string;
   appraisals?: RecordObjectAppraisal[];
-  confidentialities?: RecordObjectConfidentiality[];
+  confidentialityLevelCodelist?: ConfidentialityLevel[];
 
   structureNodes: Map<string, StructureNode>;
   nodesSubject: BehaviorSubject<StructureNode[]>;
@@ -250,8 +250,8 @@ export class MessageService {
     this.getRecordObjectAppraisals().subscribe((appraisals: RecordObjectAppraisal[]) => {
       this.appraisals = appraisals;
     });
-    this.getRecordObjectConfidentialities().subscribe((confidentialities: RecordObjectConfidentiality[]) => {
-      this.confidentialities = confidentialities;
+    this.getConfidentialityLevelCodelist().subscribe((confidentialityLevelCodelist: ConfidentialityLevel[]) => {
+      this.confidentialityLevelCodelist = confidentialityLevelCodelist;
     });
     this.overviewFeatures = ['relativePath', 'fileName', 'fileSize', 'puid', 'mimeType', 'formatVersion', 'valid'];
     this.featureOrder = new Map<string, number>([
@@ -514,14 +514,14 @@ export class MessageService {
     }
   }
 
-  getRecordObjectConfidentialities(): Observable<RecordObjectConfidentiality[]> {
-    if (this.confidentialities) {
-      return new Observable((subscriber: Subscriber<RecordObjectConfidentiality[]>) => {
-        subscriber.next(this.confidentialities);
+  getConfidentialityLevelCodelist(): Observable<ConfidentialityLevel[]> {
+    if (this.confidentialityLevelCodelist) {
+      return new Observable((subscriber: Subscriber<ConfidentialityLevel[]>) => {
+        subscriber.next(this.confidentialityLevelCodelist);
         subscriber.complete();
       });
     } else {
-      return this.httpClient.get<RecordObjectConfidentiality[]>(this.apiEndpoint + '/record-object-confidentialities');
+      return this.httpClient.get<ConfidentialityLevel[]>(this.apiEndpoint + '/confidentiality-level-codelist');
     }
   }
 
@@ -561,7 +561,7 @@ export class MessageService {
     return this.httpClient.patch<ProcessRecordObject>(url, body, options);
   }
 
-  setAppraisalForMultipleRecorcObjects(
+  setAppraisalForMultipleRecordObjects(
     recordObjectIDs: string[],
     appraisalCode: string,
     appraisalNote: string | null,

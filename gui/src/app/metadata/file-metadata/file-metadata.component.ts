@@ -4,13 +4,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
 import { debounceTime, filter, skip } from 'rxjs/operators';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
-import {
-  FileRecordObject,
-  MessageService,
-  RecordObjectAppraisal,
-  RecordObjectConfidentiality,
-  StructureNode,
-} from '../../message/message.service';
+import { FileRecordObject, MessageService, RecordObjectAppraisal, StructureNode } from '../../message/message.service';
 
 @Component({
   selector: 'app-file-metadata',
@@ -23,7 +17,6 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   messageAppraisalComplete?: boolean;
   fileRecordObject?: FileRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
-  recordObjectConfidentialities?: RecordObjectConfidentiality[];
   form: FormGroup;
 
   constructor(
@@ -43,6 +36,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
       appraisalRecomm: new FormControl<string | null>(null),
       appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
+      medium: new FormControl<string | null>(null),
     });
   }
 
@@ -62,17 +56,13 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
           this.saveAppraisalNoteChanges();
           return this.messageService.getRecordObjectAppraisals();
         }),
-        switchMap((appraisals: RecordObjectAppraisal[]) => {
-          this.recordObjectAppraisals = appraisals;
-          return this.messageService.getRecordObjectConfidentialities();
-        }),
       )
       .subscribe({
         error: (error: any) => {
           console.error(error);
         },
-        next: (confidentialities: RecordObjectConfidentiality[]) => {
-          this.recordObjectConfidentialities = confidentialities;
+        next: (appraisals: RecordObjectAppraisal[]) => {
+          this.recordObjectAppraisals = appraisals;
           this.setMetadata();
         },
       });
@@ -108,7 +98,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   setMetadata(): void {
-    if (this.fileRecordObject && this.recordObjectAppraisals && this.recordObjectConfidentialities) {
+    if (this.fileRecordObject && this.recordObjectAppraisals) {
       let appraisal: string | undefined;
       const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
         this.fileRecordObject.archiveMetadata?.appraisalRecommCode,
@@ -132,9 +122,8 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         appraisal: appraisal,
         appraisalRecomm: appraisalRecomm,
         appraisalNote: this.fileRecordObject.archiveMetadata?.internalAppraisalNote,
-        confidentiality: this.recordObjectConfidentialities.find(
-          (c: RecordObjectConfidentiality) => c.code === this.fileRecordObject?.generalMetadata?.confidentialityCode,
-        )?.shortDesc,
+        confidentiality: this.fileRecordObject.generalMetadata?.confidentialityLevel?.shortDesc,
+        medium: this.fileRecordObject.generalMetadata?.medium?.shortDesc,
       });
     }
   }

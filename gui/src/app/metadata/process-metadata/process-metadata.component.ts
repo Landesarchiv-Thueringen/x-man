@@ -8,7 +8,6 @@ import {
   MessageService,
   ProcessRecordObject,
   RecordObjectAppraisal,
-  RecordObjectConfidentiality,
   StructureNode,
 } from '../../message/message.service';
 
@@ -22,7 +21,6 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
   messageAppraisalComplete?: boolean;
   processRecordObject?: ProcessRecordObject;
   recordObjectAppraisals?: RecordObjectAppraisal[];
-  recordObjectConfidentialities?: RecordObjectConfidentiality[];
   form: FormGroup;
 
   constructor(
@@ -42,6 +40,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
       appraisalRecomm: new FormControl<string | null>(null),
       appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
+      medium: new FormControl<string | null>(null),
     });
   }
 
@@ -61,17 +60,13 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
           this.saveAppraisalNoteChanges();
           return this.messageService.getRecordObjectAppraisals();
         }),
-        switchMap((appraisals: RecordObjectAppraisal[]) => {
-          this.recordObjectAppraisals = appraisals;
-          return this.messageService.getRecordObjectConfidentialities();
-        }),
       )
       .subscribe({
         error: (error: any) => {
           console.error(error);
         },
-        next: (confidentialities: RecordObjectConfidentiality[]) => {
-          this.recordObjectConfidentialities = confidentialities;
+        next: (appraisals: RecordObjectAppraisal[]) => {
+          this.recordObjectAppraisals = appraisals;
           this.setMetadata();
         },
       });
@@ -107,7 +102,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
   }
 
   setMetadata(): void {
-    if (this.processRecordObject && this.recordObjectAppraisals && this.recordObjectConfidentialities) {
+    if (this.processRecordObject && this.recordObjectAppraisals) {
       let appraisal: string | undefined;
       const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
         this.processRecordObject.archiveMetadata?.appraisalRecommCode,
@@ -131,9 +126,8 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
         appraisal: appraisal,
         appraisalRecomm: appraisalRecomm,
         appraisalNote: this.processRecordObject.archiveMetadata?.internalAppraisalNote,
-        confidentiality: this.recordObjectConfidentialities.find(
-          (c: RecordObjectConfidentiality) => c.code === this.processRecordObject?.generalMetadata?.confidentialityCode,
-        )?.desc,
+        confidentiality: this.processRecordObject.generalMetadata?.confidentialityLevel?.shortDesc,
+        medium: this.processRecordObject.generalMetadata?.medium?.shortDesc,
       });
     }
   }
