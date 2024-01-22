@@ -32,16 +32,16 @@ func (f *FileRecordObject) GetChildren() []RecordObject {
 		recordObjects = append(recordObjects, &f.SubFileRecordObjects[subfileIndex])
 		recordObjects = append(recordObjects, f.SubFileRecordObjects[subfileIndex].GetChildren()...)
 	}
-	for processIndex := range f.Processes {
-		recordObjects = append(recordObjects, &f.Processes[processIndex])
-		recordObjects = append(recordObjects, f.Processes[processIndex].GetChildren()...)
+	for processIndex := range f.ProcessRecordObjects {
+		recordObjects = append(recordObjects, &f.ProcessRecordObjects[processIndex])
+		recordObjects = append(recordObjects, f.ProcessRecordObjects[processIndex].GetChildren()...)
 	}
 	return recordObjects
 }
 
 func (f *FileRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 	primaryDocuments := []PrimaryDocument{}
-	for _, process := range f.Processes {
+	for _, process := range f.ProcessRecordObjects {
 		primaryDocuments = append(primaryDocuments, process.GetPrimaryDocuments()...)
 	}
 	return primaryDocuments
@@ -61,16 +61,16 @@ func (p *ProcessRecordObject) GetChildren() []RecordObject {
 		recordObjects = append(recordObjects, p.SubProcessRecordObjects[subprocessIndex].GetChildren()...)
 	}
 	// de: Dokumente
-	for documentIndex := range p.Documents {
-		recordObjects = append(recordObjects, &p.Documents[documentIndex])
-		recordObjects = append(recordObjects, p.Documents[documentIndex].GetChildren()...)
+	for documentIndex := range p.DocumentRecordObjects {
+		recordObjects = append(recordObjects, &p.DocumentRecordObjects[documentIndex])
+		recordObjects = append(recordObjects, p.DocumentRecordObjects[documentIndex].GetChildren()...)
 	}
 	return recordObjects
 }
 
 func (p *ProcessRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 	primaryDocuments := []PrimaryDocument{}
-	for _, document := range p.Documents {
+	for _, document := range p.DocumentRecordObjects {
 		primaryDocuments = append(primaryDocuments, document.GetPrimaryDocuments()...)
 	}
 	return primaryDocuments
@@ -184,8 +184,8 @@ func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
 		appraisableObjects = append(appraisableObjects, &f.SubFileRecordObjects[subfileIndex])
 	}
 	// add all processes (de: Vorgänge)
-	for processIndex := range f.Processes {
-		appraisableObjects = append(appraisableObjects, &f.Processes[processIndex])
+	for processIndex := range f.ProcessRecordObjects {
+		appraisableObjects = append(appraisableObjects, &f.ProcessRecordObjects[processIndex])
 	}
 	return appraisableObjects
 }

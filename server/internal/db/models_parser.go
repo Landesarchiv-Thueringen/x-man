@@ -203,33 +203,35 @@ type Institution struct {
 }
 
 type FileRecordObject struct {
-	ID                   uuid.UUID             `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID             uuid.UUID             `json:"xdomeaID"`
-	CreatedAt            time.Time             `json:"-"`
-	UpdatedAt            time.Time             `json:"-"`
-	DeletedAt            gorm.DeletedAt        `gorm:"index" json:"-"`
-	MessageID            uuid.UUID             `json:"messageID"`
-	RecordObjectType     string                `gorm:"default:file" json:"recordObjectType"`
-	GeneralMetadataID    *uint                 `json:"-"`
-	GeneralMetadata      *GeneralMetadata      `gorm:"foreignKey:GeneralMetadataID;references:ID" json:"generalMetadata"`
-	ArchiveMetadataID    *uint                 `json:"-"`
-	ArchiveMetadata      *ArchiveMetadata      `gorm:"foreignKey:ArchiveMetadataID;references:ID" json:"archiveMetadata"`
-	LifetimeID           *uint                 `json:"-"`
-	Lifetime             *Lifetime             `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
-	Type                 *string               `json:"type"`
-	Processes            []ProcessRecordObject `gorm:"many2many:file_processes;" json:"processes"`
-	SubFileRecordObjects []FileRecordObject    `gorm:"many2many:file_subfiles;" json:"subfiles"`
+	ID                    uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID              uuid.UUID              `json:"xdomeaID"`
+	CreatedAt             time.Time              `json:"-"`
+	UpdatedAt             time.Time              `json:"-"`
+	DeletedAt             gorm.DeletedAt         `gorm:"index" json:"-"`
+	MessageID             uuid.UUID              `json:"messageID"`
+	RecordObjectType      string                 `gorm:"default:file" json:"recordObjectType"`
+	GeneralMetadataID     *uint                  `json:"-"`
+	GeneralMetadata       *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" json:"generalMetadata"`
+	ArchiveMetadataID     *uint                  `json:"-"`
+	ArchiveMetadata       *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID" json:"archiveMetadata"`
+	LifetimeID            *uint                  `json:"-"`
+	Lifetime              *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Type                  *string                `json:"type"`
+	ProcessRecordObjects  []ProcessRecordObject  `gorm:"many2many:file_processes;" json:"processes"`
+	SubFileRecordObjects  []FileRecordObject     `gorm:"many2many:file_subfiles;" json:"subfiles"`
+	DocumentRecordObjects []DocumentRecordObject `gorm:"many2many:file_documents;" json:"documents"`
 }
 
 type FileRecordObjectVersionDifferences struct {
-	XdomeaID                   uuid.UUID             `xml:"Identifikation>ID"`
-	GeneralMetadata            *GeneralMetadata      `xml:"AllgemeineMetadaten"`
-	ArchiveMetadata            *ArchiveMetadata      `xml:"ArchivspezifischeMetadaten"`
-	Lifetime                   *Lifetime             `xml:"Laufzeit"`
-	Type                       *string               `xml:"Typ" json:"type"`
-	Processes                  []ProcessRecordObject `xml:"Akteninhalt>Vorgang"`
-	SubFileRecordObjects       []FileRecordObject    `xml:"Akteninhalt>Teilakte"`
-	SubFileRecordObjectsPre300 []FileRecordObject    `xml:"Teilakte" json:"-"`
+	XdomeaID                   uuid.UUID              `xml:"Identifikation>ID"`
+	GeneralMetadata            *GeneralMetadata       `xml:"AllgemeineMetadaten"`
+	ArchiveMetadata            *ArchiveMetadata       `xml:"ArchivspezifischeMetadaten"`
+	Lifetime                   *Lifetime              `xml:"Laufzeit"`
+	Type                       *string                `xml:"Typ" json:"type"`
+	Processes                  []ProcessRecordObject  `xml:"Akteninhalt>Vorgang"`
+	DocumentRecordObjects      []DocumentRecordObject `xml:"Akteninhalt>Dokument"`
+	SubFileRecordObjects       []FileRecordObject     `xml:"Akteninhalt>Teilakte"`
+	SubFileRecordObjectsPre300 []FileRecordObject     `xml:"Teilakte" json:"-"`
 }
 
 // UnmarshalXML corrects version specific differences of file record objects.
@@ -244,7 +246,8 @@ func (fileRecordObject *FileRecordObject) UnmarshalXML(d *xml.Decoder, start xml
 	fileRecordObject.ArchiveMetadata = temp.ArchiveMetadata
 	fileRecordObject.Lifetime = temp.Lifetime
 	fileRecordObject.Type = temp.Type
-	fileRecordObject.Processes = temp.Processes
+	fileRecordObject.ProcessRecordObjects = temp.Processes
+	fileRecordObject.DocumentRecordObjects = temp.DocumentRecordObjects
 	if temp.SubFileRecordObjects != nil {
 		fileRecordObject.SubFileRecordObjects = temp.SubFileRecordObjects
 	} else if temp.SubFileRecordObjectsPre300 != nil {
@@ -268,8 +271,8 @@ type ProcessRecordObject struct {
 	LifetimeID              *uint                  `json:"-"`
 	Lifetime                *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
 	Type                    *string                `json:"type" xml:"Typ"`
-	Documents               []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
 	SubProcessRecordObjects []ProcessRecordObject  `gorm:"many2many:process_subprocesses;" xml:"Teilvorgang" json:"subprocesses"`
+	DocumentRecordObjects   []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
 }
 
 type DocumentRecordObject struct {
