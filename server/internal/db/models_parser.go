@@ -276,21 +276,22 @@ type ProcessRecordObject struct {
 }
 
 type DocumentRecordObject struct {
-	XMLName           xml.Name         `gorm:"-" xml:"Dokument" json:"-"`
-	ID                uuid.UUID        `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID          uuid.UUID        `xml:"Identifikation>ID" json:"xdomeaID"`
-	CreatedAt         time.Time        `json:"-"`
-	UpdatedAt         time.Time        `json:"-"`
-	DeletedAt         gorm.DeletedAt   `gorm:"index" json:"-"`
-	MessageID         uuid.UUID        `json:"messageID"`
-	RecordObjectType  string           `gorm:"default:document" json:"recordObjectType"`
-	GeneralMetadataID *uint            `json:"-"`
-	GeneralMetadata   *GeneralMetadata `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	Type              *string          `json:"type" xml:"Typ"`
-	IncomingDate      *string          `xml:"Posteingangsdatum" json:"incomingDate"`
-	OutgoingDate      *string          `xml:"Postausgangsdatum" json:"outgoingDate"`
-	DocumentDate      *string          `xml:"DatumDesSchreibens" json:"documentDate"`
-	Versions          []Version        `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
+	XMLName           xml.Name               `gorm:"-" json:"-"`
+	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID          uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
+	CreatedAt         time.Time              `json:"-"`
+	UpdatedAt         time.Time              `json:"-"`
+	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
+	MessageID         uuid.UUID              `json:"messageID"`
+	RecordObjectType  string                 `gorm:"default:document" json:"recordObjectType"`
+	GeneralMetadataID *uint                  `json:"-"`
+	GeneralMetadata   *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	Type              *string                `json:"type" xml:"Typ"`
+	IncomingDate      *string                `xml:"Posteingangsdatum" json:"incomingDate"`
+	OutgoingDate      *string                `xml:"Postausgangsdatum" json:"outgoingDate"`
+	DocumentDate      *string                `xml:"DatumDesSchreibens" json:"documentDate"`
+	Versions          []Version              `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
+	Attachments       []DocumentRecordObject `gorm:"many2many:document_attachments;" xml:"Anlage" json:"attachments"`
 }
 
 type Version struct {

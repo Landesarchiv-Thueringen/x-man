@@ -85,6 +85,10 @@ func (p *ProcessRecordObject) SetMessageID(messageID uuid.UUID) {
 // This might change in future xdomea versions.
 func (d *DocumentRecordObject) GetChildren() []RecordObject {
 	recordObjects := []RecordObject{}
+	for index := range d.Attachments {
+		recordObjects = append(recordObjects, &d.Attachments[index])
+		//recordObjects = append(recordObjects, d.Attachments[index].GetChildren()...)
+	}
 	return recordObjects
 }
 

@@ -40,14 +40,9 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
         switchMap((params: Params) => {
           return this.messageService.getDocumentRecordObject(params['id']);
         }),
-        switchMap((document: DocumentRecordObject) => {
-          console.log(document);
-          this.documentRecordObject = document;
-          return this.messageService.getMessageTypeCode(document.messageID);
-        }),
       )
-      .subscribe((messageTypeCode: string) => {
-        this.messageTypeCode = messageTypeCode;
+      .subscribe((document: DocumentRecordObject) => {
+        this.documentRecordObject = document;
         this.form.patchValue({
           recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.xdomeaID,
           fileId: this.documentRecordObject!.generalMetadata?.xdomeaID,

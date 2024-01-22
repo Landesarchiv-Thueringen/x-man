@@ -389,7 +389,7 @@ func PreloadRecordObjects(db *gorm.DB) *gorm.DB {
 // Record object children (de: Teilakten, Vorgänge, Dokumente) will be populated as well.
 // The prefix is used to populate nested children. The Prefix should be empty if the file record object is the root element.
 // Current depth should be initially 0.
-// With max depth can the depth of child nesting be configured. A good value is 3 because this complies with xdomea.
+// With max depth can the depth of child nesting be configured. A good value is 4 because this complies with xdomea.
 func PreloadFileRecordObject(prefix string, currentDepth uint, maxDepth uint) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		preloadedDB := db.
@@ -407,10 +407,10 @@ func PreloadFileRecordObject(prefix string, currentDepth uint, maxDepth uint) fu
 }
 
 // PreloadProcessRecordObject populates all related data of the process record object.
-// Record object children (de: Teilakten, Vorgänge, Dokumente) will be populated as well.
+// Record object children (de: Vorgänge, Teilvorgänge, Dokumente) will be populated as well.
 // The prefix is used to populate nested children. The Prefix should be empty if the file record object is the root element.
 // Current depth should be initially 0.
-// With max depth can the depth of child nesting be configured. A good value is 3 because this complies with xdomea.
+// With max depth can the depth of child nesting be configured. A good value is 4 because this complies with xdomea.
 func PreloadProcessRecordObject(prefix string, currentDepth uint, maxDepth uint) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		preloadedDB := db.
@@ -430,7 +430,9 @@ func PreloadDocumentRecordObject(prefix string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.
 			Scopes(PreloadGeneralMetadata(prefix)).
-			Preload(prefix + "Versions.Formats.PrimaryDocument")
+			Preload(prefix + "Versions.Formats.PrimaryDocument").
+			Scopes(PreloadGeneralMetadata(prefix + "Attachments.")).
+			Preload(prefix + "Attachments.Versions.Formats.PrimaryDocument")
 	}
 }
 

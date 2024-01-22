@@ -59,7 +59,7 @@
       </mat-expansion-panel>
 
       <app-document-version-metadata
-        *ngIf="messageTypeCode === '0503'"
+        *ngIf="this.documentRecordObject?.versions"
         [document]="documentRecordObject"
       ></app-document-version-metadata>
     </mat-accordion>

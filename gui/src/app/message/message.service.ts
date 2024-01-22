@@ -90,6 +90,7 @@ export interface DocumentRecordObject {
   outgoingDate?: string;
   documentDate?: string;
   versions?: DocumentVersion[];
+  attachments?: DocumentRecordObject[];
 }
 
 export interface DocumentVersion {
@@ -200,6 +201,7 @@ export type StructureNodeType =
   | 'process'
   | 'subprocess'
   | 'document'
+  | 'attachment'
   | 'primaryDocuments';
 export type RecordObjectType = 'file' | 'process' | 'document';
 
@@ -374,7 +376,7 @@ export class MessageService {
     // generate child nodes for all documents (de: Dokumente)
     if (processRecordObject.documents) {
       for (let document of processRecordObject.documents) {
-        children.push(this.getDocumentStructureNode(document, processRecordObject.id));
+        children.push(this.getDocumentStructureNode(document, false, processRecordObject.id));
       }
     }
     const nodeName = subprocess ? 'Teilvorgang' : 'Vorgang';
@@ -398,19 +400,33 @@ export class MessageService {
     return processNode;
   }
 
-  getDocumentStructureNode(documentRecordObject: DocumentRecordObject, parentID?: string): StructureNode {
+  getDocumentStructureNode(
+    documentRecordObject: DocumentRecordObject,
+    attachment: boolean,
+    parentID?: string,
+  ): StructureNode {
+    const children: StructureNode[] = [];
+    const nodeName = attachment ? 'Anlage' : 'Dokument';
     const displayText: DisplayText = {
-      title: 'Dokument: ' + documentRecordObject.generalMetadata?.xdomeaID,
+      title: nodeName + ': ' + documentRecordObject.generalMetadata?.xdomeaID,
       subtitle: documentRecordObject.generalMetadata?.subject,
     };
+    if (documentRecordObject.attachments) {
+      for (let document of documentRecordObject.attachments) {
+        console.log('jut');
+        children.push(this.getDocumentStructureNode(document, true, documentRecordObject.id));
+      }
+    }
     const routerLink: string = 'dokument/' + documentRecordObject.id;
+    const type = attachment ? 'attachment' : 'document';
     const documentNode: StructureNode = {
       id: documentRecordObject.id,
       selected: false,
       displayText: displayText,
-      type: 'document',
+      type: type,
       routerLink: routerLink,
       parentID: parentID,
+      children: children,
     };
     this.addStructureNode(documentNode);
     return documentNode;
@@ -610,7 +626,12 @@ export class MessageService {
           break;
         }
         case 'document': {
-          changedNode = this.getDocumentStructureNode(recordObject as DocumentRecordObject, node.parentID);
+          const isAttachment = node.type === 'attachment';
+          changedNode = this.getDocumentStructureNode(
+            recordObject as DocumentRecordObject,
+            isAttachment,
+            node.parentID,
+          );
           break;
         }
       }
