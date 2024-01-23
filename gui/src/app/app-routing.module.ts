@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
+import { LoginComponent } from './login/login.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
 import { DocumentMetadataComponent } from './metadata/document-metadata/document-metadata.component';
@@ -9,16 +10,23 @@ import { MessageMetadataComponent } from './metadata/message-metadata/message-me
 import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
+import { isLoggedIn } from './utility/authorization/auth-guards';
 
 const routes: Routes = [
   {
     path: '',
     component: MainNavigationComponent,
     children: [
-      { path: 'aussonderungen', component: ProcessTableComponent },
+      { path: 'login', component: LoginComponent },
+      {
+        path: 'aussonderungen',
+        component: ProcessTableComponent,
+        canActivate: [isLoggedIn],
+      },
       {
         path: 'nachricht/:id',
         component: MessageTreeComponent,
+        canActivate: [isLoggedIn],
         children: [
           { path: 'details', component: MessageMetadataComponent },
           { path: 'akte/:id', component: FileMetadataComponent },
@@ -27,7 +35,11 @@ const routes: Routes = [
           { path: 'formatverifikation', component: PrimaryDocumentsTableComponent },
         ],
       },
-      { path: 'steuerungsstelle', component: ClearingTableComponent },
+      {
+        path: 'steuerungsstelle',
+        component: ClearingTableComponent,
+        canActivate: [isLoggedIn],
+      },
       { path: '', redirectTo: '/aussonderungen', pathMatch: 'full' },
     ],
   },

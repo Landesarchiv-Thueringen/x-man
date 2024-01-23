@@ -4,16 +4,20 @@
       <mat-icon class="title-icon material-icons-outlined">cancel</mat-icon>
       X-MAN
     </a>
-    <a mat-button routerLink="steuerungsstelle" [routerLinkActive]="['active']">Steuerungsstelle</a>
-    <span class="spacer"></span>
-    <!-- <div class="user_label">
-            <mat-icon>person</mat-icon>
-            <span class="mat-body-strong">{{ userDisplayName }}</span>
-        </div>
-        <button mat-button (click)="logout()" routerLink="anmelden">
-            <mat-icon>logout</mat-icon>
-            Abmelden
-        </button> -->
+    @if (loginInformation | async; as login) {
+      <a *ngIf="login.permissions?.admin" mat-button routerLink="steuerungsstelle" [routerLinkActive]="['active']"
+        >Steuerungsstelle</a
+      >
+      <span class="spacer"></span>
+      <div class="user_label">
+        <mat-icon>person</mat-icon>
+        <span class="mat-body-strong">{{ login.userDisplayName }}</span>
+      </div>
+      <button mat-button (click)="logout()" routerLink="anmelden">
+        <mat-icon>logout</mat-icon>
+        Abmelden
+      </button>
+    }
   </mat-toolbar-row>
 </mat-toolbar>
 

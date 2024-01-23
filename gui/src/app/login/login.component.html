@@ -1,0 +1,20 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Anmeldung</mat-card-title>
+  </mat-card-header>
+  <form [formGroup]="loginForm" (submit)="login()">
+    <mat-card-content>
+      <mat-form-field>
+        <mat-label>Nutzername</mat-label>
+        <input matInput formControlName="username" autofocus />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Passwort</mat-label>
+        <input matInput formControlName="password" type="password" />
+      </mat-form-field>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-flat-button color="primary" [disabled]="!loginForm.valid">Anmelden</button>
+    </mat-card-actions>
+  </form>
+</mat-card>

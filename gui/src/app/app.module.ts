@@ -1,6 +1,6 @@
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { DatePipe, registerLocaleData } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import localeDe from '@angular/common/locales/de';
 import { LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -41,6 +41,7 @@ import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-tab
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pipe';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
+import { AuthInterceptor } from './utility/authorization/auth-interceptor';
 import { FeatureBreakPipe } from './utility/formatting/feature-break.pipe';
 import { FileFeaturePipe } from './utility/localization/file-attribut-de.pipe';
 import { PaginatorDeService } from './utility/localization/paginator-de.service';
@@ -98,6 +99,7 @@ registerLocaleData(localeDe);
     { provide: LOCALE_ID, useValue: 'de' },
     { provide: MatPaginatorIntl, useClass: PaginatorDeService },
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     DatePipe,
     FeatureBreakPipe,
     FileFeaturePipe,

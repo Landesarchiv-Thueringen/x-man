@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  endpoint: 'https://xman.tsa.thlv.de/api',
+  endpoint: '/api',
   updateInterval: 10000,
 };

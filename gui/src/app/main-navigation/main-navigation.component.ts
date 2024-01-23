@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../utility/authorization/auth.service';
 
 @Component({
   selector: 'app-main-navigation',
@@ -6,11 +7,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./main-navigation.component.scss'],
 })
 export class MainNavigationComponent {
-  userDisplayName: string;
+  loginInformation = this.auth.observeLoginInformation();
 
-  constructor() {
-    this.userDisplayName = 'LATh Grochow, Tony';
+  constructor(private auth: AuthService) {}
+
+  logout(): void {
+    this.auth.logout();
   }
-
-  logout(): void {}
 }
