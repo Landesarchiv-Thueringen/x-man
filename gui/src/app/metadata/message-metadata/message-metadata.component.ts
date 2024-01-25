@@ -1,49 +1,60 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormControl } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { Message, MessageService } from '../../message/message.service';
+import { Process, ProcessService } from '../../process/process.service';
 
 @Component({
   selector: 'app-message-metadata',
   templateUrl: './message-metadata.component.html',
   styleUrls: ['./message-metadata.component.scss'],
 })
-export class MessageMetadataComponent implements AfterViewInit, OnDestroy {
-  form: FormGroup;
+export class MessageMetadataComponent {
+  form = this.formBuilder.group({
+    processID: new FormControl<string | null>(null),
+    creationTime: new FormControl<string | null>(null),
+    xdomeaVersion: new FormControl<string | null>(null),
+    note: new FormControl<string | null>(null),
+  });
   message?: Message;
-  urlParameterSubscription?: Subscription;
+  process?: Process;
 
   constructor(
     private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
+    private notification: NotificationService,
+    private processService: ProcessService,
     private route: ActivatedRoute,
   ) {
-    this.form = this.formBuilder.group({
-      processID: new FormControl<string | null>(null),
-      creationTime: new FormControl<Date | null>(null),
-      xdomeaVersion: new FormControl<string | null>(null),
-    });
-  }
-
-  ngAfterViewInit(): void {
-    if (!!this.route.parent) {
-      this.urlParameterSubscription = this.route.parent.params.subscribe((params) => {
-        this.messageService.getMessage(params['id']).subscribe((message: Message) => {
-          this.message = message;
+    this.route.parent?.params.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.messageService.getMessage(params['id']).subscribe((message: Message) => {
+        this.message = message;
+        this.form.patchValue({
+          processID: message.messageHead.processID,
+          creationTime: this.datePipe.transform(new Date(message.messageHead.creationTime), 'short'),
+          xdomeaVersion: message.xdomeaVersion,
+        });
+        this.processService.getProcessByXdomeaID(message.messageHead.processID).subscribe((process) => {
+          this.process = process;
           this.form.patchValue({
-            processID: message.messageHead.processID,
-            creationTime: this.datePipe.transform(new Date(message.messageHead.creationTime), 'short'),
-            xdomeaVersion: message.xdomeaVersion,
+            note: process.note,
           });
         });
       });
-    }
+    });
   }
 
-  ngOnDestroy(): void {
-    this.urlParameterSubscription?.unsubscribe;
+  saveNote(): void {
+    const value = this.form.get('note')?.value ?? '';
+    if (this.process!.note !== value) {
+      this.processService.setNote(this.process!.xdomeaID, value).subscribe(() => {
+        this.process!.note = value;
+        this.notification.show('Notiz gespeichert');
+      });
+    }
   }
 }

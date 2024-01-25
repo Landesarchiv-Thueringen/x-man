@@ -19,6 +19,13 @@
             <input matInput formControlName="xdomeaVersion" readonly />
           </mat-form-field>
         </div>
+        <div class="metadata-row">
+          <mat-form-field class="note-input" floatLabel="always">
+            <mat-label>Notiz</mat-label>
+            <input matInput formControlName="note" (keydown.enter)="saveNote()" (blur)="saveNote()" />
+            <mat-icon matSuffix>edit</mat-icon>
+          </mat-form-field>
+        </div>
       </mat-expansion-panel>
 
       <mat-expansion-panel [expanded]="true">
