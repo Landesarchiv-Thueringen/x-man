@@ -3,6 +3,17 @@
     <mat-label>Filter</mat-label>
     <input matInput formControlName="string" />
   </mat-form-field>
+  <mat-form-field class="institution-field">
+    <mat-label>Abgebende Stelle</mat-label>
+    <mat-select formControlName="institution">
+      <mat-option>Alle anzeigen ({{ getElementsForInstitution($any("")) }})</mat-option>
+      @for (value of institutions; track value) {
+        <mat-option [value]="value" [disabled]="getElementsForInstitution(value) === 0"
+          >{{ value }} ({{ getElementsForInstitution(value) }})</mat-option
+        >
+      }
+    </mat-select>
+  </mat-form-field>
   <mat-form-field class="status-field">
     <mat-label>Status</mat-label>
     <mat-select formControlName="state">

@@ -37,8 +37,11 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   ] as const;
   readonly filter = this.formBuilder.group({
     string: new FormControl(''),
+    institution: new FormControl(''),
     state: new FormControl('' as ProcessTableComponent['stateValues'][number]['value']),
   });
+  /** All institutions for which there are processes. Used for institutions filter field. */
+  institutions: string[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -85,6 +88,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
         },
         next: (processes: Process[]) => {
           this.dataSource.data = processes;
+          this.populateInstitutions(processes);
         },
       });
   }
@@ -96,6 +100,10 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.processSubscription.unsubscribe();
+  }
+
+  private populateInstitutions(processes: Process[]): void {
+    this.institutions = [...new Set(processes.map((p) => p.institution))];
   }
 
   /** The default filter predicate of MatTableDataSource that provides string matching on all data properties. */
@@ -111,6 +119,14 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     return (
       // Match string field
       this.textFilterPredicate(process, filter.string ?? '') &&
+      // Match institution field
+      (() => {
+        if (filter.institution) {
+          return process.institution === filter.institution;
+        } else {
+          return true;
+        }
+      })() &&
       // Match state field
       (() => {
         if (filter.state) {
@@ -147,6 +163,20 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
    */
   trackProcess(index: number, item: Process): string {
     return item.xdomeaID;
+  }
+
+  /**
+   * Returns the number of processes that match the given institution.
+   *
+   * Other filters are applied as normal.
+   */
+  getElementsForInstitution(institution: string): number {
+    return this.dataSource.data.filter((process) =>
+      this.filterPredicate(process, {
+        ...(this.dataSource.filter as ProcessTableComponent['filter']['value']),
+        institution,
+      }),
+    ).length;
   }
 
   /**
