@@ -354,6 +354,11 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         .pipe(
           filter((formResult) => !!formResult),
           switchMap(() => {
+            // mark archiving process as started
+            // hides the button to start the process
+            if (this.process) {
+              this.process.processState.archiving.started = true;
+            }
             return this.messageService.archive0503Message(this.message!.id);
           }),
         )

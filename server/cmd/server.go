@@ -374,7 +374,7 @@ func AreAllRecordObjectsAppraised(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetMessageByID(id)
+	message, err := db.GetCompleteMessageByID(id)
 	if err != nil {
 		context.AbortWithError(http.StatusNotFound, err)
 		return

@@ -91,7 +91,8 @@ func FinalizeMessageAppraisal(message db.Message) (db.Message, error) {
 	}
 	appraisalStep := process.ProcessState.Appraisal
 	appraisalStep.Complete = true
-	appraisalStep.CompletionTime = time.Now()
+	completionTime := time.Now()
+	appraisalStep.CompletionTime = &completionTime
 	err = db.UpdateProcessStep(appraisalStep)
 	if err != nil {
 		log.Println(err)

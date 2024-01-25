@@ -251,7 +251,8 @@ func AddMessage(
 		process.Message0501 = &message
 		processStep := process.ProcessState.Receive0501
 		processStep.Complete = true
-		processStep.CompletionTime = time.Now()
+		completionTime := time.Now()
+		processStep.CompletionTime = &completionTime
 		err = UpdateProcessStep(processStep)
 		if err != nil {
 			log.Fatal(err)
@@ -260,7 +261,8 @@ func AddMessage(
 		process.Message0503 = &message
 		processStep := process.ProcessState.Receive0503
 		processStep.Complete = true
-		processStep.CompletionTime = time.Now()
+		completionTime := time.Now()
+		processStep.CompletionTime = &completionTime
 		err = UpdateProcessStep(processStep)
 		if err != nil {
 			log.Fatal(err)
@@ -269,7 +271,8 @@ func AddMessage(
 		process.Message0505 = &message
 		processStep := process.ProcessState.Receive0505
 		processStep.Complete = true
-		processStep.CompletionTime = time.Now()
+		completionTime := time.Now()
+		processStep.CompletionTime = &completionTime
 		err = UpdateProcessStep(processStep)
 		if err != nil {
 			log.Fatal(err)

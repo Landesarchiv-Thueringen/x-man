@@ -34,9 +34,10 @@ export interface ProcessState {
 }
 
 export interface ProcessStep {
-  startTime?: string;
+  started: boolean;
   complete: boolean;
-  completionTime: string;
+  startTime?: string;
+  completionTime?: string;
   itemCount: number;
   itemCompletedCount: number;
 }

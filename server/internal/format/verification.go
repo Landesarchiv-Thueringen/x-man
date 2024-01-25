@@ -29,7 +29,10 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		log.Fatal(err)
 	}
 	processStep := process.ProcessState.FormatVerification
+	processStep.Started = true
 	processStep.ItemCount = uint(len(primaryDocuments))
+	startTime := time.Now()
+	processStep.StartTime = &startTime
 	err = db.UpdateProcessStep(processStep)
 	if err != nil {
 		log.Fatal(err)
@@ -85,7 +88,8 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		}
 	}
 	processStep.Complete = true
-	processStep.CompletionTime = time.Now()
+	completionTime := time.Now()
+	processStep.CompletionTime = &completionTime
 	err = db.UpdateProcessStep(processStep)
 	if err != nil {
 		log.Fatal(err)

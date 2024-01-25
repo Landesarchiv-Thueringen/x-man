@@ -21,6 +21,7 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 // The record objects in the message should be complete loaded.
 func ImportMessage(process db.Process, message db.Message) error {
 	processStep := process.ProcessState.Archiving
+	processStep.Started = true
 	startTime := time.Now()
 	processStep.StartTime = &startTime
 	err := db.UpdateProcessStep(processStep)
@@ -77,7 +78,8 @@ func ImportMessage(process db.Process, message db.Message) error {
 		}
 	}
 	processStep.Complete = true
-	processStep.CompletionTime = time.Now()
+	completionTime := time.Now()
+	processStep.CompletionTime = &completionTime
 	return db.UpdateProcessStep(processStep)
 }
 

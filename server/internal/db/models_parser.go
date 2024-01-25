@@ -68,9 +68,10 @@ type ProcessStep struct {
 	CreatedAt          time.Time      `json:"-"`
 	UpdatedAt          time.Time      `json:"-"`
 	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
+	Started            bool           `gorm:"default:false" json:"started"`
 	StartTime          *time.Time     `json:"startTime"`
 	Complete           bool           `gorm:"default:false" json:"complete"`
-	CompletionTime     time.Time      `json:"completionTime"`
+	CompletionTime     *time.Time     `json:"completionTime"`
 	ItemCount          uint           `gorm:"default:0" json:"itemCount"`
 	ItemCompletetCount uint           `gorm:"default:0" json:"itemCompletetCount"`
 }

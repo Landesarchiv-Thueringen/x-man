@@ -102,6 +102,7 @@
           *ngIf="
             message.messageType.code === '0503' &&
             process.processState.formatVerification.complete &&
+            !process.processState.archiving.started &&
             !process.processState.archiving.complete
           "
           (click)="archive0503Message()"

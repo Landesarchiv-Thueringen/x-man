@@ -110,7 +110,7 @@
             </span>
           </div>
           <div
-            *ngIf="process.processState.receive0503.complete && !process.processState.formatVerification.complete"
+            *ngIf="process.processState.formatVerification.started && !process.processState.formatVerification.complete"
             class="progress-cell"
           >
             {{ process.processState.formatVerification.itemCompletetCount }}/{{
@@ -132,7 +132,7 @@
             </span>
           </div>
           <div
-            *ngIf="process.processState.archiving.startTime && !process.processState.archiving.complete"
+            *ngIf="process.processState.archiving.started && !process.processState.archiving.complete"
             class="progress-cell"
           >
             Archivierung läuft
