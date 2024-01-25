@@ -39,7 +39,6 @@ export class FileOverviewComponent {
   ) {
     this.dataSource = new MatTableDataSource<FileFeatures>();
     this.tableColumnList = ['Attribut'];
-    console.log(this.data);
     this.primaryDocument = this.data.primaryDocument;
     this.initTableData();
   }
