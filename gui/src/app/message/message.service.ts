@@ -278,6 +278,12 @@ export class MessageService {
     for (let fileRecordObject of message.fileRecordObjects) {
       children.push(this.getFileStructureNode(fileRecordObject, false, message.id));
     }
+    for (let processRecordObject of message.processRecordObjects) {
+      children.push(this.getProcessStructureNode(processRecordObject, false, message.id));
+    }
+    for (let documentRecordObject of message.documentRecordObjects) {
+      children.push(this.getDocumentStructureNode(documentRecordObject, false, message.id));
+    }
     let displayText: DisplayText;
     switch (message.messageType.code) {
       case '0501':
@@ -413,7 +419,6 @@ export class MessageService {
     };
     if (documentRecordObject.attachments) {
       for (let document of documentRecordObject.attachments) {
-        console.log('jut');
         children.push(this.getDocumentStructureNode(document, true, documentRecordObject.id));
       }
     }
