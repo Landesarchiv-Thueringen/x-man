@@ -8,16 +8,16 @@ import (
 )
 
 const ControlFileName string = "controlfile.xml"
-const InformationObjectAbbrevation string = "O"
-const RepresentationAbbrevation string = "R"
-const FileAbbrevation string = "F"
+const InformationObjectAbbreviation string = "O"
+const RepresentationAbbreviation string = "R"
+const FileAbbreviation string = "F"
 
 func GenerateControlFile(
 	message db.Message,
-	fileRecordObject db.FileRecordObject,
+	archivePackageData ArchivePackageData,
 	importDir string,
 ) string {
-	primaryDocuments := fileRecordObject.GetPrimaryDocuments()
+	primaryDocuments := archivePackageData.PrimaryDocuments
 	fileIndexItems := []IndexItem{}
 	for _, primaryDocument := range primaryDocuments {
 		fileIndexItems = append(
@@ -27,28 +27,28 @@ func GenerateControlFile(
 	}
 	xmlIndexItem := IndexItem{
 		IndexID:  "",
-		ItemType: FileAbbrevation,
+		ItemType: FileAbbreviation,
 		Title:    "xdomea XML-Datei",
 		FilePath: message.GetRemoteXmlPath(importDir),
 	}
 	fileIndexItems = append(fileIndexItems, xmlIndexItem)
 	repIndexItem := IndexItem{
 		IndexID:    "",
-		ItemType:   RepresentationAbbrevation,
-		Title:      fileRecordObject.GetTitle(),
+		ItemType:   RepresentationAbbreviation,
+		Title:      archivePackageData.REPTitle,
 		IndexItems: fileIndexItems,
 	}
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
-		Lifetime:   fileRecordObject.GetCombinedLifetime(),
-		ItemType:   InformationObjectAbbrevation,
-		Title:      fileRecordObject.GetTitle(),
+		Lifetime:   archivePackageData.IOLifetime,
+		ItemType:   InformationObjectAbbreviation,
+		Title:      archivePackageData.IOTitle,
 		IndexItems: repItems,
 	}
 	ioItems := []IndexItem{ioIndexItem}
 	dimagControl := DimagControl{
-		RootID:     "test-219",
+		RootID:     "test-985",
 		IndexItems: ioItems,
 	}
 	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")
@@ -65,7 +65,7 @@ func GetIndexItemForPrimaryDocument(
 ) IndexItem {
 	fileIndexItem := IndexItem{
 		IndexID:  "",
-		ItemType: FileAbbrevation,
+		ItemType: FileAbbreviation,
 		Title:    primaryDocument.GetFileName(),
 		FilePath: primaryDocument.GetRemotePath(importDir),
 	}

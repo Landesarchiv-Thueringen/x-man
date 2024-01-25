@@ -473,7 +473,7 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetMessageByID(messageID)
+	message, err := db.GetCompleteMessageByID(messageID)
 	if err != nil {
 		context.AbortWithError(http.StatusNotFound, err)
 		return

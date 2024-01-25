@@ -13,9 +13,12 @@ func (process *Process) IsArchivable() bool {
 	state := process.ProcessState
 	return state.FormatVerification.Complete && !state.Archiving.Complete
 }
+func (message *Message) GetMessageFileName() string {
+	return filepath.Base(message.MessagePath)
+}
 
 func (message *Message) GetRemoteXmlPath(importDir string) string {
-	return filepath.Join(importDir, filepath.Base(message.MessagePath))
+	return filepath.Join(importDir, message.GetMessageFileName())
 }
 
 type RecordObject interface {
@@ -80,9 +83,8 @@ func (p *ProcessRecordObject) SetMessageID(messageID uuid.UUID) {
 	p.MessageID = messageID
 }
 
-// GetChildren Returns an empty list.
-// Document record objects do not have any other record objects as their children.
-// This might change in future xdomea versions.
+// GetChildren returns all list of all attachments contained in the document record object.
+// The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
 func (d *DocumentRecordObject) GetChildren() []RecordObject {
 	recordObjects := []RecordObject{}
 	for index := range d.Attachments {
@@ -92,12 +94,17 @@ func (d *DocumentRecordObject) GetChildren() []RecordObject {
 	return recordObjects
 }
 
+// GetPrimaryDocuments returns all primary documents of the document record object.
+// All primary documents of attachments are returned as well.
 func (d *DocumentRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 	primaryDocuments := []PrimaryDocument{}
 	for _, version := range d.Versions {
 		for _, format := range version.Formats {
 			primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
 		}
+	}
+	for _, attachment := range d.Attachments {
+		primaryDocuments = append(primaryDocuments, attachment.GetPrimaryDocuments()...)
 	}
 	return primaryDocuments
 }
@@ -220,6 +227,33 @@ func (f *FileRecordObject) GetCombinedLifetime() string {
 			return *f.Lifetime.Start + " - "
 		} else if f.Lifetime.End != nil {
 			return " - " + *f.Lifetime.End
+		}
+	}
+	return ""
+}
+
+func (p *ProcessRecordObject) GetTitle() string {
+	title := "Vorgang"
+	if p.GeneralMetadata != nil {
+		if p.GeneralMetadata.XdomeaID != nil {
+			title += " " + *p.GeneralMetadata.XdomeaID
+		}
+		if p.GeneralMetadata.Subject != nil {
+			title += ": " + *p.GeneralMetadata.Subject
+		}
+	}
+	return title
+}
+
+// GetCombinedLifetime returns a string representation of lifetime start and end.
+func (p *ProcessRecordObject) GetCombinedLifetime() string {
+	if p.Lifetime != nil {
+		if p.Lifetime.Start != nil && p.Lifetime.End != nil {
+			return *p.Lifetime.Start + " - " + *p.Lifetime.End
+		} else if p.Lifetime.Start != nil {
+			return *p.Lifetime.Start + " - "
+		} else if p.Lifetime.End != nil {
+			return " - " + *p.Lifetime.End
 		}
 	}
 	return ""
