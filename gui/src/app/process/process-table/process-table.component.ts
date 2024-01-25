@@ -163,7 +163,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   setProcessNote(process: Process, note: string) {
     note = note.trim();
     if (process.note !== note) {
-      this.processService.setNote(process.id, note).subscribe(() => {
+      this.processService.setNote(process.xdomeaID, note).subscribe(() => {
         this.notification.show('Notiz gespeichert');
       });
     }

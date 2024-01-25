@@ -21,6 +21,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 var defaultResponse = "LATh xdomea server is running"
@@ -277,13 +278,19 @@ func setProcessRecordObjectAppraisalNote(context *gin.Context) {
 }
 
 func setProcessNote(context *gin.Context) {
-	processId := context.Query("processId")
+	processId := context.Param("processId")
 	note, err := io.ReadAll(context.Request.Body)
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	db.SetProcessNote(processId, string(note))
+	if err = db.SetProcessNote(processId, string(note)); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			context.AbortWithStatus(http.StatusNotFound)
+		} else {
+			context.AbortWithError(http.StatusInternalServerError, err)
+		}
+	}
 }
 
 type MultiAppraisalBody struct {
