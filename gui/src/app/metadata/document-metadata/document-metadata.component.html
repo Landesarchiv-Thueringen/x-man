@@ -59,7 +59,7 @@
       </mat-expansion-panel>
 
       <app-document-version-metadata
-        *ngIf="this.documentRecordObject?.versions"
+        *ngIf="this.documentRecordObject?.versions?.length !== 0"
         [document]="documentRecordObject"
       ></app-document-version-metadata>
     </mat-accordion>
