@@ -113,29 +113,34 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
       this.textFilterPredicate(process, filter.string ?? '') &&
       // Match state field
       (() => {
-        switch (filter.state) {
-          case 'message0501':
-            return process.processState.receive0501.complete && !process.processState.appraisal.complete;
-          case 'appraisalComplete':
-            return (
-              process.processState.appraisal.complete &&
-              !process.processState.receive0505.complete &&
-              !process.processState.receive0503.complete
-            );
-          case 'received0502':
-            return process.processState.receive0505.complete && !process.processState.receive0503.complete;
-          case 'message0503':
-            return process.processState.receive0503.complete && !process.processState.formatVerification.complete;
-          case 'formatVerification':
-            return process.processState.formatVerification.complete && !process.processState.archiving.complete;
-          case 'archivingComplete':
-            return process.processState.archiving.complete;
-          default:
-            return true;
+        if (filter.state) {
+          return filter.state === this.getCurrentState(process);
+        } else {
+          return true;
         }
       })()
     );
   };
+
+  /** Returns the highest process state that the process completed. */
+  private getCurrentState(process: Process): ProcessTableComponent['stateValues'][number]['value'] | null {
+    for (const state of this.stateValues.map((v) => v.value).reverse()) {
+      if (state === 'message0501' && process.processState.receive0501.complete) {
+        return state;
+      } else if (state === 'appraisalComplete' && process.processState.appraisal.complete) {
+        return state;
+      } else if (state === 'received0502' && process.processState.receive0505.complete) {
+        return state;
+      } else if (state === 'message0503' && process.processState.receive0503.complete) {
+        return state;
+      } else if (state === 'formatVerification' && process.processState.formatVerification.complete) {
+        return state;
+      } else if (state === 'archivingComplete' && process.processState.archiving.complete) {
+        return state;
+      }
+    }
+    return null;
+  }
 
   /**
    * Implements a track-by predicate for Angular to match table rows on data updates.
