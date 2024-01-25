@@ -13,6 +13,8 @@ import { AuthService } from './auth.service';
  * - Appends the JWT authorization token to every request if available
  * - Redirects to the login page when the server responded with "401
  *   Unauthorized" to any request.
+ * - Redirects to the error page when the server responds with any other error
+ *   code.
  */
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -39,6 +41,8 @@ export class AuthInterceptor implements HttpInterceptor {
             if (event.status === 401) {
               this.login.afterLoginUrl = this.router.url;
               this.router.navigate(['login']);
+            } else {
+              this.router.navigate(['error', event.status]);
             }
           }
         },

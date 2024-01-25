@@ -1,0 +1,20 @@
+<div class="container">
+  <h1>Fehler {{ code }}</h1>
+  <mat-divider></mat-divider>
+  @switch (code) {
+    @case ("403") {
+      <p class="mat-h3">Kein Zugriff</p>
+      <p class="mat-h3">
+        Sie haben nicht die nötigen Rechte, um auf diese Ressource zuzugreifen. Bitte wenden Sie sich an einen
+        Administrator.
+      </p>
+    }
+    @case ("404") {
+      <p class="mat-h3">Nicht gefunden</p>
+      <p class="mat-h3">
+        Die Resource konnte nicht gefunden werden. Sie wurde möglicherweise gelöscht oder verschoben, oder für diese URL
+        existiert keine Seite.
+      </p>
+    }
+  }
+</div>

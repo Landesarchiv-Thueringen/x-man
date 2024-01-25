@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
+import { ErrorComponent } from './error/error.component';
 import { LoginComponent } from './login/login.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';
@@ -40,7 +41,12 @@ const routes: Routes = [
         component: ClearingTableComponent,
         canActivate: [isLoggedIn],
       },
+      {
+        path: 'error/:code',
+        component: ErrorComponent,
+      },
       { path: '', redirectTo: '/aussonderungen', pathMatch: 'full' },
+      { path: '**', redirectTo: '/error/404' },
     ],
   },
 ];
