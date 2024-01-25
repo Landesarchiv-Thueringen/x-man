@@ -10,43 +10,43 @@
 
         <div class="metadata">
           <div class="metadata-row">
-            <mat-form-field class="record-plan-id-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="record-plan-id-input" floatLabel="always">
               <mat-label>Aktenplanschlüssel</mat-label>
               <input matInput formControlName="recordPlanId" readonly />
             </mat-form-field>
 
-            <mat-form-field class="file-id-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="file-id-input" floatLabel="always">
               <mat-label>Aktenzeichen</mat-label>
               <input matInput formControlName="fileId" readonly />
             </mat-form-field>
           </div>
 
-          <mat-form-field class="subject-input" appearance="outline" floatLabel="always">
+          <mat-form-field class="subject-input" floatLabel="always">
             <mat-label>Behördlicher Aktentitel</mat-label>
             <input matInput formControlName="subject" readonly />
           </mat-form-field>
 
           <div class="metadata-row">
-            <mat-form-field class="file-type-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="file-type-input" floatLabel="always">
               <mat-label>Aktentyp</mat-label>
               <input matInput formControlName="fileType" readonly />
             </mat-form-field>
-            <mat-form-field class="medium-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="medium-input" floatLabel="always">
               <mat-label>Medium</mat-label>
               <input matInput formControlName="medium" readonly />
             </mat-form-field>
-            <mat-form-field class="confidentiality-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="confidentiality-input" floatLabel="always">
               <mat-label>Vertraulichkeitsstufe</mat-label>
               <input matInput formControlName="confidentiality" readonly />
             </mat-form-field>
           </div>
           <div class="metadata-row">
-            <mat-form-field class="life-start-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="life-start-input" floatLabel="always">
               <mat-label>Laufzeit Beginn</mat-label>
               <input matInput formControlName="lifeStart" readonly />
             </mat-form-field>
 
-            <mat-form-field class="life-end-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="life-end-input" floatLabel="always">
               <mat-label>Laufzeit Ende</mat-label>
               <input matInput formControlName="lifeEnd" readonly />
             </mat-form-field>
@@ -62,13 +62,13 @@
           <div class="metadata-row">
             <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"></div>
             <ng-template #appraisalInputReadonly>
-              <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
+              <mat-form-field class="appraisal-input" floatLabel="always">
                 <mat-label>Bewertungsentscheidung</mat-label>
                 <input matInput formControlName="appraisal" readonly />
               </mat-form-field>
             </ng-template>
             <ng-template #appraisalInputEditable>
-              <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
+              <mat-form-field class="appraisal-input" floatLabel="always">
                 <mat-label>Bewertungsentscheidung</mat-label>
                 <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
                   <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
@@ -77,12 +77,12 @@
                 </mat-select>
               </mat-form-field>
             </ng-template>
-            <mat-form-field class="appraisal-recomm-input" appearance="outline" floatLabel="always">
+            <mat-form-field class="appraisal-recomm-input" floatLabel="always">
               <mat-label>Behördlicher Bewertungsvorschlag</mat-label>
               <input matInput formControlName="appraisalRecomm" readonly />
             </mat-form-field>
           </div>
-          <mat-form-field class="internal-appraisal-note" appearance="outline" floatLabel="always">
+          <mat-form-field class="internal-appraisal-note" floatLabel="always">
             <mat-label>Interner Bewertungsvermerk</mat-label>
             <textarea
               #appraisalNote

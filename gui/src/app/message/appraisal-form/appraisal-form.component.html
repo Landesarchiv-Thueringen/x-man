@@ -2,7 +2,7 @@
   <h4 mat-dialog-title>Bewertungsentscheidung für ausgewählte Schriftgutobjekte hinterlegen</h4>
 
   <mat-dialog-content>
-    <mat-form-field class="appraisal-input" appearance="outline" floatLabel="always">
+    <mat-form-field class="appraisal-input" floatLabel="always">
       <mat-label>Bewertungsentscheidung</mat-label>
       <mat-select formControlName="appraisal" [(value)]="selectedAppraisal">
         <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
@@ -11,7 +11,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="internal-appraisal-note" appearance="outline" floatLabel="always">
+    <mat-form-field class="internal-appraisal-note" floatLabel="always">
       <mat-label>Interner Bewertungsvermerk</mat-label>
       <textarea #appraisalNote matInput formControlName="appraisalNote" rows="7"> </textarea>
     </mat-form-field>
