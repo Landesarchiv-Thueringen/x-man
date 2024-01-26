@@ -1,0 +1,42 @@
+<h1>Abgebende Stellen ({{ dataSource.data.length }})</h1>
+
+<mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <!-- Name Column -->
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.name }}
+      <button
+        mat-button
+        class="open-details-button"
+        (click)="openDetails(element)"
+        aria-label="Details anzeigen"
+      ></button>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Short-Name Column -->
+  <ng-container matColumnDef="abbreviation">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Kürzel</mat-header-cell>
+    <mat-cell *matCellDef="let element">{{ element.abbreviation }}</mat-cell>
+  </ng-container>
+
+  <!-- Archivist Column -->
+  <ng-container matColumnDef="users">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Zuständige Mitarbeiter</mat-header-cell>
+    <mat-cell *matCellDef="let element">{{ getArchivistNames(element) | async }}</mat-cell>
+  </ng-container>
+
+  <!-- Collection Column -->
+  <ng-container matColumnDef="collectionId">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Zugeordneter Bestand</mat-header-cell>
+    <mat-cell *matCellDef="let element">{{ getCollectionName(element) | async }}</mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>
+
+<button class="add-new-button" mat-flat-button color="primary" (click)="newInstitution()">
+  <mat-icon>add</mat-icon>Neue abgebende Stelle
+</button>

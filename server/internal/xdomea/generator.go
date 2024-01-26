@@ -94,10 +94,10 @@ func GenerateMessageHeadLATh(processID string, sender db.Contact) db.GeneratorMe
 
 func GetLAThContact() db.GeneratorContact {
 	institutionName := "Landesarchiv Thüringen"
-	institutionAbbrevation := "LATh"
+	institutionAbbreviation := "LATh"
 	institution := db.GeneratorInstitution{
 		Name:         &institutionName,
-		Abbreviation: &institutionAbbrevation,
+		Abbreviation: &institutionAbbreviation,
 	}
 	contact := db.GeneratorContact{
 		Institution: &institution,

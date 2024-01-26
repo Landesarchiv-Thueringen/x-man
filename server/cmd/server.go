@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
@@ -57,6 +59,7 @@ func main() {
 	authorized.GET("api/primary-document", getPrimaryDocument)
 	authorized.GET("api/primary-documents/:id", getPrimaryDocuments)
 	authorized.GET("api/report/:processId", getReport)
+	authorized.GET("api/institutions/my", getMyInstitutions)
 	authorized.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
 	authorized.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
 	authorized.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
@@ -68,6 +71,11 @@ func main() {
 	admin := router.Group("/")
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processing-errors", getProcessingErrors)
+	admin.GET("api/users", auth.Users)
+	admin.GET("api/institutions", getInstitutions)
+	admin.PUT("api/institution", putInstitution)
+	admin.POST("api/institution/:id", postInstitution)
+	admin.DELETE("api/institution/:id", deleteInstitution)
 	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
 	router.Run(addr)
 }
@@ -505,4 +513,90 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+}
+
+func getMyInstitutions(context *gin.Context) {
+	userID := context.MustGet("userId")
+	fmt.Println(userID)
+	if userID, ok := context.MustGet("userId").([]byte); ok {
+		institutions := db.GetInstitutionsForUser(userID)
+		context.JSON(http.StatusOK, institutions)
+	} else {
+		context.AbortWithStatus(http.StatusBadRequest)
+	}
+}
+
+func getInstitutions(context *gin.Context) {
+	userIDString, hasUserID := context.GetQuery("userId")
+	if hasUserID {
+		userID, err := base64.StdEncoding.DecodeString(userIDString)
+		if err != nil {
+			context.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		institutions := db.GetInstitutionsForUser(userID)
+		context.JSON(http.StatusOK, institutions)
+	} else {
+		institutions := db.GetInstitutions()
+		context.JSON(http.StatusOK, institutions)
+	}
+}
+
+func putInstitution(context *gin.Context) {
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithStatus(http.StatusInternalServerError)
+		log.Println("Error reading request body: ", err)
+		return
+	}
+	var institution db.ConfiguredInstitution
+	err = json.Unmarshal(body, &institution)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	id, err := db.CreateInstitution(institution)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	context.String(http.StatusAccepted, strconv.FormatUint(uint64(id), 10))
+}
+
+func postInstitution(context *gin.Context) {
+	idParam := context.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithStatus(http.StatusInternalServerError)
+		log.Println("Error reading request body: ", err)
+		return
+	}
+	var institution db.ConfiguredInstitution
+	err = json.Unmarshal(body, &institution)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	err = db.UpdateInstitution(uint(id), institution)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	context.Status(http.StatusAccepted)
+}
+
+func deleteInstitution(context *gin.Context) {
+	idParam := context.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	db.DeleteInstitution(uint(id))
+
 }

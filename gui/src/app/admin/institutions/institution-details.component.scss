@@ -1,0 +1,55 @@
+h1 {
+  margin-bottom: 0;
+}
+
+[mat-dialog-content] {
+  // Make room for overflowing elements (compensate with h1 bottom margin)
+  padding-top: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 1em;
+}
+
+mat-form-field {
+  flex-grow: 1;
+}
+
+.name-field {
+  flex-basis: 500px;
+}
+
+.test-button {
+  width: 100%;
+  ::ng-deep .mdc-button__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 1em;
+    .mat-mdc-progress-spinner {
+      --mdc-circular-progress-active-indicator-color: currentColor;
+    }
+  }
+}
+
+.message {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  width: 0;
+  min-width: 100%;
+  margin: 12px 0 0;
+  &.message-success mat-icon {
+    color: green;
+  }
+  &.message-failed mat-icon {
+    color: red;
+  }
+  mat-icon {
+    flex-shrink: 0;
+  }
+}
+
+.mat-mdc-dialog-actions .mat-mdc-button-base + .mat-mdc-button-base.delete-button {
+  margin-left: auto;
+}

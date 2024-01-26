@@ -1,0 +1,16 @@
+[mat-dialog-content] {
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  margin-bottom: 0;
+}
+
+mat-chip-set {
+  align-self: center;
+}
+
+p {
+  margin: 1em 0;
+}

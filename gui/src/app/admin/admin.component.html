@@ -1,0 +1,25 @@
+<mat-sidenav-container class="example-container">
+  <mat-sidenav mode="side" opened>
+    <mat-list>
+      <mat-list-item>
+        <a mat-button routerLink="abgebende-stellen" [routerLinkActive]="['active']">
+          <mat-icon class="material-symbols-rounded">source_environment</mat-icon>
+          Abgebende Stellen
+        </a>
+      </mat-list-item>
+      <mat-list-item>
+        <a mat-button routerLink="bestände" [routerLinkActive]="['active']">
+          <mat-icon>shelves</mat-icon>
+          Bestände
+        </a>
+      </mat-list-item>
+      <mat-list-item>
+        <a mat-button routerLink="mitarbeiter" [routerLinkActive]="['active']">
+          <mat-icon>person</mat-icon>
+          Mitarbeiter
+        </a>
+      </mat-list-item>
+    </mat-list>
+  </mat-sidenav>
+  <mat-sidenav-content> <router-outlet></router-outlet> </mat-sidenav-content
+></mat-sidenav-container>

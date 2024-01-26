@@ -4,15 +4,15 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { User } from '../../admin/users/users.service';
 
-interface Permissions {
+export interface Permissions {
   admin: boolean;
 }
 
 interface LoginInformation {
   token: string;
-  permissions: Permissions;
-  userDisplayName: string;
+  user: User;
 }
 
 /**
@@ -42,6 +42,10 @@ export class AuthService {
     return this.loginInformation.value?.token ?? null;
   }
 
+  getCurrentLoginInformation(): LoginInformation | null {
+    return this.loginInformation.value;
+  }
+
   observeLoginInformation(): Observable<LoginInformation | null> {
     return this.loginInformation;
   }
@@ -51,7 +55,7 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.loginInformation.value?.permissions.admin ?? false;
+    return this.loginInformation.value?.user.permissions.admin ?? false;
   }
 
   async login(username: string, password: string): Promise<void> {

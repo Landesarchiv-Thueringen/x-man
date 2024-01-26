@@ -18,8 +18,10 @@
   "cSpell.words": [
     "Anbietung",
     "Formatverifikation",
+    "sidenav",
     "typst",
     "xdomea",
     "Xdomea"
-  ]
+  ],
+  "typescript.preferences.importModuleSpecifier": "project-relative"
 }

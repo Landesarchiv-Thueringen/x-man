@@ -1,0 +1,24 @@
+<h1 mat-dialog-title>{{ data.user.displayName }}</h1>
+<div mat-dialog-content>
+  <mat-chip-set>
+    @if (data.user.permissions.admin) {
+      <mat-chip>Administration</mat-chip>
+    }
+  </mat-chip-set>
+  @if (data.institutions.length > 0) {
+    <mat-list role="list">
+      <div mat-subheader>Zuständige abgebende Stellen</div>
+      @for (institution of data.institutions; track institution) {
+        <mat-list-item>
+          <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
+          <div matListItemTitle>{{ institution.name }}</div>
+        </mat-list-item>
+      }
+    </mat-list>
+  } @else {
+    <p>Keine zuständigen abgebenden Stellen</p>
+  }
+</div>
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>Schließen</button>
+</div>

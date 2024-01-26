@@ -84,6 +84,9 @@ func Migrate() {
 		&FeatureValue{},
 		&ToolConfidence{},
 		&ProcessingError{},
+		&ConfiguredInstitution{},
+		&TransferDirectory{},
+		&Collection{},
 	)
 }
 
@@ -440,4 +443,20 @@ func AddProcessingErrorToProcess(process Process, e ProcessingError) {
 		// error handling not possible
 		log.Fatal(err)
 	}
+}
+
+func CreateInstitution(institution ConfiguredInstitution) (uint, error) {
+	result := db.Create(&institution)
+	return institution.ID, result.Error
+}
+
+func UpdateInstitution(id uint, institution ConfiguredInstitution) error {
+	institution.ID = id
+	result := db.Save(&institution)
+	return result.Error
+}
+
+func DeleteInstitution(id uint) error {
+	result := db.Delete(&ConfiguredInstitution{}, id)
+	return result.Error
 }

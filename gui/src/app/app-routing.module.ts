@@ -1,5 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AdminComponent } from './admin/admin.component';
+import { CollectionsComponent } from './admin/collections/collections.component';
+import { InstitutionsComponent } from './admin/institutions/institutions.component';
+import { UsersComponent } from './admin/users/users.component';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
 import { ErrorComponent } from './error/error.component';
 import { LoginComponent } from './login/login.component';
@@ -40,6 +44,26 @@ const routes: Routes = [
         path: 'steuerungsstelle',
         component: ClearingTableComponent,
         canActivate: [isAdmin],
+      },
+      {
+        path: 'administration',
+        component: AdminComponent,
+        canActivate: [isAdmin],
+        children: [
+          { path: '', redirectTo: 'abgebende-stellen', pathMatch: 'full' },
+          {
+            path: 'abgebende-stellen',
+            component: InstitutionsComponent,
+          },
+          {
+            path: 'bestände',
+            component: CollectionsComponent,
+          },
+          {
+            path: 'mitarbeiter',
+            component: UsersComponent,
+          },
+        ],
       },
       {
         path: 'error/:code',

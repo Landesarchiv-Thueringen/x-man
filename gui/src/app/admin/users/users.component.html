@@ -1,0 +1,37 @@
+<h1>Mitarbeiter ({{ dataSource.data.length }})</h1>
+
+<form class="filters">
+  <mat-form-field class="string-field">
+    <mat-label>Filtern</mat-label>
+    <input matInput [formControl]="filter" />
+  </mat-form-field>
+</form>
+
+<mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <!-- Name Column -->
+  <ng-container matColumnDef="displayName">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.displayName }}
+      <button
+        mat-button
+        class="open-details-button"
+        (click)="openDetails(element)"
+        aria-label="Details anzeigen"
+      ></button>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Short-Name Column -->
+  <ng-container matColumnDef="admin">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Admin</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      @if (element.permissions.admin) {
+        <mat-icon>check</mat-icon>
+      }
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>

@@ -5,14 +5,17 @@
       X-MAN
     </a>
     @if (loginInformation | async; as login) {
-      <a *ngIf="login.permissions?.admin" mat-button routerLink="steuerungsstelle" [routerLinkActive]="['active']"
+      <a *ngIf="login.user.permissions?.admin" mat-button routerLink="steuerungsstelle" [routerLinkActive]="['active']"
         >Steuerungsstelle</a
       >
+      <a *ngIf="login.user.permissions?.admin" mat-button routerLink="administration" [routerLinkActive]="['active']"
+        >Administration</a
+      >
       <span class="spacer"></span>
-      <div class="user_label">
+      <button mat-button (click)="openUserDetails()">
         <mat-icon>person</mat-icon>
-        <span class="mat-body-strong">{{ login.userDisplayName }}</span>
-      </div>
+        <span class="mat-body-strong">{{ login.user.displayName }}</span>
+      </button>
       <button mat-button (click)="logout()" routerLink="anmelden">
         <mat-icon>logout</mat-icon>
         Abmelden

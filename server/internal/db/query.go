@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -17,6 +18,27 @@ func GetProcessingErrors() []ProcessingError {
 		log.Fatal(result.Error)
 	}
 	return processingErrors
+}
+
+func GetInstitutions() []ConfiguredInstitution {
+	var institutions []ConfiguredInstitution
+	result := db.Preload(clause.Associations).Find(&institutions)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return institutions
+}
+
+func GetInstitutionsForUser(userId []byte) []ConfiguredInstitution {
+	var institutions []ConfiguredInstitution
+	result := db.
+		Preload(clause.Associations).
+		Where("? <@ user_ids", pq.ByteaArray([][]byte{userId})).
+		Find(&institutions)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return institutions
 }
 
 func GetAgencies() ([]Agency, error) {

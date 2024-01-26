@@ -1,0 +1,128 @@
+<h1 mat-dialog-title>{{ oldName }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="form">
+    <div class="row">
+      <mat-form-field class="name-field">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" cdkFocusInitial (focus)="isNew && $any($event.target).select()" />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Kürzel</mat-label>
+        <input matInput formControlName="abbreviation" />
+      </mat-form-field>
+    </div>
+    <mat-accordion multi>
+      <mat-expansion-panel expanded>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Zuordnung</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>Bestand</mat-label>
+            <mat-select formControlName="collectionId">
+              <mat-option>Nicht zugeordnet</mat-option>
+              @for (collection of collections | async; track collection.id) {
+                <mat-option [value]="collection.id">{{ collection.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>Zugeordnete Mitarbeiter</mat-label>
+            <mat-chip-grid #chipGrid>
+              @for (archivist of assignedArchivists | async; track archivist) {
+                <mat-chip-row (removed)="removeArchivist(archivist)">
+                  <mat-icon matChipAvatar>person</mat-icon>
+                  {{ archivist.displayName }}
+                  <button
+                    matChipRemove
+                    [attr.aria-label]="'Zuordnung zu Nutzer ' + archivist.displayName + ' aufheben'"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              #input
+              [matChipInputFor]="chipGrid"
+              [formControl]="archivistsFilterControl"
+              [matAutocomplete]="auto"
+              placeholder="Filtern"
+            />
+            <mat-autocomplete
+              #auto="matAutocomplete"
+              (optionSelected)="addArchivist($event.option.value); input.value = ''"
+            >
+              @for (archivist of filteredArchivists | async; track archivist) {
+                <mat-option [value]="archivist.id">{{ archivist.displayName }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+      <mat-expansion-panel #transferDirectoryPanel [expanded]="isNew" formGroupName="transferDirectory">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Transferverzeichnis</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>URI</mat-label>
+            <input matInput formControlName="uri" type="url" />
+          </mat-form-field>
+        </div>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>Nutzername</mat-label>
+            <input matInput formControlName="username" />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Passwort</mat-label>
+            <input matInput formControlName="password" type="password" />
+          </mat-form-field>
+        </div>
+        <button
+          class="test-button"
+          mat-flat-button
+          color="accent"
+          (click)="testTransferDirectory()"
+          [disabled]="!form.get('transferDirectory')?.valid || loadingTestResult"
+        >
+          <mat-spinner *ngIf="loadingTestResult" diameter="16"></mat-spinner>
+          Transferverzeichnis testen
+        </button>
+        @if (testResult === "success") {
+          <p class="message message-success">
+            <mat-icon>check</mat-icon>Das Transferverzeichnis ist erreichbar und mit korrekten Rechten konfiguriert.
+          </p>
+        } @else if (testResult === "failed") {
+          <p class="message message-failed">
+            <mat-icon>error</mat-icon>Das Transferverzeichnis ist konnte nicht erreicht werden oder ist nicht korrekt
+            konfiguriert.
+          </p>
+        }
+      </mat-expansion-panel>
+    </mat-accordion>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-flat-button color="primary" [disabled]="!form.valid || testResult === 'failed'" (click)="save()">
+    Speichern
+  </button>
+  <button mat-button mat-dialog-close>Abbrechen</button>
+  <button *ngIf="!isNew" class="delete-button" mat-flat-button color="warn" (click)="deleteInstitution()">
+    Löschen
+  </button>
+</div>
+
+<ng-template #deleteDialog>
+  <h1 mat-dialog-title>{{ oldName }} löschen?</h1>
+  <div mat-dialog-content>
+    <p>Möchten Sie die abgebende Stelle "{{ oldName }}" löschen?</p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+  </div>
+</ng-template>

@@ -12,9 +12,11 @@ import (
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := extractToken(c)
-		if _, err := validateToken(tokenString); err != nil {
+		result, err := validateToken(tokenString)
+		if err != nil {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
+		c.Set("userId", result.UserID)
 	}
 }
 
@@ -42,6 +44,7 @@ func Login(c *gin.Context) {
 	authorization, err := authorizeUser(user, pass)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Internal Server Error")
+		fmt.Println(err)
 		return
 	}
 	if authorization.Predicate == INVALID {
@@ -55,17 +58,27 @@ func Login(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	token, err := createToken(*authorization.Permissions, *authorization.UserEntry)
+	token, err := createToken(*authorization.UserEntry)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Internal Server Error")
 		fmt.Println(err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"token":           token,
-		"permissions":     authorization.Permissions,
-		"userDisplayName": authorization.UserEntry.DisplayName,
+		"token": token,
+		"user":  authorization.UserEntry,
 	})
+}
+
+// Users lists all users with basic access rights and their permissions
+func Users(c *gin.Context) {
+	users, err := listUsers()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Internal Server Error")
+		fmt.Println(err)
+		return
+	}
+	c.JSON(http.StatusOK, users)
 }
 
 // extractToken reads a bearer token from the HTTP authorization header.
