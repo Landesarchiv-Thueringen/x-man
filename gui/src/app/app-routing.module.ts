@@ -11,7 +11,7 @@ import { MessageMetadataComponent } from './metadata/message-metadata/message-me
 import { PrimaryDocumentsTableComponent } from './metadata/primary-documents-table/primary-documents-table.component';
 import { ProcessMetadataComponent } from './metadata/process-metadata/process-metadata.component';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
-import { isLoggedIn } from './utility/authorization/auth-guards';
+import { isAdmin, isLoggedIn } from './utility/authorization/auth-guards';
 
 const routes: Routes = [
   {
@@ -39,7 +39,7 @@ const routes: Routes = [
       {
         path: 'steuerungsstelle',
         component: ClearingTableComponent,
-        canActivate: [isLoggedIn],
+        canActivate: [isAdmin],
       },
       {
         path: 'error/:code',
