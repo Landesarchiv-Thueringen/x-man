@@ -38,15 +38,16 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
           console.error(error);
         },
         next: (errors: ProcessingError[]) => {
-          if (JSON.stringify(this.dataSource.data) !== JSON.stringify(errors)) {
-            console.log('Updated errors', errors);
-            this.dataSource.data = errors;
-          }
+          this.dataSource.data = errors;
         },
       });
   }
 
   ngOnDestroy(): void {
     this.errorsSubscription?.unsubscribe();
+  }
+
+  trackTableRow(index: number, element: ProcessingError): number {
+    return element.id;
   }
 }

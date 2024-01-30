@@ -1,6 +1,13 @@
 <div class="processing-errors-section">
   <div class="error-table mat-elevation-z8">
-    <table mat-table [dataSource]="dataSource" matSort matSortActive="detectedAt" matSortDirection="desc">
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      [trackBy]="trackTableRow"
+      matSort
+      matSortActive="detectedAt"
+      matSortDirection="desc"
+    >
       <!-- detected at column -->
       <ng-container matColumnDef="detectedAt">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Feststellungszeitpunkt</th>
