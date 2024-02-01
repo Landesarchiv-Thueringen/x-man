@@ -11,6 +11,7 @@ func InitAgencies() {
 			Name:         "Thüringer Ministerium für Inneres und Kommunales",
 			Abbreviation: "TMIK",
 			TransferDir:  "/xman/transfer_dir",
+			UserIDs:      [][]byte{},
 		},
 	}
 	db.InitAgencies(agencies)

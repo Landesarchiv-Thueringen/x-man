@@ -59,7 +59,7 @@ func main() {
 	authorized.GET("api/primary-document", getPrimaryDocument)
 	authorized.GET("api/primary-documents/:id", getPrimaryDocuments)
 	authorized.GET("api/report/:processId", getReport)
-	authorized.GET("api/institutions/my", getMyInstitutions)
+	authorized.GET("api/agencies/my", getMyAgencies)
 	authorized.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
 	authorized.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
 	authorized.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
@@ -72,10 +72,10 @@ func main() {
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.GET("api/users", auth.Users)
-	admin.GET("api/institutions", getInstitutions)
-	admin.PUT("api/institution", putInstitution)
-	admin.POST("api/institution/:id", postInstitution)
-	admin.DELETE("api/institution/:id", deleteInstitution)
+	admin.GET("api/agencies", getAgencies)
+	admin.PUT("api/agency", putAgency)
+	admin.POST("api/agency/:id", postAgency)
+	admin.DELETE("api/agency/:id", deleteAgency)
 	admin.GET("api/collections", getCollections)
 	admin.PUT("api/collection", putCollection)
 	admin.POST("api/collection/:id", postCollection)
@@ -519,54 +519,62 @@ func archive0503Message(context *gin.Context) {
 	}
 }
 
-func getMyInstitutions(context *gin.Context) {
+func getMyAgencies(context *gin.Context) {
 	userID := context.MustGet("userId")
 	fmt.Println(userID)
 	if userID, ok := context.MustGet("userId").([]byte); ok {
-		institutions := db.GetInstitutionsForUser(userID)
-		context.JSON(http.StatusOK, institutions)
+		agencies, err := db.GetAgenciesForUser(userID)
+		if err != nil {
+			context.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		context.JSON(http.StatusOK, agencies)
 	} else {
 		context.AbortWithStatus(http.StatusBadRequest)
 	}
 }
 
-func getInstitutions(context *gin.Context) {
+func getAgencies(context *gin.Context) {
+	var agencies []db.Agency
+	var err error
 	if userIDString, hasUserID := context.GetQuery("userId"); hasUserID {
 		userID, err := base64.StdEncoding.DecodeString(userIDString)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		institutions := db.GetInstitutionsForUser(userID)
-		context.JSON(http.StatusOK, institutions)
+		agencies, err = db.GetAgenciesForUser(userID)
 	} else if collectionIDString, hasCollectionID := context.GetQuery("collectionId"); hasCollectionID {
 		collectionID, err := strconv.ParseUint(collectionIDString, 10, 32)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		institutions := db.GetInstitutionsForCollection(uint(collectionID))
-		context.JSON(http.StatusOK, institutions)
+		agencies, err = db.GetAgenciesForCollection(uint(collectionID))
 	} else {
-		institutions := db.GetInstitutions()
-		context.JSON(http.StatusOK, institutions)
+		agencies, err = db.GetAgencies()
 	}
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	context.JSON(http.StatusOK, agencies)
 }
 
-func putInstitution(context *gin.Context) {
+func putAgency(context *gin.Context) {
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
 		context.AbortWithStatus(http.StatusInternalServerError)
 		log.Println("Error reading request body: ", err)
 		return
 	}
-	var institution db.ConfiguredInstitution
-	err = json.Unmarshal(body, &institution)
+	var agency db.Agency
+	err = json.Unmarshal(body, &agency)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	id, err := db.CreateInstitution(institution)
+	id, err := db.CreateAgency(agency)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
@@ -574,7 +582,7 @@ func putInstitution(context *gin.Context) {
 	context.String(http.StatusAccepted, strconv.FormatUint(uint64(id), 10))
 }
 
-func postInstitution(context *gin.Context) {
+func postAgency(context *gin.Context) {
 	idParam := context.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -587,13 +595,13 @@ func postInstitution(context *gin.Context) {
 		log.Println("Error reading request body: ", err)
 		return
 	}
-	var institution db.ConfiguredInstitution
-	err = json.Unmarshal(body, &institution)
+	var agency db.Agency
+	err = json.Unmarshal(body, &agency)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	err = db.UpdateInstitution(uint(id), institution)
+	err = db.UpdateAgency(uint(id), agency)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
@@ -601,14 +609,14 @@ func postInstitution(context *gin.Context) {
 	context.Status(http.StatusAccepted)
 }
 
-func deleteInstitution(context *gin.Context) {
+func deleteAgency(context *gin.Context) {
 	idParam := context.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	deleted, err := db.DeleteInstitution(uint(id))
+	deleted, err := db.DeleteAgency(uint(id))
 	if !deleted {
 		context.AbortWithStatus(http.StatusNotFound)
 	} else if err != nil {

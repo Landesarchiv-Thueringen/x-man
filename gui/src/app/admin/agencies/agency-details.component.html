@@ -62,24 +62,14 @@
           </mat-form-field>
         </div>
       </mat-expansion-panel>
-      <mat-expansion-panel #transferDirectoryPanel [expanded]="isNew" formGroupName="transferDirectory">
+      <mat-expansion-panel #transferDirPanel [expanded]="isNew">
         <mat-expansion-panel-header>
           <mat-panel-title>Transferverzeichnis</mat-panel-title>
         </mat-expansion-panel-header>
         <div class="row">
           <mat-form-field>
-            <mat-label>URI</mat-label>
-            <input matInput formControlName="uri" type="url" />
-          </mat-form-field>
-        </div>
-        <div class="row">
-          <mat-form-field>
-            <mat-label>Nutzername</mat-label>
-            <input matInput formControlName="username" />
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Passwort</mat-label>
-            <input matInput formControlName="password" type="password" />
+            <mat-label>Transferverzeichnis</mat-label>
+            <input matInput formControlName="transferDir" type="url" />
           </mat-form-field>
         </div>
         <button
@@ -87,7 +77,7 @@
           mat-flat-button
           color="accent"
           (click)="testTransferDirectory()"
-          [disabled]="!form.get('transferDirectory')?.valid || loadingTestResult"
+          [disabled]="!form.get('transferDir')?.valid || loadingTestResult"
         >
           <mat-spinner *ngIf="loadingTestResult" diameter="16"></mat-spinner>
           Transferverzeichnis testen
@@ -111,9 +101,7 @@
     Speichern
   </button>
   <button mat-button mat-dialog-close>Abbrechen</button>
-  <button *ngIf="!isNew" class="delete-button" mat-flat-button color="warn" (click)="deleteInstitution()">
-    Löschen
-  </button>
+  <button *ngIf="!isNew" class="delete-button" mat-flat-button color="warn" (click)="deleteAgency()">Löschen</button>
 </div>
 
 <ng-template #deleteDialog>

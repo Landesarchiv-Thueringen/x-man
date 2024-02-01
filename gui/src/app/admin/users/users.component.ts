@@ -58,8 +58,8 @@ export class UsersComponent implements AfterViewInit {
   }
 
   openDetails(user: User) {
-    this.usersService.getInstitutionsForUser(user.id).subscribe((institutions) => {
-      this.dialog.open(UserDetailsComponent, { data: { user, institutions } });
+    this.usersService.getAgenciesForUser(user.id).subscribe((agencies) => {
+      this.dialog.open(UserDetailsComponent, { data: { user, agencies } });
     });
   }
 }

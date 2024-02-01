@@ -5,12 +5,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import { Institution } from '../institutions/institutions.service';
+import { Agency } from '../agencies/agencies.service';
 import { User } from './users.service';
 
 interface UserDetailsData {
   user: User;
-  institutions: Institution[];
+  agencies: Agency[];
 }
 
 /**

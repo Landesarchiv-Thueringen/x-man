@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Permissions } from '../../utility/authorization/auth.service';
-import { Institution } from '../institutions/institutions.service';
+import { Agency } from '../agencies/agencies.service';
 
 export interface User {
   id: string;
@@ -33,8 +33,8 @@ export class UsersService {
     return this.users.pipe(map((users) => ids.map((id) => this.findById(users, id))));
   }
 
-  getInstitutionsForUser(userId: string): Observable<Institution[]> {
-    return this.httpClient.get<Institution[]>(environment.endpoint + '/institutions', { params: { userId } });
+  getAgenciesForUser(userId: string): Observable<Agency[]> {
+    return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', { params: { userId } });
   }
 
   private findById(user: User[], id: string): User {

@@ -20,37 +20,28 @@ func GetProcessingErrors() []ProcessingError {
 	return processingErrors
 }
 
-func GetInstitutions() []ConfiguredInstitution {
-	var institutions []ConfiguredInstitution
-	result := db.Preload(clause.Associations).Find(&institutions)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	return institutions
+func GetAgencies() ([]Agency, error) {
+	var agencies []Agency
+	result := db.Preload(clause.Associations).Find(&agencies)
+	return agencies, result.Error
 }
 
-func GetInstitutionsForUser(userID []byte) []ConfiguredInstitution {
-	var institutions []ConfiguredInstitution
+func GetAgenciesForUser(userID []byte) ([]Agency, error) {
+	var agencies []Agency
 	result := db.
 		Preload(clause.Associations).
 		Where("? <@ user_ids", pq.ByteaArray([][]byte{userID})).
-		Find(&institutions)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	return institutions
+		Find(&agencies)
+	return agencies, result.Error
 }
 
-func GetInstitutionsForCollection(collectionID uint) []ConfiguredInstitution {
-	var institutions []ConfiguredInstitution
+func GetAgenciesForCollection(collectionID uint) ([]Agency, error) {
+	var agencies []Agency
 	result := db.
 		Preload(clause.Associations).
 		Where("collection_id = ?", collectionID).
-		Find(&institutions)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	return institutions
+		Find(&agencies)
+	return agencies, result.Error
 }
 
 func GetCollections() []Collection {
@@ -60,12 +51,6 @@ func GetCollections() []Collection {
 		log.Fatal(result.Error)
 	}
 	return collections
-}
-
-func GetAgencies() ([]Agency, error) {
-	var agencies []Agency
-	result := db.Find(&agencies)
-	return agencies, result.Error
 }
 
 func GetSupportedXdomeaVersions() []XdomeaVersion {

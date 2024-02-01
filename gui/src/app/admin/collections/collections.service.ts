@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Institution } from '../institutions/institutions.service';
+import { Agency } from '../agencies/agencies.service';
 
 export interface Collection {
   id: number;
@@ -30,8 +30,8 @@ export class CollectionsService {
     return this.collections.pipe(map((collections) => collections.find((c) => c.id === id) ?? null));
   }
 
-  getInstitutionsForCollection(collectionId: number): Observable<Institution[]> {
-    return this.httpClient.get<Institution[]>(environment.endpoint + '/institutions', { params: { collectionId } });
+  getInstitutionsForCollection(collectionId: number): Observable<Agency[]> {
+    return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', { params: { collectionId } });
   }
 
   createCollection(collection: Omit<Collection, 'id'>) {

@@ -10,35 +10,34 @@ import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Collection, CollectionsService } from '../collections/collections.service';
 import { UsersService } from '../users/users.service';
-import { InstitutionDetailsComponent } from './institution-details.component';
-import { Institution, InstitutionsService } from './institutions.service';
-import { TransferDirectory } from './transfer-directory.service';
+import { AgenciesService, Agency } from './agencies.service';
+import { AgencyDetailsComponent } from './agency-details.component';
 
 @Component({
-  selector: 'app-institutions',
+  selector: 'app-agencies',
   standalone: true,
   imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatDialogModule, MatIconModule],
-  templateUrl: './institutions.component.html',
-  styleUrl: './institutions.component.scss',
+  templateUrl: './agencies.component.html',
+  styleUrl: './agencies.component.scss',
 })
-export class InstitutionsComponent implements AfterViewInit {
+export class AgenciesComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users', 'collectionId'];
-  dataSource = new MatTableDataSource<Institution>();
-  institutions = this.institutionsService.getInstitutions();
+  dataSource = new MatTableDataSource<Agency>();
+  agencies = this.agenciesService.getAgencies();
   collections: Collection[] | null = null;
 
   constructor(
-    private institutionsService: InstitutionsService,
+    private agenciesService: AgenciesService,
     private dialog: MatDialog,
     private usersService: UsersService,
     private collectionsService: CollectionsService,
   ) {
-    this.institutionsService
-      .getInstitutions()
+    this.agenciesService
+      .getAgencies()
       .pipe(takeUntilDestroyed())
-      .subscribe((institutions) => (this.dataSource.data = institutions));
+      .subscribe((agencies) => (this.dataSource.data = agencies));
     this.collectionsService
       .getCollections()
       .pipe(takeUntilDestroyed())
@@ -49,37 +48,37 @@ export class InstitutionsComponent implements AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  getCollectionName(institution: Institution): Observable<string> {
-    if (institution.collectionId == null) {
+  getCollectionName(agency: Agency): Observable<string> {
+    if (agency.collectionId == null) {
       return of('');
     }
-    return this.collectionsService.getCollectionById(institution.collectionId).pipe(map((c) => c?.name ?? ''));
+    return this.collectionsService.getCollectionById(agency.collectionId).pipe(map((c) => c?.name ?? ''));
   }
 
-  getArchivistNames(institution: Institution): Observable<string> {
+  getArchivistNames(agency: Agency): Observable<string> {
     return this.usersService
-      .getUsersByIds(institution.userIds)
+      .getUsersByIds(agency.userIds)
       .pipe(map((user) => user.map((u) => u.displayName).join('; ')));
   }
 
-  openDetails(institution: Partial<Institution>) {
-    const dialogRef = this.dialog.open(InstitutionDetailsComponent, { data: institution });
+  openDetails(agency: Partial<Agency>) {
+    const dialogRef = this.dialog.open(AgencyDetailsComponent, { data: agency });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        if (institution.id == null) {
-          this.institutionsService.createInstitution(result);
+        if (agency.id == null) {
+          this.agenciesService.createAgency(result);
         } else {
-          this.institutionsService.updateInstitution(institution.id, result);
+          this.agenciesService.updateAgency(agency.id, result);
         }
       }
     });
   }
 
-  newInstitution() {
+  newAgency() {
     this.openDetails({
       name: 'Neue Abgebende Stelle',
       abbreviation: '',
-      transferDirectory: {} as TransferDirectory,
+      transferDir: '',
       userIds: [],
     });
   }

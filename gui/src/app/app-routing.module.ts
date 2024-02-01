@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './admin/admin.component';
+import { AgenciesComponent } from './admin/agencies/agencies.component';
 import { CollectionsComponent } from './admin/collections/collections.component';
-import { InstitutionsComponent } from './admin/institutions/institutions.component';
 import { UsersComponent } from './admin/users/users.component';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
 import { ErrorComponent } from './error/error.component';
@@ -53,7 +53,7 @@ const routes: Routes = [
           { path: '', redirectTo: 'abgebende-stellen', pathMatch: 'full' },
           {
             path: 'abgebende-stellen',
-            component: InstitutionsComponent,
+            component: AgenciesComponent,
           },
           {
             path: 'bestände',

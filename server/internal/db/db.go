@@ -84,8 +84,6 @@ func Migrate() {
 		&FeatureValue{},
 		&ToolConfidence{},
 		&ProcessingError{},
-		&ConfiguredInstitution{},
-		&TransferDirectory{},
 		&Collection{},
 	)
 }
@@ -445,19 +443,19 @@ func AddProcessingErrorToProcess(process Process, e ProcessingError) {
 	}
 }
 
-func CreateInstitution(institution ConfiguredInstitution) (uint, error) {
-	result := db.Create(&institution)
-	return institution.ID, result.Error
+func CreateAgency(agency Agency) (uint, error) {
+	result := db.Create(&agency)
+	return agency.ID, result.Error
 }
 
-func UpdateInstitution(id uint, institution ConfiguredInstitution) error {
-	institution.ID = id
-	result := db.Save(&institution)
+func UpdateAgency(id uint, agency Agency) error {
+	agency.ID = id
+	result := db.Save(&agency)
 	return result.Error
 }
 
-func DeleteInstitution(id uint) (bool, error) {
-	result := db.Delete(&ConfiguredInstitution{}, id)
+func DeleteAgency(id uint) (bool, error) {
+	result := db.Delete(&Agency{}, id)
 	return result.RowsAffected == 1, result.Error
 }
 

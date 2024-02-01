@@ -14,16 +14,16 @@ import { MatSelectModule } from '@angular/material/select';
 import { Observable, firstValueFrom, map, startWith, switchMap, take } from 'rxjs';
 import { CollectionsService } from '../collections/collections.service';
 import { User, UsersService } from '../users/users.service';
-import { Institution, InstitutionsService } from './institutions.service';
+import { AgenciesService, Agency } from './agencies.service';
 import { TransferDirectoryService } from './transfer-directory.service';
 
 /**
- * Institution metadata and associations.
+ * Agency metadata and associations.
  *
  * Shown in a dialog.
  */
 @Component({
-  selector: 'app-institution-details',
+  selector: 'app-agency-details',
   standalone: true,
   imports: [
     CommonModule,
@@ -39,38 +39,28 @@ import { TransferDirectoryService } from './transfer-directory.service';
     MatSelectModule,
     ReactiveFormsModule,
   ],
-  templateUrl: './institution-details.component.html',
-  styleUrl: './institution-details.component.scss',
+  templateUrl: './agency-details.component.html',
+  styleUrl: './agency-details.component.scss',
 })
-export class InstitutionDetailsComponent {
+export class AgencyDetailsComponent {
   @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
-  @ViewChild('transferDirectoryPanel') transferDirectoryPanel!: MatExpansionPanel;
+  @ViewChild('transferDirPanel') transferDirPanel!: MatExpansionPanel;
 
-  readonly oldName = this.institution.name;
+  readonly oldName = this.agency.name;
   form = new FormGroup({
-    name: new FormControl(this.institution.name, { nonNullable: true, validators: Validators.required }),
-    abbreviation: new FormControl(this.institution.abbreviation, {
+    name: new FormControl(this.agency.name, { nonNullable: true, validators: Validators.required }),
+    abbreviation: new FormControl(this.agency.abbreviation, {
       nonNullable: true,
       validators: Validators.required,
     }),
-    transferDirectory: new FormGroup({
-      uri: new FormControl(this.institution.transferDirectory.uri, {
-        nonNullable: true,
-        validators: Validators.required,
-      }),
-      username: new FormControl(this.institution.transferDirectory.username, {
-        nonNullable: true,
-        validators: Validators.required,
-      }),
-      password: new FormControl(this.institution.transferDirectory.password, {
-        nonNullable: true,
-        validators: Validators.required,
-      }),
+    transferDir: new FormControl(this.agency.transferDir, {
+      nonNullable: true,
+      validators: Validators.required,
     }),
-    collectionId: new FormControl(this.institution.collectionId, {
+    collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
     }),
-    userIds: new FormControl(this.institution.userIds ?? [], { nonNullable: true }),
+    userIds: new FormControl(this.agency.userIds ?? [], { nonNullable: true }),
   });
   archivistsFilterControl = new FormControl('');
   filteredArchivists: Observable<User[]>;
@@ -89,19 +79,19 @@ export class InstitutionDetailsComponent {
    */
   testResult: 'success' | 'failed' | 'not-tested' | 'unchanged' = 'unchanged';
   loadingTestResult = false;
-  isNew = this.institution.id == null;
+  isNew = this.agency.id == null;
 
   constructor(
-    private dialogRef: MatDialogRef<InstitutionDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) private institution: Institution,
+    private dialogRef: MatDialogRef<AgencyDetailsComponent>,
+    @Inject(MAT_DIALOG_DATA) private agency: Agency,
     private dialog: MatDialog,
     private usersService: UsersService,
     private collectionsService: CollectionsService,
-    private institutionsService: InstitutionsService,
+    private agenciesService: AgenciesService,
     private transferDirectoryService: TransferDirectoryService,
   ) {
-    // Reset 'testResult' when any value of 'transferDirectory' changes
-    this.form.get('transferDirectory')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));
+    // Reset 'testResult' when the value of 'transferDir' changes
+    this.form.get('transferDir')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));
     // Disable close on backdrop click as soon as the user modifies any value
     this.form.valueChanges.pipe(take(1)).subscribe(() => (this.dialogRef.disableClose = true));
     // Bind autocomplete results for archivists
@@ -125,8 +115,8 @@ export class InstitutionDetailsComponent {
    * Sets `loadingTestResult` to true while running.
    */
   async testTransferDirectory() {
-    this.transferDirectoryPanel.open();
-    const value = this.form.getRawValue().transferDirectory;
+    this.transferDirPanel.open();
+    const value = this.form.getRawValue().transferDir;
     if (this.form.valid && !this.loadingTestResult) {
       this.loadingTestResult = true;
       const observable = this.transferDirectoryService.testTransferDirectory(value);
@@ -142,7 +132,7 @@ export class InstitutionDetailsComponent {
   }
 
   /**
-   * Assigns the given archivist as responsible for this institution.
+   * Assigns the given archivist as responsible for this agency.
    */
   addArchivist(archivistId: string) {
     const currentIds = this.form.getRawValue().userIds;
@@ -153,7 +143,7 @@ export class InstitutionDetailsComponent {
   }
 
   /**
-   * Removes the given archivist's assignment to this institution.
+   * Removes the given archivist's assignment to this agency.
    */
   removeArchivist(archivist: User) {
     const currentIds = this.form.getRawValue().userIds;
@@ -198,13 +188,13 @@ export class InstitutionDetailsComponent {
   }
 
   /**
-   * Deletes this institution after getting user confirmation and closes the dialog.
+   * Deletes this agency after getting user confirmation and closes the dialog.
    */
-  deleteInstitution() {
+  deleteAgency() {
     const dialogRef = this.dialog.open(this.deleteDialogTemplate);
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
-        this.institutionsService.deleteInstitution(this.institution);
+        this.agenciesService.deleteAgency(this.agency);
         this.dialogRef.close();
       }
     });
