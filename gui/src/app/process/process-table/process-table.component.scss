@@ -8,6 +8,14 @@
   }
 }
 
+.row {
+  display: flex;
+  align-items: center;
+  h1 {
+    flex-grow: 1;
+  }
+}
+
 .filters {
   display: flex;
   gap: 1em;

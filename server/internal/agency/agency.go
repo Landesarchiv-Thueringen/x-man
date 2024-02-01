@@ -20,9 +20,7 @@ func InitAgencies() {
 func MonitorTransferDirs() {
 	agencies, err := db.GetAgencies()
 	if err != nil {
-		log.Println(err)
-		log.Println("couldn't initialize the monitoring of the transfer directories")
-		return
+		log.Fatal(err)
 	}
 	go watchTransferDirectories(agencies)
 }

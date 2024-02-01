@@ -6,12 +6,18 @@ import (
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/xdomea"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 )
 
 var ticker time.Ticker
 var stop chan bool
+
+func TestTransferDir(dir string) bool {
+	_, err := os.ReadDir(dir)
+	return err == nil
+}
 
 func watchTransferDirectories(agencies []db.Agency) {
 	ticker = *time.NewTicker(time.Second * 5)

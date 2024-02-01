@@ -6,6 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../utility/authorization/auth.service';
 import { Process, ProcessService } from '../process.service';
 
 @Component({
@@ -42,6 +43,8 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   });
   /** All institutions for which there are processes. Used for institutions filter field. */
   institutions: string[] = [];
+  isAdmin = this.authService.isAdmin();
+  allUsersControl = new FormControl(false, { nonNullable: true });
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -50,6 +53,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     private processService: ProcessService,
     private formBuilder: FormBuilder,
     private notification: NotificationService,
+    private authService: AuthService,
   ) {
     this.dataSource.sortingDataAccessor = (item: Process, property: string) => {
       // TODO: fix
@@ -77,10 +81,15 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     this.dataSource.filterPredicate = this.filterPredicate as (data: Process, filter: string) => boolean;
 
     // refetch processes every `updateInterval` milliseconds
-    this.processSubscription = interval(environment.updateInterval)
+    this.processSubscription = this.allUsersControl.valueChanges
       .pipe(
-        startWith(void 0), // initial fetch
-        switchMap(() => this.processService.getProcesses()),
+        startWith(this.allUsersControl.value),
+        switchMap(() =>
+          interval(environment.updateInterval).pipe(
+            startWith(void 0), // initial fetch
+          ),
+        ),
+        switchMap(() => this.processService.getProcesses(this.allUsersControl.value)),
       )
       .subscribe({
         error: (error) => {

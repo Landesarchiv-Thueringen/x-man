@@ -1,4 +1,9 @@
-<h1>Aussonderungen ({{ dataSource.data.length }})</h1>
+<div class="row">
+  <h1>Aussonderungen ({{ dataSource.data.length }})</h1>
+  @if (isAdmin) {
+    <mat-slide-toggle [formControl]="allUsersControl">Für alle Mitarbeiter anzeigen</mat-slide-toggle>
+  }
+</div>
 <form [formGroup]="filter" class="filters">
   <mat-form-field class="string-field">
     <mat-label>Filtern</mat-label>

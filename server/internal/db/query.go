@@ -99,6 +99,44 @@ func GetProcesses() ([]Process, error) {
 	return processesWithoutErrors, result.Error
 }
 
+func GetProcessesForUser(userID []byte) ([]Process, error) {
+	var processes []Process
+	agencies, err := GetAgenciesForUser(userID)
+	if err != nil {
+		return processes, err
+	}
+	agencyIDs := make([]uint, len(agencies))
+	for i, v := range agencies {
+		agencyIDs[i] = v.ID
+	}
+	result := db.
+		Where("agency_id IN ?", agencyIDs).
+		Preload("Agency").
+		Preload("Message0501.MessageHead").
+		Preload("Message0501.MessageType").
+		Preload("Message0503.MessageHead").
+		Preload("Message0503.MessageType").
+		Preload("ProcessingErrors").
+		Preload("ProcessingErrors.Agency").
+		Preload("ProcessState.Receive0501").
+		Preload("ProcessState.Appraisal").
+		Preload("ProcessState.Receive0505").
+		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.FormatVerification").
+		Preload("ProcessState.Archiving").
+		Find(&processes)
+	if result.Error != nil {
+		return processes, result.Error
+	}
+	var processesWithoutErrors []Process
+	for _, p := range processes {
+		if len(p.ProcessingErrors) == 0 {
+			processesWithoutErrors = append(processesWithoutErrors, p)
+		}
+	}
+	return processesWithoutErrors, result.Error
+}
+
 func GetMessageByID(id uuid.UUID) (Message, error) {
 	var message Message
 	result := db.First(&message, id)

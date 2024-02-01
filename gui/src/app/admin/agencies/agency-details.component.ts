@@ -15,7 +15,7 @@ import { Observable, firstValueFrom, map, startWith, switchMap, take } from 'rxj
 import { CollectionsService } from '../collections/collections.service';
 import { User, UsersService } from '../users/users.service';
 import { AgenciesService, Agency } from './agencies.service';
-import { TransferDirectoryService } from './transfer-directory.service';
+import { TransferDirService } from './transfer-dir.service';
 
 /**
  * Agency metadata and associations.
@@ -88,7 +88,7 @@ export class AgencyDetailsComponent {
     private usersService: UsersService,
     private collectionsService: CollectionsService,
     private agenciesService: AgenciesService,
-    private transferDirectoryService: TransferDirectoryService,
+    private transferDirectoryService: TransferDirService,
   ) {
     // Reset 'testResult' when the value of 'transferDir' changes
     this.form.get('transferDir')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));
@@ -119,10 +119,10 @@ export class AgencyDetailsComponent {
     const value = this.form.getRawValue().transferDir;
     if (this.form.valid && !this.loadingTestResult) {
       this.loadingTestResult = true;
-      const observable = this.transferDirectoryService.testTransferDirectory(value);
+      const observable = this.transferDirectoryService.testTransferDir(value);
       try {
         const testResult = await firstValueFrom(observable);
-        this.testResult = testResult;
+        this.testResult = testResult.result;
       } catch {
         this.testResult = 'failed';
       } finally {

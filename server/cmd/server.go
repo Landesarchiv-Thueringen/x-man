@@ -80,6 +80,7 @@ func main() {
 	admin.PUT("api/collection", putCollection)
 	admin.POST("api/collection/:id", postCollection)
 	admin.DELETE("api/collection/:id", deleteCollection)
+	admin.POST("api/test-transfer-dir", testTransferDir)
 	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
 	router.Run(addr)
 }
@@ -125,7 +126,22 @@ func getProcessByXdomeaID(context *gin.Context) {
 }
 
 func getProcesses(context *gin.Context) {
-	processes, err := db.GetProcesses()
+	var processes []db.Process
+	var err error
+	_, allUsers := context.GetQuery("allUsers")
+	if allUsers {
+		auth.AdminRequired()(context)
+		if context.IsAborted() {
+			return
+		}
+		processes, err = db.GetProcesses()
+	} else {
+		userID, ok := context.MustGet("userId").([]byte)
+		if !ok {
+			log.Fatal("failed to read 'userId' from context'")
+		}
+		processes, err = db.GetProcessesForUser(userID)
+	}
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -564,8 +580,7 @@ func getAgencies(context *gin.Context) {
 func putAgency(context *gin.Context) {
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithStatus(http.StatusInternalServerError)
-		log.Println("Error reading request body: ", err)
+		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	var agency db.Agency
@@ -591,8 +606,7 @@ func postAgency(context *gin.Context) {
 	}
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithStatus(http.StatusInternalServerError)
-		log.Println("Error reading request body: ", err)
+		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	var agency db.Agency
@@ -634,8 +648,7 @@ func getCollections(context *gin.Context) {
 func putCollection(context *gin.Context) {
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithStatus(http.StatusInternalServerError)
-		log.Println("Error reading request body: ", err)
+		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	var Collection db.Collection
@@ -661,8 +674,7 @@ func postCollection(context *gin.Context) {
 	}
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithStatus(http.StatusInternalServerError)
-		log.Println("Error reading request body: ", err)
+		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	var Collection db.Collection
@@ -694,4 +706,18 @@ func deleteCollection(context *gin.Context) {
 		context.AbortWithError(http.StatusInternalServerError, err)
 	}
 	context.Status(http.StatusAccepted)
+}
+
+func testTransferDir(context *gin.Context) {
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	success := agency.TestTransferDir(string(body))
+	if success {
+		context.JSON(http.StatusOK, gin.H{"result": "success"})
+	} else {
+		context.JSON(http.StatusOK, gin.H{"result": "failed"})
+	}
 }
