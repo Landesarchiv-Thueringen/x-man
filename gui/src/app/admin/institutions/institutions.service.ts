@@ -10,7 +10,7 @@ export interface Institution {
   name: string;
   abbreviation: string;
   transferDirectory: TransferDirectory;
-  collectionId?: string;
+  collectionId?: number;
   collection?: Collection;
   userIds: string[];
 }

@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>{{ collection.name }}</h2>
+<div mat-dialog-content>
+  @if (institutions | async; as institutions) {
+    @if (institutions.length > 0) {
+      <h3>Zugeordnete abgebende Stellen</h3>
+      <mat-list role="list">
+        @for (institution of institutions; track institution) {
+          <mat-list-item>
+            <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
+            <div matListItemTitle>{{ institution.name }}</div>
+          </mat-list-item>
+        }
+      </mat-list>
+    } @else {
+      <p>Keine zugeordneten abgebenden Stellen</p>
+    }
+  }
+</div>
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>Schließen</button>
+  <button class="delete-button" mat-flat-button color="warn" (click)="deleteCollection()">Löschen</button>
+</div>
+
+<ng-template #deleteDialog>
+  <h3 mat-dialog-title>{{ collection.name }} löschen?</h3>
+  <div mat-dialog-content>
+    <p>Möchten Sie den Bestand "{{ collection.name }}" löschen?</p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+  </div>
+</ng-template>

@@ -456,7 +456,23 @@ func UpdateInstitution(id uint, institution ConfiguredInstitution) error {
 	return result.Error
 }
 
-func DeleteInstitution(id uint) error {
+func DeleteInstitution(id uint) (bool, error) {
 	result := db.Delete(&ConfiguredInstitution{}, id)
+	return result.RowsAffected == 1, result.Error
+}
+
+func CreateCollection(Collection Collection) (uint, error) {
+	result := db.Create(&Collection)
+	return Collection.ID, result.Error
+}
+
+func UpdateCollection(id uint, collection Collection) error {
+	collection.ID = id
+	result := db.Save(&collection)
 	return result.Error
+}
+
+func DeleteCollection(id uint) (bool, error) {
+	result := db.Delete(&Collection{}, id)
+	return result.RowsAffected == 1, result.Error
 }

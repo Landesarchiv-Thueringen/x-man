@@ -29,16 +29,37 @@ func GetInstitutions() []ConfiguredInstitution {
 	return institutions
 }
 
-func GetInstitutionsForUser(userId []byte) []ConfiguredInstitution {
+func GetInstitutionsForUser(userID []byte) []ConfiguredInstitution {
 	var institutions []ConfiguredInstitution
 	result := db.
 		Preload(clause.Associations).
-		Where("? <@ user_ids", pq.ByteaArray([][]byte{userId})).
+		Where("? <@ user_ids", pq.ByteaArray([][]byte{userID})).
 		Find(&institutions)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
 	return institutions
+}
+
+func GetInstitutionsForCollection(collectionID uint) []ConfiguredInstitution {
+	var institutions []ConfiguredInstitution
+	result := db.
+		Preload(clause.Associations).
+		Where("collection_id = ?", collectionID).
+		Find(&institutions)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return institutions
+}
+
+func GetCollections() []Collection {
+	var collections []Collection
+	result := db.Preload(clause.Associations).Find(&collections)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return collections
 }
 
 func GetAgencies() ([]Agency, error) {

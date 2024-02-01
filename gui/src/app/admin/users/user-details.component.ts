@@ -13,6 +13,11 @@ interface UserDetailsData {
   institutions: Institution[];
 }
 
+/**
+ * User metadata and associations.
+ *
+ * Shown in a dialog.
+ */
 @Component({
   selector: 'app-user-details',
   standalone: true,

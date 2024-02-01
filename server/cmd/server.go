@@ -76,6 +76,10 @@ func main() {
 	admin.PUT("api/institution", putInstitution)
 	admin.POST("api/institution/:id", postInstitution)
 	admin.DELETE("api/institution/:id", deleteInstitution)
+	admin.GET("api/collections", getCollections)
+	admin.PUT("api/collection", putCollection)
+	admin.POST("api/collection/:id", postCollection)
+	admin.DELETE("api/collection/:id", deleteCollection)
 	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
 	router.Run(addr)
 }
@@ -527,14 +531,21 @@ func getMyInstitutions(context *gin.Context) {
 }
 
 func getInstitutions(context *gin.Context) {
-	userIDString, hasUserID := context.GetQuery("userId")
-	if hasUserID {
+	if userIDString, hasUserID := context.GetQuery("userId"); hasUserID {
 		userID, err := base64.StdEncoding.DecodeString(userIDString)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
 		institutions := db.GetInstitutionsForUser(userID)
+		context.JSON(http.StatusOK, institutions)
+	} else if collectionIDString, hasCollectionID := context.GetQuery("collectionId"); hasCollectionID {
+		collectionID, err := strconv.ParseUint(collectionIDString, 10, 32)
+		if err != nil {
+			context.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		institutions := db.GetInstitutionsForCollection(uint(collectionID))
 		context.JSON(http.StatusOK, institutions)
 	} else {
 		institutions := db.GetInstitutions()
@@ -597,6 +608,82 @@ func deleteInstitution(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	db.DeleteInstitution(uint(id))
+	deleted, err := db.DeleteInstitution(uint(id))
+	if !deleted {
+		context.AbortWithStatus(http.StatusNotFound)
+	} else if err != nil {
+		fmt.Println(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+	}
+	context.Status(http.StatusAccepted)
+}
 
+func getCollections(context *gin.Context) {
+	Collections := db.GetCollections()
+	context.JSON(http.StatusOK, Collections)
+}
+
+func putCollection(context *gin.Context) {
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithStatus(http.StatusInternalServerError)
+		log.Println("Error reading request body: ", err)
+		return
+	}
+	var Collection db.Collection
+	err = json.Unmarshal(body, &Collection)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	id, err := db.CreateCollection(Collection)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	context.String(http.StatusAccepted, strconv.FormatUint(uint64(id), 10))
+}
+
+func postCollection(context *gin.Context) {
+	idParam := context.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithStatus(http.StatusInternalServerError)
+		log.Println("Error reading request body: ", err)
+		return
+	}
+	var Collection db.Collection
+	err = json.Unmarshal(body, &Collection)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	err = db.UpdateCollection(uint(id), Collection)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	context.Status(http.StatusAccepted)
+}
+
+func deleteCollection(context *gin.Context) {
+	idParam := context.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	deleted, err := db.DeleteCollection(uint(id))
+	if !deleted {
+		context.AbortWithStatus(http.StatusNotFound)
+	} else if err != nil {
+		fmt.Println(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+	}
+	context.Status(http.StatusAccepted)
 }

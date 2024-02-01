@@ -1,30 +1,48 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { Institution } from '../institutions/institutions.service';
 
 export interface Collection {
-  id: string;
+  id: number;
   name: string;
 }
-
-const dummyCollections: Collection[] = [
-  { name: 'Keller', id: '1' },
-  { name: 'Flur', id: '2' },
-];
 
 @Injectable({
   providedIn: 'root',
 })
 export class CollectionsService {
-  private readonly collections = new BehaviorSubject(dummyCollections);
+  private readonly collections = new BehaviorSubject<Collection[]>([]);
 
-  constructor() {}
+  constructor(private httpClient: HttpClient) {
+    httpClient
+      .get<Collection[]>(environment.endpoint + '/collections')
+      .subscribe((collections) => this.collections.next(collections));
+  }
 
   getCollections(): Observable<Collection[]> {
     return this.collections;
   }
 
-  getCollectionById(id: string): Observable<Collection | null> {
+  getCollectionById(id: number): Observable<Collection | null> {
     return this.collections.pipe(map((collections) => collections.find((c) => c.id === id) ?? null));
+  }
+
+  getInstitutionsForCollection(collectionId: number): Observable<Institution[]> {
+    return this.httpClient.get<Institution[]>(environment.endpoint + '/institutions', { params: { collectionId } });
+  }
+
+  createCollection(collection: Omit<Collection, 'id'>) {
+    this.httpClient.put<string>(environment.endpoint + '/collection', collection).subscribe((response) => {
+      const id = parseInt(response);
+      this.collections.next([...this.collections.value, { ...collection, id }]);
+    });
+  }
+
+  deleteCollection(collection: Collection) {
+    this.collections.next(this.collections.value.filter((c) => c !== collection));
+    this.httpClient.delete(environment.endpoint + '/collection/' + collection.id).subscribe();
   }
 }

@@ -3,14 +3,21 @@
   flex-direction: column;
 }
 
-h1 {
+h2 {
   margin-bottom: 0;
 }
 
 mat-chip-set {
+  margin-bottom: 16px;
   align-self: center;
 }
 
-p {
-  margin: 1em 0;
+h3 {
+  margin: 0;
+  color: var(--mdc-dialog-subhead-color, rgba(0, 0, 0, 0.87));
+}
+
+.mat-mdc-list-item-icon {
+  --mdc-list-list-item-leading-icon-color: rgba(0, 0, 0, 0.54);
+  --mdc-list-list-item-hover-leading-icon-color: rgba(0, 0, 0, 0.54);
 }

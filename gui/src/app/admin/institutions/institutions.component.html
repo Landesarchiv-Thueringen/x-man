@@ -1,6 +1,14 @@
 <h1>Abgebende Stellen ({{ dataSource.data.length }})</h1>
 
 <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <!-- Icon Column -->
+  <ng-container matColumnDef="icon">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-icon class="material-symbols-rounded">source_environment</mat-icon>
+    </mat-cell>
+  </ng-container>
+
   <!-- Name Column -->
   <ng-container matColumnDef="name">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>

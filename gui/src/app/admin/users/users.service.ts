@@ -18,7 +18,7 @@ export class UsersService {
   private readonly users = new BehaviorSubject<User[]>([]);
 
   constructor(private httpClient: HttpClient) {
-    httpClient.get<User[]>(environment.endpoint + '/users').subscribe((archivists) => this.users.next(archivists));
+    httpClient.get<User[]>(environment.endpoint + '/users').subscribe((users) => this.users.next(users));
   }
 
   getUsers(): Observable<User[]> {
@@ -26,11 +26,11 @@ export class UsersService {
   }
 
   getUserById(id: string): Observable<User> {
-    return this.users.pipe(map((archivists) => this.findById(archivists, id)));
+    return this.users.pipe(map((users) => this.findById(users, id)));
   }
 
   getUsersByIds(ids: string[]): Observable<User[]> {
-    return this.users.pipe(map((archivists) => ids.map((id) => this.findById(archivists, id))));
+    return this.users.pipe(map((users) => ids.map((id) => this.findById(users, id))));
   }
 
   getInstitutionsForUser(userId: string): Observable<Institution[]> {

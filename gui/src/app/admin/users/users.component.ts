@@ -29,7 +29,7 @@ import { User, UsersService } from './users.service';
 export class UsersComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['displayName', 'admin'];
+  displayedColumns: string[] = ['icon', 'displayName', 'admin'];
   dataSource = new MatTableDataSource<User>();
   filter = new FormControl('');
 

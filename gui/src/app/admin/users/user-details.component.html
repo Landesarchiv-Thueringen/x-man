@@ -1,4 +1,4 @@
-<h1 mat-dialog-title>{{ data.user.displayName }}</h1>
+<h2 mat-dialog-title>{{ data.user.displayName }}</h2>
 <div mat-dialog-content>
   <mat-chip-set>
     @if (data.user.permissions.admin) {
@@ -6,8 +6,8 @@
     }
   </mat-chip-set>
   @if (data.institutions.length > 0) {
+    <h3>Zugeordnete abgebende Stellen</h3>
     <mat-list role="list">
-      <div mat-subheader>Zuständige abgebende Stellen</div>
       @for (institution of data.institutions; track institution) {
         <mat-list-item>
           <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
@@ -16,7 +16,7 @@
       }
     </mat-list>
   } @else {
-    <p>Keine zuständigen abgebenden Stellen</p>
+    <p>Keine zugeordneten abgebenden Stellen</p>
   }
 </div>
 <div mat-dialog-actions>

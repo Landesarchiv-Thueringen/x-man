@@ -24,7 +24,7 @@ import { TransferDirectory } from './transfer-directory.service';
 export class InstitutionsComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['abbreviation', 'name', 'users', 'collectionId'];
+  displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users', 'collectionId'];
   dataSource = new MatTableDataSource<Institution>();
   institutions = this.institutionsService.getInstitutions();
   collections: Collection[] | null = null;

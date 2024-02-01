@@ -18,7 +18,9 @@ import { Institution, InstitutionsService } from './institutions.service';
 import { TransferDirectoryService } from './transfer-directory.service';
 
 /**
- * Institution metadata and associations shown in a dialog.
+ * Institution metadata and associations.
+ *
+ * Shown in a dialog.
  */
 @Component({
   selector: 'app-institution-details',

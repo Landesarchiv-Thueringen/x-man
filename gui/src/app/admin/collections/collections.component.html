@@ -1,1 +1,53 @@
-<h1>Bestände</h1>
+<h1>Bestände ({{ dataSource.data.length }})</h1>
+
+<mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <!-- Icon Column -->
+  <ng-container matColumnDef="icon">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-icon>shelves</mat-icon>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.name }}
+      <button
+        mat-button
+        class="open-details-button"
+        (click)="openDetails(element)"
+        aria-label="Details anzeigen"
+      ></button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>
+
+<button class="add-new-button" mat-flat-button color="primary" (click)="newCollection()">
+  <mat-icon>add</mat-icon>Neuer Bestand
+</button>
+
+<ng-template #newCollectionDialog>
+  <h3 mat-dialog-title>Neuer Bestand</h3>
+  <div mat-dialog-content>
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="newCollectionNameControl" />
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button
+      mat-flat-button
+      color="primary"
+      [mat-dialog-close]="newCollectionNameControl.value"
+      [disabled]="!newCollectionNameControl.valid"
+    >
+      Hinzufügen
+    </button>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+  </div>
+</ng-template>

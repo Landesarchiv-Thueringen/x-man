@@ -8,6 +8,14 @@
 </form>
 
 <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <!-- Icon Column -->
+  <ng-container matColumnDef="icon">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-icon>person</mat-icon>
+    </mat-cell>
+  </ng-container>
+
   <!-- Name Column -->
   <ng-container matColumnDef="displayName">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
@@ -22,7 +30,7 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Short-Name Column -->
+  <!-- Admin Column -->
   <ng-container matColumnDef="admin">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Admin</mat-header-cell>
     <mat-cell *matCellDef="let element">
