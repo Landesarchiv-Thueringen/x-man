@@ -6,9 +6,9 @@ services:
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
-        - CONFIGURATION=${XMAN_GUI_CONFIGURATION}
+        - CONFIGURATION=${GUI_CONFIGURATION}
     ports:
-      - ${XMAN_GUI_HOST_PORT}:80
+      - ${PORT}:80
 
   database:
     restart: unless-stopped
@@ -29,8 +29,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - database:/var/lib/postgresql/data
-    ports:
-      - ${XMAN_DATABASE_HOST_PORT}:5432
 
   server:
     restart: unless-stopped
@@ -53,7 +51,6 @@ services:
       - AD_PASS=${AD_PASS}
       - AD_ACCESS_GROUP=${AD_ACCESS_GROUP}
       - AD_ADMIN_GROUP=${AD_ADMIN_GROUP}
-      - XMAN_SERVER_CONTAINER_PORT=${XMAN_SERVER_CONTAINER_PORT}
       - DIMAG_SFTP_SERVER_URL=${DIMAG_SFTP_SERVER_URL}
       - DIMAG_SFTP_UPLOAD_DIR=${DIMAG_SFTP_UPLOAD_DIR}
       - DIMAG_SFTP_USER=${DIMAG_SFTP_USER}
@@ -67,8 +64,6 @@ services:
     volumes:
       - message_store:/xman/message_store
       - ./transfer_dir:/xman/transfer_dir
-    ports:
-      - ${XMAN_SERVER_HOST_PORT}:${XMAN_SERVER_CONTAINER_PORT}
 
   report:
     restart: unless-stopped
@@ -90,8 +85,6 @@ services:
       PASSWORD: ${WEBDAV_PASSWORD}
     volumes:
       - webdav:/var/lib/dav
-    ports:
-      - ${WEBDAV_HOST_PORT}:80
 
 volumes:
   database:

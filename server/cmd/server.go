@@ -16,7 +16,6 @@ import (
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 
@@ -81,7 +80,7 @@ func main() {
 	admin.POST("api/collection/:id", postCollection)
 	admin.DELETE("api/collection/:id", deleteCollection)
 	admin.POST("api/test-transfer-dir", testTransferDir)
-	addr := "0.0.0.0:" + os.Getenv("XMAN_SERVER_CONTAINER_PORT")
+	addr := "0.0.0.0:80"
 	router.Run(addr)
 }
 
