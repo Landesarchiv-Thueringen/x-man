@@ -42,7 +42,7 @@ func main() {
 	router.GET("api/login", auth.Login)
 	authorized := router.Group("/")
 	authorized.Use(auth.AuthRequired())
-	authorized.GET("api/processes", getProcesses)
+	authorized.GET("api/processes/my", getMyProcesses)
 	authorized.GET("api/process-by-xdomea-id/:id", getProcessByXdomeaID)
 	authorized.GET("api/messages/0501", get0501Messages)
 	authorized.GET("api/messages/0503", get0503Messages)
@@ -69,6 +69,7 @@ func main() {
 	authorized.PATCH("api/archive-0503-message/:id", archive0503Message)
 	admin := router.Group("/")
 	admin.Use(auth.AdminRequired())
+	admin.GET("api/processes", getProcesses)
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.GET("api/users", auth.Users)
 	admin.GET("api/agencies", getAgencies)
@@ -124,23 +125,21 @@ func getProcessByXdomeaID(context *gin.Context) {
 	context.JSON(http.StatusOK, process)
 }
 
-func getProcesses(context *gin.Context) {
-	var processes []db.Process
-	var err error
-	_, allUsers := context.GetQuery("allUsers")
-	if allUsers {
-		auth.AdminRequired()(context)
-		if context.IsAborted() {
-			return
-		}
-		processes, err = db.GetProcesses()
-	} else {
-		userID, ok := context.MustGet("userId").([]byte)
-		if !ok {
-			log.Fatal("failed to read 'userId' from context'")
-		}
-		processes, err = db.GetProcessesForUser(userID)
+func getMyProcesses(context *gin.Context) {
+	userID, ok := context.MustGet("userId").([]byte)
+	if !ok {
+		log.Fatal("failed to read 'userId' from context'")
 	}
+	processes, err := db.GetProcessesForUser(userID)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	context.JSON(http.StatusOK, processes)
+}
+
+func getProcesses(context *gin.Context) {
+	processes, err := db.GetProcesses()
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return

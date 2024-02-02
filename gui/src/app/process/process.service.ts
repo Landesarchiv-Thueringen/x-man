@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -53,11 +53,11 @@ export class ProcessService {
   }
 
   getProcesses(allUsers: boolean) {
-    let params = new HttpParams();
     if (allUsers) {
-      params = params.set('allUsers', true);
+      return this.httpClient.get<Process[]>(this.apiEndpoint + '/processes');
+    } else {
+      return this.httpClient.get<Process[]>(this.apiEndpoint + '/processes/my');
     }
-    return this.httpClient.get<Process[]>(this.apiEndpoint + '/processes', { params });
   }
 
   getProcessByXdomeaID(id: string): Observable<Process> {
