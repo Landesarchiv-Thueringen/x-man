@@ -3,7 +3,7 @@ import { FormBuilder, FormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
+import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../utility/authorization/auth.service';
@@ -44,7 +44,9 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   /** All institutions for which there are processes. Used for institutions filter field. */
   institutions: string[] = [];
   isAdmin = this.authService.isAdmin();
-  allUsersControl = new FormControl(false, { nonNullable: true });
+  allUsersControl = new FormControl(window.localStorage.getItem('show-all-user-processes') === 'true', {
+    nonNullable: true,
+  });
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -83,6 +85,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     // refetch processes every `updateInterval` milliseconds
     this.processSubscription = this.allUsersControl.valueChanges
       .pipe(
+        tap((allUsers) => window.localStorage.setItem('show-all-user-processes', allUsers.toString())),
         startWith(this.allUsersControl.value),
         switchMap(() =>
           interval(environment.updateInterval).pipe(
