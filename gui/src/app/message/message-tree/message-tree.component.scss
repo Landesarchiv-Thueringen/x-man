@@ -91,14 +91,14 @@ mat-toolbar {
       flex-grow: 1;
       font-weight: bold;
 
-      .spacer {
-        flex: 1 1 auto;
-      }
-
       .appraisal-symbol {
         width: 48px; // icon width for alignment
         text-align: center;
       }
+    }
+
+    .spacer {
+      flex: 1 1 auto;
     }
   }
 }

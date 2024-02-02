@@ -45,23 +45,21 @@
       <!-- agency column -->
       <ng-container matColumnDef="institution">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</mat-header-cell>
-        <mat-cell *matCellDef="let process">{{ process.institution }}</mat-cell>
+        <mat-cell *matCellDef="let process">
+          {{ process.institution }}
+          <a
+            mat-button
+            class="open-details-button"
+            aria-label="Details anzeigen"
+            [routerLink]="['/nachricht', process?.message0503?.id ?? process?.message0501?.id, 'details']"
+          ></a>
+        </mat-cell>
       </ng-container>
 
       <!-- note column -->
       <ng-container matColumnDef="note">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Notiz</mat-header-cell>
-        <mat-cell *matCellDef="let process">
-          <mat-form-field>
-            <input
-              #input
-              matInput
-              [value]="process.note"
-              (keydown.enter)="setProcessNote(process, input.value)"
-              (blur)="setProcessNote(process, input.value)"
-            />
-          </mat-form-field>
-        </mat-cell>
+        <mat-cell *matCellDef="let process">{{ process.note }}</mat-cell>
       </ng-container>
 
       <!-- 0501 message column -->
@@ -155,59 +153,6 @@
             Archivierung läuft
             <mat-spinner diameter="25"></mat-spinner>
           </div>
-        </mat-cell>
-      </ng-container>
-
-      <!-- actions column -->
-      <ng-container matColumnDef="actions" stickyEnd>
-        <mat-header-cell *matHeaderCellDef class="actions-cell">Aktionen</mat-header-cell>
-        <mat-cell *matCellDef="let process" class="actions-cell">
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="menu"
-            aria-hidden="false"
-            aria-label="Aktionen für Nachricht anzeigen"
-          >
-            <mat-icon>more_horiz</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <ng-container *ngIf="process.message0501 && process.message0501.appraisalComplete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
-                <mat-icon>search</mat-icon>
-                <span>Anbietung anzeigen</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0501 && !process.message0501.appraisalComplete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0501.id, 'details']">
-                <mat-icon>checklist</mat-icon>
-                <span>Anbietung bewerten</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0503 && process.message0503.archivingComplete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                <mat-icon>search</mat-icon>
-                <span>Abgabe anzeigen</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0503 && !process.processState.archiving.complete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                <mat-icon>edit_note</mat-icon>
-                <span>Abgabe bearbeiten</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.message0503 && process.processState.archiving.complete">
-              <button mat-menu-item [routerLink]="['/nachricht', process.message0503.id, 'details']">
-                <mat-icon>search</mat-icon>
-                <span>Abgabe anzeigen</span>
-              </button>
-            </ng-container>
-            <ng-container *ngIf="process.processState.archiving.complete">
-              <button mat-menu-item (click)="downloadReport(process)">
-                <mat-icon>summarize</mat-icon>
-                <span>Übernahmebericht herunterladen</span>
-              </button>
-            </ng-container>
-          </mat-menu>
         </mat-cell>
       </ng-container>
 

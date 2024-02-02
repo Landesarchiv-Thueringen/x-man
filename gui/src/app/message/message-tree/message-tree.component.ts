@@ -373,4 +373,15 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
         });
     }
   }
+
+  downloadReport() {
+    this.processService.getReport(this.process!.xdomeaID).subscribe((report) => {
+      const a = document.createElement('a');
+      document.body.appendChild(a);
+      a.download = `Übernahmebericht ${this.process!.agency.abbreviation} ${this.process!.receivedAt}.pdf`;
+      a.href = window.URL.createObjectURL(report);
+      a.click();
+      document.body.removeChild(a);
+    });
+  }
 }

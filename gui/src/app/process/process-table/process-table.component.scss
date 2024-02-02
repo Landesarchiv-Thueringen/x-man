@@ -32,38 +32,37 @@
 
 .table-container {
   overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mat-mdc-row {
+  position: relative;
+}
+
+.open-details-button {
+  position: absolute;
+  border-radius: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  &:hover::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: currentColor;
+    opacity: 0.04;
+  }
 }
 
 .mat-mdc-header-cell,
 .mat-mdc-cell {
   min-width: 140px;
-}
-
-.mat-mdc-cell.cdk-column-note {
-  --mdc-outlined-text-field-hover-outline-color: var(--mdc-outlined-text-field-outline-color);
-  overflow: visible;
-  z-index: 1;
-  mat-form-field {
-    margin: 0 -16px;
-    flex-grow: 1;
-    font-size: unset;
-    &:not(:focus-within):not(:hover) {
-      --mdc-outlined-text-field-outline-color: transparent;
-    }
-    ::ng-deep {
-      .mat-mdc-form-field-subscript-wrapper {
-        display: none;
-      }
-      .mat-mdc-text-field-wrapper.mdc-text-field--outlined .mat-mdc-form-field-infix {
-        padding-top: 8px;
-        padding-bottom: 8px;
-      }
-      .mat-mdc-form-field-infix {
-        min-height: 0;
-        width: unset;
-      }
-    }
-  }
 }
 
 .cdk-column-actions {
