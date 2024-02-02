@@ -90,7 +90,7 @@ func GetProcesses() ([]Process, error) {
 	if result.Error != nil {
 		return processes, result.Error
 	}
-	var processesWithoutErrors []Process
+	var processesWithoutErrors []Process = make([]Process, 0)
 	for _, p := range processes {
 		if len(p.ProcessingErrors) == 0 {
 			processesWithoutErrors = append(processesWithoutErrors, p)
@@ -128,7 +128,7 @@ func GetProcessesForUser(userID []byte) ([]Process, error) {
 	if result.Error != nil {
 		return processes, result.Error
 	}
-	var processesWithoutErrors []Process
+	var processesWithoutErrors []Process = make([]Process, 0)
 	for _, p := range processes {
 		if len(p.ProcessingErrors) == 0 {
 			processesWithoutErrors = append(processesWithoutErrors, p)
