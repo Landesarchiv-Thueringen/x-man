@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var BorgEndpoint = "https://borg.tsa.thlv.de/analyse-file"
+var borgEndpoint = os.Getenv("BORG_ENDPOINT")
 var tr http.Transport = http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 }
@@ -58,7 +58,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 			log.Fatal(err)
 		}
 		writer.Close()
-		request, err := http.NewRequest("POST", BorgEndpoint, bytes.NewReader(body.Bytes()))
+		request, err := http.NewRequest("POST", borgEndpoint, bytes.NewReader(body.Bytes()))
 		if err != nil {
 			log.Fatal(err)
 		}

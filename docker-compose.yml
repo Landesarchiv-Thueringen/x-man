@@ -61,6 +61,7 @@ services:
       - XMAN_DATABASE_USER=${XMAN_DATABASE_USER}
       - XMAN_DATABASE_PASSWORD=${XMAN_DATABASE_PASSWORD}
       - XMAN_DATABASE_NAME=${XMAN_DATABASE_NAME}
+      - BORG_ENDPOINT=${BORG_ENDPOINT}
     volumes:
       - message_store:/xman/message_store
       - ./transfer_dir:/xman/transfer_dir
