@@ -81,7 +81,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		processStep.ItemCompletetCount = processStep.ItemCompletetCount + 1
+		processStep.ItemCompletedCount = processStep.ItemCompletedCount + 1
 		err = db.UpdateProcessStep(processStep)
 		if err != nil {
 			log.Fatal(err)

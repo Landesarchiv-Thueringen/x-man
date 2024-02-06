@@ -1,6 +1,118 @@
 <div class="metadata-section">
   <form *ngIf="message" [formGroup]="form">
     <mat-accordion multi>
+      <mat-expansion-panel
+        [class.received-0501]="process?.processState?.receive0501?.complete"
+        [class.appraisal-complete]="process?.processState?.appraisal?.complete"
+        [class.received-0503]="process?.processState?.receive0503?.complete"
+        [class.archiving-complete]="process?.processState?.archiving?.complete"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>Status</mat-panel-title>
+          @if (process) {
+            <mat-panel-description>
+              @if (process.processState.archiving.complete) {
+                Abgabe archiviert
+              } @else if (process.processState.archiving.started) {
+                Archivierung läuft...
+              } @else if (process.processState.formatVerification.complete) {
+                Formatverifikation abgeschlossen
+              } @else if (process.processState.formatVerification.started) {
+                Formatverifikation läuft...
+              } @else if (process.processState.receive0503.complete) {
+                Abgabe erhalten
+              } @else if (process.processState.receive0505.complete) {
+                Bewertung in VIS importiert
+              } @else if (process.processState.appraisal.complete) {
+                Bewertung abgeschlossen
+              } @else if (process.processState.receive0501.complete) {
+                Anbietung erhalten
+              }
+            </mat-panel-description>
+          }
+        </mat-expansion-panel-header>
+        @if (process) {
+          <mat-list>
+            @if (process.processState.receive0501.complete) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>check</mat-icon>
+                <div matListItemTitle>Anbietung erhalten</div>
+                <div matListItemLine>{{ process.processState.receive0501.completionTime | date: "medium" }}</div>
+              </mat-list-item>
+            }
+            @if (process.processState.appraisal.complete) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>check</mat-icon>
+                <div matListItemTitle>Bewertung abgeschlossen</div>
+                <div matListItemLine>{{ process.processState.appraisal.completionTime | date: "medium" }}</div>
+              </mat-list-item>
+            }
+            @if (process.processState.receive0505.complete) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>check</mat-icon>
+                <div matListItemTitle>Bewertung in VIS importiert</div>
+                <div matListItemLine>{{ process.processState.receive0505.completionTime | date: "medium" }}</div>
+              </mat-list-item>
+            }
+            @if (process.processState.receive0503.complete) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>check</mat-icon>
+                <div matListItemTitle>Abgabe erhalten</div>
+                <div matListItemLine>{{ process.processState.receive0503.completionTime | date: "medium" }}</div>
+              </mat-list-item>
+            }
+            @if (process.processState.formatVerification.started) {
+              <mat-list-item>
+                @if (process.processState.formatVerification.complete) {
+                  <mat-icon matListItemIcon>check</mat-icon>
+                } @else {
+                  <mat-spinner matListItemIcon diameter="24"></mat-spinner>
+                }
+                @if (process.processState.formatVerification.complete) {
+                  <div matListItemTitle>Formatverifikation abgeschlossen</div>
+                } @else {
+                  <div matListItemTitle>Formatverifikation läuft...</div>
+                }
+                @if (process.processState.formatVerification.complete) {
+                  <div matListItemLine>
+                    {{ process.processState.formatVerification.completionTime | date: "medium" }}
+                  </div>
+                } @else {
+                  <div matListItemLine>
+                    {{ process.processState.formatVerification.itemCompletedCount }}/{{
+                      process.processState.formatVerification.itemCount
+                    }}
+                  </div>
+                }
+              </mat-list-item>
+            }
+            @if (process.processState.archiving.started) {
+              <mat-list-item>
+                @if (process.processState.archiving.complete) {
+                  <mat-icon matListItemIcon>check</mat-icon>
+                } @else {
+                  <mat-spinner matListItemIcon diameter="24"></mat-spinner>
+                }
+                @if (process.processState.archiving.complete) {
+                  <div matListItemTitle>Abgabe archiviert</div>
+                } @else {
+                  <div matListItemTitle>Archivierung läuft...</div>
+                }
+                @if (process.processState.archiving.complete) {
+                  <div matListItemLine>
+                    {{ process.processState.archiving.completionTime | date: "medium" }}
+                  </div>
+                } @else {
+                  <div matListItemLine>
+                    {{ process.processState.archiving.startTime | date: "medium" }}
+                  </div>
+                }
+              </mat-list-item>
+            }
+          </mat-list>
+        }
+      </mat-expansion-panel>
+
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title> Metadaten </mat-panel-title>

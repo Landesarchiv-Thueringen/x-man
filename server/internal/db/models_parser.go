@@ -73,7 +73,7 @@ type ProcessStep struct {
 	Complete           bool           `gorm:"default:false" json:"complete"`
 	CompletionTime     *time.Time     `json:"completionTime"`
 	ItemCount          uint           `gorm:"default:0" json:"itemCount"`
-	ItemCompletetCount uint           `gorm:"default:0" json:"itemCompletetCount"`
+	ItemCompletedCount uint           `gorm:"default:0" json:"itemCompletedCount"`
 }
 
 type Message struct {

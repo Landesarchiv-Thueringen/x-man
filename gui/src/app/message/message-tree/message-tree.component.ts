@@ -4,7 +4,7 @@ import { DOCUMENT } from '@angular/common';
 import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Subscription, filter, switchMap } from 'rxjs';
 import { Process, ProcessService } from 'src/app/process/process.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
@@ -75,6 +75,7 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     private notificationService: NotificationService,
     private processService: ProcessService,
     private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.messageTreeInit = true;
     this.showAppraisal = false;
@@ -337,6 +338,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             console.error(error);
           },
           next: () => {
+            // FIXME: only call when still on this messages view.
+            //
+            // this.goToRootNode();
             this.notificationService.show('Bewertungsnachricht wurde erfolgreich versandt');
             this.message!.appraisalComplete = true;
           },
@@ -368,6 +372,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             console.error(error);
           },
           next: () => {
+            // FIXME: only call when still on this messages view.
+            //
+            // this.goToRootNode();
             this.notificationService.show('Archivierung erfolgreich abgeschlossen');
           },
         });
@@ -383,5 +390,9 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
       a.click();
       document.body.removeChild(a);
     });
+  }
+
+  private goToRootNode() {
+    this.router.navigate(['nachricht', this.message?.id, 'details']);
   }
 }

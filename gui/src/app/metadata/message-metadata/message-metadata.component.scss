@@ -1,20 +1,35 @@
 :host {
   display: block;
   padding: 2em;
+}
 
-  .metadata-section {
-    min-width: 60em;
-    max-width: 80em;
+mat-expansion-panel {
+  // &.received-0501 {
+  //   background-color: rgba(128, 128, 0, 0.2);
+  // }
+  // &.appraisal-complete {
+  //   background-color: rgba(0, 128, 128, 0.2);
+  // }
+  // &.received-0503 {
+  //   background-color: rgba(128, 0, 128, 0.2);
+  // }
+  &.archiving-complete {
+    background-color: rgba(0, 128, 0, 0.2);
+  }
+}
 
-    .metadata-row {
-      display: flex;
-      flex-direction: row;
-      column-gap: 1.5em;
-    }
+.metadata-section {
+  min-width: 60em;
+  max-width: 80em;
 
-    .process-id-input,
-    .note-input {
-      flex-grow: 1;
-    }
+  .metadata-row {
+    display: flex;
+    flex-direction: row;
+    column-gap: 1.5em;
+  }
+
+  .process-id-input,
+  .note-input {
+    flex-grow: 1;
   }
 }
