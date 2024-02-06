@@ -182,3 +182,37 @@ func storeMessage(
 	}
 	return messageTransferDirPath
 }
+
+// DeleteProcess deletes the given process from the database and removes all
+// associated message files from the file system.
+//
+// Returns true, when an entry was found and deleted.
+func DeleteProcess(processID string) (bool, error) {
+	process, err := db.GetProcessByXdomeaID(processID)
+	if err != nil {
+		return false, err
+	}
+	storeDir := process.StoreDir
+	transferFiles, err := db.GetAllTransferFilesOfProcess(process)
+	if err != nil {
+		return false, err
+	}
+	// Delete database entries
+	deleted, err := db.DeleteProcess(process.ID)
+	if err != nil {
+		return false, err
+	} else if !deleted {
+		return false, nil
+	}
+	// Delete message storage
+	if err = os.RemoveAll(storeDir); err != nil {
+		return false, err
+	}
+	// Delete transfer files
+	for _, f := range transferFiles {
+		if err = os.Remove(f); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}

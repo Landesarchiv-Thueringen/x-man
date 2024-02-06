@@ -1,13 +1,14 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Subscription, filter, switchMap } from 'rxjs';
 import { Process, ProcessService } from 'src/app/process/process.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
+import { AuthService } from '../../utility/authorization/auth.service';
 import { AppraisalFormComponent } from '../appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import {
@@ -38,17 +39,17 @@ export interface FlatNode {
   styleUrls: ['./message-tree.component.scss'],
 })
 export class MessageTreeComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
+  @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
+
   urlParameterSubscription?: Subscription;
   process?: Process;
   message?: Message;
+  isAdmin = this.auth.isAdmin();
   showAppraisal: boolean;
   messageTreeInit: boolean;
   showSelection: boolean;
   selectedNodes: string[];
-
-  @ViewChild('messageTree')
-  messageTree?: MatTree<StructureNode>;
-
   treeControl: FlatTreeControl<FlatNode>;
   treeFlattener: MatTreeFlattener<StructureNode, FlatNode>;
   dataSource: MatTreeFlatDataSource<StructureNode, FlatNode>;
@@ -68,9 +69,10 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
   };
 
   constructor(
+    @Inject(DOCUMENT) private document: Document,
+    private auth: AuthService,
     private clipboard: Clipboard,
     private dialog: MatDialog,
-    @Inject(DOCUMENT) private document: Document,
     private messageService: MessageService,
     private notificationService: NotificationService,
     private processService: ProcessService,
@@ -388,6 +390,20 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
       a.click();
       document.body.removeChild(a);
     });
+  }
+
+  deleteProcess() {
+    this.dialog
+      .open(this.deleteDialogTemplate)
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.processService.deleteProcess(this.process!.xdomeaID).subscribe(() => {
+            this.notificationService.show('Aussonderung gelöscht');
+            this.router.navigate(['/']);
+          });
+        }
+      });
   }
 
   private goToRootNode() {

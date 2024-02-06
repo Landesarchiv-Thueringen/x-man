@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
@@ -13,9 +12,11 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/report"
+	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -29,6 +30,7 @@ var defaultResponse = "LATh xdomea server is running"
 
 func main() {
 	initServer()
+	tasks.Init()
 	router := gin.Default()
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"*"})
@@ -42,6 +44,7 @@ func main() {
 	router.GET("api/login", auth.Login)
 	authorized := router.Group("/")
 	authorized.Use(auth.AuthRequired())
+	authorized.GET("api/config", getConfig)
 	authorized.GET("api/processes/my", getMyProcesses)
 	authorized.GET("api/process-by-xdomea-id/:id", getProcessByXdomeaID)
 	authorized.GET("api/messages/0501", get0501Messages)
@@ -70,6 +73,7 @@ func main() {
 	admin := router.Group("/")
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processes", getProcesses)
+	admin.DELETE("api/process/:id", deleteProcess)
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.GET("api/users", auth.Users)
 	admin.GET("api/agencies", getAgencies)
@@ -104,6 +108,13 @@ func initServer() {
 
 func getDefaultResponse(context *gin.Context) {
 	context.String(http.StatusOK, defaultResponse)
+}
+
+func getConfig(context *gin.Context) {
+	deleteArchivedProcessesAfterDays, _ := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
+	context.JSON(http.StatusOK, gin.H{
+		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
+	})
 }
 
 func getProcessingErrors(context *gin.Context) {
@@ -145,6 +156,20 @@ func getProcesses(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, processes)
+}
+
+func deleteProcess(context *gin.Context) {
+	id := context.Param("id")
+	deleted, err := messagestore.DeleteProcess(id)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	if deleted {
+		context.Status(http.StatusAccepted)
+	} else {
+		context.Status(http.StatusNotFound)
+	}
 }
 
 func getMessageByID(context *gin.Context) {
@@ -390,7 +415,17 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	messagestore.Store0502Message(message)
+	messagePath := messagestore.Store0502Message(message)
+	process, err := db.GetProcessForMessage(message)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	process.Message0502Path = &messagePath
+	err = db.UpdateProcess(process)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+	}
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {

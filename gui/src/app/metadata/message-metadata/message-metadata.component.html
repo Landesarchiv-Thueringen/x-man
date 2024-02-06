@@ -83,7 +83,7 @@
                   <div matListItemLine>
                     <ng-container
                       >{{ process.processState.formatVerification.itemCompletedCount }}/{{
-                      process.processState.formatVerification.itemCount
+                        process.processState.formatVerification.itemCount
                       }}</ng-container
                     >
                   </div>
@@ -111,6 +111,13 @@
                     <ng-container>{{ process.processState.archiving.startTime | date: "medium" }}</ng-container>
                   </div>
                 }
+              </mat-list-item>
+            }
+            @if (processDeleteTime) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>auto_delete</mat-icon>
+                <div matListItemTitle>Zur Löschung vorgemerkt</div>
+                <div matListItemLine>ab {{ processDeleteTime | date: "medium" }}</div>
               </mat-list-item>
             }
           </mat-list>

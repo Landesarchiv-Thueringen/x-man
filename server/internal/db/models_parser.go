@@ -2,10 +2,12 @@ package db
 
 import (
 	"encoding/xml"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Foreign keys need to be pointers so that the default value is nil.
@@ -34,6 +36,7 @@ type Process struct {
 	Note             *string           `json:"note"`
 	Message0501ID    *uuid.UUID        `json:"-"`
 	Message0501      *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
+	Message0502Path  *string           `json:"-"`
 	Message0503ID    *uuid.UUID        `json:"-"`
 	Message0503      *Message          `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
 	Message0504Path  *string           `json:"-"`
@@ -42,6 +45,29 @@ type Process struct {
 	ProcessingErrors []ProcessingError `gorm:"many2many:process_errors;" json:"processingErrors"`
 	ProcessStateID   uint              `json:"-"`
 	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
+}
+
+// BeforeDelete deletes associated rows of the deleted Process.
+func (p *Process) BeforeDelete(tx *gorm.DB) (err error) {
+	if p.ID == uuid.Nil {
+		return fmt.Errorf("failed to delete associations for Process")
+	}
+	process := Process{ID: p.ID}
+	tx.Preload(clause.Associations).First(&process)
+	if process.Message0501 != nil {
+		tx.Delete(&process.Message0501)
+	}
+	if process.Message0503 != nil {
+		tx.Delete(&process.Message0503)
+	}
+	if process.Message0505 != nil {
+		tx.Delete(&process.Message0505)
+	}
+	for _, e := range process.ProcessingErrors {
+		tx.Delete(e)
+	}
+	tx.Delete(&process.ProcessState)
+	return
 }
 
 type ProcessState struct {
@@ -61,6 +87,22 @@ type ProcessState struct {
 	FormatVerification       ProcessStep    `gorm:"foreignKey:FormatVerificationStepID;references:ID" json:"formatVerification"`
 	ArchivingStepID          uint           `json:"-"`
 	Archiving                ProcessStep    `gorm:"foreignKey:ArchivingStepID;references:ID" json:"archiving"`
+}
+
+// BeforeDelete deletes associated rows of the deleted ProcessState.
+func (s *ProcessState) BeforeDelete(tx *gorm.DB) (err error) {
+	if s.ID == 0 {
+		return fmt.Errorf("failed to delete associations for ProcessState")
+	}
+	processState := ProcessState{ID: s.ID}
+	tx.Preload(clause.Associations).First(&processState)
+	tx.Delete(&processState.Receive0501)
+	tx.Delete(&processState.Appraisal)
+	tx.Delete(&processState.Receive0505)
+	tx.Delete(&processState.Receive0503)
+	tx.Delete(&processState.FormatVerification)
+	tx.Delete(&processState.Archiving)
+	return
 }
 
 type ProcessStep struct {

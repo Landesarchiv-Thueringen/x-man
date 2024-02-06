@@ -21,6 +21,7 @@ func Init() {
 		port=5432
 		sslmode=disable 
 		TimeZone=Europe/Berlin`
+
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database!")
@@ -150,6 +151,16 @@ func AddProcess(
 	}
 	result := db.Save(&process)
 	return process, result.Error
+}
+
+// DeleteProcess deletes the given process and all its associations.
+func DeleteProcess(id uuid.UUID) (bool, error) {
+	// Note that we don't use inline (`Delete(&Process{}, id)`) or explicit
+	// (`Where("...")`) conditions. `BeforeDelete` and `AfterDelete` hooks only
+	// see the primary value that was passed to `Delete`. If we don't include
+	// the ID in this value, we cannot delete associations using these hooks.
+	result := db.Delete(&Process{ID: id})
+	return result.RowsAffected == 1, result.Error
 }
 
 func SetProcessNote(

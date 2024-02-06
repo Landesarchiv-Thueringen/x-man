@@ -72,14 +72,14 @@
             @if (node.type === "message") {
               <div class="spacer"></div>
               <button
-                *ngIf="process?.message0503"
+                *ngIf="(process?.message0501 && process?.message0503) || isAdmin"
                 mat-icon-button
                 [matMenuTriggerFor]="menu"
                 [attr.aria-label]="'Menü öffnen für ' + node.name"
               >
                 <mat-icon class="mat-icon-rtl-mirror">expand_more</mat-icon>
               </button>
-              <mat-menu #menu="matMenu">
+              <mat-menu #menu="matMenu" class="message-tree-menu">
                 @if (message?.messageType?.code !== "0501" && process?.message0501) {
                   <button mat-menu-item [routerLink]="['/nachricht', process?.message0501?.id, 'details']">
                     @if (process?.message0501?.appraisalComplete) {
@@ -106,6 +106,12 @@
                     } @else {
                       <span>Abgabe bearbeiten</span>
                     }
+                  </button>
+                }
+                @if (isAdmin) {
+                  <button mat-menu-item class="delete-button" (click)="deleteProcess()">
+                    <mat-icon>delete</mat-icon>
+                    <span>Aussonderung löschen</span>
                   </button>
                 }
               </mat-menu>
@@ -179,3 +185,14 @@
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<ng-template #deleteDialog>
+  <h3 mat-dialog-title>Aussonderung löschen?</h3>
+  <div mat-dialog-content>
+    <p>Möchten Sie die Aussonderung und alle zugehörigen Transfernachrichten löschen?</p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+  </div>
+</ng-template>

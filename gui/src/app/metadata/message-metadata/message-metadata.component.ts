@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { Message, MessageService } from '../../message/message.service';
 import { Process, ProcessService } from '../../process/process.service';
+import { ConfigService } from '../../utility/config.service';
 
 @Component({
   selector: 'app-message-metadata',
@@ -21,8 +22,10 @@ export class MessageMetadataComponent {
   });
   message?: Message;
   process?: Process;
+  processDeleteTime: Date | null = null;
 
   constructor(
+    private configService: ConfigService,
     private datePipe: DatePipe,
     private formBuilder: FormBuilder,
     private messageService: MessageService,
@@ -43,6 +46,13 @@ export class MessageMetadataComponent {
           this.form.patchValue({
             note: process.note,
           });
+          if (process.processState.archiving.complete) {
+            this.configService.config.subscribe((config) => {
+              let date = new Date(process.processState.archiving.completionTime!);
+              date.setDate(date.getDate() + config.deleteArchivedProcessesAfterDays);
+              this.processDeleteTime = date;
+            });
+          }
         });
       });
     });

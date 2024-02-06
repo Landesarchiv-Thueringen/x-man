@@ -131,3 +131,12 @@ mat-toolbar {
   color: mat.get-color-from-palette(mat.$indigo-palette, 500);
   margin-right: 0.5em;
 }
+
+::ng-deep .message-tree-menu {
+  .delete-button {
+    &,
+    mat-icon {
+      color: #f44336;
+    }
+  }
+}

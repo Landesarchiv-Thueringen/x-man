@@ -156,6 +156,16 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 	return message, result.Error
 }
 
+// GetProcessForMessage returns the process to which the given message belongs.
+func GetProcessForMessage(message Message) (Process, error) {
+	var process = Process{}
+	if message.ID == uuid.Nil {
+		return process, errors.New("could not get process for null message")
+	}
+	result := db.Where("? in (message0501_id, message0503_id, message0505_id)", message.ID).First(&process)
+	return process, result.Error
+}
+
 // IsMessageAlreadyProcessed checks if a message exists, which was already processed,
 // determined by the path in the transfer directory.
 func IsMessageAlreadyProcessed(path string) bool {
@@ -346,6 +356,33 @@ func GetConfidentialityLevelCodelist() ([]ConfidentialityLevel, error) {
 	var codelist []ConfidentialityLevel
 	result := db.Find(&codelist)
 	return codelist, result.Error
+}
+
+// GetAllTransferFilesOfProcess returns the transfer paths of all messages that
+// belong to the given process.
+func GetAllTransferFilesOfProcess(process Process) ([]string, error) {
+	p := Process{ID: process.ID}
+	messages := make([]string, 0)
+	result := db.Model(&Process{}).Preload(clause.Associations).First(&p)
+	if result.Error != nil {
+		return messages, result.Error
+	}
+	if p.Message0501 != nil {
+		messages = append(messages, p.Message0501.TransferDirMessagePath)
+	}
+	if p.Message0502Path != nil {
+		messages = append(messages, *p.Message0502Path)
+	}
+	if p.Message0503 != nil {
+		messages = append(messages, p.Message0503.TransferDirMessagePath)
+	}
+	if p.Message0504Path != nil {
+		messages = append(messages, *p.Message0504Path)
+	}
+	if p.Message0505 != nil {
+		messages = append(messages, p.Message0505.TransferDirMessagePath)
+	}
+	return messages, nil
 }
 
 func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
