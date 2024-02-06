@@ -58,7 +58,7 @@ func extractMessage(
 		log.Fatal("failed extracting message: unknown message type")
 	}
 	processStoreDir := path.Join(storeDir, id)
-	// Create the message store directory if necessarry.
+	// Create the message store directory if necessary.
 	messageStoreDir := path.Join(processStoreDir, messageType.Code)
 	err = os.MkdirAll(messageStoreDir, 0700)
 	if err != nil {
@@ -97,7 +97,7 @@ func extractMessage(
 			transferDir,
 			transferDirMessagePath,
 		)
-	// if no error occured while processing the message
+	// if no error occurred while processing the message
 	if err == nil {
 		// store the confirmation message that the 0501 message was received
 		if messageType.Code == "0501" {
