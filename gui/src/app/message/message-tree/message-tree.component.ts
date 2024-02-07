@@ -338,9 +338,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             console.error(error);
           },
           next: () => {
-            // FIXME: only call when still on this messages view.
-            //
-            // this.goToRootNode();
+            // Navigate to the tree root so the user sees the new status
+            this.goToRootNode();
             this.notificationService.show('Bewertungsnachricht wurde erfolgreich versandt');
             this.message!.appraisalComplete = true;
           },
@@ -363,6 +362,8 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             if (this.process) {
               this.process.processState.archiving.started = true;
             }
+            // Navigate to the tree root so the user sees the new status
+            this.goToRootNode();
             return this.messageService.archive0503Message(this.message!.id);
           }),
         )
@@ -372,9 +373,6 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
             console.error(error);
           },
           next: () => {
-            // FIXME: only call when still on this messages view.
-            //
-            // this.goToRootNode();
             this.notificationService.show('Archivierung erfolgreich abgeschlossen');
           },
         });
