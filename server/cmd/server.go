@@ -534,8 +534,6 @@ func archive0503Message(context *gin.Context) {
 }
 
 func getMyAgencies(context *gin.Context) {
-	userID := context.MustGet("userId")
-	fmt.Println(userID)
 	if userID, ok := context.MustGet("userId").([]byte); ok {
 		agencies, err := db.GetAgenciesForUser(userID)
 		if err != nil {
@@ -631,9 +629,10 @@ func deleteAgency(context *gin.Context) {
 	deleted, err := db.DeleteAgency(uint(id))
 	if !deleted {
 		context.AbortWithStatus(http.StatusNotFound)
+		return
 	} else if err != nil {
-		fmt.Println(err)
 		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	context.Status(http.StatusAccepted)
 }
@@ -699,9 +698,10 @@ func deleteCollection(context *gin.Context) {
 	deleted, err := db.DeleteCollection(uint(id))
 	if !deleted {
 		context.AbortWithStatus(http.StatusNotFound)
+		return
 	} else if err != nil {
-		fmt.Println(err)
 		context.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	context.Status(http.StatusAccepted)
 }

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -43,8 +42,7 @@ func Login(c *gin.Context) {
 	}
 	authorization, err := authorizeUser(user, pass)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Internal Server Error")
-		fmt.Println(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	if authorization.Predicate == INVALID {
@@ -60,8 +58,7 @@ func Login(c *gin.Context) {
 	}
 	token, err := createToken(*authorization.UserEntry)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Internal Server Error")
-		fmt.Println(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -74,8 +71,7 @@ func Login(c *gin.Context) {
 func Users(c *gin.Context) {
 	users, err := listUsers()
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Internal Server Error")
-		fmt.Println(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, users)
