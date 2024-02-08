@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 // utility
-import { BehaviorSubject, Observable, Subject, Subscriber } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscriber, shareReplay } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Process } from '../process/process.service';
 
@@ -230,16 +230,19 @@ export interface MultiAppraisalResponse {
   providedIn: 'root',
 })
 export class MessageService {
-  apiEndpoint: string;
-  appraisals?: RecordObjectAppraisal[];
-  confidentialityLevelCodelist?: ConfidentialityLevel[];
+  private apiEndpoint: string;
+  private appraisals?: RecordObjectAppraisal[];
+  private confidentialityLevelCodelist?: ConfidentialityLevel[];
 
-  structureNodes: Map<string, StructureNode>;
-  nodesSubject: BehaviorSubject<StructureNode[]>;
-  changedNodeSubject: Subject<StructureNode>;
+  private structureNodes: Map<string, StructureNode>;
+  private nodesSubject: BehaviorSubject<StructureNode[]>;
+  private changedNodeSubject: Subject<StructureNode>;
 
-  featureOrder: Map<string, number>;
-  overviewFeatures: string[];
+  private featureOrder: Map<string, number>;
+  private overviewFeatures: string[];
+
+  private cachedMessageId?: string;
+  private cachedMessage?: Observable<Message>;
 
   constructor(
     private datePipe: DatePipe,
@@ -473,7 +476,13 @@ export class MessageService {
   }
 
   getMessage(id: string): Observable<Message> {
-    return this.httpClient.get<Message>(this.apiEndpoint + '/message/' + id);
+    if (id !== this.cachedMessageId) {
+      this.cachedMessageId = id;
+      this.cachedMessage = this.httpClient
+        .get<Message>(this.apiEndpoint + '/message/' + id)
+        .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    }
+    return this.cachedMessage!;
   }
 
   getFileRecordObject(id: string): Observable<FileRecordObject> {

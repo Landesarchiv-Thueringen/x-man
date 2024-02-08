@@ -46,9 +46,9 @@ export interface ProcessStep {
   providedIn: 'root',
 })
 export class ProcessService {
-  apiEndpoint: string;
-  cachedProcessId?: string;
-  cachedProcess?: Observable<Process>;
+  private apiEndpoint: string;
+  private cachedProcessId?: string;
+  private cachedProcess?: Observable<Process>;
 
   constructor(private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
