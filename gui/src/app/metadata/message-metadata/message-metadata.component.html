@@ -75,13 +75,17 @@
                 }
                 @if (process.processState.formatVerification.complete) {
                   <div matListItemLine>
-                    {{ process.processState.formatVerification.completionTime | date: "medium" }}
+                    <ng-container>{{
+                      process.processState.formatVerification.completionTime | date: "medium"
+                    }}</ng-container>
                   </div>
                 } @else {
                   <div matListItemLine>
-                    {{ process.processState.formatVerification.itemCompletedCount }}/{{
+                    <ng-container
+                      >{{ process.processState.formatVerification.itemCompletedCount }}/{{
                       process.processState.formatVerification.itemCount
-                    }}
+                      }}</ng-container
+                    >
                   </div>
                 }
               </mat-list-item>
@@ -100,11 +104,11 @@
                 }
                 @if (process.processState.archiving.complete) {
                   <div matListItemLine>
-                    {{ process.processState.archiving.completionTime | date: "medium" }}
+                    <ng-container>{{ process.processState.archiving.completionTime | date: "medium" }}</ng-container>
                   </div>
                 } @else {
                   <div matListItemLine>
-                    {{ process.processState.archiving.startTime | date: "medium" }}
+                    <ng-container>{{ process.processState.archiving.startTime | date: "medium" }}</ng-container>
                   </div>
                 }
               </mat-list-item>
