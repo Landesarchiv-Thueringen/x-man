@@ -1,7 +1,13 @@
 <mat-sidenav-container>
   <mat-sidenav mode="side" opened>
     <div class="messsage-view">
-      <mat-tree #messageTree [dataSource]="dataSource" [treeControl]="treeControl" class="message-tree">
+      <mat-tree
+        #messageTree
+        [dataSource]="dataSource"
+        [treeControl]="treeControl"
+        class="message-tree"
+        [trackBy]="trackTree"
+      >
         <!-- This is the tree node template for leaf nodes -->
         <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding>
           <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']">
@@ -75,13 +81,14 @@
                 *ngIf="(process?.message0501 && process?.message0503) || isAdmin"
                 mat-icon-button
                 [matMenuTriggerFor]="menu"
+                (click)="$event.stopPropagation()"
                 [attr.aria-label]="'Menü öffnen für ' + node.name"
               >
                 <mat-icon class="mat-icon-rtl-mirror">expand_more</mat-icon>
               </button>
               <mat-menu #menu="matMenu" class="message-tree-menu">
                 @if (message?.messageType?.code !== "0501" && process?.message0501) {
-                  <button mat-menu-item [routerLink]="['/nachricht', process?.message0501?.id, 'details']">
+                  <a mat-menu-item [routerLink]="['/nachricht', process?.message0501?.id, 'details']">
                     @if (process?.message0501?.appraisalComplete) {
                       <mat-icon>search</mat-icon>
                     } @else {
@@ -92,10 +99,10 @@
                     } @else {
                       <span>Anbietung bewerten</span>
                     }
-                  </button>
+                  </a>
                 }
                 @if (message?.messageType?.code !== "0503" && process?.message0503) {
-                  <button mat-menu-item [routerLink]="['/nachricht', process?.message0503?.id, 'details']">
+                  <a mat-menu-item [routerLink]="['/nachricht', process?.message0503?.id, 'details']">
                     @if (process?.processState?.archiving?.complete) {
                       <mat-icon>search</mat-icon>
                     } @else {
@@ -106,7 +113,7 @@
                     } @else {
                       <span>Abgabe bearbeiten</span>
                     }
-                  </button>
+                  </a>
                 }
                 @if (isAdmin) {
                   <button mat-menu-item class="delete-button" (click)="deleteProcess()">

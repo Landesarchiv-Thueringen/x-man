@@ -561,6 +561,10 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
+	// FIXME: This can take quite some time. We need to either drastically
+	// increase timeouts or send a response before DIMAG finishes the import.
+	//
+	// TODO: Save any error to the process entry.
 	err = dimag.ImportMessage(process, message)
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)

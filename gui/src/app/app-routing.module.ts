@@ -33,6 +33,7 @@ const routes: Routes = [
         component: MessageTreeComponent,
         canActivate: [isLoggedIn],
         children: [
+          { path: '', redirectTo: 'details', pathMatch: 'full' },
           { path: 'details', component: MessageMetadataComponent },
           { path: 'akte/:id', component: FileMetadataComponent },
           { path: 'vorgang/:id', component: ProcessMetadataComponent },

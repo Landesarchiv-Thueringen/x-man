@@ -39,10 +39,6 @@ mat-toolbar {
   margin-top: 2em;
   margin-left: 2em;
 
-  .active {
-    background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
-  }
-
   .root-node {
     position: sticky;
     top: 0px;
@@ -56,8 +52,11 @@ mat-toolbar {
     border-radius: 30px;
     margin-bottom: 0.8em;
     margin-right: 2em;
-
     cursor: pointer;
+
+    &.active {
+      background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
+    }
 
     &:hover {
       background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);

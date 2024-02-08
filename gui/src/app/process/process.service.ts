@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, interval } from 'rxjs';
+import { first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { ProcessingError } from '../clearing/clearing.service';
 import { Message } from '../message/message.service';
@@ -47,6 +47,8 @@ export interface ProcessStep {
 })
 export class ProcessService {
   apiEndpoint: string;
+  cachedProcessId?: string;
+  cachedProcess?: Observable<Process>;
 
   constructor(private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
@@ -60,8 +62,20 @@ export class ProcessService {
     }
   }
 
+  observeProcessByXdomeaID(id: string): Observable<Process> {
+    if (id !== this.cachedProcessId) {
+      this.cachedProcessId = id;
+      this.cachedProcess = interval(environment.updateInterval).pipe(
+        startWith(void 0),
+        switchMap(() => this.httpClient.get<Process>(this.apiEndpoint + '/process-by-xdomea-id/' + id)),
+        shareReplay({ bufferSize: 1, refCount: true }),
+      );
+    }
+    return this.cachedProcess!;
+  }
+
   getProcessByXdomeaID(id: string): Observable<Process> {
-    return this.httpClient.get<Process>(this.apiEndpoint + '/process-by-xdomea-id/' + id);
+    return this.observeProcessByXdomeaID(id).pipe(first());
   }
 
   setNote(processId: string, note: string): Observable<void> {

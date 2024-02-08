@@ -4,7 +4,6 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
-import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../utility/authorization/auth.service';
 import { Process, ProcessService } from '../process.service';
@@ -53,7 +52,6 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   constructor(
     private processService: ProcessService,
     private formBuilder: FormBuilder,
-    private notification: NotificationService,
     private authService: AuthService,
   ) {
     this.dataSource.sortingDataAccessor = (item: Process, property: string) => {

@@ -1,11 +1,12 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { Subscription, filter, switchMap } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject, filter, first, switchMap, tap } from 'rxjs';
 import { Process, ProcessService } from 'src/app/process/process.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { AuthService } from '../../utility/authorization/auth.service';
@@ -38,21 +39,9 @@ export interface FlatNode {
   templateUrl: './message-tree.component.html',
   styleUrls: ['./message-tree.component.scss'],
 })
-export class MessageTreeComponent implements AfterViewInit, OnDestroy {
+export class MessageTreeComponent implements AfterViewInit {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
   @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
-
-  urlParameterSubscription?: Subscription;
-  process?: Process;
-  message?: Message;
-  isAdmin = this.auth.isAdmin();
-  showAppraisal: boolean;
-  messageTreeInit: boolean;
-  showSelection: boolean;
-  selectedNodes: string[];
-  treeControl: FlatTreeControl<FlatNode>;
-  treeFlattener: MatTreeFlattener<StructureNode, FlatNode>;
-  dataSource: MatTreeFlatDataSource<StructureNode, FlatNode>;
 
   private _transformer = (node: StructureNode, level: number): FlatNode => {
     return {
@@ -68,6 +57,25 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     };
   };
 
+  process?: Process;
+  message?: Message;
+  isAdmin = this.auth.isAdmin();
+  showAppraisal = false;
+  showSelection = false;
+  selectedNodes: string[] = [];
+  treeControl = new FlatTreeControl<FlatNode>(
+    (node) => node.level,
+    (node) => node.expandable,
+  );
+  treeFlattener = new MatTreeFlattener(
+    this._transformer,
+    (node) => node.level,
+    (node) => node.expandable,
+    (node) => node.children,
+  );
+  dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+  viewInitialized = new BehaviorSubject(false);
+
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private auth: AuthService,
@@ -79,76 +87,43 @@ export class MessageTreeComponent implements AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
   ) {
-    this.messageTreeInit = true;
-    this.showAppraisal = false;
-    this.showSelection = false;
-    this.selectedNodes = [];
-    this.treeControl = new FlatTreeControl<FlatNode>(
-      (node) => node.level,
-      (node) => node.expandable,
-    );
-    this.treeFlattener = new MatTreeFlattener(
-      this._transformer,
-      (node) => node.level,
-      (node) => node.expandable,
-      (node) => node.children,
-    );
-    this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+    this.route.params
+      .pipe(
+        // Get message
+        switchMap((params) => this.messageService.getMessage(params['id'])),
+        tap((message) => (this.message = message)),
+        // Get process, update periodically
+        switchMap((message) => this.processService.observeProcessByXdomeaID(message.messageHead.processID)),
+        tap((process) => (this.process = process)),
+        // Initialize tree
+        //
+        // Only proceed from here if the tree hasn't already been initialized
+        // with the current message.
+        filter(() => this.dataSource.data?.[0]?.id !== this.message?.id),
+        tap(() => this.initTree()),
+        // Wait for view initialized
+        switchMap(() => this.viewInitialized.pipe(first((done) => done))),
+        switchMap(() => this.route.firstChild!.params),
+        // Expand current node and scroll into view
+        tap((params) => {
+          if (params['id']) {
+            this.expandNode(params['id']);
+            this.document.getElementById(params['id'])?.scrollIntoView({ block: 'center' });
+          }
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe();
+  }
+
+  ngAfterViewInit() {
+    this.viewInitialized.next(true);
   }
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-  ngAfterViewInit(): void {
-    this.urlParameterSubscription?.unsubscribe();
-    if (this.route.firstChild) {
-      this.urlParameterSubscription = this.route.params
-        .pipe(
-          switchMap((params: Params) => {
-            return this.messageService.getMessage(params['id']);
-          }),
-          switchMap((message: Message) => {
-            this.message = message;
-            return this.processService.getProcessByXdomeaID(message.messageHead.processID);
-          }),
-          switchMap((process: Process) => {
-            this.process = process;
-            this.initTree();
-            return this.route.firstChild!.params;
-          }),
-        )
-        .subscribe((params: Params) => {
-          const nodeID: string = params['id'];
-          // expand node children and scroll selected node into view if message tree is initialized
-          // when opening a link to a node, it gets scrolled into view and expanded
-          if (nodeID && this.messageTreeInit) {
-            this.messageTreeInit = false;
-            this.expandNode(nodeID);
-            const nodeElement: HTMLElement | null = this.document.getElementById(nodeID);
-            if (nodeElement) {
-              nodeElement.scrollIntoView({ block: 'center' });
-            }
-          }
-        });
-    } else {
-      this.urlParameterSubscription = this.route.params
-        .pipe(
-          switchMap((params: Params) => {
-            return this.messageService.getMessage(params['id']);
-          }),
-          switchMap((message: Message) => {
-            this.message = message;
-            return this.processService.getProcessByXdomeaID(message.messageHead.processID);
-          }),
-        )
-        .subscribe((process: Process) => {
-          this.process = process;
-          this.initTree();
-        });
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.urlParameterSubscription?.unsubscribe;
+  trackTree(index: number, element: FlatNode): string {
+    return element.id;
   }
 
   initTree(): void {
