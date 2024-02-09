@@ -23,7 +23,8 @@
     "typst",
     "uuid",
     "xdomea",
-    "Xdomea"
+    "Xdomea",
+    "xman"
   ],
   "typescript.preferences.importModuleSpecifier": "project-relative"
 }
