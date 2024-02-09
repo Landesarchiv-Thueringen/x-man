@@ -86,6 +86,7 @@ func Migrate() {
 		&ToolConfidence{},
 		&ProcessingError{},
 		&Collection{},
+		&Task{},
 	)
 }
 
@@ -483,5 +484,21 @@ func UpdateCollection(id uint, collection Collection) error {
 
 func DeleteCollection(id uint) (bool, error) {
 	result := db.Delete(&Collection{}, id)
+	return result.RowsAffected == 1, result.Error
+}
+
+func CreateTask(title string) (Task, error) {
+	task := Task{Title: title, State: Running}
+	result := db.Create(&task)
+	return task, result.Error
+}
+
+func UpdateTask(task Task) error {
+	result := db.Save(&task)
+	return result.Error
+}
+
+func DeleteTask(task Task) (bool, error) {
+	result := db.Delete(&task)
 	return result.RowsAffected == 1, result.Error
 }

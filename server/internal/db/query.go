@@ -53,6 +53,12 @@ func GetCollections() []Collection {
 	return collections
 }
 
+func GetTasks() ([]Task, error) {
+	var tasks []Task
+	result := db.Preload(clause.Associations).Find(&tasks)
+	return tasks, result.Error
+}
+
 func GetSupportedXdomeaVersions() []XdomeaVersion {
 	var xdomeaVersions []XdomeaVersion
 	result := db.Find(&xdomeaVersions)

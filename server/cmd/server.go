@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
@@ -12,7 +13,7 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/report"
-	"lath/xman/internal/tasks"
+	"lath/xman/internal/routines"
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
@@ -30,7 +31,7 @@ var defaultResponse = "LATh xdomea server is running"
 
 func main() {
 	initServer()
-	tasks.Init()
+	routines.Init()
 	router := gin.Default()
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"*"})
@@ -85,6 +86,7 @@ func main() {
 	admin.POST("api/collection/:id", postCollection)
 	admin.DELETE("api/collection/:id", deleteCollection)
 	admin.POST("api/test-transfer-dir", testTransferDir)
+	admin.GET("api/tasks", getTasks)
 	addr := "0.0.0.0:80"
 	router.Run(addr)
 }
@@ -561,6 +563,10 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
+	task, err := db.CreateTask(fmt.Sprintf("Abgabe %s archivieren", message.MessageHead.ProcessID))
+	if err != nil {
+		log.Fatal(err)
+	}
 	// FIXME: This can take quite some time. We need to either drastically
 	// increase timeouts or send a response before DIMAG finishes the import.
 	//
@@ -568,8 +574,11 @@ func archive0503Message(context *gin.Context) {
 	err = dimag.ImportMessage(process, message)
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		task.State = db.Failed
+		task.ErrorMessage = err.Error()
 	}
+	task.State = db.Succeeded
+	db.UpdateTask(task)
 }
 
 func getMyAgencies(context *gin.Context) {
@@ -757,4 +766,13 @@ func testTransferDir(context *gin.Context) {
 	} else {
 		context.JSON(http.StatusOK, gin.H{"result": "failed"})
 	}
+}
+
+func getTasks(context *gin.Context) {
+	tasks, err := db.GetTasks()
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	context.JSON(http.StatusOK, tasks)
 }

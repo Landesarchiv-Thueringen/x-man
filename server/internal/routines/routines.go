@@ -1,5 +1,5 @@
-// Package tasks calls reoccurring tasks in regular intervals.
-package tasks
+// Package routines calls reoccurring tasks in regular intervals.
+package routines
 
 import (
 	"fmt"
@@ -11,19 +11,37 @@ import (
 	"time"
 )
 
-// interval is the time to wait until task runs.
+// interval is the time interval between scheduled routine runs.
 const interval = 1 * time.Hour
 
-// const interval = 1 * time.Hour
-
-// Init schedules regular execution for all tasks.
+// Init schedules regular execution for all routines.
 func Init() {
+	// Run on application start
+	markRunningTasksFailed()
+	// Run periodically
 	go func() {
 		for {
 			cleanupArchivedProcesses()
 			time.Sleep(interval)
 		}
 	}()
+}
+
+// markRunningTasksFailed searches for tasks that are marked 'running' and marks
+// them 'failed'.
+func markRunningTasksFailed() {
+	tasks, err := db.GetTasks()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	for _, t := range tasks {
+		if t.State == db.Running {
+			t.State = db.Failed
+			t.ErrorMessage = "Abgebrochen durch Neustart von X-Man"
+			db.UpdateTask(t)
+		}
+	}
 }
 
 // cleanupArchivedProcesses deletes processes that have been archived

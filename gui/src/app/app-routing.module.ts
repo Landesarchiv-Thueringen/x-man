@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './admin/admin.component';
 import { AgenciesComponent } from './admin/agencies/agencies.component';
 import { CollectionsComponent } from './admin/collections/collections.component';
+import { TasksComponent } from './admin/tasks/tasks.component';
 import { UsersComponent } from './admin/users/users.component';
 import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
 import { ErrorComponent } from './error/error.component';
@@ -52,18 +53,10 @@ const routes: Routes = [
         canActivate: [isAdmin],
         children: [
           { path: '', redirectTo: 'abgebende-stellen', pathMatch: 'full' },
-          {
-            path: 'abgebende-stellen',
-            component: AgenciesComponent,
-          },
-          {
-            path: 'bestände',
-            component: CollectionsComponent,
-          },
-          {
-            path: 'mitarbeiter',
-            component: UsersComponent,
-          },
+          { path: 'abgebende-stellen', component: AgenciesComponent },
+          { path: 'bestände', component: CollectionsComponent },
+          { path: 'mitarbeiter', component: UsersComponent },
+          { path: 'prozesse', component: TasksComponent },
         ],
       },
       {

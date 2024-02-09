@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"lath/xman/internal/db"
 	"log"
@@ -34,6 +35,10 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	startTime := time.Now()
 	processStep.StartTime = &startTime
 	err = db.UpdateProcessStep(processStep)
+	if err != nil {
+		log.Fatal(err)
+	}
+	task, err := db.CreateTask(fmt.Sprintf("Formatverifikation (0 / %d)", processStep.ItemCount))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,6 +91,8 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		task.Title = fmt.Sprintf("Formatverifikation (%d / %d)", processStep.ItemCompletedCount, processStep.ItemCount)
+		db.UpdateTask(task)
 	}
 	processStep.Complete = true
 	completionTime := time.Now()
@@ -94,6 +101,8 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	task.State = db.Succeeded
+	db.UpdateTask(task)
 }
 
 func prepareForDatabase(formatVerification *db.FormatVerification) {

@@ -1,0 +1,18 @@
+.cdk-column-state {
+  box-sizing: content-box;
+  flex: 0 0 24px;
+  .succeeded {
+    color: green;
+  }
+  .failed {
+    color: red;
+  }
+}
+
+.cdk-column-createdAt {
+  flex: 0 0 10em;
+}
+
+.cdk-column-updatedAt {
+  flex: 0 0 10em;
+}
