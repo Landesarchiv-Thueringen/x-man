@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   FeatureValue,
@@ -9,20 +9,24 @@ import {
   ToolConfidence,
   ToolResult,
 } from '../../message/message.service';
-
+import { StatusIconsService } from '../primary-documents-table/status-icons.service';
+import { ToolOutputComponent } from '../tool-output/tool-output.component';
 interface DialogData {
   primaryDocument: PrimaryDocument;
 }
 
 interface FileFeature {
-  value: string;
+  value?: string;
   confidence?: number;
   colorizeConfidence?: boolean;
+  icon?: string;
 }
 
 interface FileFeatures {
   [key: string]: FileFeature;
 }
+
+const ALWAYS_VISIBLE_COLUMNS = ['puid', 'mimeType'];
 
 @Component({
   selector: 'app-file-overview',
@@ -30,16 +34,17 @@ interface FileFeatures {
   styleUrls: ['./primary-document-metadata.component.scss'],
 })
 export class FileOverviewComponent {
-  readonly primaryDocument: PrimaryDocument;
-  dataSource: MatTableDataSource<FileFeatures>;
-  tableColumnList: string[];
+  readonly primaryDocument = this.data.primaryDocument;
+  readonly icons = this.statusIcons.getIcons(this.data.primaryDocument);
+  dataSource = new MatTableDataSource<FileFeatures>();
+  tableColumnList: string[] = [];
+
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
+    private statusIcons: StatusIconsService,
+    private dialog: MatDialog,
     private messageService: MessageService,
   ) {
-    this.dataSource = new MatTableDataSource<FileFeatures>();
-    this.tableColumnList = ['Attribut'];
-    this.primaryDocument = this.data.primaryDocument;
     this.initTableData();
   }
 
@@ -65,11 +70,14 @@ export class FileOverviewComponent {
 
   getTableRows(summary: Summary, toolNames: string[], featureNames: string[]): FileFeatures[] {
     const rows: FileFeatures[] = [this.getCumulativeResult(summary, featureNames)];
-    const sortedFeatures: string[] = this.messageService.sortFeatures(featureNames);
-    this.tableColumnList = ['Werkzeug', ...sortedFeatures];
+    const sortedFeatures: string[] = this.messageService.sortFeatures([...ALWAYS_VISIBLE_COLUMNS, ...featureNames]);
+    this.tableColumnList = ['tool', ...sortedFeatures];
+    if (this.icons.error) {
+      this.tableColumnList.push('error');
+    }
     for (let toolName of toolNames) {
       const featureValues: FileFeatures = {};
-      featureValues['Werkzeug'] = {
+      featureValues['tool'] = {
         value: toolName,
       };
       for (let featureName of featureNames) {
@@ -86,6 +94,11 @@ export class FileOverviewComponent {
           }
         }
       }
+      if (this.findToolResult(toolName)?.error) {
+        featureValues['error'] = {
+          icon: 'error',
+        };
+      }
       rows.push(featureValues);
     }
     return rows;
@@ -93,7 +106,7 @@ export class FileOverviewComponent {
 
   getCumulativeResult(summary: Summary, featureNames: string[]): FileFeatures {
     const features: FileFeatures = {};
-    features['Werkzeug'] = {
+    features['tool'] = {
       value: 'Gesamtergebnis',
     };
     for (let featureName of featureNames) {
@@ -115,5 +128,24 @@ export class FileOverviewComponent {
       }
     }
     return false;
+  }
+
+  showToolOutput(toolName: string): void {
+    const toolResult = this.findToolResult(toolName);
+    if (toolResult) {
+      this.dialog.open(ToolOutputComponent, {
+        data: {
+          toolResult,
+        },
+        autoFocus: false,
+      });
+    }
+  }
+
+  private findToolResult(toolName: string): ToolResult | undefined {
+    return [
+      ...(this.data.primaryDocument.formatVerification?.fileIdentificationResults ?? []),
+      ...(this.data.primaryDocument.formatVerification?.fileValidationResults ?? []),
+    ].find((result) => result.toolName === toolName);
   }
 }

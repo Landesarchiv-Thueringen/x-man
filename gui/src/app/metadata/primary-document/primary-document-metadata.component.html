@@ -1,46 +1,77 @@
 <h1 mat-dialog-title>Formatverifikation</h1>
 
 <mat-dialog-content>
-  <table mat-table [dataSource]="dataSource">
-    <ng-container *ngFor="let tableColumn of tableColumnList" matColumnDef="{{ tableColumn }}">
-      <th mat-header-cell *matHeaderCellDef>{{ tableColumn | fileFeature }}</th>
-      <td
-        mat-cell
-        *matCellDef="let fileInfo"
-        [class.high-confidence-cell]="
-          fileInfo[tableColumn] && fileInfo[tableColumn].colorizeConfidence && fileInfo[tableColumn].confidence >= 0.7
-        "
-        [class.mid-confidence-cell]="
-          fileInfo[tableColumn] &&
-          fileInfo[tableColumn].colorizeConfidence &&
-          fileInfo[tableColumn].confidence < 0.7 &&
-          fileInfo[tableColumn]?.confidence >= 0.45
-        "
-        [class.low-confidence-cell]="
-          fileInfo[tableColumn] && fileInfo[tableColumn].colorizeConfidence && fileInfo[tableColumn].confidence < 0.45
-        "
-      >
-        <div class="feature-info">
-          <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'true'">check</mat-icon>
-          <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'false'">close</mat-icon>
-          <ng-container *ngIf="fileInfo[tableColumn]?.value !== 'false' && fileInfo[tableColumn]?.value !== 'true'">
+  <div *ngIf="icons.uncertain" class="icon-explanation">
+    <mat-icon class="uncertain-icon">warning</mat-icon>
+    <div>
+      <p>Der Typ der Datei konnte nicht zweifelsfrei ermittelt werden.</p>
+      <p>Die Ursache kann ein exotisches Dateiformat, fehlende Werkzeuge oder auch eine Beschädigung der Datei sein.</p>
+      <p>Eine aussagekräftige Validierung kann deshalb nicht vorgenommen werden.</p>
+    </div>
+  </div>
+  <div *ngIf="icons.valid" class="icon-explanation">
+    <mat-icon class="valid-icon">check</mat-icon>
+    <div>
+      <p>Der Datei ist eine valide Datei ihres Typs.</p>
+    </div>
+  </div>
+  <div *ngIf="icons.invalid" class="icon-explanation">
+    <mat-icon class="invalid-icon">close</mat-icon>
+    <div>
+      <p>Der Datei ist invalide.</p>
+      <p>Die Ursache kann eine Erstellung mit ungeeigneten Werkzeugen oder eine Beschädigung der Datei sein.</p>
+      <p>Dies bedeutet nicht automatisch, dass die Datei unbrauchbar ist.</p>
+    </div>
+  </div>
+  <div *ngIf="icons.error" class="icon-explanation">
+    <mat-icon class="error-icon">error</mat-icon>
+    <div>
+      <p>Bei der Überprüfung der Datei trat ein Fehler bei einem oder mehreren Werkzeugen auf.</p>
+      <p>
+        Die Ursache liegt in einem Programmierfehler des verwendeten Werkzeugs. Der Fehler kann jedoch durch ein Problem
+        mit der Datei ausgelöst worden sein.
+      </p>
+      <p>Es können unter Umständen weniger oder keine Aussagen zum Typ oder der Validität der Datei gemacht werden.</p>
+    </div>
+  </div>
+  <div *ngIf="!icons.valid && !icons.invalid && !icons.uncertain && !icons.error" class="icon-explanation">
+    <div>
+      <p>
+        Die Validität der Datei konnte nicht geprüft werden, da kein geeignetes Werkzeug für diesen Dateityp vorliegt.
+      </p>
+    </div>
+  </div>
+
+  <mat-table [dataSource]="dataSource">
+    <ng-container *ngFor="let tableColumn of tableColumnList; let first = first" matColumnDef="{{ tableColumn }}">
+      <mat-header-cell *matHeaderCellDef>{{ tableColumn | fileFeature }}</mat-header-cell>
+      <mat-cell *matCellDef="let fileInfo">
+        <div *ngIf="fileInfo[tableColumn]?.value as value" class="feature-info">
+          <mat-icon *ngIf="value === 'true'">check</mat-icon>
+          <mat-icon *ngIf="value === 'false'">close</mat-icon>
+          <ng-container *ngIf="value !== 'false' && value !== 'true'">
             <span *ngIf="fileInfo[tableColumn]">{{ fileInfo[tableColumn].value }}</span>
           </ng-container>
-          <span
-            *ngIf="fileInfo[tableColumn]?.confidence || fileInfo[tableColumn]?.confidence === 0.0"
-            class="confidence-value"
-          >
+          <span *ngIf="fileInfo[tableColumn]?.confidence != null" class="confidence-value">
             ({{ fileInfo[tableColumn].confidence | percent }})
           </span>
         </div>
-      </td>
+        <mat-icon *ngIf="fileInfo[tableColumn]?.icon as icon" class="{{ icon }}-icon">{{ icon }}</mat-icon>
+        <button
+          *ngIf="first && fileInfo.tool.value !== 'Gesamtergebnis'"
+          mat-button
+          class="open-details-button"
+          (click)="showToolOutput(fileInfo.tool.value)"
+          aria-label="Details anzeigen"
+        ></button>
+      </mat-cell>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="tableColumnList"></tr>
-    <tr mat-row *matRowDef="let row; columns: tableColumnList"></tr>
-  </table>
+    <mat-header-row *matHeaderRowDef="tableColumnList"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: tableColumnList"></mat-row>
+  </mat-table>
 </mat-dialog-content>
 
 <mat-dialog-actions>
-  <button class="close-button" mat-stroked-button mat-dialog-close color="primary">Schließen</button>
+  <button mat-raised-button mat-dialog-close color="primary">Schließen</button>
 </mat-dialog-actions>

@@ -1,33 +1,66 @@
-@use "sass:map";
-@use "@angular/material" as mat;
-
 :host {
   display: block;
   min-width: 70em;
+}
 
-  .feature-info {
-    display: flex;
-    column-gap: 1em;
-
-    .confidence-value {
-      font-size: 14px;
-      color: gray;
-    }
+.icon-explanation {
+  display: flex;
+  gap: 2em;
+  margin-left: 2em;
+  margin-right: 25%;
+  margin-bottom: 1em;
+  p {
+    margin-bottom: 6px;
   }
-
-  .high-confidence-cell {
-    background-color: rgba(0, 150, 0, 0.1);
+  mat-icon {
+    flex-shrink: 0;
   }
+}
+.uncertain-icon {
+  color: #ff6600;
+}
+.valid-icon {
+  color: #00a000;
+}
+.invalid-icon {
+  color: #c00000;
+}
+.error-icon {
+  color: #c00000;
+}
 
-  .mid-confidence-cell {
-    background-color: rgba(255, 165, 0, 0.2);
+.mat-mdc-row {
+  position: relative;
+}
+
+.feature-info {
+  overflow-wrap: anywhere;
+  > * {
+    vertical-align: middle;
   }
+}
 
-  .low-confidence-cell {
-    background-color: rgba(150, 0, 0, 0.1);
-  }
+.confidence-value {
+  font-size: 14px;
+  color: gray;
+  margin-left: 0.25em;
+}
 
-  .close-button {
-    border: 2px solid mat.get-color-from-palette(mat.$indigo-palette, 300) !important;
+.open-details-button {
+  position: absolute;
+  border-radius: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  &:hover::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: currentColor;
+    opacity: 0.04;
   }
 }

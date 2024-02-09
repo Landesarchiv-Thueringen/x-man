@@ -126,6 +126,9 @@ export interface ToolResult {
   toolName: string;
   toolVersion: string;
   toolOutput: string;
+  outputFormat: 'text' | 'json' | 'csv';
+  extractedFeatures: { [key: string]: string };
+  error: string;
 }
 
 export interface Summary {
@@ -691,6 +694,7 @@ export class MessageService {
   }
 
   sortFeatures(features: string[]): string[] {
+    features = [...new Set(features)];
     return features.sort((f1: string, f2: string) => {
       const featureOrder = this.featureOrder;
       let orderF1: number | undefined = featureOrder.get(f1);

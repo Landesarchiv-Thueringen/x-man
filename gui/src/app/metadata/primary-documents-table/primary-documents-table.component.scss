@@ -4,68 +4,71 @@
   padding-bottom: 3em;
   padding-left: 5em;
   padding-right: 5em;
+}
 
-  .file-analysis-section {
-    display: flex;
-    flex-direction: column;
-    margin-top: 2em;
+.file-analysis-section {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2em;
+}
 
-    .file-analysis-table {
+.table-content {
+  .mat-mdc-row {
+    position: relative;
+  }
+
+  .cdk-cell.cdk-column-relativePath,
+  .cdk-cell.cdk-column-fileName,
+  .cdk-cell.cdk-column-mimeType {
+    overflow-wrap: anywhere;
+  }
+
+  .cdk-cell.cdk-column-status {
+    gap: 0.5em;
+  }
+
+  .uncertain-icon {
+    color: #ff6600;
+  }
+  .valid-icon {
+    color: #00a000;
+  }
+  .invalid-icon {
+    color: #c00000;
+  }
+  .error-icon {
+    color: #c00000;
+  }
+
+  .open-details-button {
+    position: absolute;
+    border-radius: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    &:hover::before {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      min-width: 70em;
-      max-width: 100em;
-
-      .table-content {
-        overflow: auto;
-
-        td {
-          padding: 0.5em;
-        }
-
-        .path-cell {
-          max-width: 15em !important;
-          word-break: break-word;
-        }
-
-        .name-cell {
-          max-width: 15em !important;
-          word-break: break-word;
-        }
-
-        .mime-type-cell {
-          max-width: 10em !important;
-          word-break: break-word;
-        }
-
-        .high-confidence-cell {
-          background-color: rgba(0, 150, 0, 0.1);
-        }
-
-        .mid-confidence-cell {
-          background-color: rgba(255, 165, 0, 0.2);
-        }
-
-        .low-confidence-cell {
-          background-color: rgba(150, 0, 0, 0.1);
-        }
-      }
-
-      .table-toolbar {
-        background-color: white;
-        column-gap: 1em;
-
-        mat-paginator {
-          background: transparent;
-        }
-
-        .spacer {
-          flex: 1 1 auto;
-        }
-
-        input[type="file"] {
-          display: none;
-        }
-      }
+      height: 100%;
+      background-color: currentColor;
+      opacity: 0.04;
     }
+  }
+}
+
+.table-toolbar {
+  background-color: white;
+  column-gap: 1em;
+
+  mat-paginator {
+    background: transparent;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
   }
 }
