@@ -635,11 +635,15 @@ export class MessageService {
         case 'file': {
           const isSubfile = node.type === 'subfile';
           changedNode = this.getFileStructureNode(recordObject as FileRecordObject, isSubfile, node.parentID);
+          // updated record object doesn't contain child information
+          // no need to process the children again
+          changedNode.children = node.children;
           break;
         }
         case 'process': {
           const isSubprocess = node.type === 'subprocess';
           changedNode = this.getProcessStructureNode(recordObject as ProcessRecordObject, isSubprocess, node.parentID);
+          changedNode.children = node.children;
           break;
         }
         case 'document': {
@@ -649,6 +653,7 @@ export class MessageService {
             isAttachment,
             node.parentID,
           );
+          changedNode.children = node.children;
           break;
         }
       }
