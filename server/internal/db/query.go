@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"path/filepath"
 
@@ -398,7 +399,7 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 		Where(&process).
 		First(&process)
 	if result.Error != nil {
-		log.Fatal("process not found")
+		return Message{}, fmt.Errorf("failed to read process {%s}: %w", process.XdomeaID, result.Error)
 	}
 	switch code {
 	case "0501":
