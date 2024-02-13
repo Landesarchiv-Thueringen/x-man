@@ -132,10 +132,24 @@ mat-toolbar {
 }
 
 ::ng-deep .message-tree-menu {
-  .delete-button {
-    &,
+  .active {
+    background-color: rgba(0, 0, 0, 0.04);
+    span,
     mat-icon {
-      color: #f44336;
+      color: mat.get-color-from-palette(mat.$indigo-palette, 500);
     }
+  }
+  span {
+    flex-grow: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mat-icon.active-checkmark {
+    margin-right: 0;
+    margin-left: 2em;
+  }
+  a:not(.active) .active-checkmark {
+    visibility: hidden;
   }
 }

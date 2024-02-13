@@ -164,6 +164,28 @@
         </mat-expansion-panel-header>
         <app-institution-metadata [institution]="message.messageHead.receiver.institution"></app-institution-metadata>
       </mat-expansion-panel>
+      @if (isAdmin) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>Administration</mat-panel-title>
+          </mat-expansion-panel-header>
+          <button mat-flat-button color="warn" class="delete-button" (click)="deleteProcess()">
+            <mat-icon>delete</mat-icon>
+            <span>Aussonderung löschen</span>
+          </button>
+        </mat-expansion-panel>
+      }
     </mat-accordion>
   </form>
 </div>
+
+<ng-template #deleteDialog>
+  <h3 mat-dialog-title>Aussonderung löschen?</h3>
+  <div mat-dialog-content>
+    <p>Möchten Sie die Aussonderung und alle zugehörigen Transfernachrichten löschen?</p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+  </div>
+</ng-template>

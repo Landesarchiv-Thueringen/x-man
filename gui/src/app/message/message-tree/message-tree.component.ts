@@ -1,7 +1,7 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
@@ -9,7 +9,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, filter, first, switchMap, tap } from 'rxjs';
 import { Process, ProcessService } from 'src/app/process/process.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
-import { AuthService } from '../../utility/authorization/auth.service';
 import { AppraisalFormComponent } from '../appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import {
@@ -41,7 +40,6 @@ export interface FlatNode {
 })
 export class MessageTreeComponent implements AfterViewInit {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
-  @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
 
   private _transformer = (node: StructureNode, level: number): FlatNode => {
     return {
@@ -59,7 +57,6 @@ export class MessageTreeComponent implements AfterViewInit {
 
   process?: Process;
   message?: Message;
-  isAdmin = this.auth.isAdmin();
   showAppraisal = false;
   showSelection = false;
   selectedNodes: string[] = [];
@@ -78,7 +75,6 @@ export class MessageTreeComponent implements AfterViewInit {
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
-    private auth: AuthService,
     private clipboard: Clipboard,
     private dialog: MatDialog,
     private messageService: MessageService,
@@ -306,20 +302,6 @@ export class MessageTreeComponent implements AfterViewInit {
       a.click();
       document.body.removeChild(a);
     });
-  }
-
-  deleteProcess() {
-    this.dialog
-      .open(this.deleteDialogTemplate)
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.processService.deleteProcess(this.process!.xdomeaID).subscribe(() => {
-            this.notificationService.show('Aussonderung gelöscht');
-            this.router.navigate(['/']);
-          });
-        }
-      });
   }
 
   private goToRootNode() {
