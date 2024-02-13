@@ -17,9 +17,12 @@ var DimagApiEndpoint = os.Getenv("DIMAG_CORE_SOAP_ENDPOINT")
 var DimagApiUser = os.Getenv("DIMAG_CORE_USER")
 var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 
-// ImportMessage archives all metadata and files of a 0503 message in DIMAG.
+// ImportMessageSync archives all metadata and files of a 0503 message in DIMAG.
+//
 // The record objects in the message should be complete loaded.
-func ImportMessage(process db.Process, message db.Message) error {
+//
+// ImportMessageSync returns after the archiving process completed.
+func ImportMessageSync(process db.Process, message db.Message) error {
 	processStep := process.ProcessState.Archiving
 	processStep.Started = true
 	startTime := time.Now()

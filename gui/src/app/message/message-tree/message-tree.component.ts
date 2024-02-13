@@ -287,7 +287,7 @@ export class MessageTreeComponent implements AfterViewInit {
             console.error(error);
           },
           next: () => {
-            this.notificationService.show('Archivierung erfolgreich abgeschlossen');
+            this.notificationService.show('Archivierung gestartet...');
           },
         });
     }

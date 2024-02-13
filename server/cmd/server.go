@@ -581,18 +581,16 @@ func archive0503Message(context *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// FIXME: This can take quite some time. We need to either drastically
-	// increase timeouts or send a response before DIMAG finishes the import.
-	//
-	// TODO: Save any error to the process entry.
-	err = dimag.ImportMessage(process, message)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		task.State = db.Failed
-		task.ErrorMessage = err.Error()
-	}
-	task.State = db.Succeeded
-	db.UpdateTask(task)
+	go func() {
+		err = dimag.ImportMessageSync(process, message)
+		if err != nil {
+			task.State = db.Failed
+			task.ErrorMessage = err.Error()
+		} else {
+			task.State = db.Succeeded
+		}
+		db.UpdateTask(task)
+	}()
 }
 
 func getMyAgencies(context *gin.Context) {
