@@ -1,0 +1,10 @@
+services:
+  database-debug:
+    image: sosedoff/pgweb
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - PGWEB_DATABASE_URL=postgres://${XMAN_DATABASE_USER}:${XMAN_DATABASE_PASSWORD}@database/${XMAN_DATABASE_NAME}?sslmode=disable
+    ports:
+      - 8081:8081

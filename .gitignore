@@ -17,8 +17,9 @@
 # allow environment file
 !/sample.env
 
-# allow docker compose file
+# allow docker compose files
 !/docker-compose.yml
+!/docker-compose-*.yml
 
 # allow go workspace files
 !/go.work
