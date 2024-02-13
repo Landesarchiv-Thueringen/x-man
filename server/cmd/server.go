@@ -27,6 +27,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const XMAN_VERSION = 1
+
 var defaultResponse = "LATh xdomea server is running"
 
 func main() {
@@ -95,7 +97,17 @@ func initServer() {
 	log.Println(defaultResponse)
 	db.Init()
 	// It's important to the migrate after the database initialization.
-	if !db.MigrationCompleted() {
+	MigrateData()
+	agency.MonitorTransferDirs()
+}
+
+func MigrateData() {
+	xManVersion, err := db.GetXManVersion()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if xManVersion == 0 {
+		fmt.Printf("Migrating database from X-Man version %d to %d... ", xManVersion, XMAN_VERSION)
 		db.Migrate()
 		xdomea.InitMessageTypes()
 		xdomea.InitXdomeaVersions()
@@ -103,9 +115,11 @@ func initServer() {
 		xdomea.InitConfidentialityLevelCodelist()
 		xdomea.InitMediumCodelist()
 		agency.InitAgencies()
-		db.SetMigrationCompleted()
+		db.SetXManVersion(XMAN_VERSION)
+		fmt.Println("done")
+	} else {
+		fmt.Printf("Database is up do date with X-Man version %d\n", XMAN_VERSION)
 	}
-	agency.MonitorTransferDirs()
 }
 
 func getDefaultResponse(context *gin.Context) {

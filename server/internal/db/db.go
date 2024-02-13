@@ -27,24 +27,25 @@ func Init() {
 		log.Fatal("Failed to connect to database!")
 	}
 	db = database
+	db.AutoMigrate(&ServerState{})
 }
 
-// MigrationCompleted checks if the database must be initialized.
-func MigrationCompleted() bool {
+// GetXManVersion returns the XMan version that the database was migrated to.
+func GetXManVersion() (uint, error) {
 	var serverState ServerState
 	result := db.Limit(1).Find(&serverState)
-	return result.RowsAffected > 0
+	return serverState.XManVersion, result.Error
 }
 
-// SetMigrationCompleted marks the migration as completed.
-func SetMigrationCompleted() {
-	serverState := ServerState{
-		MigrationComplete: true,
-	}
-	result := db.Save(&serverState)
+func SetXManVersion(version uint) error {
+	var serverState ServerState
+	result := db.Limit(1).Find(&serverState)
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		return result.Error
 	}
+	serverState.XManVersion = version
+	result = db.Save(&serverState)
+	return result.Error
 }
 
 // Migrate migrates all database tables and relations.
@@ -54,7 +55,6 @@ func Migrate() {
 	}
 	// Migrate the complete schema.
 	db.AutoMigrate(
-		&ServerState{},
 		&Agency{},
 		&XdomeaVersion{},
 		&Process{},
