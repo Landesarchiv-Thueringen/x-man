@@ -19,5 +19,6 @@ mat-sidenav {
 }
 
 mat-sidenav-content {
+  box-sizing: border-box;
   padding: 3em;
 }
