@@ -156,8 +156,18 @@
         </mat-cell>
       </ng-container>
 
+      <!-- state column -->
+      <!-- <ng-container matColumnDef="state">
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let process">
+          @if (hasUnresolvedError(process)) {
+            <mat-icon class="error-icon">error</mat-icon>
+          }
+        </mat-cell>
+      </ng-container> -->
+
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns" [class.error-row]="hasUnresolvedError(row)"></mat-row>
     </mat-table>
   </div>
 

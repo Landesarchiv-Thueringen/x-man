@@ -94,16 +94,7 @@ func GetProcesses() ([]Process, error) {
 		Preload("ProcessState.FormatVerification").
 		Preload("ProcessState.Archiving").
 		Find(&processes)
-	if result.Error != nil {
-		return processes, result.Error
-	}
-	var processesWithoutErrors []Process = make([]Process, 0)
-	for _, p := range processes {
-		if len(p.ProcessingErrors) == 0 {
-			processesWithoutErrors = append(processesWithoutErrors, p)
-		}
-	}
-	return processesWithoutErrors, result.Error
+	return processes, result.Error
 }
 
 func GetProcessesForUser(userID []byte) ([]Process, error) {
@@ -132,16 +123,7 @@ func GetProcessesForUser(userID []byte) ([]Process, error) {
 		Preload("ProcessState.FormatVerification").
 		Preload("ProcessState.Archiving").
 		Find(&processes)
-	if result.Error != nil {
-		return processes, result.Error
-	}
-	var processesWithoutErrors []Process = make([]Process, 0)
-	for _, p := range processes {
-		if len(p.ProcessingErrors) == 0 {
-			processesWithoutErrors = append(processesWithoutErrors, p)
-		}
-	}
-	return processesWithoutErrors, result.Error
+	return processes, result.Error
 }
 
 func GetMessageByID(id uuid.UUID) (Message, error) {

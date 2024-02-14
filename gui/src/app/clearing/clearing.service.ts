@@ -1,6 +1,6 @@
 // angular
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 // project
@@ -10,6 +10,7 @@ export interface ProcessingError {
   id: number;
   detectedAt: string;
   agency: Agency;
+  resolved: boolean;
   description: string;
   messageStorePath?: string;
   transferDirPath?: string;

@@ -24,6 +24,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     'message0503',
     'formatVerification',
     'archivingComplete',
+    // 'state',
   ];
   readonly processSubscription: Subscription;
   readonly stateValues = [
@@ -197,5 +198,9 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     return this.dataSource.data.filter((process) =>
       this.filterPredicate(process, { ...(this.dataSource.filter as ProcessTableComponent['filter']['value']), state }),
     ).length;
+  }
+
+  hasUnresolvedError(process: Process): boolean {
+    return process.processingErrors.some((processingError) => !processingError.resolved);
   }
 }

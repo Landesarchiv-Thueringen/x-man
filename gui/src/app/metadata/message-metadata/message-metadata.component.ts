@@ -11,6 +11,13 @@ import { Process, ProcessService } from '../../process/process.service';
 import { AuthService } from '../../utility/authorization/auth.service';
 import { ConfigService } from '../../utility/config.service';
 
+interface StateItem {
+  icon: string;
+  title: string;
+  date: string;
+  message?: string;
+}
+
 @Component({
   selector: 'app-message-metadata',
   templateUrl: './message-metadata.component.html',
@@ -27,6 +34,7 @@ export class MessageMetadataComponent {
   });
   message?: Message;
   process?: Process;
+  stateItems: StateItem[] = [];
   processDeleteTime: Date | null = null;
   isAdmin = this.auth.isAdmin();
 
@@ -58,6 +66,7 @@ export class MessageMetadataComponent {
         switchMap((message) => this.processService.observeProcessByXdomeaID(message.messageHead.processID)),
         tap((process) => {
           this.process = process;
+          this.stateItems = this.getStateItems();
           this.form.patchValue({ note: process.note });
         }),
         // Get and handle config
@@ -90,6 +99,78 @@ export class MessageMetadataComponent {
           });
         }
       });
+  }
+
+  numberOfUnresolvedErrors(): number {
+    return this.process?.processingErrors.filter((processingError) => !processingError.resolved).length ?? 0;
+  }
+
+  hasUnresolvedError(): boolean {
+    return this.numberOfUnresolvedErrors() > 0;
+  }
+
+  private getStateItems(): StateItem[] {
+    if (!this.process) {
+      return [];
+    }
+    const state = this.process.processState;
+    let items: StateItem[] = [];
+    if (state.receive0501.complete) {
+      items.push({ title: 'Anbietung erhalten', icon: 'check', date: state.receive0501.completionTime! });
+    }
+    if (state.appraisal.complete) {
+      items.push({ title: 'Bewertung abgeschlossen', icon: 'check', date: state.appraisal.completionTime! });
+    }
+    if (state.receive0505.complete) {
+      items.push({ title: 'Bewertung in VIS importiert', icon: 'check', date: state.receive0505.completionTime! });
+    }
+    if (state.receive0503.complete) {
+      items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completionTime! });
+    }
+    if (state.formatVerification.complete) {
+      items.push({
+        title: 'Formatverifikation abgeschlossen',
+        icon: 'check',
+        date: state.formatVerification.completionTime!,
+      });
+    } else if (state.formatVerification.started) {
+      items.push({
+        title: 'Formatverifikation läuft...',
+        icon: 'spinner',
+        date: state.formatVerification.startTime!,
+        message: `${state.formatVerification.itemCompletedCount}/${state.formatVerification.itemCount}`,
+      });
+    }
+    if (state.archiving.complete) {
+      items.push({
+        title: 'Abgabe archiviert',
+        icon: 'check',
+        date: state.archiving.completionTime!,
+      });
+    } else if (state.archiving.started) {
+      items.push({
+        title: 'Archivierung läuft...',
+        icon: 'spinner',
+        date: state.archiving.startTime!,
+      });
+    }
+    for (const processingError of this.process.processingErrors) {
+      if (processingError.resolved) {
+        items.push({
+          title: processingError.description,
+          icon: 'check',
+          date: processingError.detectedAt,
+          message: 'Gelöst',
+        });
+      } else {
+        items.push({
+          title: processingError.description,
+          icon: 'error',
+          date: processingError.detectedAt,
+        });
+      }
+    }
+    return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
   private getProcessDeleteTime(process: Process): Observable<Date | null> {

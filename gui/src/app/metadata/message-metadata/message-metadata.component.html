@@ -2,16 +2,21 @@
   <form *ngIf="message" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel
-        [class.received-0501]="process?.processState?.receive0501?.complete"
-        [class.appraisal-complete]="process?.processState?.appraisal?.complete"
-        [class.received-0503]="process?.processState?.receive0503?.complete"
+        [expanded]="hasUnresolvedError()"
         [class.archiving-complete]="process?.processState?.archiving?.complete"
+        [class.unresolved-error]="hasUnresolvedError()"
       >
         <mat-expansion-panel-header>
           <mat-panel-title>Status</mat-panel-title>
           @if (process) {
             <mat-panel-description>
-              @if (process.processState.archiving.complete) {
+              @if (hasUnresolvedError()) {
+                @if (numberOfUnresolvedErrors() === 1) {
+                  1 ungelöstes Problem
+                } @else {
+                  {{ numberOfUnresolvedErrors() }} ungelöste Probleme
+                }
+              } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
               } @else if (process.processState.archiving.started) {
                 Archivierung läuft...
@@ -31,97 +36,30 @@
             </mat-panel-description>
           }
         </mat-expansion-panel-header>
-        @if (process) {
-          <mat-list>
-            @if (process.processState.receive0501.complete) {
-              <mat-list-item>
-                <mat-icon matListItemIcon>check</mat-icon>
-                <div matListItemTitle>Anbietung erhalten</div>
-                <div matListItemLine>{{ process.processState.receive0501.completionTime | date: "medium" }}</div>
-              </mat-list-item>
-            }
-            @if (process.processState.appraisal.complete) {
-              <mat-list-item>
-                <mat-icon matListItemIcon>check</mat-icon>
-                <div matListItemTitle>Bewertung abgeschlossen</div>
-                <div matListItemLine>{{ process.processState.appraisal.completionTime | date: "medium" }}</div>
-              </mat-list-item>
-            }
-            @if (process.processState.receive0505.complete) {
-              <mat-list-item>
-                <mat-icon matListItemIcon>check</mat-icon>
-                <div matListItemTitle>Bewertung in VIS importiert</div>
-                <div matListItemLine>{{ process.processState.receive0505.completionTime | date: "medium" }}</div>
-              </mat-list-item>
-            }
-            @if (process.processState.receive0503.complete) {
-              <mat-list-item>
-                <mat-icon matListItemIcon>check</mat-icon>
-                <div matListItemTitle>Abgabe erhalten</div>
-                <div matListItemLine>{{ process.processState.receive0503.completionTime | date: "medium" }}</div>
-              </mat-list-item>
-            }
-            @if (process.processState.formatVerification.started) {
-              <mat-list-item>
-                @if (process.processState.formatVerification.complete) {
-                  <mat-icon matListItemIcon>check</mat-icon>
-                } @else {
-                  <mat-spinner matListItemIcon diameter="24"></mat-spinner>
-                }
-                @if (process.processState.formatVerification.complete) {
-                  <div matListItemTitle>Formatverifikation abgeschlossen</div>
-                } @else {
-                  <div matListItemTitle>Formatverifikation läuft...</div>
-                }
-                @if (process.processState.formatVerification.complete) {
-                  <div matListItemLine>
-                    <ng-container>{{
-                      process.processState.formatVerification.completionTime | date: "medium"
-                    }}</ng-container>
-                  </div>
-                } @else {
-                  <div matListItemLine>
-                    <ng-container
-                      >{{ process.processState.formatVerification.itemCompletedCount }}/{{
-                        process.processState.formatVerification.itemCount
-                      }}</ng-container
-                    >
-                  </div>
-                }
-              </mat-list-item>
-            }
-            @if (process.processState.archiving.started) {
-              <mat-list-item>
-                @if (process.processState.archiving.complete) {
-                  <mat-icon matListItemIcon>check</mat-icon>
-                } @else {
-                  <mat-spinner matListItemIcon diameter="24"></mat-spinner>
-                }
-                @if (process.processState.archiving.complete) {
-                  <div matListItemTitle>Abgabe archiviert</div>
-                } @else {
-                  <div matListItemTitle>Archivierung läuft...</div>
-                }
-                @if (process.processState.archiving.complete) {
-                  <div matListItemLine>
-                    <ng-container>{{ process.processState.archiving.completionTime | date: "medium" }}</ng-container>
-                  </div>
-                } @else {
-                  <div matListItemLine>
-                    <ng-container>{{ process.processState.archiving.startTime | date: "medium" }}</ng-container>
-                  </div>
-                }
-              </mat-list-item>
-            }
-            @if (processDeleteTime) {
-              <mat-list-item>
-                <mat-icon matListItemIcon>auto_delete</mat-icon>
-                <div matListItemTitle>Zur Löschung vorgemerkt</div>
-                <div matListItemLine>ab {{ processDeleteTime | date: "medium" }}</div>
-              </mat-list-item>
-            }
-          </mat-list>
-        }
+        <mat-list>
+          @for (item of stateItems; track item) {
+            <mat-list-item>
+              @if (item.icon === "spinner") {
+                <mat-spinner matListItemIcon diameter="24"></mat-spinner>
+              } @else {
+                <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              }
+              <div matListItemTitle>{{ item.title }}</div>
+              @if (item.message) {
+                <div matListItemLine>{{ item.message }}</div>
+              } @else {
+                <div matListItemLine>{{ item.date | date: "medium" }}</div>
+              }
+            </mat-list-item>
+          }
+          @if (processDeleteTime) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>auto_delete</mat-icon>
+              <div matListItemTitle>Zur Löschung vorgemerkt</div>
+              <div matListItemLine>ab {{ processDeleteTime | date: "medium" }}</div>
+            </mat-list-item>
+          }
+        </mat-list>
       </mat-expansion-panel>
 
       <mat-expansion-panel [expanded]="true">

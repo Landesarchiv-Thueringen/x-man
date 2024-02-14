@@ -16,6 +16,10 @@
   }
 }
 
+.error-row {
+  background-color: rgba(192, 0, 0, 0.1);
+}
+
 .filters {
   display: flex;
   gap: 1em;
@@ -65,10 +69,14 @@
   min-width: 140px;
 }
 
-.cdk-column-actions {
-  min-width: 8em;
-  flex-grow: 0;
-}
+// .cdk-column-state {
+//   box-sizing: content-box;
+//   flex: 0 0 24px;
+//   min-width: 0;
+//   .error-icon {
+//     color: red;
+//   }
+// }
 
 .task-cell {
   display: flex;

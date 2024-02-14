@@ -4,17 +4,11 @@
 }
 
 mat-expansion-panel {
-  // &.received-0501 {
-  //   background-color: rgba(128, 128, 0, 0.2);
-  // }
-  // &.appraisal-complete {
-  //   background-color: rgba(0, 128, 128, 0.2);
-  // }
-  // &.received-0503 {
-  //   background-color: rgba(128, 0, 128, 0.2);
-  // }
   &.archiving-complete {
     background-color: rgba(0, 128, 0, 0.2);
+  }
+  &.unresolved-error {
+    background-color: rgba(255, 0, 0, 0.15);
   }
 }
 
