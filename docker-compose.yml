@@ -1,5 +1,7 @@
 services:
   gui:
+    depends_on:
+      - server
     restart: unless-stopped
     build:
       context: ./gui
