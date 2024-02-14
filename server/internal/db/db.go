@@ -15,9 +15,9 @@ var db *gorm.DB
 
 func Init() {
 	dsn := `host=database
-		user=` + os.Getenv("XMAN_DATABASE_USER") + `
-		password=` + os.Getenv("XMAN_DATABASE_PASSWORD") + `
-		dbname=` + os.Getenv("XMAN_DATABASE_NAME") + `
+		user=` + os.Getenv("POSTGRES_USER") + `
+		password=` + os.Getenv("POSTGRES_PASSWORD") + `
+		dbname=` + os.Getenv("POSTGRES_DB") + `
 		port=5432
 		sslmode=disable 
 		TimeZone=Europe/Berlin`

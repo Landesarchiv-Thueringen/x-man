@@ -11,5 +11,8 @@ Der xdomea Aussonderungsmanager (kurz x-man) ermöglicht die Ansicht, Bewertung 
 Run docker compose with the additional file `docker-compose-debug-db.yml` and go to http://localhost:8081
 
 ```sh
+# Build and run everything with additional database debugging
 docker-compose -f docker-compose.yml -f docker-compose-debug-db.yml up --build
+# Run only database debugging
+docker compose -f docker-compose-debug-db.yml up
 ```
