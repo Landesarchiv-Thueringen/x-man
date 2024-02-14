@@ -38,17 +38,18 @@ type Process struct {
 	StoreDir         string            `json:"-"`
 	Institution      *string           `json:"institution"`
 	Note             *string           `json:"note"`
-	Message0501ID    *uuid.UUID        `json:"-"`
+	Message0501ID    *uuid.UUID        `json:"message0501Id"`
 	Message0501      *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
 	Message0502Path  *string           `json:"-"`
-	Message0503ID    *uuid.UUID        `json:"-"`
+	Message0503ID    *uuid.UUID        `json:"message0503Id"`
 	Message0503      *Message          `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
 	Message0504Path  *string           `json:"-"`
-	Message0505ID    *uuid.UUID        `json:"-"`
+	Message0505ID    *uuid.UUID        `json:"message0505Id"`
 	Message0505      *Message          `gorm:"foreignKey:Message0505ID;references:ID" json:"message0505"`
 	ProcessingErrors []ProcessingError `json:"processingErrors"`
 	ProcessStateID   uint              `json:"-"`
 	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
+	Tasks            []Task            `json:"-"`
 }
 
 // BeforeDelete deletes associated rows of the deleted Process.
@@ -71,6 +72,9 @@ func (p *Process) BeforeDelete(tx *gorm.DB) (err error) {
 		tx.Delete(e)
 	}
 	tx.Delete(&process.ProcessState)
+	for _, t := range process.Tasks {
+		tx.Delete(t)
+	}
 	return
 }
 
@@ -110,16 +114,23 @@ func (s *ProcessState) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type ProcessStep struct {
-	ID                 uint           `gorm:"primaryKey" json:"-"`
-	CreatedAt          time.Time      `json:"-"`
-	UpdatedAt          time.Time      `json:"-"`
-	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
-	Started            bool           `gorm:"default:false" json:"started"`
-	StartTime          *time.Time     `json:"startTime"`
-	Complete           bool           `gorm:"default:false" json:"complete"`
-	CompletionTime     *time.Time     `json:"completionTime"`
-	ItemCount          uint           `gorm:"default:0" json:"itemCount"`
-	ItemCompletedCount uint           `gorm:"default:0" json:"itemCompletedCount"`
+	ID        uint           `gorm:"primaryKey" json:"-"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	// Complete is true if the step completed successfully.
+	Complete bool `gorm:"default:false" json:"complete"`
+	// CompletionTime is the time at which Complete was set to true.
+	CompletionTime *time.Time `json:"completionTime"`
+	// TODO: update
+	// Tasks is the most recent task associated with the process step.
+	//
+	// It contains information on the step's progress and/or whether it
+	// completed successfully.
+	//
+	// A Task is only set for process steps that take a non-negligible time to
+	// run and/or can fail. It is nil until the process step was started.
+	Tasks []Task `json:"tasks"`
 }
 
 type Message struct {

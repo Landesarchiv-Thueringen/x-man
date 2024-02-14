@@ -3,10 +3,10 @@ package dimag
 import (
 	"encoding/xml"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 	"log"
 )
 
+const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
 const ControlFileName string = "controlfile.xml"
 const InformationObjectAbbreviation string = "O"
 const RepresentationAbbreviation string = "R"
@@ -55,7 +55,7 @@ func GenerateControlFile(
 	if err != nil {
 		log.Fatal(err)
 	}
-	controlFileString := xdomea.XmlHeader + string(xmlBytes)
+	controlFileString := XmlHeader + string(xmlBytes)
 	return controlFileString
 }
 

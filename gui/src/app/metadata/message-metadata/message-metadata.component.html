@@ -18,11 +18,11 @@
                 }
               } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
-              } @else if (process.processState.archiving.started) {
+              } @else if (isStepRunning(process.processState.archiving)) {
                 Archivierung läuft...
               } @else if (process.processState.formatVerification.complete) {
                 Formatverifikation abgeschlossen
-              } @else if (process.processState.formatVerification.started) {
+              } @else if (isStepRunning(process.processState.formatVerification)) {
                 Formatverifikation läuft...
               } @else if (process.processState.receive0503.complete) {
                 Abgabe erhalten

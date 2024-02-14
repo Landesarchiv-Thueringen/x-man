@@ -14,6 +14,7 @@ import (
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/report"
 	"lath/xman/internal/routines"
+	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
@@ -577,19 +578,20 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
-	task, err := db.CreateTask(fmt.Sprintf("Abgabe %s archivieren", message.MessageHead.ProcessID))
+	task, err := tasks.Start(db.TaskTypeArchiving, process, 0)
 	if err != nil {
-		log.Fatal(err)
+		context.AbortWithError(http.StatusInternalServerError, err)
+	}
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
 	}
 	go func() {
 		err = dimag.ImportMessageSync(process, message)
 		if err != nil {
-			task.State = db.Failed
-			task.ErrorMessage = err.Error()
+			tasks.MarkFailed(&task, err.Error())
 		} else {
-			task.State = db.Succeeded
+			tasks.MarkDone(&task)
 		}
-		db.UpdateTask(task)
 	}()
 }
 

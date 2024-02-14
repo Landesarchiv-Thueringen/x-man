@@ -5,8 +5,9 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Task } from '../../admin/tasks/tasks.service';
 import { AuthService } from '../../utility/authorization/auth.service';
-import { Process, ProcessService } from '../process.service';
+import { Process, ProcessService, ProcessStep } from '../process.service';
 
 @Component({
   selector: 'app-process-table',
@@ -202,5 +203,23 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
 
   hasUnresolvedError(process: Process): boolean {
     return process.processingErrors.some((processingError) => !processingError.resolved);
+  }
+
+  isStepFailed(processStep: ProcessStep): boolean {
+    return this.getMostRecentTask(processStep)?.state === 'failed';
+  }
+
+  getMostRecentTask(processStep: ProcessStep): Task | null {
+    const tasks = [...processStep.tasks];
+    tasks.sort((a, b) => b.id - a.id);
+    return tasks[0] ?? null;
+  }
+
+  getTaskUpdateTime(processStep: ProcessStep): string | null {
+    return this.getMostRecentTask(processStep)?.updatedAt ?? null;
+  }
+
+  getRunningTask(processStep: ProcessStep): Task | null {
+    return processStep.tasks.find((task) => task.state === 'running') ?? null;
   }
 }

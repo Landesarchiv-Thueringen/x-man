@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 var DimagApiEndpoint = os.Getenv("DIMAG_CORE_SOAP_ENDPOINT")
@@ -23,15 +22,7 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 //
 // ImportMessageSync returns after the archiving process completed.
 func ImportMessageSync(process db.Process, message db.Message) error {
-	processStep := process.ProcessState.Archiving
-	processStep.Started = true
-	startTime := time.Now()
-	processStep.StartTime = &startTime
-	err := db.UpdateProcessStep(processStep)
-	if err != nil {
-		return err
-	}
-	err = InitConnection()
+	err := InitConnection()
 	if err != nil {
 		log.Println("couldn't init connection to DIMAG sftp server")
 		return err
@@ -80,10 +71,7 @@ func ImportMessageSync(process db.Process, message db.Message) error {
 			return err
 		}
 	}
-	processStep.Complete = true
-	completionTime := time.Now()
-	processStep.CompletionTime = &completionTime
-	return db.UpdateProcessStep(processStep)
+	return nil
 }
 
 // importArchivePackage archives a file record object in DIMAG.

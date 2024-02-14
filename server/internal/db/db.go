@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -54,7 +55,7 @@ func Migrate() {
 		log.Fatal("database wasn't initialized")
 	}
 	// Migrate the complete schema.
-	db.AutoMigrate(
+	err := db.AutoMigrate(
 		&Agency{},
 		&XdomeaVersion{},
 		&Process{},
@@ -88,6 +89,9 @@ func Migrate() {
 		&Collection{},
 		&Task{},
 	)
+	if err != nil {
+		log.Fatal(fmt.Errorf("failed to migrate database: %w", err))
+	}
 }
 
 func InitMessageTypes(messageTypes []*MessageType) {
@@ -487,8 +491,7 @@ func DeleteCollection(id uint) (bool, error) {
 	return result.RowsAffected == 1, result.Error
 }
 
-func CreateTask(title string) (Task, error) {
-	task := Task{Title: title, State: Running}
+func CreateTask(task Task) (Task, error) {
 	result := db.Create(&task)
 	return task, result.Error
 }

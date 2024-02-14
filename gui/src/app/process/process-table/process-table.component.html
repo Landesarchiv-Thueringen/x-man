@@ -51,7 +51,7 @@
             mat-button
             class="open-details-button"
             aria-label="Details anzeigen"
-            [routerLink]="['/nachricht', process?.message0503?.id ?? process?.message0501?.id, 'details']"
+            [routerLink]="['/nachricht', process?.message0503Id ?? process?.message0501?.id, 'details']"
           ></a>
         </mat-cell>
       </ng-container>
@@ -118,21 +118,27 @@
       <ng-container matColumnDef="formatVerification">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.formatVerification.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.formatVerification.completionTime | date: "short" }}
-            </span>
-          </div>
-          <div
-            *ngIf="process.processState.formatVerification.started && !process.processState.formatVerification.complete"
-            class="progress-cell"
-          >
-            {{ process.processState.formatVerification.itemCompletedCount }}/{{
-              process.processState.formatVerification.itemCount
-            }}
-            <mat-spinner diameter="25"></mat-spinner>
-          </div>
+          @if (process.processState.formatVerification.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.formatVerification.completionTime | date: "short" }}
+              </span>
+            </div>
+          } @else if (isStepFailed(process.processState.formatVerification)) {
+            <div class="task-cell">
+              <mat-icon>close</mat-icon>
+              <span class="task-completion-time">
+                {{ getTaskUpdateTime(process.processState.formatVerification) | date: "short" }}
+              </span>
+            </div>
+          } @else if (getRunningTask(process.processState.formatVerification)) {
+            <div class="progress-cell">
+              {{ getRunningTask(process.processState.formatVerification)!.itemCompletedCount }} /
+              {{ getRunningTask(process.processState.formatVerification)!.itemCount }}
+              <mat-spinner diameter="24"></mat-spinner>
+            </div>
+          }
         </mat-cell>
       </ng-container>
 
@@ -140,19 +146,26 @@
       <ng-container matColumnDef="archivingComplete">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.archiving.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.archiving.completionTime | date: "short" }}
-            </span>
-          </div>
-          <div
-            *ngIf="process.processState.archiving.started && !process.processState.archiving.complete"
-            class="progress-cell"
-          >
-            Archivierung läuft
-            <mat-spinner diameter="25"></mat-spinner>
-          </div>
+          @if (process.processState.archiving.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.archiving.completionTime | date: "short" }}
+              </span>
+            </div>
+          } @else if (isStepFailed(process.processState.archiving)) {
+            <div class="task-cell">
+              <mat-icon>close</mat-icon>
+              <span class="task-completion-time">
+                {{ getTaskUpdateTime(process.processState.archiving) | date: "short" }}
+              </span>
+            </div>
+          } @else if (getRunningTask(process.processState.archiving)) {
+            <div class="progress-cell">
+              Archivierung läuft
+              <mat-spinner diameter="24"></mat-spinner>
+            </div>
+          }
         </mat-cell>
       </ng-container>
 

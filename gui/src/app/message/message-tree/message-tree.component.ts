@@ -7,8 +7,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, filter, first, switchMap, tap } from 'rxjs';
-import { Process, ProcessService } from 'src/app/process/process.service';
+import { Process, ProcessService, ProcessStep } from 'src/app/process/process.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
+import { Task } from '../../admin/tasks/tasks.service';
 import { AppraisalFormComponent } from '../appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from '../finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import {
@@ -273,9 +274,9 @@ export class MessageTreeComponent implements AfterViewInit {
           switchMap(() => {
             // marks archiving process as started
             // hides the button to start the process
-            if (this.process) {
-              this.process.processState.archiving.started = true;
-            }
+            this.process?.processState.archiving.tasks.push({
+              state: 'running',
+            } as Task);
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
             return this.messageService.archive0503Message(this.message!.id);
@@ -302,6 +303,17 @@ export class MessageTreeComponent implements AfterViewInit {
       a.click();
       document.body.removeChild(a);
     });
+  }
+
+  /**
+   * Returns true if the given process step is ready to be started by the user.
+   *
+   * This only considers the steps state. You have to check separately whether
+   * - external conditions for running the step are fulfilled, and
+   * - the process does not have any unresolved problems
+   */
+  canStartStep(processStep: ProcessStep): boolean {
+    return processStep.tasks.every((task) => task.state === 'failed');
   }
 
   private goToRootNode() {

@@ -6,12 +6,23 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { RouterModule } from '@angular/router';
+import { TaskTitlePipe } from './task-title.pipe';
 import { Task, TasksService } from './tasks.service';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSortModule],
+  imports: [
+    CommonModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSortModule,
+    TaskTitlePipe,
+    RouterModule,
+  ],
   templateUrl: './tasks.component.html',
   styleUrl: './tasks.component.scss',
 })
@@ -19,7 +30,7 @@ export class TasksComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   dataSource = new MatTableDataSource<Task>();
-  displayedColumns = ['state', 'title', 'createdAt', 'updatedAt', 'errorMessage'];
+  displayedColumns = ['state', 'type', 'process', 'createdAt', 'updatedAt', 'errorMessage'];
 
   constructor(private tasksService: TasksService) {
     this.tasksService

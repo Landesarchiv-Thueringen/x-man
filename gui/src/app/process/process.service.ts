@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, interval } from 'rxjs';
 import { first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { Task } from '../admin/tasks/tasks.service';
 import { ProcessingError } from '../clearing/clearing.service';
 import { Message } from '../message/message.service';
 
@@ -18,7 +19,9 @@ export interface Process {
   receivedAt: string;
   institution: string;
   note: string;
+  message05051Id: string;
   message0501: Message;
+  message0503Id: string;
   message0503: Message;
   processingErrors: ProcessingError[];
   processState: ProcessState;
@@ -34,12 +37,9 @@ export interface ProcessState {
 }
 
 export interface ProcessStep {
-  started: boolean;
   complete: boolean;
-  startTime?: string;
   completionTime?: string;
-  itemCount: number;
-  itemCompletedCount: number;
+  tasks: Task[];
 }
 
 @Injectable({

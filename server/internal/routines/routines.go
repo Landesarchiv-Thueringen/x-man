@@ -4,7 +4,9 @@ package routines
 import (
 	"fmt"
 	"lath/xman/internal/db"
+	"lath/xman/internal/format"
 	"lath/xman/internal/messagestore"
+	"lath/xman/internal/tasks"
 	"log"
 	"os"
 	"strconv"
@@ -17,7 +19,7 @@ const interval = 1 * time.Hour
 // Init schedules regular execution for all routines.
 func Init() {
 	// Run on application start
-	markRunningTasksFailed()
+	tryRestartRunningTasks()
 	// Run periodically
 	go func() {
 		for {
@@ -27,21 +29,43 @@ func Init() {
 	}()
 }
 
-// markRunningTasksFailed searches for tasks that are marked 'running' and marks
-// them 'failed'.
-func markRunningTasksFailed() {
-	tasks, err := db.GetTasks()
+// tryRestartRunningTasks searches for tasks that are marked 'running' and tries
+// to restart them.
+func tryRestartRunningTasks() {
+	ts, err := db.GetTasks()
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	for _, t := range tasks {
-		if t.State == db.Running {
-			t.State = db.Failed
-			t.ErrorMessage = "Abgebrochen durch Neustart von X-Man"
-			db.UpdateTask(t)
+	for _, t := range ts {
+		if t.State == db.TaskStateRunning {
+			err = tryRestart(&t)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
+}
+
+// tryRestart tries to restart a task after X-Man was shut down during
+// execution.
+//
+// It marks the existing task as failed. In case the task can be restarted
+// safely, it creates a new task that is equal to the existing one. Otherwise,
+// it updates the process to reflect the failed task.
+func tryRestart(task *db.Task) error {
+	err := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
+	if err != nil {
+		return err
+	}
+	switch task.Type {
+	case db.TaskTypeFormatVerification:
+		process, err := db.GetProcess(task.ProcessID)
+		if err == nil {
+			go format.VerifyFileFormats(process, *process.Message0503)
+		}
+	}
+	return nil
 }
 
 // cleanupArchivedProcesses deletes processes that have been archived

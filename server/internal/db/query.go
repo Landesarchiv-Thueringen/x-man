@@ -56,7 +56,10 @@ func GetCollections() []Collection {
 
 func GetTasks() ([]Task, error) {
 	var tasks []Task
-	result := db.Preload(clause.Associations).Find(&tasks)
+	result := db.
+		Preload(clause.Associations).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: true}).
+		Find(&tasks)
 	return tasks, result.Error
 }
 
@@ -91,8 +94,8 @@ func GetProcesses() ([]Process, error) {
 		Preload("ProcessState.Appraisal").
 		Preload("ProcessState.Receive0505").
 		Preload("ProcessState.Receive0503").
-		Preload("ProcessState.FormatVerification").
-		Preload("ProcessState.Archiving").
+		Preload("ProcessState.FormatVerification." + clause.Associations).
+		Preload("ProcessState.Archiving." + clause.Associations).
 		Find(&processes)
 	return processes, result.Error
 }
@@ -120,8 +123,8 @@ func GetProcessesForUser(userID []byte) ([]Process, error) {
 		Preload("ProcessState.Appraisal").
 		Preload("ProcessState.Receive0505").
 		Preload("ProcessState.Receive0503").
-		Preload("ProcessState.FormatVerification").
-		Preload("ProcessState.Archiving").
+		Preload("ProcessState.FormatVerification." + clause.Associations).
+		Preload("ProcessState.Archiving." + clause.Associations).
 		Find(&processes)
 	return processes, result.Error
 }
@@ -425,6 +428,31 @@ func GetMessagesByCode(code string) ([]Message, error) {
 	return messages, result.Error
 }
 
+func GetProcess(ID uuid.UUID) (Process, error) {
+	process := Process{ID: ID}
+	result := db.
+		Preload("Agency").
+		Preload("Message0501.MessageHead").
+		Preload("Message0501.MessageType").
+		Preload("Message0503.MessageHead").
+		Preload("Message0503.MessageType").
+		Preload("ProcessingErrors").
+		Preload("ProcessState.Receive0501").
+		Preload("ProcessState.Appraisal").
+		Preload("ProcessState.Receive0505").
+		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.FormatVerification." + clause.Associations).
+		Preload("ProcessState.Archiving." + clause.Associations).
+		First(&process)
+	return process, result.Error
+}
+
+func GetProcessStep(ID uint) (ProcessStep, error) {
+	processStep := ProcessStep{ID: ID}
+	result := db.First(&processStep)
+	return processStep, result.Error
+}
+
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 	process := Process{XdomeaID: xdomeaID}
 	// if first is used instead of find the error will get logged, that is not desired
@@ -439,8 +467,8 @@ func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 		Preload("ProcessState.Appraisal").
 		Preload("ProcessState.Receive0505").
 		Preload("ProcessState.Receive0503").
-		Preload("ProcessState.FormatVerification").
-		Preload("ProcessState.Archiving").
+		Preload("ProcessState.FormatVerification." + clause.Associations).
+		Preload("ProcessState.Archiving." + clause.Associations).
 		Where(&process).Limit(1).Find(&process)
 	if result.RowsAffected == 0 {
 		return process, gorm.ErrRecordNotFound

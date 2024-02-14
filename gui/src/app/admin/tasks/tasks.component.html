@@ -19,11 +19,21 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Title Column -->
-  <ng-container matColumnDef="title">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>Titel</mat-header-cell>
+  <!-- Type Column -->
+  <ng-container matColumnDef="type">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Prozess</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      {{ element.title }}
+      {{ element | taskTitle }}
+    </mat-cell>
+  </ng-container>
+
+  <!-- Process Column -->
+  <ng-container matColumnDef="process">
+    <mat-header-cell *matHeaderCellDef>Aussonderung</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <a [routerLink]="['/nachricht', element.process.message0503Id ?? element.process.message0503Id]">
+        {{ element.process.xdomeaID }}</a
+      >
     </mat-cell>
   </ng-container>
 

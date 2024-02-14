@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"lath/xman/internal/db"
+	"lath/xman/internal/tasks"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -36,16 +36,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	processStep := process.ProcessState.FormatVerification
-	processStep.Started = true
-	processStep.ItemCount = uint(len(primaryDocuments))
-	startTime := time.Now()
-	processStep.StartTime = &startTime
-	err = db.UpdateProcessStep(processStep)
-	if err != nil {
-		log.Fatal(err)
-	}
-	task, err := db.CreateTask(fmt.Sprintf("Formatverifikation (0 / %d)", processStep.ItemCount))
+	task, err := tasks.Start(db.TaskTypeFormatVerification, process, uint(len(primaryDocuments)))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,25 +96,18 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			processStep.ItemCompletedCount = processStep.ItemCompletedCount + 1
-			err = db.UpdateProcessStep(processStep)
+			err = tasks.MarkItemComplete(&task)
 			if err != nil {
 				log.Fatal(err)
 			}
-			task.Title = fmt.Sprintf("Formatverifikation (%d / %d)", processStep.ItemCompletedCount, processStep.ItemCount)
-			db.UpdateTask(task)
 		}()
 	}
 	wg.Wait()
-	processStep.Complete = true
-	completionTime := time.Now()
-	processStep.CompletionTime = &completionTime
-	err = db.UpdateProcessStep(processStep)
+	err = tasks.MarkDone(&task)
 	if err != nil {
 		log.Fatal(err)
 	}
-	task.State = db.Succeeded
-	db.UpdateTask(task)
+
 }
 
 func prepareForDatabase(formatVerification *db.FormatVerification) {

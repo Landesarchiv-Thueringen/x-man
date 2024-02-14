@@ -6,8 +6,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, map, of, switchMap, tap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
+import { Task } from '../../admin/tasks/tasks.service';
 import { Message, MessageService } from '../../message/message.service';
-import { Process, ProcessService } from '../../process/process.service';
+import { Process, ProcessService, ProcessStep } from '../../process/process.service';
 import { AuthService } from '../../utility/authorization/auth.service';
 import { ConfigService } from '../../utility/config.service';
 
@@ -109,6 +110,16 @@ export class MessageMetadataComponent {
     return this.numberOfUnresolvedErrors() > 0;
   }
 
+  isStepRunning(processStep: ProcessStep): boolean {
+    return processStep.tasks.some((task) => task.state === 'running');
+  }
+
+  getMostRecentTask(processStep: ProcessStep): Task | null {
+    const tasks = [...processStep.tasks];
+    tasks.sort((a, b) => b.id - a.id);
+    return tasks[0] ?? null;
+  }
+
   private getStateItems(): StateItem[] {
     if (!this.process) {
       return [];
@@ -127,31 +138,45 @@ export class MessageMetadataComponent {
     if (state.receive0503.complete) {
       items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completionTime! });
     }
-    if (state.formatVerification.complete) {
+    if (this.getMostRecentTask(state.formatVerification)?.state === 'failed') {
+      items.push({
+        title: 'Formatverifikation fehlgeschlagen',
+        icon: 'close',
+        date: this.getMostRecentTask(state.formatVerification)!.updatedAt,
+      });
+    } else if (state.formatVerification.complete) {
       items.push({
         title: 'Formatverifikation abgeschlossen',
         icon: 'check',
         date: state.formatVerification.completionTime!,
       });
-    } else if (state.formatVerification.started) {
+    } else if (this.isStepRunning(state.formatVerification)) {
+      const task = state.formatVerification.tasks.find((task) => task.state === 'running')!;
       items.push({
         title: 'Formatverifikation läuft...',
         icon: 'spinner',
-        date: state.formatVerification.startTime!,
-        message: `${state.formatVerification.itemCompletedCount}/${state.formatVerification.itemCount}`,
+        date: task.createdAt,
+        message: `${task.itemCompletedCount} / ${task.itemCount}`,
       });
     }
-    if (state.archiving.complete) {
+    if (this.getMostRecentTask(state.archiving)?.state === 'failed') {
+      items.push({
+        title: 'Archivierung fehlgeschlagen',
+        icon: 'close',
+        date: this.getMostRecentTask(state.archiving)!.updatedAt,
+      });
+    } else if (state.archiving.complete) {
       items.push({
         title: 'Abgabe archiviert',
         icon: 'check',
         date: state.archiving.completionTime!,
       });
-    } else if (state.archiving.started) {
+    } else if (this.isStepRunning(state.archiving)) {
+      const task = state.archiving.tasks.find((task) => task.state === 'running')!;
       items.push({
         title: 'Archivierung läuft...',
         icon: 'spinner',
-        date: state.archiving.startTime!,
+        date: task.createdAt,
       });
     }
     for (const processingError of this.process.processingErrors) {
