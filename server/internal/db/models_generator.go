@@ -8,17 +8,17 @@ import (
 
 type GeneratorMessage0502 struct {
 	XMLName          xml.Name                   `xml:"xdomea:Aussonderung.Bewertungsverzeichnis.0502"`
-	MessageHead      GeneratorMessageHead       `xml:"xdomea:Kopf"`
+	MessageHead      GeneratorMessageHead0502   `xml:"xdomea:Kopf"`
 	AppraisedObjects []GeneratorAppraisedObject `xml:"xdomea:BewertetesObjekt"`
 	XdomeaXmlNs      string                     `xml:"xmlns:xdomea,attr"`
 	XsiXmlNs         string                     `xml:"xmlns:xsi,attr"`
 }
 
 type GeneratorMessage0504 struct {
-	XMLName     xml.Name             `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
-	MessageHead GeneratorMessageHead `xml:"xdomea:Kopf" json:"messageHead"`
-	XdomeaXmlNs string               `xml:"xmlns:xdomea,attr"`
-	XsiXmlNs    string               `xml:"xmlns:xsi,attr"`
+	XMLName     xml.Name                 `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
+	MessageHead GeneratorMessageHead0504 `xml:"xdomea:Kopf" json:"messageHead"`
+	XdomeaXmlNs string                   `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs    string                   `xml:"xmlns:xsi,attr"`
 }
 
 type GeneratorAppraisedObject struct {
@@ -28,19 +28,34 @@ type GeneratorAppraisedObject struct {
 }
 
 type GeneratorObjectAppraisal struct {
-	XMLName       xml.Name               `xml:"xdomea:Aussonderungsart"`
-	AppraisalCode GeneratorAppraisalCode `xml:"xdomea:Aussonderungsart"`
+	XMLName             xml.Name       `xml:"xdomea:Aussonderungsart"`
+	AppraisalCode       *GeneratorCode `xml:"xdomea:Aussonderungsart"`
+	AppraisalCodePre300 *string        `xml:"code"`
 }
 
-type GeneratorAppraisalCode struct {
-	Code string `xml:"code"`
+type GeneratorMessageHead0502 struct {
+	ProcessID        string                 `xml:"xdomea:ProzessID"`
+	MessageType      GeneratorCode          `xml:"xdomea:Nachrichtentyp"`
+	CreationTime     string                 `xml:"xdomea:Erstellungszeitpunkt"`
+	Sender           GeneratorContact       `xml:"xdomea:Absender"`
+	Receiver         GeneratorContact       `xml:"xdomea:Empfaenger"`
+	SendingSystem    GeneratorSendingSystem `xml:"xdomea:SendendesSystem"`
+	ReceiptRequested bool                   `xml:"xdomea:Empfangsbestaetigung"`
 }
 
-type GeneratorMessageHead struct {
-	ProcessID    string           `xml:"xdomea:ProzessID"`
-	CreationTime string           `xml:"xdomea:Erstellungszeitpunkt"`
-	Sender       GeneratorContact `xml:"xdomea:Absender"`
-	Receiver     GeneratorContact `xml:"xdomea:Empfaenger"`
+type GeneratorMessageHead0504 struct {
+	ProcessID     string                 `xml:"xdomea:ProzessID"`
+	MessageType   GeneratorCode          `xml:"xdomea:Nachrichtentyp"`
+	CreationTime  string                 `xml:"xdomea:Erstellungszeitpunkt"`
+	Sender        GeneratorContact       `xml:"xdomea:Absender"`
+	Receiver      GeneratorContact       `xml:"xdomea:Empfaenger"`
+	SendingSystem GeneratorSendingSystem `xml:"xdomea:SendendesSystem"`
+}
+
+type GeneratorSendingSystem struct {
+	XMLName        xml.Name `xml:"xdomea:SendendesSystem"`
+	ProductName    *string  `xml:"xdomea:Produktname"`
+	ProductVersion *string  `xml:"xdomea:Version"`
 }
 
 type GeneratorContact struct {
@@ -53,12 +68,11 @@ type GeneratorAgencyIdentification struct {
 	Prefix *GeneratorCode `xml:"xdomea:Praefix"`
 }
 
-type GeneratorCode struct {
-	Code *string `xml:"code"`
-	Name *string `xml:"name"`
-}
-
 type GeneratorInstitution struct {
 	Name         *string `xml:"xdomea:Name"`
 	Abbreviation *string `xml:"xdomea:Kurzbezeichnung"`
+}
+
+type GeneratorCode struct {
+	Code string `xml:"code"`
 }

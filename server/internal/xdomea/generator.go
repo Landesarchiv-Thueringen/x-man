@@ -11,24 +11,23 @@ import (
 const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
 const XsiXmlNs = "http://www.w3.org/2001/XMLSchema-instance"
 
+// Generate0502Message creates the XML code for the appraisal message (code: 0502).
+// The generated message has the same xdomea version as the
 func Generate0502Message(message db.Message) string {
 	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
 	if err != nil {
 		log.Fatal(err)
 	}
-	messageHead := GenerateMessageHeadLATh(message.MessageHead.ProcessID, message.MessageHead.Sender)
+	messageHead := GenerateMessageHead0502(message.MessageHead.ProcessID, message.MessageHead.Sender)
 	message0502 := db.GeneratorMessage0502{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
 	}
-	// TODO: think about root level process and document record objects
-	for _, fileRecordObject := range message.FileRecordObjects {
-		for _, o := range fileRecordObject.GetAppraisableObjects() {
-			appraisedObject, err := GenerateAppraisedObject(o)
-			if err == nil {
-				message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
-			}
+	for _, o := range message.GetAppraisableObjects() {
+		appraisedObject, err := GenerateAppraisedObject(o, xdomeaVersion)
+		if err == nil {
+			message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 		}
 	}
 	xmlBytes, err := xml.MarshalIndent(message0502, " ", " ")
@@ -36,10 +35,18 @@ func Generate0502Message(message db.Message) string {
 		log.Fatal("0502 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
+	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	if err != nil {
+		log.Println(err)
+	}
 	return messageXml
 }
 
-func GenerateAppraisedObject(o db.AppraisableRecordObject) (db.GeneratorAppraisedObject, error) {
+// GenerateAppraisedObject returns xdomea version dependent appraised object.
+func GenerateAppraisedObject(
+	o db.AppraisableRecordObject,
+	xdomeaVersion db.XdomeaVersion,
+) (db.GeneratorAppraisedObject, error) {
 	var appraisedObject db.GeneratorAppraisedObject
 	appraisal, err := o.GetAppraisal()
 	if err != nil {
@@ -48,11 +55,19 @@ func GenerateAppraisedObject(o db.AppraisableRecordObject) (db.GeneratorAppraise
 	if appraisal == "B" {
 		return appraisedObject, errors.New("appraisal B shouldn't be transmitted")
 	}
-	appraisalCode := db.GeneratorAppraisalCode{
-		Code: appraisal,
-	}
-	objectAppraisal := db.GeneratorObjectAppraisal{
-		AppraisalCode: appraisalCode,
+
+	var objectAppraisal db.GeneratorObjectAppraisal
+	if xdomeaVersion.IsVersionPriorTo300() {
+		objectAppraisal = db.GeneratorObjectAppraisal{
+			AppraisalCodePre300: &appraisal,
+		}
+	} else {
+		appraisalCode := db.GeneratorCode{
+			Code: appraisal,
+		}
+		objectAppraisal = db.GeneratorObjectAppraisal{
+			AppraisalCode: &appraisalCode,
+		}
 	}
 	appraisedObject = db.GeneratorAppraisedObject{
 		XdomeaID:        o.GetID(),
@@ -66,7 +81,7 @@ func Generate0504Message(message db.Message) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	messageHead := GenerateMessageHeadLATh(message.MessageHead.ProcessID, message.MessageHead.Sender)
+	messageHead := GenerateMessageHead0504(message.MessageHead.ProcessID, message.MessageHead.Sender)
 	message0504 := db.GeneratorMessage0504{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
@@ -77,17 +92,46 @@ func Generate0504Message(message db.Message) string {
 		log.Fatal("0504 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
+	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	if err != nil {
+		log.Println(err)
+	}
 	return messageXml
 }
 
-func GenerateMessageHeadLATh(processID string, sender db.Contact) db.GeneratorMessageHead {
+func GenerateMessageHead0502(processID string, sender db.Contact) db.GeneratorMessageHead0502 {
+	messageType := db.GeneratorCode{
+		Code: "0502",
+	}
 	timeStamp := time.Now()
 	lathContact := GetLAThContact()
-	messageHead := db.GeneratorMessageHead{
-		ProcessID:    processID,
-		CreationTime: timeStamp.Format("01-02-2006 15:04"),
-		Sender:       lathContact,
-		Receiver:     ConvertParserToGeneratorContact(sender),
+	sendingSystem := GetSendingSystem()
+	messageHead := db.GeneratorMessageHead0502{
+		ProcessID:        processID,
+		MessageType:      messageType,
+		CreationTime:     timeStamp.Format("2006-01-02T15:04:05"),
+		Sender:           lathContact,
+		Receiver:         ConvertParserToGeneratorContact(sender),
+		SendingSystem:    sendingSystem,
+		ReceiptRequested: true,
+	}
+	return messageHead
+}
+
+func GenerateMessageHead0504(processID string, sender db.Contact) db.GeneratorMessageHead0504 {
+	messageType := db.GeneratorCode{
+		Code: "0504",
+	}
+	timeStamp := time.Now()
+	lathContact := GetLAThContact()
+	sendingSystem := GetSendingSystem()
+	messageHead := db.GeneratorMessageHead0504{
+		ProcessID:     processID,
+		MessageType:   messageType,
+		CreationTime:  timeStamp.Format("2006-01-02T15:04:05"),
+		Sender:        lathContact,
+		Receiver:      ConvertParserToGeneratorContact(sender),
+		SendingSystem: sendingSystem,
 	}
 	return messageHead
 }
@@ -115,4 +159,14 @@ func ConvertParserToGeneratorContact(contact db.Contact) db.GeneratorContact {
 		generatorContact.Institution = &institution
 	}
 	return generatorContact
+}
+
+func GetSendingSystem() db.GeneratorSendingSystem {
+	productName := "X-MAN"
+	productVersion := "0.1"
+	sendingSystem := db.GeneratorSendingSystem{
+		ProductName:    &productName,
+		ProductVersion: &productVersion,
+	}
+	return sendingSystem
 }

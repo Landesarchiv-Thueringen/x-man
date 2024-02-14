@@ -11,7 +11,7 @@ import (
 )
 
 // Foreign keys need to be pointers so that the default value is nil.
-// The same is true for nullable values.
+// The same is true for Nullable values.
 
 type XdomeaVersion struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
@@ -21,6 +21,10 @@ type XdomeaVersion struct {
 	Code      string         `json:"code"`
 	URI       string         `json:"uri"`
 	XSDPath   string         `json:""`
+}
+
+func (v *XdomeaVersion) IsVersionPriorTo300() bool {
+	return v.Code == "2.3.0" || v.Code == "2.4.0"
 }
 
 type Process struct {

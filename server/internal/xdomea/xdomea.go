@@ -2,7 +2,6 @@ package xdomea
 
 import (
 	"errors"
-	"io/ioutil"
 	"lath/xman/internal/db"
 	"lath/xman/internal/format"
 	"log"
@@ -12,7 +11,6 @@ import (
 	"regexp"
 
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/libxml2"
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
@@ -207,47 +205,29 @@ func AddMessage(
 	return process, message, nil
 }
 
-// performs xsd schema validation
+// IsMessageValid performs a xsd schema validation against the xdomea version of the message.
 func IsMessageValid(agency db.Agency, message db.Message) error {
 	xdomeaVersion, err := ExtractVersionFromMessage(message)
 	if err != nil {
 		return err
 	}
-	schema, err := xsd.ParseFromFile(xdomeaVersion.XSDPath)
+	err = ValidateXdomeaXmlFile(message.MessagePath, xdomeaVersion)
 	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer schema.Free()
-	messageFile, err := os.Open(message.MessagePath)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer messageFile.Close()
-	buffer, err := ioutil.ReadAll(messageFile)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	messageXML, err := libxml2.Parse(buffer)
-	if err != nil {
-		return err
-	}
-	defer messageXML.Free()
-	err = schema.Validate(messageXML)
-	if err != nil {
-		for _, e := range err.(xsd.SchemaValidationError).Errors() {
-			log.Printf("error: %s", e.Error())
+		// Print all schema errors and add error for clearing if a schema validation error occurred.
+		validationError, ok := err.(xsd.SchemaValidationError)
+		if ok {
+			for _, e := range validationError.Errors() {
+				log.Printf("error: %s", e.Error())
+			}
+			processingErr := db.ProcessingError{
+				Agency:           agency,
+				Description:      "Schema-Validierung ungültig",
+				MessageID:        &message.ID,
+				TransferDirPath:  &message.TransferDirMessagePath,
+				MessageStorePath: &message.MessagePath,
+			}
+			db.AddProcessingError(processingErr)
 		}
-		processingErr := db.ProcessingError{
-			Agency:           agency,
-			Description:      "Schema-Validierung ungültig",
-			MessageID:        &message.ID,
-			TransferDirPath:  &message.TransferDirMessagePath,
-			MessageStorePath: &message.MessagePath,
-		}
-		db.AddProcessingError(processingErr)
 		return err
 	}
 	return nil
@@ -277,16 +257,8 @@ func checkMessage0503Integrity(
 	}
 	// check if 0501 message exists
 	message0501, err := db.GetMessageOfProcessByCode(process, "0501")
+	// 0501 Message doesn't exist. No further message validation necessary.
 	if err != nil {
-		// errorMessage := "es existiert keine Anbietung für die Abgabe"
-		// processingErr := db.ProcessingError{
-		// 	Description:      errorMessage,
-		// 	MessageID:        &message0503.ID,
-		// 	TransferDirPath:  &message0503.TransferDirMessagePath,
-		// 	MessageStorePath: &message0503.StoreDir,
-		// }
-		// db.AddProcessingErrorToProcess(process, processingErr)
-		// return errors.New(errorMessage)
 		return nil
 	}
 	// check if appraisal of 0501 message is already complete
