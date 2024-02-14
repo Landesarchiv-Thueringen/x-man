@@ -302,18 +302,18 @@ func checkMessage0503Integrity(
 		db.AddProcessingErrorToProcess(process, processingErr)
 		return errors.New(errorMessage)
 	} else {
-		return checkRecordObjetcsOfMessage0503(process, message0501, message0503)
+		return checkRecordObjectsOfMessage0503(process, message0501, message0503)
 	}
 }
 
-func checkRecordObjetcsOfMessage0503(
+func checkRecordObjectsOfMessage0503(
 	process db.Process,
 	message0501 db.Message,
 	message0503 db.Message,
 ) error {
 	message0503Incomplete := false
 	additionalInfo := ""
-	err := checkFileRecordObjetcsOfMessage0503(
+	err := checkFileRecordObjectsOfMessage0503(
 		message0501.ID,
 		message0503.ID,
 		&additionalInfo,
@@ -321,7 +321,7 @@ func checkRecordObjetcsOfMessage0503(
 	if err != nil {
 		message0503Incomplete = true
 	}
-	err = checkProcessRecordObjetcsOfMessage0503(
+	err = checkProcessRecordObjectsOfMessage0503(
 		message0501.ID,
 		message0503.ID,
 		&additionalInfo,
@@ -345,7 +345,7 @@ func checkRecordObjetcsOfMessage0503(
 	return nil
 }
 
-func checkFileRecordObjetcsOfMessage0503(
+func checkFileRecordObjectsOfMessage0503(
 	message0501ID uuid.UUID,
 	message0503ID uuid.UUID,
 	additionalInfo *string,
@@ -379,7 +379,7 @@ func checkFileRecordObjetcsOfMessage0503(
 	return nil
 }
 
-func checkProcessRecordObjetcsOfMessage0503(
+func checkProcessRecordObjectsOfMessage0503(
 	message0501ID uuid.UUID,
 	message0503ID uuid.UUID,
 	additionalInfo *string,
