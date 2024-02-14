@@ -37,7 +37,7 @@
           }
         </mat-expansion-panel-header>
         <mat-list>
-          @for (item of stateItems; track item) {
+          @for (item of stateItems; track $index) {
             <mat-list-item>
               @if (item.icon === "spinner") {
                 <mat-spinner matListItemIcon diameter="24"></mat-spinner>
