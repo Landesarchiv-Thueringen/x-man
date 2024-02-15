@@ -8,11 +8,8 @@
 # allow go source code
 !/**/*.go
 
-# allow database init script
-!/database/init_database.sql
-
-# allow database dockerfile
-!/database/dockerfile_database
+# allow build files
+!/build/package/**/*
 
 # allow xdomea xml schemas
 !/xsd/**/*.xsd

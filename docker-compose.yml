@@ -20,8 +20,7 @@ services:
       timeout: 5s
       retries: 5
     build:
-      context: ./server/database
-      dockerfile: dockerfile_database
+      context: ./server/build/package/database
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
