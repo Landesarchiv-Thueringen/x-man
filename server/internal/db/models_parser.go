@@ -69,11 +69,11 @@ func (p *Process) BeforeDelete(tx *gorm.DB) (err error) {
 		tx.Delete(&process.Message0505)
 	}
 	for _, e := range process.ProcessingErrors {
-		tx.Delete(e)
+		tx.Delete(&e)
 	}
 	tx.Delete(&process.ProcessState)
 	for _, t := range process.Tasks {
-		tx.Delete(t)
+		tx.Delete(&t)
 	}
 	return
 }
