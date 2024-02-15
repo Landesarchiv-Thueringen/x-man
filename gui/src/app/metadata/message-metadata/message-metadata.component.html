@@ -82,8 +82,14 @@
         </div>
         <div class="metadata-row">
           <mat-form-field class="note-input" floatLabel="always">
-            <mat-label>Notiz</mat-label>
-            <input matInput formControlName="note" (keydown.enter)="saveNote()" (blur)="saveNote()" />
+            <mat-label>Arbeitstitel</mat-label>
+            <input
+              matInput
+              formControlName="note"
+              (keydown.enter)="saveNote()"
+              (blur)="saveNote()"
+              placeholder="Selbstgewählter Arbeitstitel für die Zeit des Übernahmeprozesses"
+            />
             <mat-icon matSuffix>edit</mat-icon>
           </mat-form-field>
         </div>
