@@ -12,6 +12,9 @@
         <mat-label>Passwort</mat-label>
         <input matInput formControlName="password" type="password" />
       </mat-form-field>
+      @if (invalidCredentials) {
+        <p @slideIn class="invalid-notice">Ungültiger Nutzername oder Passwort</p>
+      }
     </mat-card-content>
     <mat-card-actions align="end">
       <button mat-flat-button color="primary" [disabled]="!loginForm.valid">Anmelden</button>
