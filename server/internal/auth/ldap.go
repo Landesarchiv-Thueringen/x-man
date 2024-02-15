@@ -52,6 +52,19 @@ type authorizationResult struct {
 // We return a value indicating whether the provided credentials are valid, and
 // if so, what level of access should be grated to the user.
 func authorizeUser(username string, password string) (authorizationResult, error) {
+	if os.Getenv("AD_URL") == "" && os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
+		return authorizationResult{
+			Predicate: GRANTED,
+			UserEntry: &userEntry{
+				ID:          []byte{},
+				DisplayName: username + " (kein LDAP)",
+				Permissions: &permissions{
+					Admin: password == "admin",
+				},
+			},
+		}, nil
+	}
+
 	l, err := connectReadonly()
 	if err != nil {
 		return authorizationResult{}, err
@@ -105,6 +118,9 @@ func authorizeUser(username string, password string) (authorizationResult, error
 }
 
 func listUsers() ([]userEntry, error) {
+	if os.Getenv("AD_URL") == "" {
+		return []userEntry{}, nil
+	}
 	l, err := connectReadonly()
 	if err != nil {
 		return []userEntry{}, err

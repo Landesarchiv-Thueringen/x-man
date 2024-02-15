@@ -6,6 +6,20 @@ Der xdomea Aussonderungsmanager (kurz x-man) ermöglicht die Ansicht, Bewertung 
 
 ## Development
 
+### Test without LDAP
+
+You can use X-Man without LDAP configuration. In `.env`, set
+
+```sh
+ACCEPT_ANY_LOGIN_CREDENTIALS=true
+
+# Do not set AD_URL
+# AD_URL=
+```
+
+You can now log in with any username/password combination. Use 'admin' as
+password to log in with administration privileges.
+
 ### Debug Database with [pgweb](https://github.com/sosedoff/pgweb)
 
 Run docker compose with the additional file `docker-compose-debug-db.yml` and go to http://localhost:8081
