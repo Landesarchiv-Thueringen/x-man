@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, map, of, switchMap, tap } from 'rxjs';
+import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, switchMap, tap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { Task } from '../../admin/tasks/tasks.service';
 import { Message, MessageService } from '../../message/message.service';
@@ -66,9 +66,12 @@ export class MessageMetadataComponent {
         // Get and handle process
         switchMap((message) => this.processService.observeProcessByXdomeaID(message.messageHead.processID)),
         tap((process) => {
+          const isFirstValue = !this.process;
           this.process = process;
           this.stateItems = this.getStateItems();
-          this.form.patchValue({ note: process.note });
+          if (isFirstValue) {
+            this.form.patchValue({ note: process.note });
+          }
         }),
         // Get and handle config
         switchMap((process) => this.getProcessDeleteTime(process)),
@@ -76,6 +79,16 @@ export class MessageMetadataComponent {
         takeUntilDestroyed(),
       )
       .subscribe();
+    // Save note when typing (after a debounce)
+    this.form.valueChanges
+      .pipe(
+        map((changes) => changes.note),
+        filter((note) => note != null),
+        distinctUntilChanged(),
+        skip(1), // Skip initial value
+        debounceTime(3000),
+      )
+      .subscribe(() => this.saveNote());
   }
 
   saveNote(): void {
