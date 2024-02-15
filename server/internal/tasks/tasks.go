@@ -39,13 +39,26 @@ func MarkItemComplete(task *db.Task) error {
 }
 
 // MarkFailed marks the task and its process step failed.
-func MarkFailed(task *db.Task, errorMessage string) error {
+func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) error {
 	// Update task
 	task.State = db.TaskStateFailed
 	task.ErrorMessage = errorMessage
 	err := db.UpdateTask(*task)
+	if err != nil {
+		return err
+	}
 	// The process step is marked failed implicitly by the task
-	return err
+
+	if createProcessingError {
+		err = db.AddProcessingErrorToProcess(*task.Process, db.ProcessingError{
+			AgencyID:    task.Process.AgencyID,
+			Description: getDisplayName(task.Type) + " " + errorMessage,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // MarkDone marks the task and its process stop completed successfully.
@@ -72,5 +85,16 @@ func getProcessStep(taskType db.TaskType, process db.Process) db.ProcessStep {
 		return process.ProcessState.FormatVerification
 	default:
 		panic(fmt.Errorf("unknown task type: %s", taskType))
+	}
+}
+
+func getDisplayName(taskType db.TaskType) string {
+	switch taskType {
+	case db.TaskTypeArchiving:
+		return "Archivierung"
+	case db.TaskTypeFormatVerification:
+		return "Formatverifikation"
+	default:
+		return string(taskType)
 	}
 }

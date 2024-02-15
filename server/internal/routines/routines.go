@@ -54,18 +54,17 @@ func tryRestartRunningTasks() {
 // safely, it creates a new task that is equal to the existing one. Otherwise,
 // it updates the process to reflect the failed task.
 func tryRestart(task *db.Task) error {
-	err := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
-	if err != nil {
-		return err
-	}
+	var couldRestart = false
 	switch task.Type {
 	case db.TaskTypeFormatVerification:
 		process, err := db.GetProcess(task.ProcessID)
 		if err == nil {
 			go format.VerifyFileFormats(process, *process.Message0503)
+			couldRestart = true
 		}
 	}
-	return nil
+	err := tasks.MarkFailed(task, "abgebrochen durch Neustart von X-Man", !couldRestart)
+	return err
 }
 
 // cleanupArchivedProcesses deletes processes that have been archived

@@ -450,13 +450,9 @@ func AddProcessingError(e ProcessingError) {
 	}
 }
 
-func AddProcessingErrorToProcess(process Process, e ProcessingError) {
+func AddProcessingErrorToProcess(process Process, e ProcessingError) error {
 	process.ProcessingErrors = append(process.ProcessingErrors, e)
-	err := UpdateProcess(process)
-	if err != nil {
-		// error handling not possible
-		log.Fatal(err)
-	}
+	return UpdateProcess(process)
 }
 
 func CreateAgency(agency Agency) (uint, error) {

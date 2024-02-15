@@ -588,7 +588,7 @@ func archive0503Message(context *gin.Context) {
 	go func() {
 		err = dimag.ImportMessageSync(process, message)
 		if err != nil {
-			tasks.MarkFailed(&task, err.Error())
+			tasks.MarkFailed(&task, err.Error(), true)
 		} else {
 			tasks.MarkDone(&task)
 		}

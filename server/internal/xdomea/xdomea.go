@@ -263,7 +263,7 @@ func checkMessage0503Integrity(
 	}
 	// check if appraisal of 0501 message is already complete
 	if !process.ProcessState.Appraisal.Complete {
-		errorMessage := "die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
+		errorMessage := "Die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
 		processingErr := db.ProcessingError{
 			Agency:           process.Agency,
 			Description:      errorMessage,
@@ -302,7 +302,7 @@ func checkRecordObjectsOfMessage0503(
 		message0503Incomplete = true
 	}
 	if message0503Incomplete {
-		errorMessage := "die Abgabe ist nicht vollständig"
+		errorMessage := "Die Abgabe ist nicht vollständig"
 		processingErr := db.ProcessingError{
 			Agency:           process.Agency,
 			Description:      errorMessage,
