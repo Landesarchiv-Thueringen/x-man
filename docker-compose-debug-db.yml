@@ -1,6 +1,7 @@
 services:
   database-debug:
     image: sosedoff/pgweb
+    restart: unless-stopped
     environment:
       - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/${POSTGRES_DB}?sslmode=disable
     ports:
