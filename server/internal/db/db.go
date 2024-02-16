@@ -168,6 +168,46 @@ func DeleteProcess(id uuid.UUID) (bool, error) {
 	return result.RowsAffected == 1, result.Error
 }
 
+// DeleteMessage deletes the given message and all its associations.
+//
+// It dereferences but keeps the process.
+func DeleteMessage(message Message) (bool, error) {
+	processID := message.MessageHead.ProcessID
+	result := db.Delete(&message)
+	if result.RowsAffected == 0 || result.Error != nil {
+		return result.RowsAffected == 1, result.Error
+	}
+	process, err := GetProcessByXdomeaID(processID)
+	if err != nil {
+		return result.RowsAffected == 1, err
+	}
+	if process.Message0501ID != nil && *process.Message0501ID == message.ID {
+		process.Message0501ID = nil
+		process.ProcessState.Receive0501.CompletionTime = nil
+		process.ProcessState.Receive0501.Complete = false
+		err = UpdateProcessStep(process.ProcessState.Receive0501)
+	} else if process.Message0503ID != nil && *process.Message0503ID == message.ID {
+		process.Message0503ID = nil
+		process.ProcessState.Receive0503.CompletionTime = nil
+		process.ProcessState.Receive0503.Complete = false
+		err = UpdateProcessStep(process.ProcessState.Receive0503)
+	} else if process.Message0505ID != nil && *process.Message0505ID == message.ID {
+		process.Message0505ID = nil
+		process.ProcessState.Receive0505.CompletionTime = nil
+		process.ProcessState.Receive0505.Complete = false
+		err = UpdateProcessStep(process.ProcessState.Receive0505)
+	} else {
+		return result.RowsAffected == 1,
+			fmt.Errorf("could not find message reference of message %v in process %v",
+				message.ID, process.ID)
+	}
+	if err != nil {
+		return result.RowsAffected == 1, err
+	}
+	err = UpdateProcess(process)
+	return result.RowsAffected == 1, err
+}
+
 func SetProcessNote(
 	xdomeaID string,
 	note string,

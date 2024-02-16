@@ -7,20 +7,27 @@ import (
 	"gorm.io/gorm"
 )
 
+type ProcessingErrorType string
+
+const (
+	ProcessingErrorAgencyMismatch ProcessingErrorType = "agency-mismatch"
+)
+
 type ProcessingError struct {
-	ID               uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt        time.Time      `json:"detectedAt"`
-	UpdatedAt        time.Time      `json:"-"`
-	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
-	ProcessID        uuid.UUID      `json:"-"`
-	Process          Process        `json:"process"`
-	AgencyID         uint           `json:"-"`
-	Agency           Agency         `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
-	Resolved         bool           `gorm:"default:false" json:"resolved"`
-	Description      string         `json:"description"`
-	AdditionalInfo   *string        `json:"additionalInfo"`
-	MessageID        *uuid.UUID     `json:"messageID"`
-	Message          *Message       `json:"message"`
-	MessageStorePath *string        `json:"messageStorePath"`
-	TransferDirPath  *string        `json:"transferDirPath"`
+	ID               uint                `gorm:"primaryKey" json:"id"`
+	CreatedAt        time.Time           `json:"detectedAt"`
+	UpdatedAt        time.Time           `json:"-"`
+	DeletedAt        gorm.DeletedAt      `gorm:"index" json:"-"`
+	Type             ProcessingErrorType `json:"type"`
+	ProcessID        uuid.UUID           `json:"-"`
+	Process          Process             `json:"process"`
+	AgencyID         uint                `json:"-"`
+	Agency           Agency              `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
+	Resolved         bool                `gorm:"default:false" json:"resolved"`
+	Description      string              `json:"description"`
+	AdditionalInfo   *string             `json:"additionalInfo"`
+	MessageID        *uuid.UUID          `json:"messageID"`
+	Message          *Message            `json:"message"`
+	MessageStorePath *string             `json:"messageStorePath"`
+	TransferDirPath  *string             `json:"transferDirPath"`
 }

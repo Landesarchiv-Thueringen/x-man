@@ -33,3 +33,10 @@ mat-expansion-panel ::ng-deep .mat-expansion-panel-content {
   overflow: auto;
   max-height: 55vh;
 }
+
+.danger {
+  &,
+  mat-icon {
+    color: #f44336;
+  }
+}

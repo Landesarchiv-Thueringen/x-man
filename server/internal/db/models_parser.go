@@ -152,6 +152,20 @@ type Message struct {
 	FileRecordObjects      []FileRecordObject     `gorm:"many2many:message_file_record_objects;" json:"fileRecordObjects"`
 	ProcessRecordObjects   []ProcessRecordObject  `gorm:"many2many:message_process_record_objects;" json:"processRecordObjects"`
 	DocumentRecordObjects  []DocumentRecordObject `gorm:"many2many:message_document_record_objects;" json:"documentRecordObjects"`
+	ProcessingErrors       []ProcessingError      `json:"processingErrors"`
+}
+
+// BeforeDelete deletes associated rows of the deleted Process.
+func (m *Message) BeforeDelete(tx *gorm.DB) (err error) {
+	if m.ID == uuid.Nil {
+		return fmt.Errorf("failed to delete associations for Message")
+	}
+	message := Message{ID: m.ID}
+	tx.Preload(clause.Associations).First(&message)
+	for _, e := range message.ProcessingErrors {
+		tx.Delete(&e)
+	}
+	return
 }
 
 type MessageType struct {

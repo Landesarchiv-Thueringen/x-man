@@ -78,6 +78,7 @@ func main() {
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processes", getProcesses)
 	admin.DELETE("api/process/:id", deleteProcess)
+	admin.DELETE("api/message/:id", deleteMessage)
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.GET("api/users", auth.Users)
 	admin.GET("api/agencies", getAgencies)
@@ -178,6 +179,25 @@ func getProcesses(context *gin.Context) {
 func deleteProcess(context *gin.Context) {
 	id := context.Param("id")
 	deleted, err := messagestore.DeleteProcess(id)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	if deleted {
+		context.Status(http.StatusAccepted)
+	} else {
+		context.Status(http.StatusNotFound)
+	}
+}
+
+func deleteMessage(context *gin.Context) {
+	id, err := uuid.Parse(context.Param("id"))
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	keepTransferFiles := context.Query("keepTransferFiles")
+	deleted, err := messagestore.DeleteMessage(id, keepTransferFiles == "true")
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return

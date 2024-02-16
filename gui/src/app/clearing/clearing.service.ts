@@ -1,15 +1,15 @@
-// angular
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-
-// project
 import { Message } from '../message/message.service';
 import { Agency, Process } from '../process/process.service';
+
+type ProcessingErrorType = 'agency-mismatch';
 
 export interface ProcessingError {
   id: number;
   detectedAt: string;
+  type: ProcessingErrorType;
   agency: Agency;
   resolved: boolean;
   description: string;

@@ -25,7 +25,7 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
     private clearingService: ClearingService,
     private dialog: MatDialog,
   ) {
-    this.displayedColumns = ['detectedAt', 'agency', 'description', 'actions'];
+    this.displayedColumns = ['detectedAt', 'agency', 'description'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
   }
 

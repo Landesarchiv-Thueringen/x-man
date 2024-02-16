@@ -59,3 +59,27 @@
     </mat-expansion-panel>
   </mat-accordion>
 </div>
+
+<div mat-dialog-actions>
+  <button mat-flat-button [matMenuTriggerFor]="menu" color="primary">
+    Lösen <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+  </button>
+  <button mat-button mat-dialog-close>Schließen</button>
+</div>
+
+<mat-menu #menu="matMenu">
+  <button mat-menu-item>
+    <mat-icon>outgoing_mail</mat-icon>
+    <span>E-Mail an Abgebende Stelle</span>
+  </button>
+  <button mat-menu-item (click)="reimportMessage()">
+    <mat-icon>replay</mat-icon>
+    <span>Nachreicht erneut einlesen</span>
+  </button>
+  @if (data.message) {
+    <button mat-menu-item class="danger" (click)="deleteMessage()">
+      <mat-icon>delete</mat-icon>
+      <span>Nachricht löschen</span>
+    </button>
+  }
+</mat-menu>

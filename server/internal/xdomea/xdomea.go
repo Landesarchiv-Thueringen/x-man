@@ -420,6 +420,7 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
 		}
 		processingErr := db.ProcessingError{
+			Type:             db.ProcessingErrorAgencyMismatch,
 			Agency:           process.Agency,
 			Description:      "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
 			MessageID:        &message.ID,

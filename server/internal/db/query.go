@@ -457,6 +457,9 @@ func GetProcessStep(ID uint) (ProcessStep, error) {
 }
 
 func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
+	if xdomeaID == "" {
+		return Process{}, fmt.Errorf("called GetProcessByXdomeaID with empty string")
+	}
 	process := Process{XdomeaID: xdomeaID}
 	// if first is used instead of find the error will get logged, that is not desired
 	result := db.Model(&Process{}).

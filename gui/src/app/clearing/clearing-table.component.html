@@ -35,31 +35,6 @@
         </mat-cell>
       </ng-container>
 
-      <!-- actions column -->
-      <ng-container matColumnDef="actions" stickyEnd>
-        <mat-header-cell *matHeaderCellDef>Aktionen</mat-header-cell>
-        <mat-cell *matCellDef="let error">
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="menu"
-            aria-hidden="false"
-            aria-label="Aktionen für Nachricht anzeigen"
-          >
-            <mat-icon>more_horiz</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item>
-              <mat-icon>outgoing_mail</mat-icon>
-              <span>E-Mail an Abgebende Stelle</span>
-            </button>
-            <button mat-menu-item>
-              <mat-icon>delete</mat-icon>
-              <span>Nachricht löschen</span>
-            </button>
-          </mat-menu>
-        </mat-cell>
-      </ng-container>
-
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
     </mat-table>

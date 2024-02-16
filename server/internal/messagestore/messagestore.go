@@ -2,6 +2,7 @@ package messagestore
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"lath/xman/internal/db"
 	"lath/xman/internal/xdomea"
@@ -10,6 +11,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 var storeDir = "message_store"
@@ -199,10 +202,8 @@ func DeleteProcess(processID string) (bool, error) {
 	}
 	// Delete database entries
 	deleted, err := db.DeleteProcess(process.ID)
-	if err != nil {
-		return false, err
-	} else if !deleted {
-		return false, nil
+	if !deleted || err != nil {
+		return deleted, err
 	}
 	// Delete message storage
 	if err = os.RemoveAll(storeDir); err != nil {
@@ -215,4 +216,49 @@ func DeleteProcess(processID string) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func DeleteMessage(id uuid.UUID, keepTransferFile bool) (bool, error) {
+	message, err := db.GetCompleteMessageByID(id)
+	if err != nil {
+		return false, err
+	}
+	storeDir := message.StoreDir
+	transferFile := message.TransferDirMessagePath
+	deleted, err := db.DeleteMessage(message)
+	if !deleted || err != nil {
+		return deleted, err
+	}
+	// Delete message storage
+	if err = os.RemoveAll(storeDir); err != nil {
+		return false, err
+	}
+	// Delete transfer file
+	if !keepTransferFile {
+		if err = os.Remove(transferFile); err != nil {
+			return false, err
+		}
+		if err = cleanupEmptyProcess(message.MessageHead.ProcessID); err != nil {
+			return true, err
+		}
+	}
+	return true, nil
+}
+
+// cleanupEmptyProcess deletes the given process if if does not have any
+// messages.
+func cleanupEmptyProcess(processID string) error {
+	process, err := db.GetProcessByXdomeaID(processID)
+	if err != nil {
+		return err
+	}
+	fmt.Println("cleanupEmptyProcess", processID)
+	fmt.Println("  Message0501ID", process.Message0501ID)
+	fmt.Println("  Message0503ID", process.Message0503ID)
+	fmt.Println("  Message0505ID", process.Message0505ID)
+
+	if process.Message0501ID == nil && process.Message0503ID == nil && process.Message0505ID == nil {
+		_, err = DeleteProcess(processID)
+	}
+	return err
 }
