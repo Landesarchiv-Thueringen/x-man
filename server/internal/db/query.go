@@ -14,7 +14,10 @@ import (
 
 func GetProcessingErrors() []ProcessingError {
 	var processingErrors []ProcessingError
-	result := db.Preload("Agency").Find(&processingErrors)
+	result := db.
+		Preload(clause.Associations).
+		Preload("Message." + clause.Associations).
+		Find(&processingErrors)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}

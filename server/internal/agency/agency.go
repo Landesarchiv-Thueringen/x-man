@@ -2,7 +2,6 @@ package agency
 
 import (
 	"lath/xman/internal/db"
-	"log"
 )
 
 func InitAgencies() {
@@ -15,12 +14,4 @@ func InitAgencies() {
 		},
 	}
 	db.InitAgencies(agencies)
-}
-
-func MonitorTransferDirs() {
-	agencies, err := db.GetAgencies()
-	if err != nil {
-		log.Fatal(err)
-	}
-	go watchTransferDirectories(agencies)
 }

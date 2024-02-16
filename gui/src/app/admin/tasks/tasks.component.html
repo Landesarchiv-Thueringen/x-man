@@ -31,7 +31,7 @@
   <ng-container matColumnDef="process">
     <mat-header-cell *matHeaderCellDef>Aussonderung</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <a [routerLink]="['/nachricht', element.process.message0503Id ?? element.process.message0503Id]">
+      <a [routerLink]="['/nachricht', element.process.message0503Id ?? element.process.message0501Id]">
         {{ element.process.xdomeaID }}</a
       >
     </mat-cell>

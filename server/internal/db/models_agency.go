@@ -21,6 +21,10 @@ type Agency struct {
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 	Name         string         `json:"name"`
 	Abbreviation string         `json:"abbreviation"`
+	// Prefix is the agency prefix as by xdomea
+	Prefix string `json:"prefix"`
+	// Code is the agency code as by xdomea
+	Code string `json:"code"`
 	// TransferDir is the directory that the Agency uses to pass messages
 	TransferDir string `json:"transferDir"`
 	// UserIDs is the LDAP objectGUIDs of users responsible for processes of

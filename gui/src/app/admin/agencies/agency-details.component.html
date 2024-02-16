@@ -14,6 +14,21 @@
     <mat-accordion multi>
       <mat-expansion-panel expanded>
         <mat-expansion-panel-header>
+          <mat-panel-title>Behördenkennung</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>Präfix</mat-label>
+            <input matInput formControlName="prefix" />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Behördenschlüssel</mat-label>
+            <input matInput formControlName="code" />
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+      <mat-expansion-panel expanded>
+        <mat-expansion-panel-header>
           <mat-panel-title>Zuordnung</mat-panel-title>
         </mat-expansion-panel-header>
         <div class="row">
@@ -75,6 +90,7 @@
         <button
           class="test-button"
           mat-button
+          type="button"
           (click)="testTransferDirectory()"
           [disabled]="!form.get('transferDir')?.valid || loadingTestResult"
         >

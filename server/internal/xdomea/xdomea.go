@@ -2,6 +2,7 @@ package xdomea
 
 import (
 	"errors"
+	"fmt"
 	"lath/xman/internal/db"
 	"lath/xman/internal/format"
 	"log"
@@ -181,6 +182,7 @@ func AddMessage(
 	if err != nil {
 		log.Fatal(err)
 	}
+	compareAgencyFields(agency, message, process)
 	if messageType.Code == "0503" {
 		// get primary documents
 		primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
@@ -383,4 +385,48 @@ func checkProcessRecordObjectsOfMessage0503(
 		return errors.New("0503 message incomplete: process record objects missing")
 	}
 	return nil
+}
+
+// compareAgencyFields checks whether the message's metadata match the agency
+// and creates a processing error if not.
+//
+// Only values that are set in `agency` are checked.
+func compareAgencyFields(agency db.Agency, message db.Message, process db.Process) {
+	a := message.MessageHead.Sender.AgencyIdentification
+	if a == nil ||
+		(agency.Prefix != "" && a.Prefix == nil) ||
+		(agency.Code != "" && a.Code == nil) ||
+		(a.Prefix != nil && agency.Prefix != *a.Prefix) ||
+		(a.Code != nil && agency.Code != *a.Code) {
+		info := ""
+		if a != nil && a.Prefix != nil {
+			info += fmt.Sprintf("Präfix der Nachricht: %s\n", *a.Prefix)
+		} else {
+			info += fmt.Sprintf("Präfix der Nachricht: (kein Wert)\n")
+		}
+		if a != nil && a.Code != nil {
+			info += fmt.Sprintf("Behördenschlüssel der Nachricht: %s\n\n", *a.Code)
+		} else {
+			info += fmt.Sprintf("Behördenschlüssel der Nachricht: (kein Wert)\n\n")
+		}
+		if agency.Prefix != "" {
+			info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: %s\n", agency.Prefix)
+		} else {
+			info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: (kein Wert)\n")
+		}
+		if agency.Code != "" {
+			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: %s", agency.Code)
+		} else {
+			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
+		}
+		processingErr := db.ProcessingError{
+			Agency:           process.Agency,
+			Description:      "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
+			MessageID:        &message.ID,
+			TransferDirPath:  &message.TransferDirMessagePath,
+			MessageStorePath: &message.StoreDir,
+			AdditionalInfo:   &info,
+		}
+		db.AddProcessingErrorToProcess(process, processingErr)
+	}
 }

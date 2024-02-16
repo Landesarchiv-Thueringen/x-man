@@ -5,7 +5,7 @@ import { AgenciesComponent } from './admin/agencies/agencies.component';
 import { CollectionsComponent } from './admin/collections/collections.component';
 import { TasksComponent } from './admin/tasks/tasks.component';
 import { UsersComponent } from './admin/users/users.component';
-import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
+import { ClearingTableComponent } from './clearing/clearing-table.component';
 import { ErrorComponent } from './error/error.component';
 import { LoginComponent } from './login/login.component';
 import { MessageTreeComponent } from './message/message-tree/message-tree.component';

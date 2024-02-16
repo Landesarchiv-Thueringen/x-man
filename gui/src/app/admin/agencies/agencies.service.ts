@@ -8,6 +8,8 @@ export interface Agency {
   id: number;
   name: string;
   abbreviation: string;
+  prefix: string;
+  code: string;
   transferDir: string;
   collectionId?: number;
   collection?: Collection;

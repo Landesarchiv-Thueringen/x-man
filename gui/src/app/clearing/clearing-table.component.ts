@@ -1,10 +1,12 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { ClearingService, ProcessingError } from '../clearing.service';
+import { environment } from '../../environments/environment';
+import { ClearingDetailsComponent } from './clearing-details.component';
+import { ClearingService, ProcessingError } from './clearing.service';
 
 @Component({
   selector: 'app-clearing-table',
@@ -19,7 +21,10 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private clearingService: ClearingService) {
+  constructor(
+    private clearingService: ClearingService,
+    private dialog: MatDialog,
+  ) {
     this.displayedColumns = ['detectedAt', 'agency', 'description', 'actions'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
   }
@@ -49,5 +54,10 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
 
   trackTableRow(index: number, element: ProcessingError): number {
     return element.id;
+  }
+
+  openDetails(processingError: Partial<ProcessingError>) {
+    const dialogRef = this.dialog.open(ClearingDetailsComponent, { data: processingError });
+    dialogRef.afterClosed().subscribe((result) => {});
   }
 }

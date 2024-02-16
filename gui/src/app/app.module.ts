@@ -27,7 +27,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ClearingTableComponent } from './clearing/clearing-table/clearing-table.component';
+import { ClearingTableComponent } from './clearing/clearing-table.component';
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { AppraisalFormComponent } from './message/appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from './message/finalize-appraisal-dialog/finalize-appraisal-dialog.component';

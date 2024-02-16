@@ -19,25 +19,29 @@ func TestTransferDir(dir string) bool {
 	return err == nil
 }
 
-func watchTransferDirectories(agencies []db.Agency) {
+func MonitorTransferDirs() {
 	ticker = *time.NewTicker(time.Second * 5)
 	stop = make(chan bool)
-	go watchLoop(agencies, ticker, stop)
+	go watchLoop(ticker, stop)
 }
 
-func watchLoop(agencies []db.Agency, timer time.Ticker, stop chan bool) {
+func watchLoop(timer time.Ticker, stop chan bool) {
 	for {
 		select {
 		case <-stop:
 			timer.Stop()
 			return
 		case <-timer.C:
-			readMessages(agencies)
+			readMessages()
 		}
 	}
 }
 
-func readMessages(agencies []db.Agency) {
+func readMessages() {
+	agencies, err := db.GetAgencies()
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, agency := range agencies {
 		files, err := ioutil.ReadDir(agency.TransferDir)
 		if err != nil {

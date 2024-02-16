@@ -19,7 +19,7 @@ export interface Process {
   receivedAt: string;
   institution: string;
   note: string;
-  message05051Id: string;
+  message0501Id: string;
   message0501: Message;
   message0503Id: string;
   message0503: Message;

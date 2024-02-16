@@ -1,9 +1,8 @@
 <h1>Problemfälle ({{ dataSource.data.length }})</h1>
 
-<div class="processing-errors-section">
-  <div class="error-table mat-elevation-z8">
-    <table
-      mat-table
+<div class="mat-elevation-z8">
+  <div class="table-container">
+    <mat-table
       [dataSource]="dataSource"
       [trackBy]="trackTableRow"
       matSort
@@ -12,26 +11,34 @@
     >
       <!-- detected at column -->
       <ng-container matColumnDef="detectedAt">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Feststellungszeitpunkt</th>
-        <td mat-cell *matCellDef="let error">{{ error.detectedAt | date: "short" }}</td>
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Feststellungs&shy;zeitpunkt</mat-header-cell>
+        <mat-cell *matCellDef="let error">{{ error.detectedAt | date: "short" }}</mat-cell>
       </ng-container>
 
       <!-- transfer dir path column -->
       <ng-container matColumnDef="agency">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</th>
-        <td mat-cell *matCellDef="let error">{{ error.agency.name }}</td>
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</mat-header-cell>
+        <mat-cell *matCellDef="let error">{{ error.agency.name }}</mat-cell>
       </ng-container>
 
       <!-- description column -->
       <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Problembeschreibung</th>
-        <td mat-cell *matCellDef="let error">{{ error.description }}</td>
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Problembeschreibung</mat-header-cell>
+        <mat-cell *matCellDef="let error"
+          >{{ error.description }}
+          <button
+            mat-button
+            class="open-details-button"
+            (click)="openDetails(error)"
+            aria-label="Details anzeigen"
+          ></button>
+        </mat-cell>
       </ng-container>
 
       <!-- actions column -->
       <ng-container matColumnDef="actions" stickyEnd>
-        <th mat-header-cell *matHeaderCellDef>Aktionen</th>
-        <td mat-cell *matCellDef="let error">
+        <mat-header-cell *matHeaderCellDef>Aktionen</mat-header-cell>
+        <mat-cell *matCellDef="let error">
           <button
             mat-icon-button
             [matMenuTriggerFor]="menu"
@@ -50,12 +57,12 @@
               <span>Nachricht löschen</span>
             </button>
           </mat-menu>
-        </td>
+        </mat-cell>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
 
     <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Verarbeitungsfehler auswählen"></mat-paginator>
   </div>

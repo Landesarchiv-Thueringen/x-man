@@ -1,0 +1,35 @@
+@use "@angular/material" as mat;
+
+[mat-dialog-content] {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+[role="table"] {
+  display: flex;
+  flex-direction: column;
+  color: black;
+}
+
+[role="row"] {
+  display: flex;
+}
+
+[role="cell"] {
+  flex: 1 0 0;
+  min-width: 0;
+  padding: 0.5em;
+  &:first-child {
+    flex: 0 0 12em;
+  }
+}
+
+a {
+  margin: -6px -8px -10px;
+}
+
+mat-expansion-panel ::ng-deep .mat-expansion-panel-content {
+  overflow: auto;
+  max-height: 55vh;
+}

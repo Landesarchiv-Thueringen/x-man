@@ -4,7 +4,8 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 // project
-import { Agency } from '../process/process.service';
+import { Message } from '../message/message.service';
+import { Agency, Process } from '../process/process.service';
 
 export interface ProcessingError {
   id: number;
@@ -12,6 +13,9 @@ export interface ProcessingError {
   agency: Agency;
   resolved: boolean;
   description: string;
+  additionalInfo: string;
+  process: Process;
+  message: Message;
   messageStorePath?: string;
   transferDirPath?: string;
 }
