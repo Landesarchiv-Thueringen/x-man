@@ -25,7 +25,6 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     'message0503',
     'formatVerification',
     'archivingComplete',
-    // 'state',
   ];
   readonly processSubscription: Subscription;
   readonly stateValues = [

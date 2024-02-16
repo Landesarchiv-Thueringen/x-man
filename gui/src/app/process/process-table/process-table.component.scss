@@ -16,6 +16,9 @@
   }
 }
 
+.archived-row {
+  background-color: rgba(0, 128, 0, 0.1);
+}
 .error-row {
   background-color: rgba(192, 0, 0, 0.1);
 }
@@ -68,15 +71,6 @@
 .mat-mdc-cell {
   min-width: 140px;
 }
-
-// .cdk-column-state {
-//   box-sizing: content-box;
-//   flex: 0 0 24px;
-//   min-width: 0;
-//   .error-icon {
-//     color: red;
-//   }
-// }
 
 .task-cell {
   display: flex;
