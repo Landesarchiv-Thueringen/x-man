@@ -40,6 +40,7 @@ export interface ProcessStep {
   complete: boolean;
   completionTime?: string;
   tasks: Task[];
+  processingErrors: ProcessingError[];
 }
 
 @Injectable({

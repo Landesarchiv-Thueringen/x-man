@@ -1,6 +1,29 @@
-<h2 mat-dialog-title>{{ data.description }}</h2>
+<h2 mat-dialog-title>
+  @if (data.resolution) {
+    Gelöst:
+  }
+  {{ data.description }}
+</h2>
 <div mat-dialog-content>
   <div role="table">
+    @if (data.resolution) {
+      <div role="row" class="strong">
+        <div role="cell">Lösung</div>
+        <div role="cell">
+          @switch (data.resolution) {
+            @case ("reimport-message") {
+              Nachricht neu eingelesen
+            }
+            @case ("delete-message") {
+              Nachricht gelöscht
+            }
+            @default {
+              {{ data.resolution }}
+            }
+          }
+        </div>
+      </div>
+    }
     <div role="row">
       <div role="cell">Feststellungszeitpunkt</div>
       <div role="cell">{{ data.detectedAt | date: "medium" }}</div>
@@ -9,24 +32,26 @@
       <div role="cell">Abgebende Stelle</div>
       <div role="cell">{{ data.agency.name }}</div>
     </div>
-    <div role="row">
-      <div role="cell">Aussonderung</div>
-      <div role="cell">
-        @if (data.process.message0503Id || data.process.message0501Id) {
-          <a
-            mat-button
-            color="primary"
-            [routerLink]="['/nachricht', data.process.message0503Id || data.process.message0501Id]"
-            target="_blank"
-          >
+    @if (data.process) {
+      <div role="row">
+        <div role="cell">Aussonderung</div>
+        <div role="cell">
+          @if (data.process.message0503Id || data.process.message0501Id) {
+            <a
+              mat-button
+              color="primary"
+              [routerLink]="['/nachricht', data.process.message0503Id || data.process.message0501Id]"
+              target="_blank"
+            >
+              {{ data.process.xdomeaID }}
+              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            </a>
+          } @else {
             {{ data.process.xdomeaID }}
-            <mat-icon iconPositionEnd>open_in_new</mat-icon>
-          </a>
-        } @else {
-          {{ data.process.xdomeaID }}
-        }
+          }
+        </div>
       </div>
-    </div>
+    }
     @if (data.message) {
       <div role="row">
         <div role="cell">Typ der Nachricht</div>
@@ -61,9 +86,11 @@
 </div>
 
 <div mat-dialog-actions>
-  <button mat-flat-button [matMenuTriggerFor]="menu" color="primary">
-    Lösen <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
-  </button>
+  @if (!data.resolved) {
+    <button mat-flat-button [matMenuTriggerFor]="menu" color="primary">
+      Lösen <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+    </button>
+  }
   <button mat-button mat-dialog-close>Schließen</button>
 </div>
 
@@ -74,7 +101,7 @@
   </button>
   <button mat-menu-item (click)="reimportMessage()">
     <mat-icon>replay</mat-icon>
-    <span>Nachreicht erneut einlesen</span>
+    <span>Nachricht erneut einlesen</span>
   </button>
   @if (data.message) {
     <button mat-menu-item class="danger" (click)="deleteMessage()">

@@ -63,7 +63,7 @@ func tryRestart(task *db.Task) error {
 			couldRestart = true
 		}
 	}
-	err := tasks.MarkFailed(task, "abgebrochen durch Neustart von X-Man", !couldRestart)
+	err := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man", !couldRestart)
 	return err
 }
 

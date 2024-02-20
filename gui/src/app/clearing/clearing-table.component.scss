@@ -8,6 +8,14 @@
   }
 }
 
+.row {
+  display: flex;
+  align-items: center;
+  h1 {
+    flex-grow: 1;
+  }
+}
+
 .table-container {
   overflow-x: auto;
   display: flex;
@@ -17,6 +25,10 @@
 
 .mat-mdc-row {
   position: relative;
+}
+
+.resolved-row {
+  background-color: rgba(0, 128, 0, 0.1);
 }
 
 .cdk-column-detectedAt {

@@ -10,6 +10,7 @@ import (
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/auth"
+	"lath/xman/internal/clearing"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/report"
@@ -78,8 +79,8 @@ func main() {
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processes", getProcesses)
 	admin.DELETE("api/process/:id", deleteProcess)
-	admin.DELETE("api/message/:id", deleteMessage)
 	admin.GET("api/processing-errors", getProcessingErrors)
+	admin.POST("api/processing-errors/resolve/:id", resolveProcessingError)
 	admin.GET("api/users", auth.Users)
 	admin.GET("api/agencies", getAgencies)
 	admin.PUT("api/agency", putAgency)
@@ -140,6 +141,33 @@ func getProcessingErrors(context *gin.Context) {
 	context.JSON(http.StatusOK, processingErrors)
 }
 
+func resolveProcessingError(context *gin.Context) {
+	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	processingError, err := db.GetProcessingError(uint(id))
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		context.AbortWithStatus(http.StatusNotFound)
+		return
+	} else if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	err = clearing.Resolve(processingError, db.ProcessingErrorResolution(body))
+	if err != nil {
+		context.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	context.Status(http.StatusAccepted)
+}
+
 func getProcessByXdomeaID(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
@@ -179,25 +207,6 @@ func getProcesses(context *gin.Context) {
 func deleteProcess(context *gin.Context) {
 	id := context.Param("id")
 	deleted, err := messagestore.DeleteProcess(id)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	if deleted {
-		context.Status(http.StatusAccepted)
-	} else {
-		context.Status(http.StatusNotFound)
-	}
-}
-
-func deleteMessage(context *gin.Context) {
-	id, err := uuid.Parse(context.Param("id"))
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	keepTransferFiles := context.Query("keepTransferFiles")
-	deleted, err := messagestore.DeleteMessage(id, keepTransferFiles == "true")
 	if err != nil {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return

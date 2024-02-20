@@ -745,16 +745,6 @@ export class MessageService {
     return null;
   }
 
-  reimportMessage(id: string): Observable<void> {
-    const url = this.apiEndpoint + '/message/' + id + '?keepTransferFiles=true';
-    return this.httpClient.delete<void>(url);
-  }
-
-  deleteMessage(id: string): Observable<void> {
-    const url = this.apiEndpoint + '/message/' + id;
-    return this.httpClient.delete<void>(url);
-  }
-
   /**
    * The message tree has only one root node which is the message node.
    */

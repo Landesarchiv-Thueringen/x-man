@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var db *gorm.DB
@@ -493,6 +494,17 @@ func AddProcessingError(e ProcessingError) {
 func AddProcessingErrorToProcess(process Process, e ProcessingError) error {
 	process.ProcessingErrors = append(process.ProcessingErrors, e)
 	return UpdateProcess(process)
+}
+
+func GetProcessingError(id uint) (ProcessingError, error) {
+	processingError := ProcessingError{ID: id}
+	result := db.Preload(clause.Associations).First(&processingError)
+	return processingError, result.Error
+}
+
+func UpdateProcessingError(processingError ProcessingError) error {
+	result := db.Save(&processingError)
+	return result.Error
 }
 
 func CreateAgency(agency Agency) (uint, error) {

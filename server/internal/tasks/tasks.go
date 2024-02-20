@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"lath/xman/internal/db"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Start creates a task and marks the process step started.
 func Start(taskType db.TaskType, process db.Process, itemCount uint) (db.Task, error) {
 	processStep := getProcessStep(taskType, process)
+	// Create task
 	task, err := db.CreateTask(db.Task{
 		Type:          taskType,
 		State:         db.TaskStateRunning,
@@ -21,9 +24,7 @@ func Start(taskType db.TaskType, process db.Process, itemCount uint) (db.Task, e
 	if err != nil {
 		return task, err
 	}
-	if err != nil {
-		return task, err
-	}
+	// Update process step
 	task.ProcessStep.Complete = false
 	task.ProcessStep.CompletionTime = nil
 	err = db.UpdateProcessStep(*task.ProcessStep)
@@ -47,16 +48,29 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 	if err != nil {
 		return err
 	}
-	// The process step is marked failed implicitly by the task
+	// The process step is marked failed by the processing error
 
+	// Create processing error
 	if createProcessingError {
-		err = db.AddProcessingErrorToProcess(*task.Process, db.ProcessingError{
-			AgencyID:    task.Process.AgencyID,
-			Description: getDisplayName(task.Type) + " " + errorMessage,
-		})
-		if err != nil {
-			return err
+		var processingErrorType db.ProcessingErrorType
+		var messageID uuid.UUID
+		switch task.Type {
+		case db.TaskTypeArchiving:
+			processingErrorType = db.ProcessingErrorArchivingFailed
+			messageID = *task.Process.Message0503ID
+		case db.TaskTypeFormatVerification:
+			processingErrorType = db.ProcessingErrorFormatVerificationFailed
+			messageID = *task.Process.Message0503ID
 		}
+		db.AddProcessingError(db.ProcessingError{
+			ProcessID:      task.ProcessID,
+			ProcessStepID:  task.ProcessStepID,
+			Type:           processingErrorType,
+			AgencyID:       task.Process.AgencyID,
+			Description:    getDisplayName(task.Type) + " fehlgeschlagen",
+			MessageID:      messageID,
+			AdditionalInfo: errorMessage,
+		})
 	}
 	return nil
 }

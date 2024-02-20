@@ -29,8 +29,9 @@ type Task struct {
 	ProcessID uuid.UUID      `json:"processId"`
 	// Process is the process that the task is for
 	Process       *Process `json:"process"`
-	ProcessStepID uint
-	ProcessStep   *ProcessStep
+	ProcessStepID uint     `json:"-"`
+	// ProcessStep is the process step that the task is for
+	ProcessStep *ProcessStep `json:"-"`
 	// Type is one of a list of known tasks
 	Type TaskType `json:"type"`
 	// State describes the current condition of the task

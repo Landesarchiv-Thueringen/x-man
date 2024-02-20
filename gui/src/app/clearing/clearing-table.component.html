@@ -1,4 +1,7 @@
-<h1>Problemfälle ({{ dataSource.data.length }})</h1>
+<div class="row">
+  <h1>Problemfälle ({{ dataSource.data.length }})</h1>
+  <mat-slide-toggle [formControl]="showResolvedControl">Gelöste Probleme anzeigen</mat-slide-toggle>
+</div>
 
 <div class="mat-elevation-z8">
   <div class="table-container">
@@ -24,8 +27,11 @@
       <!-- description column -->
       <ng-container matColumnDef="description">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Problembeschreibung</mat-header-cell>
-        <mat-cell *matCellDef="let error"
-          >{{ error.description }}
+        <mat-cell *matCellDef="let error">
+          @if (error.resolved) {
+            Gelöst:
+          }
+          {{ error.description }}
           <button
             mat-button
             class="open-details-button"
@@ -36,7 +42,7 @@
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns" [class.resolved-row]="row.resolved"></mat-row>
     </mat-table>
 
     <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Verarbeitungsfehler auswählen"></mat-paginator>

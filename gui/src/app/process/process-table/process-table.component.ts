@@ -6,6 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Task } from '../../admin/tasks/tasks.service';
+import { ProcessingError } from '../../clearing/clearing.service';
 import { AuthService } from '../../utility/authorization/auth.service';
 import { Process, ProcessService, ProcessStep } from '../process.service';
 
@@ -205,17 +206,15 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   }
 
   isStepFailed(processStep: ProcessStep): boolean {
-    return this.getMostRecentTask(processStep)?.state === 'failed';
+    return this.getUnresolvedErrors(processStep).length > 0;
   }
 
-  getMostRecentTask(processStep: ProcessStep): Task | null {
-    const tasks = [...processStep.tasks];
-    tasks.sort((a, b) => b.id - a.id);
-    return tasks[0] ?? null;
+  getUnresolvedErrors(processStep: ProcessStep): ProcessingError[] {
+    return processStep.processingErrors.filter((processingError) => !processingError.resolved);
   }
 
-  getTaskUpdateTime(processStep: ProcessStep): string | null {
-    return this.getMostRecentTask(processStep)?.updatedAt ?? null;
+  getErrorTime(processStep: ProcessStep): string | null {
+    return this.getUnresolvedErrors(processStep)[0]?.detectedAt;
   }
 
   getRunningTask(processStep: ProcessStep): Task | null {

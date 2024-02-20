@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"lath/xman/internal/db"
 	"lath/xman/internal/tasks"
@@ -12,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"sync"
 	"time"
 )
@@ -41,6 +43,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		log.Fatal(err)
 	}
 	var wg sync.WaitGroup
+	errorMessages := make([]string, 0)
 	for _, primaryDocument := range primaryDocuments {
 		// Suppress warning about loop-variable scope. Actual problem is fixed
 		// since go 1.22. Can be removed when tooling is updated to not show the
@@ -53,48 +56,10 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 				wg.Done()
 				<-guard
 			}()
-			filePath := path.Join(message.StoreDir, primaryDocument.FileName)
-			_, err := os.Stat(filePath)
+			err = verifyDocument(message.StoreDir, primaryDocument)
 			if err != nil {
-				log.Fatal(err)
-			}
-			body := &bytes.Buffer{}
-			writer := multipart.NewWriter(body)
-			fw, err := writer.CreateFormFile("file", primaryDocument.FileName)
-			if err != nil {
-				log.Fatal(err)
-			}
-			file, err := os.Open(filePath)
-			if err != nil {
-				log.Fatal(err)
-			}
-			_, err = io.Copy(fw, file)
-			if err != nil {
-				log.Fatal(err)
-			}
-			writer.Close()
-			request, err := http.NewRequest("POST", borgEndpoint, bytes.NewReader(body.Bytes()))
-			if err != nil {
-				log.Fatal(err)
-			}
-			request.Header.Set("Content-Type", writer.FormDataContentType())
-			response, err := client.Do(request)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if response.StatusCode != http.StatusOK {
-				log.Println(response.StatusCode)
-			}
-			var parsedResponse db.FormatVerification
-			err = json.NewDecoder(response.Body).Decode(&parsedResponse)
-			if err != nil {
-				log.Fatal(err)
-			}
-			prepareForDatabase(&parsedResponse)
-			primaryDocument.FormatVerification = &parsedResponse
-			err = db.UpdatePrimaryDocument(primaryDocument)
-			if err != nil {
-				log.Fatal(err)
+				errorMessage := fmt.Sprintf("%s: %s", primaryDocument.FileName, err.Error())
+				errorMessages = append(errorMessages, errorMessage)
 			}
 			err = tasks.MarkItemComplete(&task)
 			if err != nil {
@@ -103,11 +68,63 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		}()
 	}
 	wg.Wait()
-	err = tasks.MarkDone(&task)
+	if len(errorMessages) == 0 {
+		err = tasks.MarkDone(&task)
+	} else {
+		err = tasks.MarkFailed(&task, strings.Join(errorMessages, "\n"), true)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
+// verifyDocument runs format verification on the given document using the
+// remote BORG service and saves the result to the document object.
+func verifyDocument(storeDir string, primaryDocument db.PrimaryDocument) error {
+	filePath := path.Join(storeDir, primaryDocument.FileName)
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	fw, err := writer.CreateFormFile("file", primaryDocument.FileName)
+	if err != nil {
+		return err
+	}
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(fw, file)
+	if err != nil {
+		return err
+	}
+	writer.Close()
+	request, err := http.NewRequest("POST", borgEndpoint, bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	if response.StatusCode != http.StatusOK {
+		log.Println(response.StatusCode)
+	}
+	var parsedResponse db.FormatVerification
+	err = json.NewDecoder(response.Body).Decode(&parsedResponse)
+	if err != nil {
+		return err
+	}
+	prepareForDatabase(&parsedResponse)
+	primaryDocument.FormatVerification = &parsedResponse
+	err = db.UpdatePrimaryDocument(primaryDocument)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func prepareForDatabase(formatVerification *db.FormatVerification) {

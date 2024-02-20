@@ -6,7 +6,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, switchMap, tap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
-import { Task } from '../../admin/tasks/tasks.service';
 import { Message, MessageService } from '../../message/message.service';
 import { Process, ProcessService, ProcessStep } from '../../process/process.service';
 import { AuthService } from '../../utility/authorization/auth.service';
@@ -127,12 +126,6 @@ export class MessageMetadataComponent {
     return processStep.tasks.some((task) => task.state === 'running');
   }
 
-  getMostRecentTask(processStep: ProcessStep): Task | null {
-    const tasks = [...processStep.tasks];
-    tasks.sort((a, b) => b.id - a.id);
-    return tasks[0] ?? null;
-  }
-
   private getStateItems(): StateItem[] {
     if (!this.process) {
       return [];
@@ -151,13 +144,7 @@ export class MessageMetadataComponent {
     if (state.receive0503.complete) {
       items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completionTime! });
     }
-    if (this.getMostRecentTask(state.formatVerification)?.state === 'failed') {
-      items.push({
-        title: 'Formatverifikation fehlgeschlagen',
-        icon: 'close',
-        date: this.getMostRecentTask(state.formatVerification)!.updatedAt,
-      });
-    } else if (state.formatVerification.complete) {
+    if (state.formatVerification.complete) {
       items.push({
         title: 'Formatverifikation abgeschlossen',
         icon: 'check',
@@ -172,13 +159,7 @@ export class MessageMetadataComponent {
         message: `${task.itemCompletedCount} / ${task.itemCount}`,
       });
     }
-    if (this.getMostRecentTask(state.archiving)?.state === 'failed') {
-      items.push({
-        title: 'Archivierung fehlgeschlagen',
-        icon: 'close',
-        date: this.getMostRecentTask(state.archiving)!.updatedAt,
-      });
-    } else if (state.archiving.complete) {
+    if (state.archiving.complete) {
       items.push({
         title: 'Abgabe archiviert',
         icon: 'check',
@@ -195,10 +176,9 @@ export class MessageMetadataComponent {
     for (const processingError of this.process.processingErrors) {
       if (processingError.resolved) {
         items.push({
-          title: processingError.description,
-          icon: 'check',
+          title: 'Gelöst: ' + processingError.description,
+          icon: 'check_circle',
           date: processingError.detectedAt,
-          message: 'Gelöst',
         });
       } else {
         items.push({

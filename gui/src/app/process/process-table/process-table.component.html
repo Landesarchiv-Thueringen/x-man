@@ -126,10 +126,10 @@
               </span>
             </div>
           } @else if (isStepFailed(process.processState.formatVerification)) {
-            <div class="task-cell">
-              <mat-icon>close</mat-icon>
+            <div class="task-cell failed">
+              <mat-icon>error</mat-icon>
               <span class="task-completion-time">
-                {{ getTaskUpdateTime(process.processState.formatVerification) | date: "short" }}
+                {{ getErrorTime(process.processState.formatVerification) | date: "short" }}
               </span>
             </div>
           } @else if (getRunningTask(process.processState.formatVerification)) {
@@ -154,10 +154,10 @@
               </span>
             </div>
           } @else if (isStepFailed(process.processState.archiving)) {
-            <div class="task-cell">
-              <mat-icon>close</mat-icon>
+            <div class="task-cell failed">
+              <mat-icon>error</mat-icon>
               <span class="task-completion-time">
-                {{ getTaskUpdateTime(process.processState.archiving) | date: "short" }}
+                {{ getErrorTime(process.processState.archiving) | date: "short" }}
               </span>
             </div>
           } @else if (getRunningTask(process.processState.archiving)) {

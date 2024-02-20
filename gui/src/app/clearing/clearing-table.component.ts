@@ -1,9 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
+import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ClearingDetailsComponent } from './clearing-details.component';
 import { ClearingService, ProcessingError } from './clearing.service';
@@ -17,6 +18,9 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<ProcessingError>;
   displayedColumns: string[];
   errorsSubscription?: Subscription;
+  showResolvedControl = new FormControl(window.localStorage.getItem('show-resolved-processing-errors') === 'true', {
+    nonNullable: true,
+  });
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -33,9 +37,16 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     // refetch errors every `updateInterval` milliseconds
-    this.errorsSubscription = interval(environment.updateInterval)
+
+    this.errorsSubscription = this.showResolvedControl.valueChanges
       .pipe(
-        startWith(void 0), // initial fetch
+        tap((showResolved) => window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString())),
+        startWith(this.showResolvedControl.value),
+        switchMap(() =>
+          interval(environment.updateInterval).pipe(
+            startWith(void 0), // initial fetch
+          ),
+        ),
         switchMap(() => this.clearingService.getProcessingErrors()),
       )
       .subscribe({
@@ -43,7 +54,11 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
           console.error(error);
         },
         next: (errors: ProcessingError[]) => {
-          this.dataSource.data = errors;
+          if (this.showResolvedControl.value) {
+            this.dataSource.data = errors;
+          } else {
+            this.dataSource.data = errors.filter((error) => !error.resolved);
+          }
         },
       });
   }

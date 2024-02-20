@@ -81,6 +81,9 @@
     flex-shrink: 0;
     font-weight: 600;
   }
+  &.failed mat-icon {
+    font-weight: unset;
+  }
 }
 
 .task-completion-time {

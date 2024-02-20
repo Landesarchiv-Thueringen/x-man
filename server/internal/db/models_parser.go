@@ -122,15 +122,21 @@ type ProcessStep struct {
 	Complete bool `gorm:"default:false" json:"complete"`
 	// CompletionTime is the time at which Complete was set to true.
 	CompletionTime *time.Time `json:"completionTime"`
-	// TODO: update
-	// Tasks is the most recent task associated with the process step.
+	// Tasks are all tasks associated with the process step.
 	//
-	// It contains information on the step's progress and/or whether it
-	// completed successfully.
+	// A task of the state "running" indicates that the process step is
+	// currently in progress. Tasks of the state "failed" do *not* necessarily
+	// indicate a failed process step (see ProcessingErrors). Also, a task of
+	// the state "succeeded" is *not* a requirement for a complete process step.
 	//
-	// A Task is only set for process steps that take a non-negligible time to
-	// run and/or can fail. It is nil until the process step was started.
+	// Not all process steps (completed or not) have tasks.
 	Tasks []Task `json:"tasks"`
+	// ProcessingErrors are all processing errors associated with the process
+	// step.
+	//
+	// An unresolved processing error indicates that the process step is
+	// currently in a failed state.
+	ProcessingErrors []ProcessingError `json:"processingErrors"`
 }
 
 type Message struct {
@@ -153,19 +159,6 @@ type Message struct {
 	ProcessRecordObjects   []ProcessRecordObject  `gorm:"many2many:message_process_record_objects;" json:"processRecordObjects"`
 	DocumentRecordObjects  []DocumentRecordObject `gorm:"many2many:message_document_record_objects;" json:"documentRecordObjects"`
 	ProcessingErrors       []ProcessingError      `json:"processingErrors"`
-}
-
-// BeforeDelete deletes associated rows of the deleted Process.
-func (m *Message) BeforeDelete(tx *gorm.DB) (err error) {
-	if m.ID == uuid.Nil {
-		return fmt.Errorf("failed to delete associations for Message")
-	}
-	message := Message{ID: m.ID}
-	tx.Preload(clause.Associations).First(&message)
-	for _, e := range message.ProcessingErrors {
-		tx.Delete(&e)
-	}
-	return
 }
 
 type MessageType struct {
