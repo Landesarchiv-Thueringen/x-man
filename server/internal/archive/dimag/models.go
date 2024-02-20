@@ -12,7 +12,6 @@ type ArchivePackageData struct {
 	IOTitle          string
 	IOLifetime       string
 	REPTitle         string
-	MessageFileName  string
 	PrimaryDocuments []db.PrimaryDocument
 }
 
