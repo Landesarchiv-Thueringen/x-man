@@ -90,10 +90,10 @@ func GetProcesses() ([]Process, error) {
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
 		Preload("ProcessingErrors.Agency").
-		Preload("ProcessState.Receive0501").
-		Preload("ProcessState.Appraisal").
-		Preload("ProcessState.Receive0505").
-		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.Receive0501." + clause.Associations).
+		Preload("ProcessState.Appraisal." + clause.Associations).
+		Preload("ProcessState.Receive0505." + clause.Associations).
+		Preload("ProcessState.Receive0503." + clause.Associations).
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		Find(&processes)
@@ -119,10 +119,10 @@ func GetProcessesForUser(userID []byte) ([]Process, error) {
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
 		Preload("ProcessingErrors.Agency").
-		Preload("ProcessState.Receive0501").
-		Preload("ProcessState.Appraisal").
-		Preload("ProcessState.Receive0505").
-		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.Receive0501." + clause.Associations).
+		Preload("ProcessState.Appraisal." + clause.Associations).
+		Preload("ProcessState.Receive0505." + clause.Associations).
+		Preload("ProcessState.Receive0503." + clause.Associations).
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		Find(&processes)
@@ -162,10 +162,6 @@ func GetProcessForMessage(message Message) (Process, error) {
 // determined by the path in the transfer directory.
 func IsMessageAlreadyProcessed(path string) bool {
 	result := db.Where("transfer_dir_message_path = ?", path).Limit(1).Find(&Message{})
-	if result.RowsAffected > 0 {
-		return true
-	}
-	result = db.Where("transfer_dir_path = ?", path).Limit(1).Find(&ProcessingError{})
 	return result.RowsAffected > 0
 }
 
@@ -437,10 +433,10 @@ func GetProcess(ID uuid.UUID) (Process, error) {
 		Preload("Message0503.MessageHead").
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
-		Preload("ProcessState.Receive0501").
-		Preload("ProcessState.Appraisal").
-		Preload("ProcessState.Receive0505").
-		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.Receive0501." + clause.Associations).
+		Preload("ProcessState.Appraisal." + clause.Associations).
+		Preload("ProcessState.Receive0505." + clause.Associations).
+		Preload("ProcessState.Receive0503." + clause.Associations).
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		First(&process)
@@ -466,10 +462,10 @@ func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 		Preload("Message0503.MessageHead").
 		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
-		Preload("ProcessState.Receive0501").
-		Preload("ProcessState.Appraisal").
-		Preload("ProcessState.Receive0505").
-		Preload("ProcessState.Receive0503").
+		Preload("ProcessState.Receive0501." + clause.Associations).
+		Preload("ProcessState.Appraisal." + clause.Associations).
+		Preload("ProcessState.Receive0505." + clause.Associations).
+		Preload("ProcessState.Receive0503." + clause.Associations).
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		Where(&process).Limit(1).Find(&process)

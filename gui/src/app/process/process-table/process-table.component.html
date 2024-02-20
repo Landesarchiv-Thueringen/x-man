@@ -66,12 +66,21 @@
       <ng-container matColumnDef="message0501">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.receive0501.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.receive0501.completionTime | date: "short" }}
-            </span>
-          </div>
+          @if (isStepFailed(process.processState.receive0501)) {
+            <div class="task-cell failed">
+              <mat-icon>error</mat-icon>
+              <span class="task-completion-time">
+                {{ getErrorTime(process.processState.receive0501) | date: "short" }}
+              </span>
+            </div>
+          } @else if (process.processState.receive0501.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.receive0501.completionTime | date: "short" }}
+              </span>
+            </div>
+          }
         </mat-cell>
       </ng-container>
 
@@ -79,12 +88,21 @@
       <ng-container matColumnDef="appraisalComplete">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.appraisal.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.appraisal.completionTime | date: "short" }}
-            </span>
-          </div>
+          @if (isStepFailed(process.processState.appraisal)) {
+            <div class="task-cell failed">
+              <mat-icon>error</mat-icon>
+              <span class="task-completion-time">
+                {{ getErrorTime(process.processState.appraisal) | date: "short" }}
+              </span>
+            </div>
+          } @else if (process.processState.appraisal.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.appraisal.completionTime | date: "short" }}
+              </span>
+            </div>
+          }
         </mat-cell>
       </ng-container>
 
@@ -92,12 +110,21 @@
       <ng-container matColumnDef="received0502">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.receive0505.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.receive0505.completionTime | date: "short" }}
-            </span>
-          </div>
+          @if (isStepFailed(process.processState.receive0505)) {
+            <div class="task-cell failed">
+              <mat-icon>error</mat-icon>
+              <span class="task-completion-time">
+                {{ getErrorTime(process.processState.receive0505) | date: "short" }}
+              </span>
+            </div>
+          } @else if (process.processState.receive0505.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.receive0505.completionTime | date: "short" }}
+              </span>
+            </div>
+          }
         </mat-cell>
       </ng-container>
 
@@ -105,12 +132,21 @@
       <ng-container matColumnDef="message0503">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe erhalten</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          <div *ngIf="process.processState.receive0503.complete" class="task-cell">
-            <mat-icon>check</mat-icon>
-            <span class="task-completion-time">
-              {{ process.processState.receive0503.completionTime | date: "short" }}
-            </span>
-          </div>
+          @if (isStepFailed(process.processState.receive0503)) {
+            <div class="task-cell failed">
+              <mat-icon>error</mat-icon>
+              <span class="task-completion-time">
+                {{ getErrorTime(process.processState.receive0503) | date: "short" }}
+              </span>
+            </div>
+          } @else if (process.processState.receive0503.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.receive0503.completionTime | date: "short" }}
+              </span>
+            </div>
+          }
         </mat-cell>
       </ng-container>
 
@@ -118,18 +154,18 @@
       <ng-container matColumnDef="formatVerification">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (process.processState.formatVerification.complete) {
-            <div class="task-cell">
-              <mat-icon>check</mat-icon>
-              <span class="task-completion-time">
-                {{ process.processState.formatVerification.completionTime | date: "short" }}
-              </span>
-            </div>
-          } @else if (isStepFailed(process.processState.formatVerification)) {
+          @if (isStepFailed(process.processState.formatVerification)) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
                 {{ getErrorTime(process.processState.formatVerification) | date: "short" }}
+              </span>
+            </div>
+          } @else if (process.processState.formatVerification.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.formatVerification.completionTime | date: "short" }}
               </span>
             </div>
           } @else if (getRunningTask(process.processState.formatVerification)) {
@@ -146,18 +182,18 @@
       <ng-container matColumnDef="archivingComplete">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (process.processState.archiving.complete) {
-            <div class="task-cell">
-              <mat-icon>check</mat-icon>
-              <span class="task-completion-time">
-                {{ process.processState.archiving.completionTime | date: "short" }}
-              </span>
-            </div>
-          } @else if (isStepFailed(process.processState.archiving)) {
+          @if (isStepFailed(process.processState.archiving)) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
                 {{ getErrorTime(process.processState.archiving) | date: "short" }}
+              </span>
+            </div>
+          } @else if (process.processState.archiving.complete) {
+            <div class="task-cell">
+              <mat-icon>check</mat-icon>
+              <span class="task-completion-time">
+                {{ process.processState.archiving.completionTime | date: "short" }}
               </span>
             </div>
           } @else if (getRunningTask(process.processState.archiving)) {
