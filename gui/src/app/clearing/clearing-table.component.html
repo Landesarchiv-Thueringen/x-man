@@ -21,7 +21,7 @@
       <!-- transfer dir path column -->
       <ng-container matColumnDef="agency">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</mat-header-cell>
-        <mat-cell *matCellDef="let error">{{ error.agency.name }}</mat-cell>
+        <mat-cell *matCellDef="let error">{{ error.agency?.name }}</mat-cell>
       </ng-container>
 
       <!-- description column -->
