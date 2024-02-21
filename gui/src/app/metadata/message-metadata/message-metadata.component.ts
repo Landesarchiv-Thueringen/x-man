@@ -3,8 +3,9 @@ import { Component, TemplateRef, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { MatExpansionPanel } from '@angular/material/expansion';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, switchMap, tap } from 'rxjs';
+import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, switchMap, take, tap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
 import { Message, MessageService } from '../../message/message.service';
 import { Process, ProcessService, ProcessStep } from '../../process/process.service';
@@ -124,6 +125,17 @@ export class MessageMetadataComponent {
 
   isStepRunning(processStep: ProcessStep): boolean {
     return processStep.tasks.some((task) => task.state === 'running');
+  }
+
+  scrollToBottom(panel: MatExpansionPanel): void {
+    let expanded = false;
+    const scrollParent = document.getElementsByTagName('mat-sidenav-content').item(0)!;
+    function scroll() {
+      scrollParent.scroll({ top: 1000000 });
+      if (!expanded) window.requestAnimationFrame(scroll);
+    }
+    panel.afterExpand.pipe(take(1)).subscribe(() => (expanded = true));
+    window.requestAnimationFrame(scroll);
   }
 
   private getStateItems(): StateItem[] {

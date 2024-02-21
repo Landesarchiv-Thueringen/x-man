@@ -109,7 +109,7 @@
         <app-institution-metadata [institution]="message.messageHead.receiver.institution"></app-institution-metadata>
       </mat-expansion-panel>
       @if (isAdmin) {
-        <mat-expansion-panel>
+        <mat-expansion-panel (opened)="scrollToBottom(panel)" #panel>
           <mat-expansion-panel-header>
             <mat-panel-title>Administration</mat-panel-title>
           </mat-expansion-panel-header>
