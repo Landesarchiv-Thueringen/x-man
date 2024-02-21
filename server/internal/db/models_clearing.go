@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type ProcessingErrorType string
@@ -26,7 +25,6 @@ type ProcessingError struct {
 	ID             uint                      `gorm:"primaryKey" json:"id"`
 	CreatedAt      time.Time                 `json:"detectedAt"`
 	UpdatedAt      time.Time                 `json:"-"`
-	DeletedAt      gorm.DeletedAt            `gorm:"index" json:"-"`
 	Type           ProcessingErrorType       `json:"type"`
 	ProcessID      *uuid.UUID                `json:"-"`
 	Process        *Process                  `json:"process"`

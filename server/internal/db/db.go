@@ -174,13 +174,9 @@ func DeleteProcess(id uuid.UUID) (bool, error) {
 // It dereferences but keeps the process.
 func DeleteMessage(message Message) (bool, error) {
 	processID := message.MessageHead.ProcessID
-	result := db.Delete(&message)
-	if result.RowsAffected == 0 || result.Error != nil {
-		return result.RowsAffected == 1, result.Error
-	}
 	process, err := GetProcessByXdomeaID(processID)
 	if err != nil {
-		return result.RowsAffected == 1, err
+		return false, err
 	}
 	if process.Message0501ID != nil && *process.Message0501ID == message.ID {
 		process.Message0501ID = nil
@@ -198,14 +194,17 @@ func DeleteMessage(message Message) (bool, error) {
 		process.ProcessState.Receive0505.Complete = false
 		err = UpdateProcessStep(process.ProcessState.Receive0505)
 	} else {
-		return result.RowsAffected == 1,
+		return false,
 			fmt.Errorf("could not find message reference of message %v in process %v",
 				message.ID, process.ID)
 	}
 	if err != nil {
-		return result.RowsAffected == 1, err
+		return false, err
 	}
-	err = UpdateProcess(process)
+	result := db.Delete(&message)
+	if result.RowsAffected == 0 || result.Error != nil {
+		return result.RowsAffected == 1, result.Error
+	}
 	return result.RowsAffected == 1, err
 }
 

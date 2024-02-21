@@ -2,15 +2,12 @@ package db
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type FormatVerification struct {
 	ID                        uint               `gorm:"primaryKey" json:"id"`
 	CreatedAt                 time.Time          `json:"-"`
 	UpdatedAt                 time.Time          `json:"-"`
-	DeletedAt                 gorm.DeletedAt     `gorm:"index" json:"-"`
 	Summary                   map[string]Feature `gorm:"-" json:"summary"`
 	Features                  []Feature          `gorm:"many2many:format_verification_features;" json:"-"`
 	FileIdentificationResults []ToolResponse     `gorm:"many2many:format_verification_identification_results;" json:"fileIdentificationResults"`
@@ -21,7 +18,6 @@ type ToolResponse struct {
 	ID                uint               `gorm:"primaryKey" json:"id"`
 	CreatedAt         time.Time          `json:"-"`
 	UpdatedAt         time.Time          `json:"-"`
-	DeletedAt         gorm.DeletedAt     `gorm:"index" json:"-"`
 	ToolName          string             `json:"toolName"`
 	ToolVersion       string             `json:"toolVersion"`
 	ToolOutput        *string            `json:"toolOutput"`
@@ -32,19 +28,17 @@ type ToolResponse struct {
 }
 
 type ExtractedFeature struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Key       string         `json:"key"`
-	Value     string         `json:"value"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Key       string    `json:"key"`
+	Value     string    `json:"value"`
 }
 
 type Feature struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	Key       string         `json:"key"`
 	Values    []FeatureValue `gorm:"many2many:feature_feature_values;" json:"values"`
 }
@@ -53,17 +47,15 @@ type FeatureValue struct {
 	ID        uint             `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time        `json:"-"`
 	UpdatedAt time.Time        `json:"-"`
-	DeletedAt gorm.DeletedAt   `gorm:"index" json:"-"`
 	Value     string           `json:"value"`
 	Score     float64          `json:"score"`
 	Tools     []ToolConfidence `gorm:"many2many:feature_value_tools;" json:"tools"`
 }
 
 type ToolConfidence struct {
-	ID         uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt  time.Time      `json:"-"`
-	UpdatedAt  time.Time      `json:"-"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
-	ToolName   string         `json:"toolName"`
-	Confidence float64        `json:"confidence"`
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt  time.Time `json:"-"`
+	UpdatedAt  time.Time `json:"-"`
+	ToolName   string    `json:"toolName"`
+	Confidence float64   `json:"confidence"`
 }

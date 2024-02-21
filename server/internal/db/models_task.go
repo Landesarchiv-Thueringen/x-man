@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type TaskState string
@@ -22,11 +21,10 @@ const (
 )
 
 type Task struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	ProcessID uuid.UUID      `json:"processId"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	ProcessID uuid.UUID `json:"processId"`
 	// Process is the process that the task is for
 	Process       *Process `json:"process"`
 	ProcessStepID uint     `json:"-"`

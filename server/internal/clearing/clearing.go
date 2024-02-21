@@ -29,7 +29,15 @@ func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorRe
 	default:
 		return fmt.Errorf("unknown resolution: %s", resolution)
 	}
-	processingError.Resolved = true
-	processingError.Resolution = resolution
-	return db.UpdateProcessingError(processingError)
+	processingError, err := db.GetProcessingError(processingError.ID)
+	if err != nil {
+		// The processing error might already have been deleted.
+		return nil
+	} else {
+		return db.UpdateProcessingError(db.ProcessingError{
+			ID:         processingError.ID,
+			Resolved:   true,
+			Resolution: resolution,
+		})
+	}
 }

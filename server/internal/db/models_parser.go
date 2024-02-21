@@ -14,13 +14,12 @@ import (
 // The same is true for Nullable values.
 
 type XdomeaVersion struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      string         `json:"code"`
-	URI       string         `json:"uri"`
-	XSDPath   string         `json:""`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Code      string    `json:"code"`
+	URI       string    `json:"uri"`
+	XSDPath   string    `json:""`
 }
 
 func (v *XdomeaVersion) IsVersionPriorTo300() bool {
@@ -31,7 +30,6 @@ type Process struct {
 	ID               uuid.UUID         `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt        time.Time         `json:"receivedAt"`
 	UpdatedAt        time.Time         `json:"-"`
-	DeletedAt        gorm.DeletedAt    `gorm:"index" json:"-"`
 	XdomeaID         string            `json:"xdomeaID"`
 	AgencyID         uint              `json:"-"`
 	Agency           Agency            `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
@@ -39,16 +37,16 @@ type Process struct {
 	Institution      *string           `json:"institution"`
 	Note             *string           `json:"note"`
 	Message0501ID    *uuid.UUID        `json:"message0501Id"`
-	Message0501      *Message          `gorm:"foreignKey:Message0501ID;references:ID" json:"message0501"`
+	Message0501      *Message          `gorm:"foreignKey:Message0501ID;references:ID;constraint:OnDelete:SET NULL;" json:"message0501"`
 	Message0502Path  *string           `json:"-"`
 	Message0503ID    *uuid.UUID        `json:"message0503Id"`
-	Message0503      *Message          `gorm:"foreignKey:Message0503ID;references:ID" json:"message0503"`
+	Message0503      *Message          `gorm:"foreignKey:Message0503ID;references:ID;constraint:OnDelete:SET NULL;" json:"message0503"`
 	Message0504Path  *string           `json:"-"`
 	Message0505ID    *uuid.UUID        `json:"message0505Id"`
-	Message0505      *Message          `gorm:"foreignKey:Message0505ID;references:ID" json:"message0505"`
+	Message0505      *Message          `gorm:"foreignKey:Message0505ID;references:ID;constraint:OnDelete:SET NULL;" json:"message0505"`
 	ProcessingErrors []ProcessingError `json:"processingErrors"`
 	ProcessStateID   uint              `json:"-"`
-	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID" json:"processState"`
+	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID;constraint:OnDelete:SET NULL;" json:"processState"`
 	Tasks            []Task            `json:"-"`
 }
 
@@ -79,22 +77,21 @@ func (p *Process) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type ProcessState struct {
-	ID                       uint           `gorm:"primaryKey" json:"-"`
-	CreatedAt                time.Time      `json:"-"`
-	UpdatedAt                time.Time      `json:"-"`
-	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
-	Receive0501StepID        uint           `json:"-"`
-	Receive0501              ProcessStep    `gorm:"foreignKey:Receive0501StepID;references:ID" json:"receive0501"`
-	AppraisalStepID          uint           `json:"-"`
-	Appraisal                ProcessStep    `gorm:"foreignKey:AppraisalStepID;references:ID" json:"appraisal"`
-	Receive0505StepID        uint           `json:"-"`
-	Receive0505              ProcessStep    `gorm:"foreignKey:Receive0505StepID;references:ID" json:"receive0505"`
-	Receive0503StepID        uint           `json:"-"`
-	Receive0503              ProcessStep    `gorm:"foreignKey:Receive0503StepID;references:ID" json:"receive0503"`
-	FormatVerificationStepID uint           `json:"-"`
-	FormatVerification       ProcessStep    `gorm:"foreignKey:FormatVerificationStepID;references:ID" json:"formatVerification"`
-	ArchivingStepID          uint           `json:"-"`
-	Archiving                ProcessStep    `gorm:"foreignKey:ArchivingStepID;references:ID" json:"archiving"`
+	ID                       uint        `gorm:"primaryKey" json:"-"`
+	CreatedAt                time.Time   `json:"-"`
+	UpdatedAt                time.Time   `json:"-"`
+	Receive0501StepID        uint        `json:"-"`
+	Receive0501              ProcessStep `gorm:"foreignKey:Receive0501StepID;references:ID;constraint:OnDelete:SET NULL" json:"receive0501"`
+	AppraisalStepID          uint        `json:"-"`
+	Appraisal                ProcessStep `gorm:"foreignKey:AppraisalStepID;references:ID;constraint:OnDelete:SET NULL" json:"appraisal"`
+	Receive0505StepID        uint        `json:"-"`
+	Receive0505              ProcessStep `gorm:"foreignKey:Receive0505StepID;references:ID;constraint:OnDelete:SET NULL" json:"receive0505"`
+	Receive0503StepID        uint        `json:"-"`
+	Receive0503              ProcessStep `gorm:"foreignKey:Receive0503StepID;references:ID;constraint:OnDelete:SET NULL" json:"receive0503"`
+	FormatVerificationStepID uint        `json:"-"`
+	FormatVerification       ProcessStep `gorm:"foreignKey:FormatVerificationStepID;references:ID;constraint:OnDelete:SET NULL" json:"formatVerification"`
+	ArchivingStepID          uint        `json:"-"`
+	Archiving                ProcessStep `gorm:"foreignKey:ArchivingStepID;references:ID;constraint:OnDelete:SET NULL" json:"archiving"`
 }
 
 // BeforeDelete deletes associated rows of the deleted ProcessState.
@@ -114,10 +111,9 @@ func (s *ProcessState) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type ProcessStep struct {
-	ID        uint           `gorm:"primaryKey" json:"-"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uint      `gorm:"primaryKey" json:"-"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 	// Complete is true if the step completed successfully.
 	Complete bool `gorm:"default:false" json:"complete"`
 	// CompletionTime is the time at which Complete was set to true.
@@ -130,43 +126,64 @@ type ProcessStep struct {
 	// the state "succeeded" is *not* a requirement for a complete process step.
 	//
 	// Not all process steps (completed or not) have tasks.
-	Tasks []Task `json:"tasks"`
+	Tasks []Task `gorm:"constraint:OnDelete:SET NULL" json:"tasks"`
 	// ProcessingErrors are all processing errors associated with the process
 	// step.
 	//
 	// An unresolved processing error indicates that the process step is
 	// currently in a failed state.
-	ProcessingErrors []ProcessingError `json:"processingErrors"`
+	ProcessingErrors []ProcessingError `gorm:"constraint:OnDelete:SET NULL" json:"processingErrors"`
 }
 
 type Message struct {
 	ID                     uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt              time.Time              `json:"-"`
 	UpdatedAt              time.Time              `json:"-"`
-	DeletedAt              gorm.DeletedAt         `gorm:"index" json:"-"`
 	TransferDir            string                 `json:"-"`
 	TransferDirMessagePath string                 `json:"-"`
 	StoreDir               string                 `json:"-"`
 	MessagePath            string                 `json:"-"`
 	XdomeaVersion          string                 `json:"xdomeaVersion"`
 	MessageHeadID          *uint                  `json:"-"`
-	MessageHead            MessageHead            `gorm:"foreignKey:MessageHeadID;references:ID" json:"messageHead"`
+	MessageHead            MessageHead            `gorm:"foreignKey:MessageHeadID;references:ID;constraint:OnDelete:SET NULL" json:"messageHead"`
 	MessageTypeID          *uint                  `json:"-"`
 	MessageType            MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
 	AppraisalComplete      bool                   `json:"appraisalComplete"`
 	SchemaValidation       bool                   `gorm:"default:true" json:"schemaValidation"`
-	FileRecordObjects      []FileRecordObject     `gorm:"many2many:message_file_record_objects;" json:"fileRecordObjects"`
-	ProcessRecordObjects   []ProcessRecordObject  `gorm:"many2many:message_process_record_objects;" json:"processRecordObjects"`
-	DocumentRecordObjects  []DocumentRecordObject `gorm:"many2many:message_document_record_objects;" json:"documentRecordObjects"`
+	FileRecordObjects      []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects"`
+	ProcessRecordObjects   []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
+	DocumentRecordObjects  []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects"`
 	ProcessingErrors       []ProcessingError      `json:"processingErrors"`
 }
 
+// BeforeDelete deletes associated rows of the deleted Message.
+func (m *Message) BeforeDelete(tx *gorm.DB) (err error) {
+	if m.ID == uuid.Nil {
+		return fmt.Errorf("failed to delete associations for Message")
+	}
+	message := Message{ID: m.ID}
+	tx.Preload(clause.Associations).First(&message)
+	tx.Delete(&message.MessageHead)
+	for _, o := range message.FileRecordObjects {
+		tx.Delete(&o)
+	}
+	for _, o := range message.ProcessRecordObjects {
+		tx.Delete(&o)
+	}
+	for _, o := range message.DocumentRecordObjects {
+		tx.Delete(&o)
+	}
+	for _, e := range message.ProcessingErrors {
+		tx.Delete(&e)
+	}
+	return
+}
+
 type MessageType struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      string         `json:"code"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Code      string    `json:"code"`
 }
 
 type Message0501 struct {
@@ -203,37 +220,58 @@ type MessageBody0505 struct {
 }
 
 type MessageHead struct {
-	XMLName      xml.Name       `gorm:"-" xml:"Kopf" json:"-"`
-	ID           uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt    time.Time      `json:"-"`
-	UpdatedAt    time.Time      `json:"-"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
-	ProcessID    string         `xml:"ProzessID" json:"processID"`
-	CreationTime string         `xml:"Erstellungszeitpunkt" json:"creationTime"`
-	SenderID     *uint          `json:"-"`
-	Sender       Contact        `gorm:"foreignKey:SenderID;references:ID" xml:"Absender" json:"sender"`
-	ReceiverID   *uint          `json:"-"`
-	Receiver     Contact        `gorm:"foreignKey:ReceiverID;references:ID" xml:"Empfaenger" json:"receiver"`
+	XMLName      xml.Name  `gorm:"-" xml:"Kopf" json:"-"`
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
+	ProcessID    string    `xml:"ProzessID" json:"processID"`
+	CreationTime string    `xml:"Erstellungszeitpunkt" json:"creationTime"`
+	SenderID     *uint     `json:"-"`
+	Sender       Contact   `gorm:"foreignKey:SenderID;references:ID;constraint:OnDelete:SET NULL" xml:"Absender" json:"sender"`
+	ReceiverID   *uint     `json:"-"`
+	Receiver     Contact   `gorm:"foreignKey:ReceiverID;references:ID;constraint:OnDelete:SET NULL" xml:"Empfaenger" json:"receiver"`
+}
+
+// BeforeDelete deletes associated rows of the deleted MessageHead.
+func (m *MessageHead) BeforeDelete(tx *gorm.DB) (err error) {
+	if m.ID == 0 {
+		return fmt.Errorf("failed to delete associations for MessageHead")
+	}
+	message := MessageHead{ID: m.ID}
+	tx.Preload(clause.Associations).First(&message)
+	tx.Delete(&message.Sender)
+	tx.Delete(&message.Receiver)
+	return
 }
 
 type Contact struct {
 	ID                     uint                  `gorm:"primaryKey" json:"id"`
 	CreatedAt              time.Time             `json:"-"`
 	UpdatedAt              time.Time             `json:"-"`
-	DeletedAt              gorm.DeletedAt        `gorm:"index" json:"-"`
 	AgencyIdentificationID *uint                 `json:"-"`
-	AgencyIdentification   *AgencyIdentification `gorm:"foreignKey:AgencyIdentificationID;references:ID" xml:"Behoerdenkennung" json:"agencyIdentification"`
+	AgencyIdentification   *AgencyIdentification `gorm:"constraint:OnDelete:SET NULL" xml:"Behoerdenkennung" json:"agencyIdentification"`
 	InstitutionID          *uint                 `json:"-"`
-	Institution            *Institution          `gorm:"foreignKey:InstitutionID;references:ID" xml:"Institution" json:"institution"`
+	Institution            *Institution          `gorm:"constraint:OnDelete:SET NULL" xml:"Institution" json:"institution"`
+}
+
+// BeforeDelete deletes associated rows of the deleted Contact.
+func (c *Contact) BeforeDelete(tx *gorm.DB) (err error) {
+	if c.ID == 0 {
+		return fmt.Errorf("failed to delete associations for Contact")
+	}
+	message := Contact{ID: c.ID}
+	tx.Preload(clause.Associations).First(&message)
+	tx.Delete(&message.AgencyIdentification)
+	tx.Delete(&message.Institution)
+	return
 }
 
 type AgencyIdentification struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Code      *string        `xml:"Behoerdenschluessel>code" json:"code"`
-	Prefix    *string        `xml:"Praefix>code" json:"prefix"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Code      *string   `xml:"Behoerdenschluessel>code" json:"code"`
+	Prefix    *string   `xml:"Praefix>code" json:"prefix"`
 }
 
 type AgencyIdentificationVersionIndependent struct {
@@ -259,32 +297,63 @@ func (agencyIdentification *AgencyIdentification) UnmarshalXML(d *xml.Decoder, s
 }
 
 type Institution struct {
-	ID           uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt    time.Time      `json:"-"`
-	UpdatedAt    time.Time      `json:"-"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
-	Name         *string        `xml:"Name"  json:"name"`
-	Abbreviation *string        `xml:"Kurzbezeichnung" json:"abbreviation"`
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
+	Name         *string   `xml:"Name"  json:"name"`
+	Abbreviation *string   `xml:"Kurzbezeichnung" json:"abbreviation"`
 }
 
 type FileRecordObject struct {
-	ID                    uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID              uuid.UUID              `json:"xdomeaID"`
-	CreatedAt             time.Time              `json:"-"`
-	UpdatedAt             time.Time              `json:"-"`
-	DeletedAt             gorm.DeletedAt         `gorm:"index" json:"-"`
-	MessageID             uuid.UUID              `json:"messageID"`
+	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID  uuid.UUID `json:"xdomeaID"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	// MessageID is the message the FileRecordObject belongs to, either as the
+	// Message's direct child or further down the tree.
+	MessageID uuid.UUID `json:"messageID"`
+	// FileRecordObject has either a Message or a FileRecordObject as parent.
+	ParentMessageID       *uuid.UUID             `json:"-"`
+	ParentFileRecordID    *uuid.UUID             `json:"-"`
 	RecordObjectType      string                 `gorm:"default:file" json:"recordObjectType"`
 	GeneralMetadataID     *uint                  `json:"-"`
-	GeneralMetadata       *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" json:"generalMetadata"`
+	GeneralMetadata       *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID;constraint:OnDelete:SET NULL" json:"generalMetadata"`
 	ArchiveMetadataID     *uint                  `json:"-"`
-	ArchiveMetadata       *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID" json:"archiveMetadata"`
+	ArchiveMetadata       *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID;constraint:OnDelete:SET NULL" json:"archiveMetadata"`
 	LifetimeID            *uint                  `json:"-"`
-	Lifetime              *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Lifetime              *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
 	Type                  *string                `json:"type"`
-	ProcessRecordObjects  []ProcessRecordObject  `gorm:"many2many:file_processes;" json:"processes"`
-	SubFileRecordObjects  []FileRecordObject     `gorm:"many2many:file_subfiles;" json:"subfiles"`
-	DocumentRecordObjects []DocumentRecordObject `gorm:"many2many:file_documents;" json:"documents"`
+	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentFileRecordID" json:"processes"`
+	SubFileRecordObjects  []FileRecordObject     `gorm:"foreignKey:ParentFileRecordID" json:"subfiles"`
+	DocumentRecordObjects []DocumentRecordObject `gorm:"foreignKey:ParentFileRecordID" json:"documents"`
+}
+
+// BeforeDelete deletes associated rows of the deleted FileRecordObject.
+func (f *FileRecordObject) BeforeDelete(tx *gorm.DB) (err error) {
+	if f.ID == uuid.Nil {
+		return fmt.Errorf("failed to delete associations for FileRecordObject")
+	}
+	fileRecord := FileRecordObject{ID: f.ID}
+	tx.Preload(clause.Associations).First(&fileRecord)
+	if fileRecord.GeneralMetadata != nil {
+		tx.Delete(&fileRecord.GeneralMetadata)
+	}
+	if fileRecord.ArchiveMetadata != nil {
+		tx.Delete(&fileRecord.ArchiveMetadata)
+	}
+	if fileRecord.Lifetime != nil {
+		tx.Delete(&fileRecord.Lifetime)
+	}
+	for _, o := range fileRecord.ProcessRecordObjects {
+		tx.Delete(&o)
+	}
+	for _, o := range fileRecord.SubFileRecordObjects {
+		tx.Delete(&o)
+	}
+	for _, o := range fileRecord.DocumentRecordObjects {
+		tx.Delete(&o)
+	}
+	return
 }
 
 type FileRecordObjectVersionDifferences struct {
@@ -326,71 +395,156 @@ type ProcessRecordObject struct {
 	XdomeaID                uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
 	CreatedAt               time.Time              `json:"-"`
 	UpdatedAt               time.Time              `json:"-"`
-	DeletedAt               gorm.DeletedAt         `gorm:"index" json:"-"`
 	MessageID               uuid.UUID              `json:"messageID"`
+	ParentMessageID         *uuid.UUID             `json:"-"`
+	ParentFileRecordID      *uuid.UUID             `json:"-"`
+	ParentProcessRecordID   *uuid.UUID             `json:"-"`
 	RecordObjectType        string                 `gorm:"default:process" json:"recordObjectType"`
 	GeneralMetadataID       *uint                  `json:"-"`
-	GeneralMetadata         *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	GeneralMetadata         *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID;constraint:OnDelete:SET NULL" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	ArchiveMetadataID       *uint                  `json:"-"`
-	ArchiveMetadata         *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
+	ArchiveMetadata         *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID;constraint:OnDelete:SET NULL" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
 	LifetimeID              *uint                  `json:"-"`
-	Lifetime                *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID" json:"lifetime"`
+	Lifetime                *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
 	Type                    *string                `json:"type" xml:"Typ"`
-	SubProcessRecordObjects []ProcessRecordObject  `gorm:"many2many:process_subprocesses;" xml:"Teilvorgang" json:"subprocesses"`
-	DocumentRecordObjects   []DocumentRecordObject `gorm:"many2many:process_documents;" xml:"Dokument" json:"documents"`
+	SubProcessRecordObjects []ProcessRecordObject  `gorm:"foreignKey:ParentProcessRecordID" xml:"Teilvorgang" json:"subprocesses"`
+	DocumentRecordObjects   []DocumentRecordObject `gorm:"foreignKey:ParentProcessRecordID" xml:"Dokument" json:"documents"`
+}
+
+// BeforeDelete deletes associated rows of the deleted ProcessRecordObject.
+func (f *ProcessRecordObject) BeforeDelete(tx *gorm.DB) (err error) {
+	if f.ID == uuid.Nil {
+		return fmt.Errorf("failed to delete associations for ProcessRecordObject")
+	}
+	processRecord := ProcessRecordObject{ID: f.ID}
+	tx.Preload(clause.Associations).First(&processRecord)
+	if processRecord.GeneralMetadata != nil {
+		tx.Delete(&processRecord.GeneralMetadata)
+	}
+	if processRecord.ArchiveMetadata != nil {
+		tx.Delete(&processRecord.ArchiveMetadata)
+	}
+	if processRecord.Lifetime != nil {
+		tx.Delete(&processRecord.Lifetime)
+	}
+	for _, o := range processRecord.SubProcessRecordObjects {
+		tx.Delete(&o)
+	}
+	for _, o := range processRecord.DocumentRecordObjects {
+		tx.Delete(&o)
+	}
+	return
 }
 
 type DocumentRecordObject struct {
-	XMLName           xml.Name               `gorm:"-" json:"-"`
-	ID                uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	XdomeaID          uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
-	CreatedAt         time.Time              `json:"-"`
-	UpdatedAt         time.Time              `json:"-"`
-	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"-"`
-	MessageID         uuid.UUID              `json:"messageID"`
-	RecordObjectType  string                 `gorm:"default:document" json:"recordObjectType"`
-	GeneralMetadataID *uint                  `json:"-"`
-	GeneralMetadata   *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	Type              *string                `json:"type" xml:"Typ"`
-	IncomingDate      *string                `xml:"Posteingangsdatum" json:"incomingDate"`
-	OutgoingDate      *string                `xml:"Postausgangsdatum" json:"outgoingDate"`
-	DocumentDate      *string                `xml:"DatumDesSchreibens" json:"documentDate"`
-	Versions          []Version              `gorm:"many2many:document_versions;" xml:"Version" json:"versions"`
-	Attachments       []DocumentRecordObject `gorm:"many2many:document_attachments;" xml:"Anlage" json:"attachments"`
+	XMLName                xml.Name               `gorm:"-" json:"-"`
+	ID                     uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XdomeaID               uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
+	CreatedAt              time.Time              `json:"-"`
+	UpdatedAt              time.Time              `json:"-"`
+	MessageID              uuid.UUID              `json:"messageID"`
+	ParentMessageID        *uuid.UUID             `json:"-"`
+	ParentFileRecordID     *uuid.UUID             `json:"-"`
+	ParentProcessRecordID  *uuid.UUID             `json:"-"`
+	ParentDocumentRecordID *uuid.UUID             `json:"-"`
+	RecordObjectType       string                 `gorm:"default:document" json:"recordObjectType"`
+	GeneralMetadataID      *uint                  `json:"-"`
+	GeneralMetadata        *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID;constraint:OnDelete:SET NULL" xml:"AllgemeineMetadaten" json:"generalMetadata"`
+	Type                   *string                `json:"type" xml:"Typ"`
+	IncomingDate           *string                `xml:"Posteingangsdatum" json:"incomingDate"`
+	OutgoingDate           *string                `xml:"Postausgangsdatum" json:"outgoingDate"`
+	DocumentDate           *string                `xml:"DatumDesSchreibens" json:"documentDate"`
+	Versions               []Version              `xml:"Version" json:"versions"`
+	Attachments            []DocumentRecordObject `gorm:"foreignKey:ParentDocumentRecordID" xml:"Anlage" json:"attachments"`
+}
+
+// BeforeDelete deletes associated rows of the deleted DocumentRecordObject.
+func (d *DocumentRecordObject) BeforeDelete(tx *gorm.DB) (err error) {
+	if d.ID == uuid.Nil {
+		return fmt.Errorf("failed to delete associations for DocumentRecordObject")
+	}
+	document := DocumentRecordObject{ID: d.ID}
+	tx.Preload(clause.Associations).First(&document)
+	if document.GeneralMetadata != nil {
+		tx.Delete(&document.GeneralMetadata)
+	}
+	for _, v := range document.Versions {
+		tx.Delete(&v)
+	}
+	for _, a := range document.Attachments {
+		tx.Delete(&a)
+	}
+	return
 }
 
 type Version struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	VersionID string         `xml:"Nummer" json:"versionID"`
-	Formats   []Format       `gorm:"many2many:document_version_formats;" xml:"Format" json:"formats"`
+	ID                     uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt              time.Time `json:"-"`
+	UpdatedAt              time.Time `json:"-"`
+	DocumentRecordObjectID uuid.UUID `json:"-"`
+	VersionID              string    `xml:"Nummer" json:"versionID"`
+	Formats                []Format  `xml:"Format" json:"formats"`
+}
+
+// BeforeDelete deletes associated rows of the deleted Version.
+func (v *Version) BeforeDelete(tx *gorm.DB) (err error) {
+	if v.ID == 0 {
+		return fmt.Errorf("failed to delete associations for Version")
+	}
+	version := Version{ID: v.ID}
+	tx.Preload(clause.Associations).First(&version)
+	for _, f := range version.Formats {
+		tx.Delete(&f)
+	}
+	return
 }
 
 type Format struct {
 	ID                uint            `gorm:"primaryKey" json:"id"`
 	CreatedAt         time.Time       `json:"-"`
 	UpdatedAt         time.Time       `json:"-"`
-	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"-"`
+	VersionID         uint            `json:"-"`
 	Code              string          `xml:"Name>code" json:"code"`
 	OtherName         *string         `xml:"SonstigerName" json:"otherName"`
 	Version           string          `xml:"Version" json:"version"`
 	PrimaryDocumentID uint            `json:"-"`
-	PrimaryDocument   PrimaryDocument `gorm:"foreignKey:PrimaryDocumentID;references:ID" xml:"Primaerdokument" json:"primaryDocument"`
+	PrimaryDocument   PrimaryDocument `gorm:"foreignKey:PrimaryDocumentID;references:ID;constraint:OnDelete:SET NULL" xml:"Primaerdokument" json:"primaryDocument"`
+}
+
+// BeforeDelete deletes associated rows of the deleted Format.
+func (v *Format) BeforeDelete(tx *gorm.DB) (err error) {
+	if v.ID == 0 {
+		return fmt.Errorf("failed to delete associations for Format")
+	}
+	format := Format{ID: v.ID}
+	tx.Preload(clause.Associations).First(&format)
+	tx.Delete(&format.PrimaryDocument)
+	return
 }
 
 type PrimaryDocument struct {
 	ID                   uint                `gorm:"primaryKey" json:"id"`
 	CreatedAt            time.Time           `json:"-"`
 	UpdatedAt            time.Time           `json:"-"`
-	DeletedAt            gorm.DeletedAt      `gorm:"index" json:"-"`
 	FileName             string              `xml:"Dateiname" json:"fileName"`
 	FileNameOriginal     *string             `xml:"DateinameOriginal" json:"fileNameOriginal"`
 	CreatorName          *string             `xml:"Ersteller" json:"creatorName"`
 	CreationTime         *string             `xml:"DatumUhrzeit" json:"creationTime"`
 	FormatVerificationID *uint               `json:"-"`
-	FormatVerification   *FormatVerification `gorm:"foreignKey:FormatVerificationID;references:ID" json:"formatVerification"`
+	FormatVerification   *FormatVerification `gorm:"foreignKey:FormatVerificationID;references:ID;constraint:OnDelete:SET NULL" json:"formatVerification"`
+}
+
+// BeforeDelete deletes associated rows of the deleted PrimaryDocument.
+func (p *PrimaryDocument) BeforeDelete(tx *gorm.DB) (err error) {
+	if p.ID == 0 {
+		return fmt.Errorf("failed to delete associations for PrimaryDocument")
+	}
+	primaryDocument := PrimaryDocument{ID: p.ID}
+	tx.Preload(clause.Associations).First(&primaryDocument)
+	if primaryDocument.FormatVerification != nil {
+		tx.Delete(&primaryDocument.FormatVerification)
+	}
+	return
 }
 
 type GeneralMetadata struct {
@@ -398,45 +552,54 @@ type GeneralMetadata struct {
 	ID                   uint                  `gorm:"primaryKey" json:"id"`
 	CreatedAt            time.Time             `json:"-"`
 	UpdatedAt            time.Time             `json:"-"`
-	DeletedAt            gorm.DeletedAt        `gorm:"index" json:"-"`
 	Subject              *string               `xml:"Betreff" json:"subject"`
 	XdomeaID             *string               `xml:"Kennzeichen" json:"xdomeaID"`
 	FilePlanID           *uint                 `json:"-"`
-	FilePlan             *FilePlan             `gorm:"foreignKey:FilePlanID;references:ID" xml:"Aktenplaneinheit" json:"filePlan"`
+	FilePlan             *FilePlan             `gorm:"foreignKey:FilePlanID;references:ID;constraint:OnDelete:SET NULL" xml:"Aktenplaneinheit" json:"filePlan"`
 	ConfidentialityID    *string               `xml:"Vertraulichkeitsstufe>code" json:"-"`
 	ConfidentialityLevel *ConfidentialityLevel `gorm:"foreignKey:ConfidentialityID;references:ID" xml:"-" json:"confidentialityLevel"`
 	MediumID             *string               `xml:"Medium>code" json:"-"`
 	Medium               *Medium               `gorm:"foreignKey:MediumID;references:ID" xml:"-" json:"medium"`
 }
 
+// BeforeDelete deletes associated rows of the deleted GeneralMetadata.
+func (g *GeneralMetadata) BeforeDelete(tx *gorm.DB) (err error) {
+	if g.ID == 0 {
+		return fmt.Errorf("failed to delete associations for GeneralMetadata")
+	}
+	generalMetadata := GeneralMetadata{ID: g.ID}
+	tx.Preload(clause.Associations).First(&generalMetadata)
+	if generalMetadata.FilePlan != nil {
+		tx.Delete(&generalMetadata.FilePlan)
+	}
+	return
+}
+
 type FilePlan struct {
-	XMLName   xml.Name       `gorm:"-" xml:"Aktenplaneinheit" json:"-"`
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	XdomeaID  *string        `xml:"Kennzeichen" json:"xdomeaID"`
+	XMLName   xml.Name  `gorm:"-" xml:"Aktenplaneinheit" json:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	XdomeaID  *string   `xml:"Kennzeichen" json:"xdomeaID"`
 }
 
 type Lifetime struct {
-	XMLName   xml.Name       `gorm:"-" xml:"Laufzeit" json:"-"`
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Start     *string        `xml:"Beginn" json:"start"`
-	End       *string        `xml:"Ende" json:"end"`
+	XMLName   xml.Name  `gorm:"-" xml:"Laufzeit" json:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Start     *string   `xml:"Beginn" json:"start"`
+	End       *string   `xml:"Ende" json:"end"`
 }
 
 type ArchiveMetadata struct {
-	XMLName               xml.Name       `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
-	ID                    uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt             time.Time      `json:"-"`
-	UpdatedAt             time.Time      `json:"-"`
-	DeletedAt             gorm.DeletedAt `gorm:"index" json:"-"`
-	AppraisalCode         *string        `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
-	AppraisalRecommCode   *string        `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
-	InternalAppraisalNote *string        `json:"internalAppraisalNote"`
+	XMLName               xml.Name  `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
+	ID                    uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt             time.Time `json:"-"`
+	UpdatedAt             time.Time `json:"-"`
+	AppraisalCode         *string   `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
+	AppraisalRecommCode   *string   `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
+	InternalAppraisalNote *string   `json:"internalAppraisalNote"`
 }
 
 type ArchiveMetadataVersionIndependent struct {
