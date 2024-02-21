@@ -1,11 +1,13 @@
 import { Clipboard } from '@angular/cdk/clipboard';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { DOCUMENT } from '@angular/common';
 import { AfterViewInit, Component, Inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSidenav } from '@angular/material/sidenav';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject, filter, first, switchMap, tap } from 'rxjs';
 import { Process, ProcessService, ProcessStep } from 'src/app/process/process.service';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
@@ -41,6 +43,7 @@ export interface FlatNode {
 })
 export class MessageTreeComponent implements AfterViewInit {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
+  @ViewChild(MatSidenav) sidenav?: MatSidenav;
 
   private _transformer = (node: StructureNode, level: number): FlatNode => {
     return {
@@ -73,9 +76,11 @@ export class MessageTreeComponent implements AfterViewInit {
   );
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   viewInitialized = new BehaviorSubject(false);
+  sidenavMode: 'side' | 'over' = 'side';
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
+    private breakpointObserver: BreakpointObserver,
     private clipboard: Clipboard,
     private dialog: MatDialog,
     private messageService: MessageService,
@@ -111,6 +116,30 @@ export class MessageTreeComponent implements AfterViewInit {
         takeUntilDestroyed(),
       )
       .subscribe();
+
+    // Show sidenav as overlay on screens smaller than 1700px.
+    this.breakpointObserver
+      .observe(['(min-width: 1700px)'])
+      .pipe(takeUntilDestroyed())
+      .subscribe((result) => {
+        if (result.matches) {
+          this.sidenavMode = 'side';
+          this.sidenav?.open();
+        } else {
+          this.sidenavMode = 'over';
+        }
+      });
+    // Close the sidenav on navigation when in overlay mode.
+    this.router.events
+      .pipe(
+        takeUntilDestroyed(),
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      )
+      .subscribe(() => {
+        if (this.sidenavMode === 'over') {
+          this.sidenav?.close();
+        }
+      });
   }
 
   ngAfterViewInit() {

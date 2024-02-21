@@ -1,5 +1,5 @@
 <mat-sidenav-container>
-  <mat-sidenav mode="side" opened>
+  <mat-sidenav #sidenav [mode]="sidenavMode" opened>
     <div class="messsage-view">
       <mat-tree
         #messageTree
@@ -179,7 +179,12 @@
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content [class.mode-over]="sidenavMode === 'over'">
+    @if (sidenavMode === "over") {
+      <button mat-raised-button class="open-sidenav-button" (click)="sidenav.open()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    }
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>
