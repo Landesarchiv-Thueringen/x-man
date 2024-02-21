@@ -19,6 +19,7 @@ export interface ProcessingError {
   additionalInfo: string;
   process?: Process;
   message?: Message;
+  transferPath?: string;
 }
 
 @Injectable({

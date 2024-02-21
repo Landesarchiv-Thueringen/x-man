@@ -516,6 +516,9 @@ func CreateProcessingError(e ProcessingError) {
 			e.Message = &message
 		}
 	}
+	if e.TransferPath == nil && e.Message != nil {
+		e.TransferPath = &e.Message.TransferDirMessagePath
+	}
 	if e.Message != nil && e.Process != nil && e.ProcessStep == nil && e.ProcessStepID == nil {
 		switch e.Message.MessageType.Code {
 		case "0501":

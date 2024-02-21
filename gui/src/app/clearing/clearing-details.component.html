@@ -32,6 +32,12 @@
       <div role="cell">Abgebende Stelle</div>
       <div role="cell">{{ data.agency.name }}</div>
     </div>
+    @if (data.transferPath) {
+      <div role="row">
+        <div role="cell">Pfad</div>
+        <div role="cell">{{ data.transferPath }}</div>
+      </div>
+    }
     @if (data.process) {
       <div role="row">
         <div role="cell">Aussonderung</div>

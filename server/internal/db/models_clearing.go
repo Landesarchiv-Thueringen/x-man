@@ -36,6 +36,7 @@ type ProcessingError struct {
 	Message        *Message                  `json:"message"`
 	AgencyID       *uint                     `json:"-"`
 	Agency         *Agency                   `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
+	TransferPath   *string                   `json:"transferPath"`
 	Resolved       bool                      `gorm:"default:false" json:"resolved"`
 	Resolution     ProcessingErrorResolution `json:"resolution"`
 	Description    string                    `json:"description"`
