@@ -483,7 +483,10 @@ func SetProcessRecordObjectAppraisalNote(
 	return GetProcessRecordObjectByID(id)
 }
 
-func AddProcessingError(e ProcessingError) {
+// AddProcessingError saves a processing error to the database.
+//
+// Do not call directly. Instead use CreateProcessingError.
+func addProcessingError(e ProcessingError) {
 	result := db.Save(&e)
 	if result.Error != nil {
 		// error handling not possible
@@ -491,9 +494,39 @@ func AddProcessingError(e ProcessingError) {
 	}
 }
 
-func AddProcessingErrorToProcess(process Process, e ProcessingError) error {
-	process.ProcessingErrors = append(process.ProcessingErrors, e)
-	return UpdateProcess(process)
+// CreateProcessingError adds a new processing error to the database.
+//
+// It fills some missing fields if sufficient information is provided.
+func CreateProcessingError(e ProcessingError) {
+	if e.Process == nil && e.ProcessID != nil {
+		process, err := GetProcess(*e.ProcessID)
+		if err != nil {
+			e.Process = &process
+		}
+	}
+	if e.AgencyID == nil && e.Agency == nil {
+		if e.Process != nil {
+			e.AgencyID = &e.Process.AgencyID
+			e.Agency = &e.Process.Agency
+		}
+	}
+	if e.Message == nil && e.MessageID != nil {
+		message, err := GetMessageByID(*e.MessageID)
+		if err != nil {
+			e.Message = &message
+		}
+	}
+	if e.Message != nil && e.Process != nil && e.ProcessStep == nil && e.ProcessStepID == nil {
+		switch e.Message.MessageType.Code {
+		case "0501":
+			e.ProcessStep = &e.Process.ProcessState.Receive0501
+		case "0503":
+			e.ProcessStep = &e.Process.ProcessState.Receive0503
+		case "0505":
+			e.ProcessStep = &e.Process.ProcessState.Receive0505
+		}
+	}
+	addProcessingError(e)
 }
 
 func GetProcessingError(id uint) (ProcessingError, error) {

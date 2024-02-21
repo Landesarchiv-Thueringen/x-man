@@ -13,14 +13,14 @@ import (
 func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorResolution) error {
 	switch resolution {
 	case db.ErrorResolutionReimportMessage:
-		deleted, err := messagestore.DeleteMessage(processingError.MessageID, true)
+		deleted, err := messagestore.DeleteMessage(*processingError.MessageID, true)
 		if err != nil {
 			return err
 		} else if !deleted {
 			return fmt.Errorf("failed to delete message %v", processingError.MessageID)
 		}
 	case db.ErrorResolutionDeleteMessage:
-		deleted, err := messagestore.DeleteMessage(processingError.MessageID, false)
+		deleted, err := messagestore.DeleteMessage(*processingError.MessageID, false)
 		if err != nil {
 			return err
 		} else if !deleted {

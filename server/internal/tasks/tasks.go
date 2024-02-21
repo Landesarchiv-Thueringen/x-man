@@ -62,13 +62,13 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 			processingErrorType = db.ProcessingErrorFormatVerificationFailed
 			messageID = *task.Process.Message0503ID
 		}
-		db.AddProcessingError(db.ProcessingError{
-			ProcessID:      task.ProcessID,
-			ProcessStepID:  task.ProcessStepID,
+		db.CreateProcessingError(db.ProcessingError{
+			ProcessID:      &task.ProcessID,
+			ProcessStepID:  &task.ProcessStepID,
 			Type:           processingErrorType,
-			AgencyID:       task.Process.AgencyID,
+			AgencyID:       &task.Process.AgencyID,
 			Description:    getDisplayName(task.Type) + " fehlgeschlagen",
-			MessageID:      messageID,
+			MessageID:      &messageID,
 			AdditionalInfo: errorMessage,
 		})
 	}

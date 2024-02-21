@@ -222,11 +222,11 @@ func IsMessageValid(agency db.Agency, message db.Message) error {
 				log.Printf("error: %s", e.Error())
 			}
 			processingErr := db.ProcessingError{
-				Agency:      agency,
+				Agency:      &agency,
 				Description: "Schema-Validierung ungültig",
-				MessageID:   message.ID,
+				Message:     &message,
 			}
-			db.AddProcessingError(processingErr)
+			db.CreateProcessingError(processingErr)
 		}
 		return err
 	}
@@ -245,11 +245,11 @@ func checkMessage0503Integrity(
 		if err != nil {
 			log.Println(err.Error())
 			processingErr := db.ProcessingError{
-				Agency:      process.Agency,
+				Process:     &process,
 				Description: "Primärdatei fehlt in Abgabe",
-				MessageID:   message0503.ID,
+				Message:     &message0503,
 			}
-			db.AddProcessingErrorToProcess(process, processingErr)
+			db.CreateProcessingError(processingErr)
 			return err
 		}
 	}
@@ -263,11 +263,11 @@ func checkMessage0503Integrity(
 	if !process.ProcessState.Appraisal.Complete {
 		errorMessage := "Die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
 		processingErr := db.ProcessingError{
-			Agency:      process.Agency,
+			Process:     &process,
 			Description: errorMessage,
-			MessageID:   message0503.ID,
+			Message:     &message0503,
 		}
-		db.AddProcessingErrorToProcess(process, processingErr)
+		db.CreateProcessingError(processingErr)
 		return errors.New(errorMessage)
 	} else {
 		return checkRecordObjectsOfMessage0503(process, message0501, message0503)
@@ -300,12 +300,12 @@ func checkRecordObjectsOfMessage0503(
 	if message0503Incomplete {
 		errorMessage := "Die Abgabe ist nicht vollständig"
 		processingErr := db.ProcessingError{
-			Agency:         process.Agency,
+			Process:        &process,
 			Description:    errorMessage,
 			AdditionalInfo: additionalInfo,
-			MessageID:      message0503.ID,
+			Message:        &message0503,
 		}
-		db.AddProcessingErrorToProcess(process, processingErr)
+		db.CreateProcessingError(processingErr)
 		return errors.New(errorMessage)
 	}
 	return nil
@@ -412,12 +412,13 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
 		}
 		processingErr := db.ProcessingError{
+			Process:        &process,
+			Message:        &message,
 			Type:           db.ProcessingErrorAgencyMismatch,
-			Agency:         process.Agency,
 			Description:    "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
-			MessageID:      message.ID,
 			AdditionalInfo: info,
 		}
-		db.AddProcessingErrorToProcess(process, processingErr)
+		db.CreateProcessingError(processingErr)
+
 	}
 }

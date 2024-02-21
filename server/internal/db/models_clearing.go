@@ -28,16 +28,16 @@ type ProcessingError struct {
 	UpdatedAt      time.Time                 `json:"-"`
 	DeletedAt      gorm.DeletedAt            `gorm:"index" json:"-"`
 	Type           ProcessingErrorType       `json:"type"`
-	ProcessID      uuid.UUID                 `json:"-"`
+	ProcessID      *uuid.UUID                `json:"-"`
 	Process        *Process                  `json:"process"`
-	ProcessStepID  uint                      `json:"-"`
+	ProcessStepID  *uint                     `json:"-"`
 	ProcessStep    *ProcessStep              `json:"-"`
-	AgencyID       uint                      `json:"-"`
-	Agency         Agency                    `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
+	MessageID      *uuid.UUID                `json:"-"`
+	Message        *Message                  `json:"message"`
+	AgencyID       *uint                     `json:"-"`
+	Agency         *Agency                   `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
 	Resolved       bool                      `gorm:"default:false" json:"resolved"`
 	Resolution     ProcessingErrorResolution `json:"resolution"`
 	Description    string                    `json:"description"`
 	AdditionalInfo string                    `json:"additionalInfo"`
-	MessageID      uuid.UUID                 `json:"-"`
-	Message        *Message                  `json:"message"`
 }
