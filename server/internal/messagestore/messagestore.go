@@ -253,10 +253,6 @@ func cleanupEmptyProcess(processID string) error {
 		return err
 	}
 	fmt.Println("cleanupEmptyProcess", processID)
-	fmt.Println("  Message0501ID", process.Message0501ID)
-	fmt.Println("  Message0503ID", process.Message0503ID)
-	fmt.Println("  Message0505ID", process.Message0505ID)
-
 	if process.Message0501ID == nil && process.Message0503ID == nil && process.Message0505ID == nil {
 		_, err = DeleteProcess(processID)
 	}
