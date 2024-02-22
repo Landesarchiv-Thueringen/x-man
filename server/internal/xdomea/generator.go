@@ -3,10 +3,11 @@ package xdomea
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"lath/xman/internal/db"
 	"log"
 	"time"
+
+	"github.com/lestrrat-go/libxml2/xsd"
 )
 
 const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
@@ -27,18 +28,27 @@ func Generate0502Message(message db.Message) string {
 	}
 	for _, o := range message.GetAppraisableObjects() {
 		appraisedObject, err := GenerateAppraisedObject(o, xdomeaVersion)
-		if err == nil {
-			message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
+		if err != nil {
+			panic("record object appraisal couldn't be retreived")
 		}
+		message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 	}
 	xmlBytes, err := xml.MarshalIndent(message0502, " ", " ")
 	if err != nil {
-		panic(fmt.Sprintf("0502 message couldn't be created: %v", err))
+		panic("0502 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
-	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	valid, err := ValidateXdomeaXmlString(messageXml, xdomeaVersion)
 	if err != nil {
-		log.Println(err)
+		validationError, ok := err.(xsd.SchemaValidationError)
+		if ok {
+			for _, e := range validationError.Errors() {
+				log.Printf("XML schema error: %s", e.Error())
+			}
+		}
+		if !valid {
+			panic("generated 0502 message is invalid")
+		}
 	}
 	return messageXml
 }
@@ -90,12 +100,20 @@ func Generate0504Message(message db.Message) string {
 	}
 	xmlBytes, err := xml.MarshalIndent(message0504, " ", " ")
 	if err != nil {
-		panic(fmt.Sprintf("0504 message couldn't be created: %v", err))
+		panic("0504 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
-	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	valid, err := ValidateXdomeaXmlString(messageXml, xdomeaVersion)
 	if err != nil {
-		log.Println(err)
+		validationError, ok := err.(xsd.SchemaValidationError)
+		if ok {
+			for _, e := range validationError.Errors() {
+				log.Printf("XML schema error: %s", e.Error())
+			}
+		}
+		if !valid {
+			panic("generated 0504 message is invalid")
+		}
 	}
 	return messageXml
 }

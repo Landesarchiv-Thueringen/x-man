@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
@@ -164,31 +165,26 @@ func AddMessage(
 		MessagePath:            messagePath,
 		AppraisalComplete:      appraisalComplete,
 	}
-	// xsd schema validation
-	err = IsMessageValid(agency, message)
-	messageIsValid := err == nil
-	message.SchemaValidation = messageIsValid
+	err = checkMessageValidity(agency, &message, transferDirMessagePath)
 	if err != nil {
-		log.Println(err)
 		return process, message, err
 	}
 	// parse message
 	message, err = ParseMessage(message)
 	if err != nil {
-		panic(err)
+		return process, message, err
 	}
-	// store message metadata in database
+	// Store message in database with parsed message metadata.
 	process, message, err = db.AddMessage(agency, xdomeaID, processStoreDir, message)
 	if err != nil {
-		panic(err)
+		return process, message, err
 	}
-	compareAgencyFields(agency, message, process)
+	//compareAgencyFields(agency, message, process)
 	if messageType.Code == "0503" {
 		// get primary documents
 		primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
-		// error while getting the primary documents should never happen, can't recover
 		if err != nil {
-			panic(err)
+			return process, message, err
 		}
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
@@ -207,26 +203,39 @@ func AddMessage(
 	return process, message, nil
 }
 
-// IsMessageValid performs a xsd schema validation against the xdomea version of the message.
-func IsMessageValid(agency db.Agency, message db.Message) error {
-	xdomeaVersion, err := ExtractVersionFromMessage(message)
+// checkMessageValidity performs a xsd schema validation against the message XML file.
+func checkMessageValidity(agency db.Agency, message *db.Message, transferDirMessagePath string) error {
+	xdomeaVersion, err := ExtractVersionFromMessage(*message)
 	if err != nil {
 		return err
 	}
-	err = ValidateXdomeaXmlFile(message.MessagePath, xdomeaVersion)
+	messageIsValid, err := ValidateXdomeaXmlFile(message.MessagePath, xdomeaVersion)
+	message.SchemaValidation = messageIsValid
 	if err != nil {
-		// Print all schema errors and add error for clearing if a schema validation error occurred.
-		validationError, ok := err.(xsd.SchemaValidationError)
-		if ok {
-			for _, e := range validationError.Errors() {
-				log.Printf("error: %s", e.Error())
+		if !messageIsValid {
+			var processingError db.ProcessingError
+			validationError, ok := err.(xsd.SchemaValidationError)
+			if ok {
+				var errorMessages []string
+				for _, e := range validationError.Errors() {
+					errorMessages = append(errorMessages, e.Error())
+					log.Printf("XML schema error: %s", e.Error())
+				}
+				additionalInfo := strings.Join(errorMessages, "\n")
+				processingError = db.ProcessingError{
+					Agency:         &agency,
+					TransferPath:   &transferDirMessagePath,
+					Description:    "Schema-Validierung ungültig",
+					AdditionalInfo: additionalInfo,
+				}
+			} else {
+				processingError = db.ProcessingError{
+					Agency:       &agency,
+					TransferPath: &transferDirMessagePath,
+					Description:  "Schema-Validierung ungültig",
+				}
 			}
-			processingErr := db.ProcessingError{
-				Agency:      &agency,
-				Description: "Schema-Validierung ungültig",
-				Message:     &message,
-			}
-			db.CreateProcessingError(processingErr)
+			db.CreateProcessingError(processingError)
 		}
 		return err
 	}

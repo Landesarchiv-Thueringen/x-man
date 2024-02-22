@@ -12,64 +12,67 @@ import (
 )
 
 // ValidateXdomeaXmlFile performs a xsd schema validation against the XML file of a xdomea message.
-func ValidateXdomeaXmlFile(xmlPath string, version db.XdomeaVersion) error {
+// Returns (true, nil) if the schema validation didn't find an error.
+// Returns (false, SchemaValidationError) if the schema validation found errors.
+// All schema errors can be extracted from the SchemaValidationError.
+// Returns (false, error) if another error happened.
+func ValidateXdomeaXmlFile(xmlPath string, version db.XdomeaVersion) (bool, error) {
 	schema, err := xsd.ParseFromFile(version.XSDPath)
 	if err != nil {
 		log.Println(err)
-		return err
+		return false, err
 	}
 	defer schema.Free()
 	xmlFile, err := os.Open(xmlPath)
 	if err != nil {
 		log.Println(err)
-		return err
+		return false, err
 	}
 	defer xmlFile.Close()
 	xmlBytes, err := io.ReadAll(xmlFile)
 	if err != nil {
 		log.Println(err)
-		return err
+		return false, err
 	}
 	xml, err := libxml2.Parse(xmlBytes)
 	if err != nil {
 		log.Println(err)
-		return err
+		return false, err
 	}
 	defer xml.Free()
-	err = validateXdomeaXml(schema, xml)
-	return nil
+	return validateXdomeaXml(schema, xml)
 }
 
 // ValidateXdomeaXmlString performs a xsd schema validation against the XML code of a xdomea message.
-func ValidateXdomeaXmlString(xmlText string, version db.XdomeaVersion) error {
+// Returns (true, nil) if the schema validation didn't find an error.
+// Returns (false, SchemaValidationError) if the schema validation found errors.
+// All schema errors can be extracted from the SchemaValidationError.
+// Returns (false, error) if another error happened.
+func ValidateXdomeaXmlString(xmlText string, version db.XdomeaVersion) (bool, error) {
 	schema, err := xsd.ParseFromFile(version.XSDPath)
 	if err != nil {
 		log.Println(err)
-		return err
+		return false, err
 	}
 	defer schema.Free()
 	xml, err := libxml2.ParseString(xmlText)
 	if err != nil {
 		log.Println(err)
-		return err
+		return false, err
 	}
 	defer xml.Free()
-	err = validateXdomeaXml(schema, xml)
-	return err
+	return validateXdomeaXml(schema, xml)
 }
 
 // ValidateXdomeaXml performs a xsd schema validation of a parsed xdomea XML file.
-func validateXdomeaXml(schema *xsd.Schema, xml types.Document) error {
+// Returns (true, nil) if the schema validation didn't find an error.
+// Returns (false, SchemaValidationError) if the schema validation found errors.
+// All schema errors can be extracted from the SchemaValidationError.
+func validateXdomeaXml(schema *xsd.Schema, xml types.Document) (bool, error) {
 	err := schema.Validate(xml)
-	// Print all schema errors.
+	// log all schema errors.
 	if err != nil {
-		validationError, ok := err.(xsd.SchemaValidationError)
-		if ok {
-			for _, e := range validationError.Errors() {
-				log.Printf("error: %s", e.Error())
-			}
-		}
-		return err
+		return false, err
 	}
-	return nil
+	return true, nil
 }
