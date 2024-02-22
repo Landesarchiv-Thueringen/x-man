@@ -7,7 +7,6 @@ services:
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
-        - CONFIGURATION=${GUI_CONFIGURATION}
     ports:
       - ${PORT}:80
 
