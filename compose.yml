@@ -2,7 +2,6 @@ services:
   gui:
     depends_on:
       - server
-    restart: unless-stopped
     build:
       context: ./gui
       args:
@@ -13,7 +12,6 @@ services:
       - ${PORT}:80
 
   database:
-    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
@@ -32,7 +30,6 @@ services:
       - database:/var/lib/postgresql/data
 
   server:
-    restart: unless-stopped
     build:
       context: ./server
       args:
@@ -47,7 +44,6 @@ services:
       - TOKEN_DAY_LIFESPAN=${TOKEN_DAY_LIFESPAN}
       - TOKEN_PRIVATE_KEY=${TOKEN_PRIVATE_KEY}
       - DELETE_ARCHIVED_PROCESSES_AFTER_DAYS=${DELETE_ARCHIVED_PROCESSES_AFTER_DAYS}
-      - ACCEPT_ANY_LOGIN_CREDENTIALS=${ACCEPT_ANY_LOGIN_CREDENTIALS}
       - AD_URL=${AD_URL}
       - AD_BASE_DN=${AD_BASE_DN}
       - AD_USER=${AD_USER}
@@ -70,7 +66,6 @@ services:
       - ./transfer_dir:/xman/transfer_dir
 
   report:
-    restart: unless-stopped
     build:
       context: ./report
       args:
@@ -79,16 +74,6 @@ services:
         - NO_PROXY=.tsa.thlv.de,.thlv.de
     environment:
       - GIN_MODE=${GIN_MODE}
-
-  webdav:
-    image: bytemark/webdav
-    restart: always
-    environment:
-      AUTH_TYPE: Digest
-      USERNAME: ${WEBDAV_USERNAME}
-      PASSWORD: ${WEBDAV_PASSWORD}
-    volumes:
-      - webdav:/var/lib/dav
 
 volumes:
   database:

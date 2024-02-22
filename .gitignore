@@ -18,8 +18,8 @@
 !/sample.env
 
 # allow docker compose files
-!/docker-compose.yml
-!/docker-compose-*.yml
+!/compose.yml
+!/compose.*.yml
 
 # allow go workspace files
 !/go.work

@@ -52,7 +52,7 @@ type authorizationResult struct {
 // We return a value indicating whether the provided credentials are valid, and
 // if so, what level of access should be grated to the user.
 func authorizeUser(username string, password string) (authorizationResult, error) {
-	if os.Getenv("AD_URL") == "" && os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
+	if os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
 		return authorizationResult{
 			Predicate: GRANTED,
 			UserEntry: &userEntry{

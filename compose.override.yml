@@ -1,0 +1,31 @@
+services:
+  gui:
+    build:
+      args:
+        - CONFIGURATION=development
+
+  server:
+    environment:
+      - ACCEPT_ANY_LOGIN_CREDENTIALS=${ACCEPT_ANY_LOGIN_CREDENTIALS-false}
+    ports:
+      - 3000:80
+
+  database-debug:
+    image: sosedoff/pgweb
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/${POSTGRES_DB}?sslmode=disable
+    ports:
+      - 8081:8081
+
+  webdav:
+    image: bytemark/webdav
+    restart: always
+    environment:
+      AUTH_TYPE: Digest
+      USERNAME: ${WEBDAV_USERNAME}
+      PASSWORD: ${WEBDAV_PASSWORD}
+    volumes:
+      - webdav:/var/lib/dav

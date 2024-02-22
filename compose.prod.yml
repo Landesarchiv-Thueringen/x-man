@@ -1,0 +1,19 @@
+services:
+  gui:
+    restart: unless-stopped
+    build:
+      args:
+        - CONFIGURATION=production
+
+  database:
+    restart: unless-stopped
+
+  server:
+    restart: unless-stopped
+    environment:
+      - GIN_MODE=release
+
+  report:
+    restart: unless-stopped
+    environment:
+      - GIN_MODE=release
