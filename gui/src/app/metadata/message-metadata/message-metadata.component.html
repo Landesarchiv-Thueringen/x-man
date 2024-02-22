@@ -44,7 +44,17 @@
               } @else {
                 <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               }
-              <div matListItemTitle>{{ item.title }}</div>
+              <div matListItemTitle>
+                {{ item.title }}
+                @if (item.onClick) {
+                  <button
+                    mat-button
+                    class="open-details-button"
+                    (click)="item.onClick()"
+                    aria-label="Details anzeigen"
+                  ></button>
+                }
+              </div>
               @if (item.message) {
                 <div matListItemLine>{{ item.message }}</div>
               } @else {

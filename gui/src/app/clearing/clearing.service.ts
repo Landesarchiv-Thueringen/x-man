@@ -12,7 +12,7 @@ export interface ProcessingError {
   id: number;
   detectedAt: string;
   type: ProcessingErrorType;
-  agency: Agency;
+  agency?: Agency;
   resolved: boolean;
   resolution: ProcessingErrorResolution;
   description: string;

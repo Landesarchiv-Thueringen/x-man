@@ -1,8 +1,8 @@
 <h2 mat-dialog-title>
   @if (data.resolution) {
-    Gelöst:
+    <ng-container>Gelöst: </ng-container>
   }
-  {{ data.description }}
+  <ng-container>{{ data.description }}</ng-container>
 </h2>
 <div mat-dialog-content>
   <div role="table">
@@ -28,10 +28,12 @@
       <div role="cell">Feststellungszeitpunkt</div>
       <div role="cell">{{ data.detectedAt | date: "medium" }}</div>
     </div>
-    <div role="row">
-      <div role="cell">Abgebende Stelle</div>
-      <div role="cell">{{ data.agency.name }}</div>
-    </div>
+    @if (data.agency) {
+      <div role="row">
+        <div role="cell">Abgebende Stelle</div>
+        <div role="cell">{{ data.agency.name }}</div>
+      </div>
+    }
     @if (data.transferPath) {
       <div role="row">
         <div role="cell">Pfad</div>

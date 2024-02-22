@@ -7,6 +7,7 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, switchMap, take, tap } from 'rxjs';
 import { NotificationService } from 'src/app/utility/notification/notification.service';
+import { ClearingDetailsComponent } from '../../clearing/clearing-details.component';
 import { Message, MessageService } from '../../message/message.service';
 import { Process, ProcessService, ProcessStep } from '../../process/process.service';
 import { AuthService } from '../../utility/authorization/auth.service';
@@ -17,6 +18,7 @@ interface StateItem {
   title: string;
   date: string;
   message?: string;
+  onClick?: () => void;
 }
 
 @Component({
@@ -186,17 +188,23 @@ export class MessageMetadataComponent {
       });
     }
     for (const processingError of this.process.processingErrors) {
+      let onClick;
+      if (this.auth.isAdmin()) {
+        onClick = () => this.dialog.open(ClearingDetailsComponent, { data: processingError });
+      }
       if (processingError.resolved) {
         items.push({
           title: 'Gelöst: ' + processingError.description,
           icon: 'check_circle',
           date: processingError.detectedAt,
+          onClick,
         });
       } else {
         items.push({
           title: processingError.description,
           icon: 'error',
           date: processingError.detectedAt,
+          onClick,
         });
       }
     }
