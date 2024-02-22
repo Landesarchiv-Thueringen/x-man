@@ -44,7 +44,7 @@ export class AuthInterceptor implements HttpInterceptor {
                 this.router.navigate(['login']);
               }
             } else {
-              this.router.navigate(['error', event.status]);
+              this.router.navigate(['error', event.status], { skipLocationChange: true });
             }
           }
         },
