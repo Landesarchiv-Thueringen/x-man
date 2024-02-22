@@ -105,10 +105,7 @@ func initServer() {
 }
 
 func MigrateData() {
-	xManVersion, err := db.GetXManVersion()
-	if err != nil {
-		panic(err)
-	}
+	xManVersion := db.GetXManVersion()
 	if xManVersion == 0 {
 		fmt.Printf("Migrating database from X-Man version %d to %d... ", xManVersion, XMAN_VERSION)
 		db.Migrate()
@@ -147,12 +144,9 @@ func resolveProcessingError(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	processingError, err := db.GetProcessingError(uint(id))
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+	processingError, found := db.GetProcessingError(uint(id))
+	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
-		return
-	} else if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	body, err := io.ReadAll(context.Request.Body)
@@ -160,11 +154,7 @@ func resolveProcessingError(context *gin.Context) {
 		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	err = clearing.Resolve(processingError, db.ProcessingErrorResolution(body))
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	clearing.Resolve(processingError, db.ProcessingErrorResolution(body))
 	context.Status(http.StatusAccepted)
 }
 
@@ -174,8 +164,8 @@ func getProcessByXdomeaID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	process, err := db.GetProcessByXdomeaID(id.String())
-	if err != nil {
+	process, found := db.GetProcessByXdomeaID(id.String())
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -224,8 +214,8 @@ func getMessageByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetCompleteMessageByID(id)
-	if err != nil {
+	message, found := db.GetCompleteMessageByID(id)
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -252,8 +242,8 @@ func getProcessRecordObjectByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	processRecordObject, err := db.GetProcessRecordObjectByID(id)
-	if err != nil {
+	processRecordObject, found := db.GetProcessRecordObjectByID(id)
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -336,7 +326,7 @@ func setFileRecordObjectAppraisalNote(context *gin.Context) {
 	note := context.Query("note")
 	fileRecordObject, err := db.SetFileRecordObjectAppraisalNote(id, note)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	context.JSON(http.StatusOK, fileRecordObject)
@@ -350,7 +340,12 @@ func setProcessRecordObjectAppraisal(context *gin.Context) {
 		return
 	}
 	appraisalCode := context.Query("appraisal")
-	processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, appraisalCode)
+	processRecordObject, found := db.GetProcessRecordObjectByID(id)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+	err = db.SetProcessRecordObjectAppraisal(&processRecordObject, appraisalCode)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
@@ -366,12 +361,13 @@ func setProcessRecordObjectAppraisalNote(context *gin.Context) {
 		return
 	}
 	note := context.Query("note")
-	fileRecordObject, err := db.SetProcessRecordObjectAppraisalNote(id, note)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
+	processRecordObject, found := db.GetProcessRecordObjectByID(id)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.JSON(http.StatusOK, fileRecordObject)
+	db.SetProcessRecordObjectAppraisalNote(&processRecordObject, note)
+	context.JSON(http.StatusOK, processRecordObject)
 }
 
 func setProcessNote(context *gin.Context) {
@@ -445,9 +441,8 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetCompleteMessageByID(id)
-	if err != nil {
-		// message couldn't be found
+	message, found := db.GetCompleteMessageByID(id)
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -468,10 +463,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		return
 	}
 	process.Message0502Path = &messagePath
-	err = db.UpdateProcess(process)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-	}
+	db.UpdateProcess(process)
 }
 
 func isMessageAppraisalComplete(context *gin.Context) {
@@ -494,8 +486,8 @@ func AreAllRecordObjectsAppraised(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetCompleteMessageByID(id)
-	if err != nil {
+	message, found := db.GetCompleteMessageByID(id)
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -593,13 +585,13 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, err := db.GetCompleteMessageByID(messageID)
-	if err != nil {
+	message, found := db.GetCompleteMessageByID(messageID)
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
-	if err != nil {
+	process, found := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -717,12 +709,9 @@ func deleteAgency(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	deleted, err := db.DeleteAgency(uint(id))
-	if !deleted {
+	found := db.DeleteAgency(uint(id))
+	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
-		return
-	} else if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	context.Status(http.StatusAccepted)
@@ -786,12 +775,9 @@ func deleteCollection(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	deleted, err := db.DeleteCollection(uint(id))
-	if !deleted {
+	found := db.DeleteCollection(uint(id))
+	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
-		return
-	} else if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	context.Status(http.StatusAccepted)

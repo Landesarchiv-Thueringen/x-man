@@ -105,10 +105,7 @@ func extractMessage(
 		if messageType.Code == "0501" {
 			messagePath := Store0504Message(message)
 			process.Message0504Path = &messagePath
-			err = db.UpdateProcess(process)
-			if err != nil {
-				panic(err)
-			}
+			db.UpdateProcess(process)
 		}
 	}
 }
@@ -190,9 +187,12 @@ func storeMessage(
 //
 // Returns true, when an entry was found and deleted.
 func DeleteProcess(processID string) (bool, error) {
-	process, err := db.GetProcessByXdomeaID(processID)
-	if err != nil {
-		return false, err
+	if processID == "" {
+		panic("called DeleteProcess with empty string")
+	}
+	process, found := db.GetProcessByXdomeaID(processID)
+	if !found {
+		panic(fmt.Sprintf("process not found: %v", processID))
 	}
 	storeDir := process.StoreDir
 	transferFiles, err := db.GetAllTransferFilesOfProcess(process)
@@ -200,10 +200,7 @@ func DeleteProcess(processID string) (bool, error) {
 		return false, err
 	}
 	// Delete database entries
-	deleted, err := db.DeleteProcess(process.ID)
-	if !deleted || err != nil {
-		return deleted, err
-	}
+	db.DeleteProcess(process.ID)
 	// Delete message storage
 	if err = os.RemoveAll(storeDir); err != nil {
 		return false, err
@@ -217,43 +214,48 @@ func DeleteProcess(processID string) (bool, error) {
 	return true, nil
 }
 
-func DeleteMessage(id uuid.UUID, keepTransferFile bool) (bool, error) {
-	message, err := db.GetCompleteMessageByID(id)
-	if err != nil {
-		return false, err
+func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
+	message, found := db.GetCompleteMessageByID(id)
+	if !found {
+		panic("message not found " + id.String())
 	}
 	storeDir := message.StoreDir
 	transferFile := message.TransferDirMessagePath
-	deleted, err := db.DeleteMessage(message)
-	if !deleted || err != nil {
-		return deleted, err
+	if keepTransferFile {
+		fmt.Println("Deleting message", message.ID, "(keeping transfer file)")
+	} else {
+		fmt.Println("Deleting message", message.ID)
 	}
+	db.DeleteMessage(message)
 	// Delete message storage
-	if err = os.RemoveAll(storeDir); err != nil {
-		return false, err
+	if err := os.RemoveAll(storeDir); err != nil {
+		panic(err)
 	}
 	// Delete transfer file
 	if !keepTransferFile {
-		if err = os.Remove(transferFile); err != nil {
-			return false, err
+		if err := os.Remove(transferFile); err != nil {
+			panic(err)
 		}
-		if err = cleanupEmptyProcess(message.MessageHead.ProcessID); err != nil {
-			return true, err
+		if err := cleanupEmptyProcess(message.MessageHead.ProcessID); err != nil {
+			panic(err)
 		}
 	}
-	return true, nil
 }
 
 // cleanupEmptyProcess deletes the given process if if does not have any
 // messages.
 func cleanupEmptyProcess(processID string) error {
-	process, err := db.GetProcessByXdomeaID(processID)
-	if err != nil {
-		return err
+	if processID == "" {
+		panic("called cleanupEmptyProcess with empty string")
+	}
+	process, found := db.GetProcessByXdomeaID(processID)
+	if !found {
+		panic(fmt.Sprintf("process not found: %v", processID))
 	}
 	fmt.Println("cleanupEmptyProcess", processID)
 	if process.Message0501ID == nil && process.Message0503ID == nil && process.Message0505ID == nil {
-		_, err = DeleteProcess(processID)
+		_, err := DeleteProcess(processID)
+		return err
 	}
-	return err
+	return nil
 }

@@ -10,34 +10,23 @@ import (
 //
 // If successful, it marks the processing error as resolved. Otherwise, it
 // returns an error.
-func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorResolution) error {
+func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorResolution) {
 	switch resolution {
 	case db.ErrorResolutionReimportMessage:
-		deleted, err := messagestore.DeleteMessage(*processingError.MessageID, true)
-		if err != nil {
-			return err
-		} else if !deleted {
-			return fmt.Errorf("failed to delete message %v", processingError.MessageID)
-		}
+		messagestore.DeleteMessage(*processingError.MessageID, true)
 	case db.ErrorResolutionDeleteMessage:
-		deleted, err := messagestore.DeleteMessage(*processingError.MessageID, false)
-		if err != nil {
-			return err
-		} else if !deleted {
-			return fmt.Errorf("failed to delete message %v", processingError.MessageID)
-		}
+		messagestore.DeleteMessage(*processingError.MessageID, false)
 	default:
-		return fmt.Errorf("unknown resolution: %s", resolution)
+		panic(fmt.Sprintf("unknown resolution: %s", resolution))
 	}
-	processingError, err := db.GetProcessingError(processingError.ID)
-	if err != nil {
-		// The processing error might already have been deleted.
-		return nil
-	} else {
-		return db.UpdateProcessingError(db.ProcessingError{
+	processingError, found := db.GetProcessingError(processingError.ID)
+	if found {
+		db.UpdateProcessingError(db.ProcessingError{
 			ID:         processingError.ID,
 			Resolved:   true,
 			Resolution: resolution,
 		})
+	} else {
+		// The processing error has already been deleted.
 	}
 }

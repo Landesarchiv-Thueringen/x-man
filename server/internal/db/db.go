@@ -31,22 +31,29 @@ func Init() {
 	db.AutoMigrate(&ServerState{})
 }
 
-// GetXManVersion returns the XMan version that the database was migrated to.
-func GetXManVersion() (uint, error) {
-	var serverState ServerState
-	result := db.Limit(1).Find(&serverState)
-	return serverState.XManVersion, result.Error
-}
-
-func SetXManVersion(version uint) error {
+// GetXManVersion returns the x-man version that the database was migrated to.
+//
+// Returns 0 when starting x-man with a fresh database.
+func GetXManVersion() uint {
 	var serverState ServerState
 	result := db.Limit(1).Find(&serverState)
 	if result.Error != nil {
-		return result.Error
+		panic(result.Error)
+	}
+	return serverState.XManVersion
+}
+
+func SetXManVersion(version uint) {
+	var serverState ServerState
+	result := db.Limit(1).Find(&serverState)
+	if result.Error != nil {
+		panic(result.Error)
 	}
 	serverState.XManVersion = version
 	result = db.Save(&serverState)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
 // Migrate migrates all database tables and relations.
@@ -141,12 +148,9 @@ func AddProcess(
 	xdomeaID string,
 	processStoreDir string,
 	institution *string,
-) (Process, error) {
+) Process {
 	var process Process
-	processState, err := AddProcessState()
-	if err != nil {
-		return process, err
-	}
+	processState := AddProcessState()
 	process = Process{
 		Agency:       agency,
 		XdomeaID:     xdomeaID,
@@ -155,56 +159,66 @@ func AddProcess(
 		ProcessState: processState,
 	}
 	result := db.Save(&process)
-	return process, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return process
 }
 
 // DeleteProcess deletes the given process and all its associations.
-func DeleteProcess(id uuid.UUID) (bool, error) {
+func DeleteProcess(id uuid.UUID) {
+	if id == uuid.Nil {
+		panic("called DeleteProcess with nil ID")
+	}
 	// Note that we don't use inline (`Delete(&Process{}, id)`) or explicit
 	// (`Where("...")`) conditions. `BeforeDelete` and `AfterDelete` hooks only
 	// see the primary value that was passed to `Delete`. If we don't include
 	// the ID in this value, we cannot delete associations using these hooks.
 	result := db.Delete(&Process{ID: id})
-	return result.RowsAffected == 1, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	} else if result.RowsAffected != 1 {
+		panic(fmt.Sprintf("failed to delete process %v: not found", id))
+	}
 }
 
 // DeleteMessage deletes the given message and all its associations.
 //
-// It dereferences but keeps the process.
-func DeleteMessage(message Message) (bool, error) {
+// Panics if the message cannot be found.
+func DeleteMessage(message Message) {
+	if message.ID == uuid.Nil {
+		panic("called DeleteMessage with nil ID")
+	}
 	processID := message.MessageHead.ProcessID
-	process, err := GetProcessByXdomeaID(processID)
-	if err != nil {
-		return false, err
+	process, found := GetProcessByXdomeaID(processID)
+	if !found {
+		panic("process not found: " + processID)
 	}
 	if process.Message0501ID != nil && *process.Message0501ID == message.ID {
 		process.Message0501ID = nil
 		process.ProcessState.Receive0501.CompletionTime = nil
 		process.ProcessState.Receive0501.Complete = false
-		err = UpdateProcessStep(process.ProcessState.Receive0501)
+		UpdateProcessStep(process.ProcessState.Receive0501)
 	} else if process.Message0503ID != nil && *process.Message0503ID == message.ID {
 		process.Message0503ID = nil
 		process.ProcessState.Receive0503.CompletionTime = nil
 		process.ProcessState.Receive0503.Complete = false
-		err = UpdateProcessStep(process.ProcessState.Receive0503)
+		UpdateProcessStep(process.ProcessState.Receive0503)
 	} else if process.Message0505ID != nil && *process.Message0505ID == message.ID {
 		process.Message0505ID = nil
 		process.ProcessState.Receive0505.CompletionTime = nil
 		process.ProcessState.Receive0505.Complete = false
-		err = UpdateProcessStep(process.ProcessState.Receive0505)
+		UpdateProcessStep(process.ProcessState.Receive0505)
 	} else {
-		return false,
-			fmt.Errorf("could not find message reference of message %v in process %v",
-				message.ID, process.ID)
-	}
-	if err != nil {
-		return false, err
+		panic(fmt.Errorf("could not find message reference of message %v in process %v",
+			message.ID, process.ID))
 	}
 	result := db.Delete(&message)
-	if result.RowsAffected == 0 || result.Error != nil {
-		return result.RowsAffected == 1, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	} else if result.RowsAffected != 1 {
+		panic(fmt.Sprintf("failed to delete message %v: not found", message.ID))
 	}
-	return result.RowsAffected == 1, err
 }
 
 func SetProcessNote(
@@ -221,37 +235,37 @@ func SetProcessNote(
 	return result.Error
 }
 
-func AddProcessState() (ProcessState, error) {
+func AddProcessState() ProcessState {
 	var processState ProcessState
 	Receive0501 := ProcessStep{}
 	result := db.Save(&Receive0501)
 	if result.Error != nil {
-		return processState, result.Error
+		panic(result.Error)
 	}
 	Appraisal := ProcessStep{}
 	result = db.Save(&Appraisal)
 	if result.Error != nil {
-		return processState, result.Error
+		panic(result.Error)
 	}
 	Receive0505 := ProcessStep{}
 	result = db.Save(&Receive0505)
 	if result.Error != nil {
-		return processState, result.Error
+		panic(result.Error)
 	}
 	Receive0503 := ProcessStep{}
 	result = db.Save(&Receive0503)
 	if result.Error != nil {
-		return processState, result.Error
+		panic(result.Error)
 	}
 	FormatVerification := ProcessStep{}
 	result = db.Save(&FormatVerification)
 	if result.Error != nil {
-		return processState, result.Error
+		panic(result.Error)
 	}
 	Archiving := ProcessStep{}
 	result = db.Save(&Archiving)
 	if result.Error != nil {
-		return processState, result.Error
+		panic(result.Error)
 	}
 	processState = ProcessState{
 		Receive0501:        Receive0501,
@@ -262,7 +276,10 @@ func AddProcessState() (ProcessState, error) {
 		Archiving:          Archiving,
 	}
 	result = db.Save(&processState)
-	return processState, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return processState
 }
 
 func AddMessage(
@@ -281,22 +298,18 @@ func AddMessage(
 	if result.Error != nil {
 		return process, message, result.Error
 	}
-	process, err := GetProcessByXdomeaID(xdomeaID)
+	process, found := GetProcessByXdomeaID(xdomeaID)
 	// The process was not found. Create a new process.
-	if err != nil {
+	if !found {
 		var institution *string
 		// set institution if possible
 		if message.MessageHead.Sender.Institution != nil {
 			institution = message.MessageHead.Sender.Institution.Name
 		}
-		process, err = AddProcess(agency, xdomeaID, processStoreDir, institution)
-		// The Database failed to create the process for the message.
-		if err != nil {
-			return process, message, err
-		}
+		process = AddProcess(agency, xdomeaID, processStoreDir, institution)
 	} else {
 		// Check if the process has already a message with the type of the given message.
-		_, err = GetMessageOfProcessByCode(process, message.MessageType.Code)
+		_, err := GetMessageOfProcessByCode(process, message.MessageType.Code)
 		if err == nil {
 			panic("process already has message with type " + message.MessageType.Code)
 		}
@@ -308,30 +321,21 @@ func AddMessage(
 		processStep.Complete = true
 		completionTime := time.Now()
 		processStep.CompletionTime = &completionTime
-		err = UpdateProcessStep(processStep)
-		if err != nil {
-			panic(err)
-		}
+		UpdateProcessStep(processStep)
 	case "0503":
 		process.Message0503 = &message
 		processStep := process.ProcessState.Receive0503
 		processStep.Complete = true
 		completionTime := time.Now()
 		processStep.CompletionTime = &completionTime
-		err = UpdateProcessStep(processStep)
-		if err != nil {
-			panic(err)
-		}
+		UpdateProcessStep(processStep)
 	case "0505":
 		process.Message0505 = &message
 		processStep := process.ProcessState.Receive0505
 		processStep.Complete = true
 		completionTime := time.Now()
 		processStep.CompletionTime = &completionTime
-		err = UpdateProcessStep(processStep)
-		if err != nil {
-			panic(err)
-		}
+		UpdateProcessStep(processStep)
 	default:
 		panic("unhandled message type: " + message.MessageType.Code)
 	}
@@ -350,24 +354,32 @@ func setRecordObjectsMessageID(message *Message) {
 	}
 }
 
-func UpdateProcess(process Process) error {
+func UpdateProcess(process Process) {
 	result := db.Save(&process)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
-func UpdateMessage(message Message) error {
+func UpdateMessage(message Message) {
 	result := db.Save(&message)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
-func UpdatePrimaryDocument(primaryDocument PrimaryDocument) error {
+func UpdatePrimaryDocument(primaryDocument PrimaryDocument) {
 	result := db.Save(&primaryDocument)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
-func UpdateProcessStep(processStep ProcessStep) error {
+func UpdateProcessStep(processStep ProcessStep) {
 	result := db.Save(&processStep)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
 func SetFileRecordObjectAppraisal(
@@ -380,9 +392,9 @@ func SetFileRecordObjectAppraisal(
 		return fileRecordObject, err
 	}
 	// check if message appraisal is already completed, if true return error
-	message, err := GetCompleteMessageByID(fileRecordObject.MessageID)
-	if err != nil {
-		return fileRecordObject, err
+	message, found := GetCompleteMessageByID(fileRecordObject.MessageID)
+	if !found {
+		return fileRecordObject, fmt.Errorf("message not found: %v", fileRecordObject.MessageID)
 	}
 	if message.AppraisalComplete {
 		return fileRecordObject, errors.New("message appraisal already finished")
@@ -395,7 +407,7 @@ func SetFileRecordObjectAppraisal(
 	// set appraisal for child elements if recursive appraisal was chosen
 	if recursive {
 		for _, process := range fileRecordObject.ProcessRecordObjects {
-			_, err = SetProcessRecordObjectAppraisal(process.ID, appraisalCode)
+			err = SetProcessRecordObjectAppraisal(&process, appraisalCode)
 			if err != nil {
 				return fileRecordObject, err
 			}
@@ -414,9 +426,9 @@ func SetFileRecordObjectAppraisalNote(
 		return fileRecordObject, err
 	}
 	// check if message appraisal is already completed, if true return error
-	message, err := GetCompleteMessageByID(fileRecordObject.MessageID)
-	if err != nil {
-		return fileRecordObject, err
+	message, found := GetCompleteMessageByID(fileRecordObject.MessageID)
+	if !found {
+		return fileRecordObject, fmt.Errorf("message not found: %v", fileRecordObject.MessageID)
 	}
 	if message.AppraisalComplete {
 		return fileRecordObject, errors.New("message appraisal already finished")
@@ -431,60 +443,42 @@ func SetFileRecordObjectAppraisalNote(
 }
 
 func SetProcessRecordObjectAppraisal(
-	id uuid.UUID,
+	processRecordObject *ProcessRecordObject,
 	appraisalCode string,
-) (ProcessRecordObject, error) {
-	processRecordObject, err := GetProcessRecordObjectByID(id)
-	if err != nil {
-		return processRecordObject, err
-	}
+) error {
 	// check if message appraisal is already completed, if true return error
-	message, err := GetCompleteMessageByID(processRecordObject.MessageID)
-	if err != nil {
-		return processRecordObject, err
+	message, found := GetCompleteMessageByID(processRecordObject.MessageID)
+	if !found {
+		panic(fmt.Sprintf("message not found: %v", processRecordObject.MessageID))
 	}
 	if message.AppraisalComplete {
-		return processRecordObject, errors.New("message appraisal already finished")
+		panic("message appraisal already finished")
 	}
 	// set appraisal
-	err = processRecordObject.SetAppraisal(appraisalCode)
-	if err != nil {
-		return processRecordObject, err
-	}
-	// return updated process record object
-	return GetProcessRecordObjectByID(id)
+	return processRecordObject.SetAppraisal(appraisalCode)
 }
 
 func SetProcessRecordObjectAppraisalNote(
-	id uuid.UUID,
+	processRecordObject *ProcessRecordObject,
 	appraisalNote string,
-) (ProcessRecordObject, error) {
-	processRecordObject, err := GetProcessRecordObjectByID(id)
-	if err != nil {
-		return processRecordObject, err
-	}
+) {
 	// check if message appraisal is already completed, if true return error
-	message, err := GetCompleteMessageByID(processRecordObject.MessageID)
-	if err != nil {
-		return processRecordObject, err
+	message, found := GetCompleteMessageByID(processRecordObject.MessageID)
+	if !found {
+		panic(fmt.Sprintf("message not found: %v", processRecordObject.MessageID))
 	}
 	if message.AppraisalComplete {
-		return processRecordObject, errors.New("message appraisal already finished")
+		panic("message appraisal already finished")
 	}
 	// set note
-	err = processRecordObject.SetAppraisalNote(appraisalNote)
-	if err != nil {
-		return processRecordObject, err
-	}
-	// return updated process record object
-	return GetProcessRecordObjectByID(id)
+	processRecordObject.SetAppraisalNote(appraisalNote)
 }
 
 // AddProcessingError saves a processing error to the database.
 //
 // Do not call directly. Instead use CreateProcessingError.
 func addProcessingError(e ProcessingError) {
-	result := db.Save(&e)
+	result := db.Create(&e)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -528,15 +522,26 @@ func CreateProcessingError(e ProcessingError) {
 	addProcessingError(e)
 }
 
-func GetProcessingError(id uint) (ProcessingError, error) {
+func GetProcessingError(id uint) (ProcessingError, bool) {
+	if id == 0 {
+		panic("called GetProcessingError with ID 0")
+	}
 	processingError := ProcessingError{ID: id}
-	result := db.Preload(clause.Associations).First(&processingError)
-	return processingError, result.Error
+	result := db.Preload(clause.Associations).Limit(1).Find(&processingError)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return processingError, result.RowsAffected > 0
 }
 
-func UpdateProcessingError(processingError ProcessingError) error {
+func UpdateProcessingError(processingError ProcessingError) {
+	if processingError.ID == 0 {
+		panic("called UpdateProcessingError with ID 0")
+	}
 	result := db.Save(&processingError)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
 func CreateAgency(agency Agency) (uint, error) {
@@ -550,9 +555,15 @@ func UpdateAgency(id uint, agency Agency) error {
 	return result.Error
 }
 
-func DeleteAgency(id uint) (bool, error) {
+func DeleteAgency(id uint) bool {
+	if id == 0 {
+		panic("called DeleteAgency with ID 0")
+	}
 	result := db.Delete(&Agency{}, id)
-	return result.RowsAffected == 1, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return result.RowsAffected == 1
 }
 
 func CreateCollection(Collection Collection) (uint, error) {
@@ -561,27 +572,51 @@ func CreateCollection(Collection Collection) (uint, error) {
 }
 
 func UpdateCollection(id uint, collection Collection) error {
+	if id == 0 {
+		panic("called UpdateCollection with ID 0")
+	}
 	collection.ID = id
 	result := db.Save(&collection)
 	return result.Error
 }
 
-func DeleteCollection(id uint) (bool, error) {
+func DeleteCollection(id uint) bool {
+	if id == 0 {
+		panic("called DeleteCollection with ID 0")
+	}
 	result := db.Delete(&Collection{}, id)
-	return result.RowsAffected == 1, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return result.RowsAffected == 1
 }
 
-func CreateTask(task Task) (Task, error) {
+func CreateTask(task Task) Task {
 	result := db.Create(&task)
-	return task, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return task
 }
 
-func UpdateTask(task Task) error {
+func UpdateTask(task Task) {
+	if task.ID == 0 {
+		panic("called UpdateTask with ID 0")
+	}
 	result := db.Save(&task)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
-func DeleteTask(task Task) (bool, error) {
+func DeleteTask(task Task) {
+	if task.ID == 0 {
+		panic("called DeleteTask with ID 0")
+	}
 	result := db.Delete(&task)
-	return result.RowsAffected == 1, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	} else if result.RowsAffected != 1 {
+		panic(fmt.Sprintf("failed to delete task %v: not found", task.ID))
+	}
 }

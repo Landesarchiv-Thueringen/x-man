@@ -2,6 +2,7 @@ package report
 
 import (
 	"errors"
+	"fmt"
 	"lath/xman/internal/db"
 	"time"
 )
@@ -18,11 +19,14 @@ type FileStats struct {
 	ByFileType map[string]uint
 }
 
-func GetReportData(processId string) (ReportData, error) {
+func GetReportData(processID string) (ReportData, error) {
+	if processID == "" {
+		panic("called GetReportData with empty string")
+	}
 	var reportData ReportData
-	process, err := db.GetProcessByXdomeaID(processId)
-	if err != nil {
-		return reportData, err
+	process, found := db.GetProcessByXdomeaID(processID)
+	if !found {
+		panic(fmt.Sprintf("process not found: %v", processID))
 	}
 	reportData.Institution = process.Agency.Name
 	if process.Message0503ID == nil {
@@ -38,9 +42,9 @@ func GetReportData(processId string) (ReportData, error) {
 		reportData.FileStats.ByFileType[mimeType] += 1
 		reportData.FileStats.Total += 1
 	}
-	message, err := db.GetCompleteMessageByID(*process.Message0501ID)
-	if err != nil {
-		return reportData, err
+	message, found := db.GetCompleteMessageByID(*process.Message0501ID)
+	if !found {
+		return reportData, fmt.Errorf("message not found: %v", *process.Message0501ID)
 	}
 	reportData.Message = message
 	reportData.CreationTime = formatTime(message.MessageHead.CreationTime)

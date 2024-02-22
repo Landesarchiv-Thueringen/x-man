@@ -12,7 +12,7 @@ import (
 func Start(taskType db.TaskType, process db.Process, itemCount uint) (db.Task, error) {
 	processStep := getProcessStep(taskType, process)
 	// Create task
-	task, err := db.CreateTask(db.Task{
+	task := db.CreateTask(db.Task{
 		Type:          taskType,
 		State:         db.TaskStateRunning,
 		ProcessID:     process.ID,
@@ -21,22 +21,16 @@ func Start(taskType db.TaskType, process db.Process, itemCount uint) (db.Task, e
 		ProcessStep:   &processStep,
 		ItemCount:     itemCount,
 	})
-	if err != nil {
-		return task, err
-	}
 	// Update process step
 	task.ProcessStep.Complete = false
 	task.ProcessStep.CompletionTime = nil
-	err = db.UpdateProcessStep(*task.ProcessStep)
-	if err != nil {
-		return task, err
-	}
+	db.UpdateProcessStep(*task.ProcessStep)
 	return task, nil
 }
 
-func MarkItemComplete(task *db.Task) error {
+func MarkItemComplete(task *db.Task) {
 	task.ItemCompletedCount = task.ItemCompletedCount + 1
-	return db.UpdateTask(*task)
+	db.UpdateTask(*task)
 }
 
 // MarkFailed marks the task and its process step failed.
@@ -44,10 +38,7 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 	// Update task
 	task.State = db.TaskStateFailed
 	task.ErrorMessage = errorMessage
-	err := db.UpdateTask(*task)
-	if err != nil {
-		return err
-	}
+	db.UpdateTask(*task)
 	// The process step is marked failed by the processing error
 
 	// Create processing error
@@ -79,15 +70,13 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 func MarkDone(task *db.Task) error {
 	// Update task
 	task.State = db.TaskStateSucceeded
-	err := db.UpdateTask(*task)
-	if err != nil {
-		return err
-	}
+	db.UpdateTask(*task)
 	// Update process step
 	task.ProcessStep.Complete = true
 	completionTime := time.Now()
 	task.ProcessStep.CompletionTime = &completionTime
-	return db.UpdateProcessStep(*task.ProcessStep)
+	db.UpdateProcessStep(*task.ProcessStep)
+	return nil
 }
 
 // getProcessStep returns the process step to which the task belongs.

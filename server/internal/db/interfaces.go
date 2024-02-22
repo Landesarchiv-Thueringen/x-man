@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -145,10 +146,9 @@ func (f *FileRecordObject) GetAppraisal() (string, error) {
 }
 
 func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
-	appraisal, err := GetAppraisalByCode(appraisalCode)
-	// unknown appraisal code
-	if err != nil {
-		return errors.New("unknown appraisal code")
+	appraisal, found := GetAppraisalByCode(appraisalCode)
+	if !found {
+		return fmt.Errorf("unknown appraisal code: %v", appraisalCode)
 	}
 	// archive metadata not created
 	if f.ArchiveMetadata == nil {
@@ -268,10 +268,9 @@ func (p *ProcessRecordObject) GetAppraisal() (string, error) {
 }
 
 func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
-	appraisal, err := GetAppraisalByCode(appraisalCode)
-	// unknown appraisal code
-	if err != nil {
-		return errors.New("unknown appraisal code")
+	appraisal, found := GetAppraisalByCode(appraisalCode)
+	if !found {
+		return fmt.Errorf("unknown appraisal code: %v", appraisalCode)
 	}
 	// archive metadata not created
 	if p.ArchiveMetadata == nil {
@@ -284,7 +283,10 @@ func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
 	}
 	// save archive metadata
 	result := db.Save(&p.ArchiveMetadata)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return nil
 }
 
 func (p *ProcessRecordObject) GetAppraisalNote() (string, error) {
@@ -295,7 +297,7 @@ func (p *ProcessRecordObject) GetAppraisalNote() (string, error) {
 	return "", errors.New("no appraisal note existing")
 }
 
-func (p *ProcessRecordObject) SetAppraisalNote(note string) error {
+func (p *ProcessRecordObject) SetAppraisalNote(note string) {
 	// archive metadata not created
 	if p.ArchiveMetadata == nil {
 		archiveMetadata := ArchiveMetadata{
@@ -307,7 +309,9 @@ func (p *ProcessRecordObject) SetAppraisalNote(note string) error {
 	}
 	// save archive metadata
 	result := db.Save(&p.ArchiveMetadata)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
 func (p *ProcessRecordObject) GetID() uuid.UUID {

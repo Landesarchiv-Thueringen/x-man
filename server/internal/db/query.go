@@ -134,7 +134,7 @@ func GetMessageByID(id uuid.UUID) (Message, error) {
 	return message, result.Error
 }
 
-func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
+func GetCompleteMessageByID(id uuid.UUID) (Message, bool) {
 	var message Message
 	result := db.
 		Preload(clause.Associations).
@@ -143,8 +143,12 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, error) {
 		Preload("MessageHead.Receiver."+clause.Associations).
 		Preload("MessageHead.Receiver.AgencyIdentification."+clause.Associations).
 		Scopes(PreloadRecordObjects).
-		First(&message, id)
-	return message, result.Error
+		Limit(1).
+		Find(&message, id)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return message, result.RowsAffected > 0
 }
 
 // GetProcessForMessage returns the process to which the given message belongs.
@@ -195,12 +199,18 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 	return file, result.Error
 }
 
-func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, error) {
+func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, bool) {
+	if id == uuid.Nil {
+		panic("called GetProcessRecordObjectByID with ID nil")
+	}
 	var process ProcessRecordObject
 	result := db.
 		Scopes(PreloadProcessRecordObject("", 0, 0)).
-		First(&process, id)
-	return process, result.Error
+		Limit(1).Find(&process, id)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return process, result.RowsAffected == 1
 }
 
 func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
@@ -450,12 +460,11 @@ func GetProcessStep(ID uint) (ProcessStep, error) {
 	return processStep, result.Error
 }
 
-func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
+func GetProcessByXdomeaID(xdomeaID string) (Process, bool) {
 	if xdomeaID == "" {
-		return Process{}, fmt.Errorf("called GetProcessByXdomeaID with empty string")
+		panic("called GetProcessByXdomeaID with empty string")
 	}
 	process := Process{XdomeaID: xdomeaID}
-	// if first is used instead of find the error will get logged, that is not desired
 	result := db.Model(&Process{}).
 		Preload("Agency").
 		Preload("Message0501.MessageHead").
@@ -470,16 +479,19 @@ func GetProcessByXdomeaID(xdomeaID string) (Process, error) {
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		Where(&process).Limit(1).Find(&process)
-	if result.RowsAffected == 0 {
-		return process, gorm.ErrRecordNotFound
-	}
-	return process, result.Error
+	return process, result.RowsAffected == 1
 }
 
-func GetAppraisalByCode(code string) (RecordObjectAppraisal, error) {
+func GetAppraisalByCode(code string) (RecordObjectAppraisal, bool) {
+	if code == "" {
+		panic("called GetAppraisalByCode with empty string")
+	}
 	appraisal := RecordObjectAppraisal{Code: code}
-	result := db.Where(&appraisal).First(&appraisal)
-	return appraisal, result.Error
+	result := db.Where(&appraisal).Limit(1).Find(&appraisal)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return appraisal, result.RowsAffected == 1
 }
 
 func GetPrimaryFileStorePath(messageID uuid.UUID, primaryDocumentID uint) (string, error) {

@@ -2,6 +2,7 @@ package xdomea
 
 import (
 	"errors"
+	"fmt"
 	"lath/xman/internal/db"
 	"log"
 	"time"
@@ -62,17 +63,16 @@ func SetAppraisalForProcessRecordObjects(
 			log.Println(err)
 			return updatedProcessRecordObjects, err
 		}
-		processRecordObject, err := db.SetProcessRecordObjectAppraisal(id, appraisalCode)
+		processRecordObject, found := db.GetProcessRecordObjectByID(id)
+		if !found {
+			return updatedProcessRecordObjects, fmt.Errorf("process record object not found: %v", id)
+		}
+		err = db.SetProcessRecordObjectAppraisal(&processRecordObject, appraisalCode)
 		if err != nil {
-			log.Println(err)
 			return updatedProcessRecordObjects, err
 		}
 		if appraisalNote != nil {
-			processRecordObject, err = db.SetProcessRecordObjectAppraisalNote(id, *appraisalNote)
-			if err != nil {
-				log.Println(err)
-				return updatedProcessRecordObjects, err
-			}
+			db.SetProcessRecordObjectAppraisalNote(&processRecordObject, *appraisalNote)
 		}
 		updatedProcessRecordObjects = append(updatedProcessRecordObjects, processRecordObject)
 	}
@@ -84,26 +84,17 @@ func FinalizeMessageAppraisal(message db.Message) (db.Message, error) {
 	if err != nil {
 		return message, err
 	}
-	process, err := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
-	if err != nil {
-		log.Println(err)
-		return message, err
+	process, found := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	if !found {
+		panic(fmt.Sprintf("process not found: %v", message.MessageHead.ProcessID))
 	}
 	appraisalStep := process.ProcessState.Appraisal
 	appraisalStep.Complete = true
 	completionTime := time.Now()
 	appraisalStep.CompletionTime = &completionTime
-	err = db.UpdateProcessStep(appraisalStep)
-	if err != nil {
-		log.Println(err)
-		return message, err
-	}
+	db.UpdateProcessStep(appraisalStep)
 	message.AppraisalComplete = true
-	err = db.UpdateMessage(message)
-	if err != nil {
-		log.Println(err)
-		return message, err
-	}
+	db.UpdateMessage(message)
 	return message, nil
 }
 
@@ -167,10 +158,7 @@ func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
 		if err != nil {
 			continue
 		}
-		err = process0503.SetAppraisalNote(note)
-		if err != nil {
-			return err
-		}
+		process0503.SetAppraisalNote(note)
 	}
 	return nil
 }

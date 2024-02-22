@@ -61,10 +61,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 				errorMessage := fmt.Sprintf("%s: %s", primaryDocument.FileName, err.Error())
 				errorMessages = append(errorMessages, errorMessage)
 			}
-			err = tasks.MarkItemComplete(&task)
-			if err != nil {
-				panic(err)
-			}
+			tasks.MarkItemComplete(&task)
 		}()
 	}
 	wg.Wait()
@@ -120,10 +117,7 @@ func verifyDocument(storeDir string, primaryDocument db.PrimaryDocument) error {
 	}
 	prepareForDatabase(&parsedResponse)
 	primaryDocument.FormatVerification = &parsedResponse
-	err = db.UpdatePrimaryDocument(primaryDocument)
-	if err != nil {
-		return err
-	}
+	db.UpdatePrimaryDocument(primaryDocument)
 	return nil
 }
 
