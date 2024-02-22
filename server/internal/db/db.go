@@ -496,7 +496,7 @@ func addProcessingError(e ProcessingError) {
 func CreateProcessingError(e ProcessingError) {
 	if e.Process == nil && e.ProcessID != nil {
 		process, err := GetProcess(*e.ProcessID)
-		if err != nil {
+		if err == nil {
 			e.Process = &process
 		}
 	}
@@ -508,7 +508,7 @@ func CreateProcessingError(e ProcessingError) {
 	}
 	if e.Message == nil && e.MessageID != nil {
 		message, err := GetMessageByID(*e.MessageID)
-		if err != nil {
+		if err == nil {
 			e.Message = &message
 		}
 	}
