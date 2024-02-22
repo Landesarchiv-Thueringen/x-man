@@ -160,11 +160,11 @@ func GetProcessForMessage(message Message) (Process, error) {
 // IsMessageAlreadyProcessed checks if a message exists, which was already processed,
 // determined by the path in the transfer directory.
 func IsMessageAlreadyProcessed(path string) bool {
-	result := db.Where("transfer_dir_message_path = ?", path).Limit(1).Find(&Message{})
+	result := db.Where(&Message{TransferDirMessagePath: path}).Limit(1).Find(&Message{})
 	if result.RowsAffected > 0 {
 		return true
 	}
-	result = db.Limit(1).Find(&ProcessingError{TransferPath: &path, Resolved: false})
+	result = db.Where(&ProcessingError{TransferPath: &path, Resolved: false}).Limit(1).Find(&ProcessingError{})
 	return result.RowsAffected > 0
 }
 
