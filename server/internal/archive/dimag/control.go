@@ -3,7 +3,6 @@ package dimag
 import (
 	"encoding/xml"
 	"lath/xman/internal/db"
-	"log"
 )
 
 const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
@@ -53,7 +52,7 @@ func GenerateControlFile(
 	}
 	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	controlFileString := XmlHeader + string(xmlBytes)
 	return controlFileString

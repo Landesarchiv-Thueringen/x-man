@@ -5,7 +5,6 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/xdomea"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -40,12 +39,12 @@ func watchLoop(timer time.Ticker, stop chan bool) {
 func readMessages() {
 	agencies, err := db.GetAgencies()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	for _, agency := range agencies {
 		files, err := ioutil.ReadDir(agency.TransferDir)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 		for _, file := range files {
 			if !file.IsDir() && xdomea.IsMessage(file.Name()) {

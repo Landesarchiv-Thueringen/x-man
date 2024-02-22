@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -26,7 +25,7 @@ func Init() {
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database!")
+		panic(fmt.Sprintf("failed to connect to database: %v", err))
 	}
 	db = database
 	db.AutoMigrate(&ServerState{})
@@ -53,7 +52,7 @@ func SetXManVersion(version uint) error {
 // Migrate migrates all database tables and relations.
 func Migrate() {
 	if db == nil {
-		log.Fatal("database wasn't initialized")
+		panic("database wasn't initialized")
 	}
 	// Migrate the complete schema.
 	err := db.AutoMigrate(
@@ -91,49 +90,49 @@ func Migrate() {
 		&Task{},
 	)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to migrate database: %w", err))
+		panic(fmt.Sprintf("failed to migrate database: %v", err))
 	}
 }
 
 func InitMessageTypes(messageTypes []*MessageType) {
 	result := db.Create(messageTypes)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize message types!")
+		panic(fmt.Sprintf("failed to initialize message types: %v", result.Error))
 	}
 }
 
 func InitXdomeaVersions(versions []*XdomeaVersion) {
 	result := db.Create(versions)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize xdomea versions!")
+		panic(fmt.Sprintf("failed to initialize xdomea versions: %v", result.Error))
 	}
 }
 
 func InitRecordObjectAppraisals(appraisals []*RecordObjectAppraisal) {
 	result := db.Create(appraisals)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize record object appraisal values!")
+		panic(fmt.Sprintf("failed to initialize record object appraisal values: %v", result.Error))
 	}
 }
 
 func InitConfidentialityLevelCodelist(codelist []*ConfidentialityLevel) {
 	result := db.Create(codelist)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize confidentiality level codelist!")
+		panic(fmt.Sprintf("failed to initialize confidentiality level codelist: %v", result.Error))
 	}
 }
 
 func InitMediumCodelist(mediumCodelist []*Medium) {
 	result := db.Create(mediumCodelist)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize medium code list")
+		panic(fmt.Sprintf("failed to initialize medium code list: %v", result.Error))
 	}
 }
 
 func InitAgencies(agencies []Agency) {
 	result := db.Create(agencies)
 	if result.Error != nil {
-		log.Fatal("Failed to initialize agency configuration!")
+		panic(fmt.Sprintf("failed to initialize agency configuration: %v", result.Error))
 	}
 }
 
@@ -299,8 +298,7 @@ func AddMessage(
 		// Check if the process has already a message with the type of the given message.
 		_, err = GetMessageOfProcessByCode(process, message.MessageType.Code)
 		if err == nil {
-			// The process has already a message with the type of the parameter.
-			log.Fatal("process has already message with type")
+			panic("process already has message with type " + message.MessageType.Code)
 		}
 	}
 	switch message.MessageType.Code {
@@ -312,7 +310,7 @@ func AddMessage(
 		processStep.CompletionTime = &completionTime
 		err = UpdateProcessStep(processStep)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 	case "0503":
 		process.Message0503 = &message
@@ -322,7 +320,7 @@ func AddMessage(
 		processStep.CompletionTime = &completionTime
 		err = UpdateProcessStep(processStep)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 	case "0505":
 		process.Message0505 = &message
@@ -332,10 +330,10 @@ func AddMessage(
 		processStep.CompletionTime = &completionTime
 		err = UpdateProcessStep(processStep)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 	default:
-		log.Fatal("unhandled message type: " + message.MessageType.Code)
+		panic("unhandled message type: " + message.MessageType.Code)
 	}
 	result = db.Save(&process)
 	return process, message, result.Error
@@ -488,8 +486,7 @@ func SetProcessRecordObjectAppraisalNote(
 func addProcessingError(e ProcessingError) {
 	result := db.Save(&e)
 	if result.Error != nil {
-		// error handling not possible
-		log.Fatal(result.Error)
+		panic(result.Error)
 	}
 }
 

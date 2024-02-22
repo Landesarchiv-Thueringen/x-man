@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"fmt"
-	"log"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -19,7 +18,7 @@ func GetProcessingErrors() []ProcessingError {
 		Preload("Message." + clause.Associations).
 		Find(&processingErrors)
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		panic(result.Error)
 	}
 	return processingErrors
 }
@@ -52,7 +51,7 @@ func GetCollections() []Collection {
 	var collections []Collection
 	result := db.Preload(clause.Associations).Find(&collections)
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		panic(result.Error)
 	}
 	return collections
 }
@@ -67,7 +66,7 @@ func GetSupportedXdomeaVersions() []XdomeaVersion {
 	var xdomeaVersions []XdomeaVersion
 	result := db.Find(&xdomeaVersions)
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		panic(result.Error)
 	}
 	return xdomeaVersions
 }
@@ -333,7 +332,7 @@ func GetMessageTypeByCode(code string) MessageType {
 	messageType := MessageType{Code: code}
 	result := db.Where(&messageType).First(&messageType)
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		panic(result.Error)
 	}
 	return messageType
 }
@@ -406,9 +405,7 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 			return *process.Message0505, nil
 		}
 	default:
-		errorMessage := "unsupported message type with code: " + code
-		log.Fatal(errorMessage)
-		return Message{}, errors.New(errorMessage)
+		panic("unsupported message type with code: " + code)
 	}
 }
 

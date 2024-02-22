@@ -36,11 +36,11 @@ var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 func VerifyFileFormats(process db.Process, message db.Message) {
 	primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	task, err := tasks.Start(db.TaskTypeFormatVerification, process, uint(len(primaryDocuments)))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	var wg sync.WaitGroup
 	errorMessages := make([]string, 0)
@@ -63,7 +63,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 			}
 			err = tasks.MarkItemComplete(&task)
 			if err != nil {
-				log.Fatal(err)
+				panic(err)
 			}
 		}()
 	}
@@ -74,7 +74,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 		err = tasks.MarkFailed(&task, strings.Join(errorMessages, "\n"), true)
 	}
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }
 

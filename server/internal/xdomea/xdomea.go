@@ -115,7 +115,7 @@ func GetMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	} else if message0505Regex.MatchString(fileName) {
 		return db.GetMessageTypeByCode("0505"), nil
 	}
-	return db.GetMessageTypeByCode("0000"), errors.New("unknown message: " + path)
+	return db.GetMessageTypeByCode("0000"), errors.New("unknown message type: " + path)
 }
 
 func GetMessageID(path string) string {
@@ -133,7 +133,7 @@ func GetMessageName(id string, messageType db.MessageType) string {
 	case "0505":
 		messageSuffix = Message0505MessageSuffix
 	default:
-		log.Fatal("not supported message type")
+		panic("message type not supported: " + messageType.Code)
 	}
 	return id + messageSuffix + ".xml"
 }
@@ -153,7 +153,7 @@ func AddMessage(
 	messagePath := path.Join(messageStoreDir, messageName)
 	_, err := os.Stat(messagePath)
 	if err != nil {
-		log.Fatal("message doesn't exist")
+		panic("message doesn't exist: " + messagePath)
 	}
 	appraisalComplete := messageType.Code != "0501"
 	message = db.Message{
@@ -175,12 +175,12 @@ func AddMessage(
 	// parse message
 	message, err = ParseMessage(message)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	// store message metadata in database
 	process, message, err = db.AddMessage(agency, xdomeaID, processStoreDir, message)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	compareAgencyFields(agency, message, process)
 	if messageType.Code == "0503" {
@@ -188,7 +188,7 @@ func AddMessage(
 		primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
 		// error while getting the primary documents should never happen, can't recover
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
@@ -319,11 +319,11 @@ func checkFileRecordObjectsOfMessage0503(
 	message0503Incomplete := false
 	fileIndex0501, err := db.GetAllFileRecordObjects(message0501ID)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	fileIndex0503, err := db.GetAllFileRecordObjects(message0503ID)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	for id0501, file0501 := range fileIndex0501 {
 		// missing appraisal metadata for 0501 message, should not happen
@@ -353,11 +353,11 @@ func checkProcessRecordObjectsOfMessage0503(
 	message0503Incomplete := false
 	processIndex0501, err := db.GetAllProcessRecordObjects(message0501ID)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	processIndex0503, err := db.GetAllProcessRecordObjects(message0503ID)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	for id0501, process0501 := range processIndex0501 {
 		// missing appraisal metadata for 0501 message, should not happen

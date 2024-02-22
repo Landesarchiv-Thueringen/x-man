@@ -3,6 +3,7 @@ package xdomea
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"lath/xman/internal/db"
 	"log"
 	"time"
@@ -16,7 +17,7 @@ const XsiXmlNs = "http://www.w3.org/2001/XMLSchema-instance"
 func Generate0502Message(message db.Message) string {
 	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	messageHead := GenerateMessageHead0502(message.MessageHead.ProcessID, message.MessageHead.Sender)
 	message0502 := db.GeneratorMessage0502{
@@ -32,7 +33,7 @@ func Generate0502Message(message db.Message) string {
 	}
 	xmlBytes, err := xml.MarshalIndent(message0502, " ", " ")
 	if err != nil {
-		log.Fatal("0502 message couldn't be created")
+		panic(fmt.Sprintf("0502 message couldn't be created: %v", err))
 	}
 	messageXml := XmlHeader + string(xmlBytes)
 	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
@@ -79,7 +80,7 @@ func GenerateAppraisedObject(
 func Generate0504Message(message db.Message) string {
 	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	messageHead := GenerateMessageHead0504(message.MessageHead.ProcessID, message.MessageHead.Sender)
 	message0504 := db.GeneratorMessage0504{
@@ -89,7 +90,7 @@ func Generate0504Message(message db.Message) string {
 	}
 	xmlBytes, err := xml.MarshalIndent(message0504, " ", " ")
 	if err != nil {
-		log.Fatal("0504 message couldn't be created")
+		panic(fmt.Sprintf("0504 message couldn't be created: %v", err))
 	}
 	messageXml := XmlHeader + string(xmlBytes)
 	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)

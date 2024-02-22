@@ -107,7 +107,7 @@ func initServer() {
 func MigrateData() {
 	xManVersion, err := db.GetXManVersion()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	if xManVersion == 0 {
 		fmt.Printf("Migrating database from X-Man version %d to %d... ", xManVersion, XMAN_VERSION)
@@ -185,7 +185,7 @@ func getProcessByXdomeaID(context *gin.Context) {
 func getMyProcesses(context *gin.Context) {
 	userID, ok := context.MustGet("userId").([]byte)
 	if !ok {
-		log.Fatal("failed to read 'userId' from context'")
+		panic("failed to read 'userId' from context'")
 	}
 	processes, err := db.GetProcessesForUser(userID)
 	if err != nil {
