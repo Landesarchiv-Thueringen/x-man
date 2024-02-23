@@ -44,7 +44,6 @@
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns" [class.resolved-row]="row.resolved"></mat-row>
     </mat-table>
-
-    <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Verarbeitungsfehler auswählen"></mat-paginator>
   </div>
+  <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Verarbeitungsfehler auswählen"></mat-paginator>
 </div>
