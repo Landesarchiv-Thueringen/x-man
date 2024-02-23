@@ -179,7 +179,7 @@ func AddMessage(
 	if err != nil {
 		return process, message, err
 	}
-	//compareAgencyFields(agency, message, process)
+	compareAgencyFields(agency, message, process)
 	if messageType.Code == "0503" {
 		// get primary documents
 		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
