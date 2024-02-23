@@ -9,7 +9,7 @@ import (
 )
 
 // Start creates a task and marks the process step started.
-func Start(taskType db.TaskType, process db.Process, itemCount uint) (db.Task, error) {
+func Start(taskType db.TaskType, process db.Process, itemCount uint) db.Task {
 	processStep := getProcessStep(taskType, process)
 	// Create task
 	task := db.CreateTask(db.Task{
@@ -25,7 +25,7 @@ func Start(taskType db.TaskType, process db.Process, itemCount uint) (db.Task, e
 	task.ProcessStep.Complete = false
 	task.ProcessStep.CompletionTime = nil
 	db.UpdateProcessStep(*task.ProcessStep)
-	return task, nil
+	return task
 }
 
 func MarkItemComplete(task *db.Task) {
@@ -34,7 +34,7 @@ func MarkItemComplete(task *db.Task) {
 }
 
 // MarkFailed marks the task and its process step failed.
-func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) error {
+func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) {
 	// Update task
 	task.State = db.TaskStateFailed
 	task.ErrorMessage = errorMessage
@@ -63,11 +63,10 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 			AdditionalInfo: errorMessage,
 		})
 	}
-	return nil
 }
 
 // MarkDone marks the task and its process stop completed successfully.
-func MarkDone(task *db.Task) error {
+func MarkDone(task *db.Task) {
 	// Update task
 	task.State = db.TaskStateSucceeded
 	db.UpdateTask(*task)
@@ -76,7 +75,6 @@ func MarkDone(task *db.Task) error {
 	completionTime := time.Now()
 	task.ProcessStep.CompletionTime = &completionTime
 	db.UpdateProcessStep(*task.ProcessStep)
-	return nil
 }
 
 // getProcessStep returns the process step to which the task belongs.

@@ -182,10 +182,7 @@ func AddMessage(
 	//compareAgencyFields(agency, message, process)
 	if messageType.Code == "0503" {
 		// get primary documents
-		primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
-		if err != nil {
-			return process, message, err
-		}
+		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
 		if err == nil {
 			// if 0501 message exists, transfer the internal appraisal note from 0501 to 0503 message

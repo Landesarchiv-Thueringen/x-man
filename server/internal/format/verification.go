@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -34,14 +35,17 @@ var client http.Client = http.Client{
 var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 
 func VerifyFileFormats(process db.Process, message db.Message) {
-	primaryDocuments, err := db.GetAllPrimaryDocuments(message.ID)
-	if err != nil {
-		panic(err)
-	}
-	task, err := tasks.Start(db.TaskTypeFormatVerification, process, uint(len(primaryDocuments)))
-	if err != nil {
-		panic(err)
-	}
+	fmt.Printf("Starting VerifyFileFormats for message %v...\n", message.ID)
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Error: VerifyFileFormats for message %v panicked: %v\n", message.ID, r)
+			debug.PrintStack()
+		} else {
+			fmt.Printf("VerifyFileFormats for message %v done\n", message.ID)
+		}
+	}()
+	primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
+	task := tasks.Start(db.TaskTypeFormatVerification, process, uint(len(primaryDocuments)))
 	var wg sync.WaitGroup
 	errorMessages := make([]string, 0)
 	for _, primaryDocument := range primaryDocuments {
@@ -56,7 +60,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 				wg.Done()
 				<-guard
 			}()
-			err = verifyDocument(message.StoreDir, primaryDocument)
+			err := verifyDocument(message.StoreDir, primaryDocument)
 			if err != nil {
 				errorMessage := fmt.Sprintf("%s: %s", primaryDocument.FileName, err.Error())
 				errorMessages = append(errorMessages, errorMessage)
@@ -66,12 +70,9 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	}
 	wg.Wait()
 	if len(errorMessages) == 0 {
-		err = tasks.MarkDone(&task)
+		tasks.MarkDone(&task)
 	} else {
-		err = tasks.MarkFailed(&task, strings.Join(errorMessages, "\n"), true)
-	}
-	if err != nil {
-		panic(err)
+		tasks.MarkFailed(&task, strings.Join(errorMessages, "\n"), true)
 	}
 }
 

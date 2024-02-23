@@ -131,18 +131,18 @@ func (m *Message) GetRecordObjects() []RecordObject {
 }
 
 type AppraisableRecordObject interface {
-	GetAppraisal() (string, error)
+	GetAppraisal() (string, bool)
 	SetAppraisal(string) error
 	GetID() uuid.UUID
 	GetAppraisableObjects() []AppraisableRecordObject
 }
 
-func (f *FileRecordObject) GetAppraisal() (string, error) {
+func (f *FileRecordObject) GetAppraisal() (string, bool) {
 	if f.ArchiveMetadata != nil &&
 		f.ArchiveMetadata.AppraisalCode != nil {
-		return *f.ArchiveMetadata.AppraisalCode, nil
+		return *f.ArchiveMetadata.AppraisalCode, true
 	}
-	return "", errors.New("no appraisal existing")
+	return "", false
 }
 
 func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
@@ -161,7 +161,10 @@ func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
 	}
 	// save archive metadata
 	result := db.Save(&f.ArchiveMetadata)
-	return result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return nil
 }
 
 func (f *FileRecordObject) GetAppraisalNote() (string, error) {
@@ -259,12 +262,12 @@ func (p *ProcessRecordObject) GetCombinedLifetime() string {
 	return ""
 }
 
-func (p *ProcessRecordObject) GetAppraisal() (string, error) {
+func (p *ProcessRecordObject) GetAppraisal() (string, bool) {
 	if p.ArchiveMetadata != nil &&
 		p.ArchiveMetadata.AppraisalCode != nil {
-		return *p.ArchiveMetadata.AppraisalCode, nil
+		return *p.ArchiveMetadata.AppraisalCode, true
 	}
-	return "", errors.New("no appraisal existing")
+	return "", false
 }
 
 func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {

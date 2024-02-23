@@ -23,28 +23,37 @@ func GetProcessingErrors() []ProcessingError {
 	return processingErrors
 }
 
-func GetAgencies() ([]Agency, error) {
+func GetAgencies() []Agency {
 	var agencies []Agency
 	result := db.Preload(clause.Associations).Find(&agencies)
-	return agencies, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return agencies
 }
 
-func GetAgenciesForUser(userID []byte) ([]Agency, error) {
+func GetAgenciesForUser(userID []byte) []Agency {
 	var agencies []Agency
 	result := db.
 		Preload(clause.Associations).
 		Where("? <@ user_ids", pq.ByteaArray([][]byte{userID})).
 		Find(&agencies)
-	return agencies, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return agencies
 }
 
-func GetAgenciesForCollection(collectionID uint) ([]Agency, error) {
+func GetAgenciesForCollection(collectionID uint) []Agency {
 	var agencies []Agency
 	result := db.
 		Preload(clause.Associations).
 		Where("collection_id = ?", collectionID).
 		Find(&agencies)
-	return agencies, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return agencies
 }
 
 func GetCollections() []Collection {
@@ -56,10 +65,13 @@ func GetCollections() []Collection {
 	return collections
 }
 
-func GetTasks() ([]Task, error) {
+func GetTasks() []Task {
 	var tasks []Task
 	result := db.Preload(clause.Associations).Find(&tasks)
-	return tasks, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return tasks
 }
 
 func GetSupportedXdomeaVersions() []XdomeaVersion {
@@ -79,7 +91,7 @@ func GetXdomeaVersionByCode(code string) (XdomeaVersion, error) {
 	return xdomeaVersion, result.Error
 }
 
-func GetProcesses() ([]Process, error) {
+func GetProcesses() []Process {
 	var processes []Process
 	result := db.
 		Preload("Agency").
@@ -96,15 +108,15 @@ func GetProcesses() ([]Process, error) {
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		Find(&processes)
-	return processes, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return processes
 }
 
-func GetProcessesForUser(userID []byte) ([]Process, error) {
+func GetProcessesForUser(userID []byte) []Process {
 	var processes []Process
-	agencies, err := GetAgenciesForUser(userID)
-	if err != nil {
-		return processes, err
-	}
+	agencies := GetAgenciesForUser(userID)
 	agencyIDs := make([]uint, len(agencies))
 	for i, v := range agencies {
 		agencyIDs[i] = v.ID
@@ -125,7 +137,10 @@ func GetProcessesForUser(userID []byte) ([]Process, error) {
 		Preload("ProcessState.FormatVerification." + clause.Associations).
 		Preload("ProcessState.Archiving." + clause.Associations).
 		Find(&processes)
-	return processes, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return processes
 }
 
 func GetMessageByID(id uuid.UUID) (Message, error) {
@@ -152,13 +167,16 @@ func GetCompleteMessageByID(id uuid.UUID) (Message, bool) {
 }
 
 // GetProcessForMessage returns the process to which the given message belongs.
-func GetProcessForMessage(message Message) (Process, error) {
-	var process = Process{}
+func GetProcessForMessage(message Message) Process {
 	if message.ID == uuid.Nil {
-		return process, errors.New("could not get process for null message")
+		panic("called GetProcessForMessage with nil message.ID")
 	}
+	var process = Process{}
 	result := db.Where("? in (message0501_id, message0503_id, message0505_id)", message.ID).First(&process)
-	return process, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return process
 }
 
 // IsMessageAlreadyProcessed checks if a message exists, which was already processed,
@@ -247,7 +265,7 @@ func GetAllProcessRecordObjects(messageID uuid.UUID) (map[uuid.UUID]ProcessRecor
 	return processIndex, result.Error
 }
 
-func GetAllDocumentRecordObjects(messageID uuid.UUID) (map[uuid.UUID]DocumentRecordObject, error) {
+func GetAllDocumentRecordObjects(messageID uuid.UUID) map[uuid.UUID]DocumentRecordObject {
 	var documentRecordObjects []DocumentRecordObject
 	result := db.
 		Scopes(PreloadDocumentRecordObject("")).
@@ -257,10 +275,13 @@ func GetAllDocumentRecordObjects(messageID uuid.UUID) (map[uuid.UUID]DocumentRec
 	for _, d := range documentRecordObjects {
 		documentIndex[d.XdomeaID] = d
 	}
-	return documentIndex, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return documentIndex
 }
 
-func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
+func GetAllPrimaryDocuments(messageID uuid.UUID) []PrimaryDocument {
 	var primaryDocuments []PrimaryDocument
 	var documents []DocumentRecordObject
 	result := db.
@@ -268,7 +289,7 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 		Where("message_id = ?", messageID.String()).
 		Find(&documents)
 	if result.Error != nil {
-		return primaryDocuments, result.Error
+		panic(result.Error)
 	}
 	for _, document := range documents {
 		if document.Versions != nil {
@@ -279,7 +300,7 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) ([]PrimaryDocument, error) {
 			}
 		}
 	}
-	return primaryDocuments, nil
+	return primaryDocuments
 }
 
 func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) ([]PrimaryDocument, error) {
@@ -347,26 +368,32 @@ func GetMessageTypeByCode(code string) MessageType {
 	return messageType
 }
 
-func GetRecordObjectAppraisals() ([]RecordObjectAppraisal, error) {
+func GetRecordObjectAppraisals() []RecordObjectAppraisal {
 	var appraisals []RecordObjectAppraisal
 	result := db.Find(&appraisals)
-	return appraisals, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return appraisals
 }
 
-func GetConfidentialityLevelCodelist() ([]ConfidentialityLevel, error) {
+func GetConfidentialityLevelCodelist() []ConfidentialityLevel {
 	var codelist []ConfidentialityLevel
 	result := db.Find(&codelist)
-	return codelist, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return codelist
 }
 
 // GetAllTransferFilesOfProcess returns the transfer paths of all messages that
 // belong to the given process.
-func GetAllTransferFilesOfProcess(process Process) ([]string, error) {
+func GetAllTransferFilesOfProcess(process Process) []string {
 	p := Process{ID: process.ID}
 	messages := make([]string, 0)
 	result := db.Model(&Process{}).Preload(clause.Associations).First(&p)
 	if result.Error != nil {
-		return messages, result.Error
+		panic(result.Error)
 	}
 	if p.Message0501 != nil {
 		messages = append(messages, p.Message0501.TransferDirMessagePath)
@@ -383,7 +410,7 @@ func GetAllTransferFilesOfProcess(process Process) ([]string, error) {
 	if p.Message0505 != nil {
 		messages = append(messages, p.Message0505.TransferDirMessagePath)
 	}
-	return messages, nil
+	return messages
 }
 
 func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
@@ -419,7 +446,7 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 	}
 }
 
-func GetMessagesByCode(code string) ([]Message, error) {
+func GetMessagesByCode(code string) []Message {
 	var messages []Message
 	messageType := GetMessageTypeByCode(code)
 	result := db.Model(&Message{}).
@@ -432,7 +459,10 @@ func GetMessagesByCode(code string) ([]Message, error) {
 		Preload("MessageHead.Receiver.AgencyIdentification.Prefix").
 		Where("message_type_id = ?", messageType.ID).
 		Find(&messages)
-	return messages, result.Error
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return messages
 }
 
 func GetProcess(ID uuid.UUID) (Process, error) {

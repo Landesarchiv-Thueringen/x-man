@@ -38,10 +38,7 @@ func watchLoop(timer time.Ticker, stop chan bool) {
 }
 
 func readMessages() {
-	agencies, err := db.GetAgencies()
-	if err != nil {
-		panic(err)
-	}
+	agencies := db.GetAgencies()
 	for _, agency := range agencies {
 		files, err := ioutil.ReadDir(agency.TransferDir)
 		if err != nil {

@@ -2,7 +2,7 @@ package xdomea
 
 import (
 	"encoding/xml"
-	"errors"
+	"fmt"
 	"lath/xman/internal/db"
 	"log"
 	"time"
@@ -27,10 +27,7 @@ func Generate0502Message(message db.Message) string {
 		MessageHead: messageHead,
 	}
 	for _, o := range message.GetAppraisableObjects() {
-		appraisedObject, err := GenerateAppraisedObject(o, xdomeaVersion)
-		if err != nil {
-			panic("record object appraisal couldn't be retreived")
-		}
+		appraisedObject := GenerateAppraisedObject(o, xdomeaVersion)
 		message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 	}
 	xmlBytes, err := xml.MarshalIndent(message0502, " ", " ")
@@ -57,14 +54,13 @@ func Generate0502Message(message db.Message) string {
 func GenerateAppraisedObject(
 	o db.AppraisableRecordObject,
 	xdomeaVersion db.XdomeaVersion,
-) (db.GeneratorAppraisedObject, error) {
+) db.GeneratorAppraisedObject {
 	var appraisedObject db.GeneratorAppraisedObject
-	appraisal, err := o.GetAppraisal()
-	if err != nil {
-		return appraisedObject, err
-	}
-	if appraisal == "B" {
-		return appraisedObject, errors.New("appraisal B shouldn't be transmitted")
+	appraisal, found := o.GetAppraisal()
+	if !found {
+		panic(fmt.Sprintf("appraisal not found: %v", o.GetID()))
+	} else if appraisal == "B" {
+		panic(fmt.Sprintf("called GenerateAppraisedObject with appraisal B: %v", o.GetID()))
 	}
 
 	var objectAppraisal db.GeneratorObjectAppraisal
@@ -84,7 +80,7 @@ func GenerateAppraisedObject(
 		XdomeaID:        o.GetID(),
 		ObjectAppraisal: objectAppraisal,
 	}
-	return appraisedObject, nil
+	return appraisedObject
 }
 
 func Generate0504Message(message db.Message) string {

@@ -19,10 +19,10 @@ type validationResult struct {
 	Permissions *permissions
 }
 
-func createToken(user userEntry) (string, error) {
+func createToken(user userEntry) string {
 	token_lifespan, err := strconv.Atoi(os.Getenv("TOKEN_DAY_LIFESPAN"))
 	if err != nil {
-		return "", err
+		panic(err)
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": user.ID,
@@ -32,9 +32,9 @@ func createToken(user userEntry) (string, error) {
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(signingKey)
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	return tokenString, nil
+	return tokenString
 }
 
 func validateToken(tokenString string) (validationResult, error) {

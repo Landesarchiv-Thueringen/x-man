@@ -222,17 +222,14 @@ func DeleteMessage(message Message) {
 }
 
 func SetProcessNote(
-	xdomeaID string,
+	process Process,
 	note string,
-) error {
-	process := Process{XdomeaID: xdomeaID}
-	result := db.Model(&Process{}).Where(&process).Limit(1).Find(&process)
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
+) {
 	process.Note = &note
-	result = db.Save(&process)
-	return result.Error
+	result := db.Save(&process)
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
 func AddProcessState() ProcessState {

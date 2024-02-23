@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -30,37 +30,27 @@ func render(context *gin.Context) {
 	// Create a temporary directory
 	dir, err := os.MkdirTemp("", "")
 	if err != nil {
-		context.String(http.StatusInternalServerError, "Internal Server Error")
-		log.Println("Error creating temporary directory: ", err)
-		return
+		panic(fmt.Sprintf("failed to create temporary directory: %v", err))
 	}
 	defer os.RemoveAll(dir)
 	// Create a hard link of the template file inside the temporary directory
 	err = os.Link(templateFileName, dir+"/"+templateFileName)
 	if err != nil {
-		context.String(http.StatusInternalServerError, "Internal Server Error")
-		log.Println("Error linking template file: ", err)
-		return
+		panic(fmt.Sprintf("failed to link template file: %v", err))
 	}
 	// Write the received data to a JSON file inside the temporary directory
 	jsonData, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.String(http.StatusInternalServerError, "Internal Server Error")
-		log.Println("Error reading request body: ", err)
-		return
+		panic(fmt.Sprintf("failed to read request body: %v", err))
 	}
 	dataFile, err := os.Create(dir + "/data.json")
 	if err != nil {
-		context.String(http.StatusInternalServerError, "Internal Server Error")
-		log.Println("Error creating data file: ", err)
-		return
+		panic(fmt.Sprintf("failed to create data file: %v", err))
 	}
 	defer dataFile.Close()
 	_, err = dataFile.Write(jsonData)
 	if err != nil {
-		context.String(http.StatusInternalServerError, "Internal Server Error")
-		log.Println("Error writing data to file: ", err)
-		return
+		panic(fmt.Sprintf("failed to write data to file: %v", err))
 	}
 	// Compile Typst template with received data
 	cmd := exec.Command(
@@ -72,7 +62,7 @@ func render(context *gin.Context) {
 	cmd.Dir = dir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		context.String(http.StatusBadRequest, "Failed to compile template with the given data.\n\n"+string(output))
+		context.String(http.StatusUnprocessableEntity, "Failed to compile template with the given data.\n\n"+string(output))
 		return
 	}
 	// Return the compiled file

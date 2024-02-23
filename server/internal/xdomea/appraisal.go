@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"lath/xman/internal/db"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,14 +11,14 @@ import (
 
 // AreAllRecordObjectsAppraised verifies whether every file, subfile, process, and subprocess has been appraised
 // with either an 'A' (de: archivieren) or 'V' (de: vernichten).
-func AreAllRecordObjectsAppraised(message db.Message) (bool, error) {
+func AreAllRecordObjectsAppraised(message db.Message) bool {
 	for _, appraisableObject := range message.GetAppraisableObjects() {
-		appraisalCode, err := appraisableObject.GetAppraisal()
-		if err != nil || appraisalCode == "B" {
-			return false, nil
+		appraisalCode, found := appraisableObject.GetAppraisal()
+		if !found || appraisalCode == "B" {
+			return false
 		}
 	}
-	return true, nil
+	return true
 }
 
 func SetAppraisalForFileRecordObjects(
@@ -31,19 +30,16 @@ func SetAppraisalForFileRecordObjects(
 	for _, objectID := range fileRecordObjectIDs {
 		id, err := uuid.Parse(objectID)
 		if err != nil {
-			log.Println(err)
-			return updatedFileRecordObjects, err
+			return updatedFileRecordObjects, fmt.Errorf("failed to parse object ID: %v", err)
 		}
 		fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode, false)
 		if err != nil {
-			log.Println(err)
-			return updatedFileRecordObjects, err
+			return updatedFileRecordObjects, fmt.Errorf("failed to set appraisal: %v", err)
 		}
 		if appraisalNote != nil {
 			fileRecordObject, err = db.SetFileRecordObjectAppraisalNote(id, *appraisalNote)
 			if err != nil {
-				log.Println(err)
-				return updatedFileRecordObjects, err
+				return updatedFileRecordObjects, fmt.Errorf("failed to set appraisal note: %v", err)
 			}
 		}
 		updatedFileRecordObjects = append(updatedFileRecordObjects, fileRecordObject)
@@ -60,8 +56,7 @@ func SetAppraisalForProcessRecordObjects(
 	for _, objectID := range processRecordObjectIDs {
 		id, err := uuid.Parse(objectID)
 		if err != nil {
-			log.Println(err)
-			return updatedProcessRecordObjects, err
+			return updatedProcessRecordObjects, fmt.Errorf("failed to parse object ID: %v", err)
 		}
 		processRecordObject, found := db.GetProcessRecordObjectByID(id)
 		if !found {
@@ -69,7 +64,7 @@ func SetAppraisalForProcessRecordObjects(
 		}
 		err = db.SetProcessRecordObjectAppraisal(&processRecordObject, appraisalCode)
 		if err != nil {
-			return updatedProcessRecordObjects, err
+			return updatedProcessRecordObjects, fmt.Errorf("failed to set appraisal: %v", err)
 		}
 		if appraisalNote != nil {
 			db.SetProcessRecordObjectAppraisalNote(&processRecordObject, *appraisalNote)
@@ -79,11 +74,8 @@ func SetAppraisalForProcessRecordObjects(
 	return updatedProcessRecordObjects, nil
 }
 
-func FinalizeMessageAppraisal(message db.Message) (db.Message, error) {
-	err := markUnappraisedRecordObjectsAsDiscardable(message)
-	if err != nil {
-		return message, err
-	}
+func FinalizeMessageAppraisal(message db.Message) db.Message {
+	markUnappraisedRecordObjectsAsDiscardable(message)
 	process, found := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
 	if !found {
 		panic(fmt.Sprintf("process not found: %v", message.MessageHead.ProcessID))
@@ -95,20 +87,18 @@ func FinalizeMessageAppraisal(message db.Message) (db.Message, error) {
 	db.UpdateProcessStep(appraisalStep)
 	message.AppraisalComplete = true
 	db.UpdateMessage(message)
-	return message, nil
+	return message
 }
 
-func markUnappraisedRecordObjectsAsDiscardable(message db.Message) error {
+func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
 	for _, appraisableObject := range message.GetAppraisableObjects() {
-		appraisalCode, err := appraisableObject.GetAppraisal()
-		if err != nil || appraisalCode == "B" {
-			err := appraisableObject.SetAppraisal("V")
-			if err != nil {
-				return err
+		appraisalCode, found := appraisableObject.GetAppraisal()
+		if !found || appraisalCode == "B" {
+			if err := appraisableObject.SetAppraisal("V"); err != nil {
+				panic(err)
 			}
 		}
 	}
-	return nil
 }
 
 func TransferAppraisalNoteFrom0501To0503(process db.Process) error {

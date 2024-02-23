@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -40,27 +41,20 @@ func Login(c *gin.Context) {
 		c.String(http.StatusUnauthorized, "Basic Authentication must be provided")
 		return
 	}
-	authorization, err := authorizeUser(user, pass)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	if authorization.Predicate == INVALID {
+	authorization := authorizeUser(user, pass)
+	switch authorization.Predicate {
+	case INVALID:
 		c.String(http.StatusUnauthorized, "Invalid credentials")
 		return
-	} else if authorization.Predicate == DENIED {
+	case DENIED:
 		c.String(http.StatusForbidden, "Forbidden")
 		return
-	} else if authorization.Predicate != GRANTED {
-		// Should not be reached
-		c.String(http.StatusInternalServerError, "Internal Server Error")
-		return
+	case GRANTED:
+		// continue
+	default:
+		panic(fmt.Sprintf("unknown authorization predicate: %v", authorization.Predicate))
 	}
-	token, err := createToken(*authorization.UserEntry)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	token := createToken(*authorization.UserEntry)
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"user":  authorization.UserEntry,
@@ -69,11 +63,7 @@ func Login(c *gin.Context) {
 
 // Users lists all users with basic access rights and their permissions
 func Users(c *gin.Context) {
-	users, err := listUsers()
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	users := listUsers()
 	c.JSON(http.StatusOK, users)
 }
 

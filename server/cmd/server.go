@@ -17,7 +17,6 @@ import (
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,7 +25,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 const XMAN_VERSION = 1
@@ -97,7 +95,7 @@ func main() {
 }
 
 func initServer() {
-	log.Println(defaultResponse)
+	fmt.Println(defaultResponse)
 	db.Init()
 	// It's important to the migrate after the database initialization.
 	MigrateData()
@@ -151,8 +149,7 @@ func resolveProcessingError(context *gin.Context) {
 	}
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
 	clearing.Resolve(processingError, db.ProcessingErrorResolution(body))
 	context.Status(http.StatusAccepted)
@@ -173,35 +170,19 @@ func getProcessByXdomeaID(context *gin.Context) {
 }
 
 func getMyProcesses(context *gin.Context) {
-	userID, ok := context.MustGet("userId").([]byte)
-	if !ok {
-		panic("failed to read 'userId' from context'")
-	}
-	processes, err := db.GetProcessesForUser(userID)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	userID := context.MustGet("userId").([]byte)
+	processes := db.GetProcessesForUser(userID)
 	context.JSON(http.StatusOK, processes)
 }
 
 func getProcesses(context *gin.Context) {
-	processes, err := db.GetProcesses()
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	processes := db.GetProcesses()
 	context.JSON(http.StatusOK, processes)
 }
 
 func deleteProcess(context *gin.Context) {
 	id := context.Param("id")
-	deleted, err := messagestore.DeleteProcess(id)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	if deleted {
+	if found := messagestore.DeleteProcess(id); found {
 		context.Status(http.StatusAccepted)
 	} else {
 		context.Status(http.StatusNotFound)
@@ -265,38 +246,22 @@ func getDocumentRecordObjectByID(context *gin.Context) {
 }
 
 func get0501Messages(context *gin.Context) {
-	messages, err := db.GetMessagesByCode("0501")
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	messages := db.GetMessagesByCode("0501")
 	context.JSON(http.StatusOK, messages)
 }
 
 func get0503Messages(context *gin.Context) {
-	messages, err := db.GetMessagesByCode("0503")
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	messages := db.GetMessagesByCode("0503")
 	context.JSON(http.StatusOK, messages)
 }
 
 func getRecordObjectAppraisals(context *gin.Context) {
-	appraisals, err := db.GetRecordObjectAppraisals()
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	appraisals := db.GetRecordObjectAppraisals()
 	context.JSON(http.StatusOK, appraisals)
 }
 
 func getConfidentialityLevelCodelist(context *gin.Context) {
-	codelist, err := db.GetConfidentialityLevelCodelist()
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	codelist := db.GetConfidentialityLevelCodelist()
 	context.JSON(http.StatusOK, codelist)
 }
 
@@ -374,16 +339,13 @@ func setProcessNote(context *gin.Context) {
 	processId := context.Param("processId")
 	note, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
-	if err = db.SetProcessNote(processId, string(note)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			context.AbortWithStatus(http.StatusNotFound)
-		} else {
-			context.AbortWithError(http.StatusInternalServerError, err)
-		}
+	process, found := db.GetProcessByXdomeaID(processId)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
 	}
+	db.SetProcessNote(process, string(note))
 }
 
 type MultiAppraisalBody struct {
@@ -416,7 +378,7 @@ func setAppraisalForMultipleRecordObjects(context *gin.Context) {
 		parsedBody.AppraisalNote,
 	)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
+		context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	updatedProcessRecordObjects, err := xdomea.SetAppraisalForProcessRecordObjects(
@@ -425,7 +387,7 @@ func setAppraisalForMultipleRecordObjects(context *gin.Context) {
 		parsedBody.AppraisalNote,
 	)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
+		context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	response := MultiAppraisalResponse{
@@ -451,17 +413,9 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	message, err = xdomea.FinalizeMessageAppraisal(message)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	message = xdomea.FinalizeMessageAppraisal(message)
 	messagePath := messagestore.Store0502Message(message)
-	process, err := db.GetProcessForMessage(message)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	process := db.GetProcessForMessage(message)
 	process.Message0502Path = &messagePath
 	db.UpdateProcess(process)
 }
@@ -491,11 +445,7 @@ func AreAllRecordObjectsAppraised(context *gin.Context) {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	appraisalComplete, err := xdomea.AreAllRecordObjectsAppraised(message)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(message)
 	context.JSON(http.StatusOK, appraisalComplete)
 }
 
@@ -554,21 +504,21 @@ func getPrimaryDocuments(context *gin.Context) {
 }
 
 func getReport(context *gin.Context) {
-	processId := context.Param("processId")
-	if processId == "" {
-		context.String(http.StatusBadRequest, "Missing query parameter: processId")
+	processID := context.Param("processId")
+	process, found := db.GetProcessByXdomeaID(processID)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	values, err := report.GetReportData(processId)
+	values, err := report.GetReportData(process)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
+		context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	jsonValue, _ := json.Marshal(values)
 	resp, err := http.Post("http://report/render", "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	} else if resp.StatusCode != http.StatusOK {
 		context.String(http.StatusInternalServerError, "Internal server error")
 		body, _ := io.ReadAll(resp.Body)
@@ -599,13 +549,7 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
-	task, err := tasks.Start(db.TaskTypeArchiving, process, 0)
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-	}
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-	}
+	task := tasks.Start(db.TaskTypeArchiving, process, 0)
 	go func() {
 		err = dimag.ImportMessageSync(process, message)
 		if err != nil {
@@ -617,41 +561,29 @@ func archive0503Message(context *gin.Context) {
 }
 
 func getMyAgencies(context *gin.Context) {
-	if userID, ok := context.MustGet("userId").([]byte); ok {
-		agencies, err := db.GetAgenciesForUser(userID)
-		if err != nil {
-			context.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		context.JSON(http.StatusOK, agencies)
-	} else {
-		context.AbortWithStatus(http.StatusBadRequest)
-	}
+	userID := context.MustGet("userId").([]byte)
+	agencies := db.GetAgenciesForUser(userID)
+	context.JSON(http.StatusOK, agencies)
 }
 
 func getAgencies(context *gin.Context) {
 	var agencies []db.Agency
-	var err error
 	if userIDString, hasUserID := context.GetQuery("userId"); hasUserID {
 		userID, err := base64.StdEncoding.DecodeString(userIDString)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		agencies, err = db.GetAgenciesForUser(userID)
+		agencies = db.GetAgenciesForUser(userID)
 	} else if collectionIDString, hasCollectionID := context.GetQuery("collectionId"); hasCollectionID {
 		collectionID, err := strconv.ParseUint(collectionIDString, 10, 32)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		agencies, err = db.GetAgenciesForCollection(uint(collectionID))
+		agencies = db.GetAgenciesForCollection(uint(collectionID))
 	} else {
-		agencies, err = db.GetAgencies()
-	}
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		agencies = db.GetAgencies()
 	}
 	context.JSON(http.StatusOK, agencies)
 }
@@ -659,8 +591,7 @@ func getAgencies(context *gin.Context) {
 func putAgency(context *gin.Context) {
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
 	var agency db.Agency
 	err = json.Unmarshal(body, &agency)
@@ -685,8 +616,7 @@ func postAgency(context *gin.Context) {
 	}
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
 	var agency db.Agency
 	err = json.Unmarshal(body, &agency)
@@ -725,8 +655,7 @@ func getCollections(context *gin.Context) {
 func putCollection(context *gin.Context) {
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
 	var Collection db.Collection
 	err = json.Unmarshal(body, &Collection)
@@ -751,8 +680,7 @@ func postCollection(context *gin.Context) {
 	}
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
 	var Collection db.Collection
 	err = json.Unmarshal(body, &Collection)
@@ -786,8 +714,7 @@ func deleteCollection(context *gin.Context) {
 func testTransferDir(context *gin.Context) {
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
 	success := agency.TestTransferDir(string(body))
 	if success {
@@ -798,10 +725,6 @@ func testTransferDir(context *gin.Context) {
 }
 
 func getTasks(context *gin.Context) {
-	tasks, err := db.GetTasks()
-	if err != nil {
-		context.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	tasks := db.GetTasks()
 	context.JSON(http.StatusOK, tasks)
 }

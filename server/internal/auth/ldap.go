@@ -2,7 +2,6 @@ package auth
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"os"
 
@@ -51,7 +50,7 @@ type authorizationResult struct {
 //
 // We return a value indicating whether the provided credentials are valid, and
 // if so, what level of access should be grated to the user.
-func authorizeUser(username string, password string) (authorizationResult, error) {
+func authorizeUser(username string, password string) authorizationResult {
 	if os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
 		return authorizationResult{
 			Predicate: GRANTED,
@@ -62,69 +61,63 @@ func authorizeUser(username string, password string) (authorizationResult, error
 					Admin: password == "admin",
 				},
 			},
-		}, nil
+		}
 	}
 
-	l, err := connectReadonly()
-	if err != nil {
-		return authorizationResult{}, err
-	}
+	l := connectReadonly()
 	defer l.Close()
 
 	// Search for the given username
 	user, err := getLdapUserEntry(l, "sAMAccountName", username)
 	if err != nil {
-		return authorizationResult{}, err
+		panic(err)
 	}
 	if user == nil {
-		return authorizationResult{Predicate: INVALID}, nil
+		return authorizationResult{Predicate: INVALID}
 	}
 
 	// Bind as the user to verify their password
 	err = l.Bind(user.DN, password)
 	if err != nil {
-		return authorizationResult{Predicate: INVALID}, nil
+		return authorizationResult{Predicate: INVALID}
 	}
 
 	// Rebind as the read only user for any further queries
 	if err = l.Bind(os.Getenv("AD_USER"), os.Getenv("AD_PASS")); err != nil {
-		return authorizationResult{}, err
+		panic(err)
 	}
 
 	// Check basic access rights
 	if hasAccess, err := isGroupMember(l, user.DN, os.Getenv("AD_ACCESS_GROUP")); err != nil {
-		return authorizationResult{}, err
+		panic(err)
 	} else if !hasAccess {
-		return authorizationResult{Predicate: DENIED}, nil
+		return authorizationResult{Predicate: DENIED}
 	}
 	// At this point, the user has proven basic access authorization (i.e.: Predicate: GRANTED)
 
 	userEntry := userEntry{}
 	if err := user.Unmarshal(&userEntry); err != nil {
-		return authorizationResult{}, err
+		panic(err)
 	}
 
 	// Check further permissions
 	permissions, err := getUserPermissions(l, user.DN)
 	if err != nil {
-		return authorizationResult{}, err
+		panic(err)
 	}
 	userEntry.Permissions = &permissions
 
 	return authorizationResult{
 		Predicate: GRANTED,
 		UserEntry: &userEntry,
-	}, nil
+	}
 }
 
-func listUsers() ([]userEntry, error) {
+func listUsers() []userEntry {
 	if os.Getenv("AD_URL") == "" {
-		return []userEntry{}, nil
+		return []userEntry{}
 	}
-	l, err := connectReadonly()
-	if err != nil {
-		return []userEntry{}, err
-	}
+	l := connectReadonly()
 	defer l.Close()
 
 	// Get all members of AD_ACCESS_GROUP
@@ -137,10 +130,10 @@ func listUsers() ([]userEntry, error) {
 	)
 	sr, err := l.Search(searchRequest)
 	if err != nil {
-		return []userEntry{}, err
+		panic(err)
 	}
 	if len(sr.Entries) != 1 {
-		return []userEntry{}, errors.New("ldap group not found: " + os.Getenv("AD_ACCESS_GROUP"))
+		panic("ldap group not found: " + os.Getenv("AD_ACCESS_GROUP"))
 	}
 	members := sr.Entries[0].GetAttributeValues("member")
 
@@ -148,46 +141,46 @@ func listUsers() ([]userEntry, error) {
 	for _, userDn := range members {
 		user, err := getLdapUserEntry(l, "distinguishedName", userDn)
 		if err != nil {
-			return userEntries, err
+			panic(err)
 		} else if user == nil {
 			continue
 		}
 		userEntry := userEntry{}
 		if err := user.Unmarshal(&userEntry); err != nil {
-			return userEntries, err
+			panic(err)
 		}
 		permissions, err := getUserPermissions(l, user.DN)
 		if err != nil {
-			return userEntries, err
+			panic(err)
 		}
 		userEntry.Permissions = &permissions
 		userEntries = append(userEntries, userEntry)
 	}
-	return userEntries, nil
+	return userEntries
 }
 
 // connectReadonly connects to the LDAP server and binds with readonly
 // credentials.
 //
 // Users are responsible to close the connection with `l.Close()` afterwards.
-func connectReadonly() (*ldap.Conn, error) {
+func connectReadonly() *ldap.Conn {
 	l, err := ldap.DialURL(os.Getenv("AD_URL"))
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// Reconnect with TLS
 	if err = l.StartTLS(&tls.Config{InsecureSkipVerify: true}); err != nil {
 		l.Close()
-		return nil, err
+		panic(err)
 	}
 
 	// First bind with a read only user
 	if err := l.Bind(os.Getenv("AD_USER"), os.Getenv("AD_PASS")); err != nil {
 		l.Close()
-		return nil, err
+		panic(err)
 	}
-	return l, nil
+	return l
 }
 
 // isGroupMember returns `true` if the given user is member of the given group.

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"lath/xman/internal/db"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ReportData struct {
@@ -19,15 +21,8 @@ type FileStats struct {
 	ByFileType map[string]uint
 }
 
-func GetReportData(processID string) (ReportData, error) {
-	if processID == "" {
-		panic("called GetReportData with empty string")
-	}
+func GetReportData(process db.Process) (ReportData, error) {
 	var reportData ReportData
-	process, found := db.GetProcessByXdomeaID(processID)
-	if !found {
-		panic(fmt.Sprintf("process not found: %v", processID))
-	}
 	reportData.Institution = process.Agency.Name
 	if process.Message0503ID == nil {
 		return reportData, errors.New("tried to get report of process with Message0503ID == nil")
@@ -42,9 +37,15 @@ func GetReportData(processID string) (ReportData, error) {
 		reportData.FileStats.ByFileType[mimeType] += 1
 		reportData.FileStats.Total += 1
 	}
-	message, found := db.GetCompleteMessageByID(*process.Message0501ID)
+	var messageID uuid.UUID
+	if process.Message0501ID != nil {
+		messageID = *process.Message0501ID
+	} else {
+		messageID = *process.Message0503ID
+	}
+	message, found := db.GetCompleteMessageByID(messageID)
 	if !found {
-		return reportData, fmt.Errorf("message not found: %v", *process.Message0501ID)
+		panic(fmt.Sprintf("message not found: %v", messageID))
 	}
 	reportData.Message = message
 	reportData.CreationTime = formatTime(message.MessageHead.CreationTime)

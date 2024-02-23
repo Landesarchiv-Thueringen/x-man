@@ -6,9 +6,11 @@ import (
 	"io"
 	"lath/xman/internal/db"
 	"lath/xman/internal/xdomea"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/google/uuid"
@@ -17,6 +19,12 @@ import (
 var storeDir = "message_store"
 
 func StoreMessage(agency db.Agency, messagePath string) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Error: StoreMessage panicked:", r)
+			debug.PrintStack()
+		}
+	}()
 	id := xdomea.GetMessageID(messagePath)
 	transferDir := filepath.Dir(messagePath)
 	messageName := filepath.Base(messagePath)
@@ -186,32 +194,29 @@ func storeMessage(
 // associated message files from the file system.
 //
 // Returns true, when an entry was found and deleted.
-func DeleteProcess(processID string) (bool, error) {
+func DeleteProcess(processID string) bool {
 	if processID == "" {
 		panic("called DeleteProcess with empty string")
 	}
 	process, found := db.GetProcessByXdomeaID(processID)
 	if !found {
-		panic(fmt.Sprintf("process not found: %v", processID))
+		return false
 	}
 	storeDir := process.StoreDir
-	transferFiles, err := db.GetAllTransferFilesOfProcess(process)
-	if err != nil {
-		return false, err
-	}
+	transferFiles := db.GetAllTransferFilesOfProcess(process)
 	// Delete database entries
 	db.DeleteProcess(process.ID)
 	// Delete message storage
-	if err = os.RemoveAll(storeDir); err != nil {
-		return false, err
+	if err := os.RemoveAll(storeDir); err != nil {
+		panic(err)
 	}
 	// Delete transfer files
 	for _, f := range transferFiles {
-		if err = os.Remove(f); err != nil {
-			return false, err
+		if err := os.Remove(f); err != nil {
+			panic(err)
 		}
 	}
-	return true, nil
+	return true
 }
 
 func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
@@ -236,15 +241,13 @@ func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
 		if err := os.Remove(transferFile); err != nil {
 			panic(err)
 		}
-		if err := cleanupEmptyProcess(message.MessageHead.ProcessID); err != nil {
-			panic(err)
-		}
+		cleanupEmptyProcess(message.MessageHead.ProcessID)
 	}
 }
 
 // cleanupEmptyProcess deletes the given process if if does not have any
 // messages.
-func cleanupEmptyProcess(processID string) error {
+func cleanupEmptyProcess(processID string) {
 	if processID == "" {
 		panic("called cleanupEmptyProcess with empty string")
 	}
@@ -254,8 +257,8 @@ func cleanupEmptyProcess(processID string) error {
 	}
 	fmt.Println("cleanupEmptyProcess", processID)
 	if process.Message0501ID == nil && process.Message0503ID == nil && process.Message0505ID == nil {
-		_, err := DeleteProcess(processID)
-		return err
+		if found = DeleteProcess(processID); !found {
+			panic(fmt.Sprintf("process not found: %v", processID))
+		}
 	}
-	return nil
 }
