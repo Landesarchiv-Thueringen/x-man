@@ -9,53 +9,59 @@ type FormatVerification struct {
 	CreatedAt                 time.Time          `json:"-"`
 	UpdatedAt                 time.Time          `json:"-"`
 	Summary                   map[string]Feature `gorm:"-" json:"summary"`
-	Features                  []Feature          `gorm:"many2many:format_verification_features;" json:"-"`
-	FileIdentificationResults []ToolResponse     `gorm:"many2many:format_verification_identification_results;" json:"fileIdentificationResults"`
-	FileValidationResults     []ToolResponse     `gorm:"many2many:format_verification_validation_results;" json:"fileValidationResults"`
+	Features                  []Feature          `gorm:"constraint:OnDelete:CASCADE" json:"-"`
+	FileIdentificationResults []ToolResponse     `gorm:"foreignKey:ParentIdentificationID;constraint:OnDelete:CASCADE" json:"fileIdentificationResults"`
+	FileValidationResults     []ToolResponse     `gorm:"foreignKey:ParentValidationID;constraint:OnDelete:CASCADE" json:"fileValidationResults"`
 }
 
 type ToolResponse struct {
-	ID                uint               `gorm:"primaryKey" json:"id"`
-	CreatedAt         time.Time          `json:"-"`
-	UpdatedAt         time.Time          `json:"-"`
-	ToolName          string             `json:"toolName"`
-	ToolVersion       string             `json:"toolVersion"`
-	ToolOutput        *string            `json:"toolOutput"`
-	OutputFormat      *string            `json:"outputFormat"`
-	ExtractedFeatures *map[string]string `gorm:"-" json:"extractedFeatures"`
-	Features          []ExtractedFeature `gorm:"many2many:tool_response_features;" json:"-"`
-	Error             *string            `json:"error"`
+	ID                     uint               `gorm:"primaryKey" json:"id"`
+	CreatedAt              time.Time          `json:"-"`
+	UpdatedAt              time.Time          `json:"-"`
+	ParentIdentificationID *uint              `json:"-"`
+	ParentValidationID     *uint              `json:"-"`
+	ToolName               string             `json:"toolName"`
+	ToolVersion            string             `json:"toolVersion"`
+	ToolOutput             *string            `json:"toolOutput"`
+	OutputFormat           *string            `json:"outputFormat"`
+	ExtractedFeatures      *map[string]string `gorm:"-" json:"extractedFeatures"`
+	Features               []ExtractedFeature `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
+	Error                  *string            `json:"error"`
 }
 
 type ExtractedFeature struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-	Key       string    `json:"key"`
-	Value     string    `json:"value"`
+	ID             uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt      time.Time `json:"-"`
+	UpdatedAt      time.Time `json:"-"`
+	ToolResponseID uint      `json:"-"`
+	Key            string    `json:"key"`
+	Value          string    `json:"value"`
 }
 
 type Feature struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	Key       string         `json:"key"`
-	Values    []FeatureValue `gorm:"many2many:feature_feature_values;" json:"values"`
+	ID                   uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt            time.Time      `json:"-"`
+	UpdatedAt            time.Time      `json:"-"`
+	FormatVerificationID uint           `json:"-"`
+	Key                  string         `json:"key"`
+	Values               []FeatureValue `gorm:"constraint:OnDelete:CASCADE;" json:"values"`
 }
 
 type FeatureValue struct {
 	ID        uint             `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time        `json:"-"`
 	UpdatedAt time.Time        `json:"-"`
+	FeatureID uint             `json:"-"`
 	Value     string           `json:"value"`
 	Score     float64          `json:"score"`
-	Tools     []ToolConfidence `gorm:"many2many:feature_value_tools;" json:"tools"`
+	Tools     []ToolConfidence `gorm:"constraint:OnDelete:CASCADE;" json:"tools"`
 }
 
 type ToolConfidence struct {
-	ID         uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt  time.Time `json:"-"`
-	UpdatedAt  time.Time `json:"-"`
-	ToolName   string    `json:"toolName"`
-	Confidence float64   `json:"confidence"`
+	ID             uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt      time.Time `json:"-"`
+	UpdatedAt      time.Time `json:"-"`
+	FeatureValueID uint      `json:"-"`
+	ToolName       string    `json:"toolName"`
+	Confidence     float64   `json:"confidence"`
 }
