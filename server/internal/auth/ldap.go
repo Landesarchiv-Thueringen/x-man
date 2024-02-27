@@ -43,6 +43,25 @@ type authorizationResult struct {
 	UserEntry *userEntry
 }
 
+func GetDisplayName(userID []byte) string {
+	if os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
+		return "Gast-Nutzer (kein LDAP)"
+	}
+	l := connectReadonly()
+	defer l.Close()
+
+	user := getLdapUserEntry(l, "objectGUID", string(userID))
+	if user == nil {
+		return ""
+	} else {
+		userEntry := userEntry{}
+		if err := user.Unmarshal(&userEntry); err != nil {
+			panic(err)
+		}
+		return userEntry.DisplayName
+	}
+}
+
 // authorizeUser connects to the LDAP server and checks the given users
 // credentials.
 //
@@ -68,16 +87,13 @@ func authorizeUser(username string, password string) authorizationResult {
 	defer l.Close()
 
 	// Search for the given username
-	user, err := getLdapUserEntry(l, "sAMAccountName", username)
-	if err != nil {
-		panic(err)
-	}
+	user := getLdapUserEntry(l, "sAMAccountName", username)
 	if user == nil {
 		return authorizationResult{Predicate: INVALID}
 	}
 
 	// Bind as the user to verify their password
-	err = l.Bind(user.DN, password)
+	err := l.Bind(user.DN, password)
 	if err != nil {
 		return authorizationResult{Predicate: INVALID}
 	}
@@ -139,10 +155,8 @@ func listUsers() []userEntry {
 
 	userEntries := make([]userEntry, 0)
 	for _, userDn := range members {
-		user, err := getLdapUserEntry(l, "distinguishedName", userDn)
-		if err != nil {
-			panic(err)
-		} else if user == nil {
+		user := getLdapUserEntry(l, "distinguishedName", userDn)
+		if user == nil {
 			continue
 		}
 		userEntry := userEntry{}
@@ -206,7 +220,7 @@ func isGroupMember(l *ldap.Conn, userDn string, groupCn string) (bool, error) {
 // `l` should be an open LDAP connection with readonly access.
 //
 // Returns nil when the user could not be found.
-func getLdapUserEntry(l *ldap.Conn, key string, value string) (*ldap.Entry, error) {
+func getLdapUserEntry(l *ldap.Conn, key string, value string) *ldap.Entry {
 	searchRequest := ldap.NewSearchRequest(
 		os.Getenv("AD_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
@@ -216,12 +230,12 @@ func getLdapUserEntry(l *ldap.Conn, key string, value string) (*ldap.Entry, erro
 	)
 	sr, err := l.Search(searchRequest)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	if len(sr.Entries) != 1 {
-		return nil, nil
+		return nil
 	}
-	return sr.Entries[0], nil
+	return sr.Entries[0]
 }
 
 func getUserPermissions(l *ldap.Conn, userDn string) (permissions, error) {

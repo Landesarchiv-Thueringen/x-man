@@ -303,7 +303,7 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) []PrimaryDocument {
 	return primaryDocuments
 }
 
-func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) ([]PrimaryDocument, error) {
+func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) []PrimaryDocument {
 	var primaryDocuments []PrimaryDocument
 	var documents []DocumentRecordObject
 	result := db.
@@ -313,7 +313,7 @@ func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) ([]Primar
 		Where("message_id = ?", messageID.String()).
 		Find(&documents)
 	if result.Error != nil {
-		return primaryDocuments, result.Error
+		panic(result.Error)
 	}
 	for _, document := range documents {
 		if document.Versions != nil {
@@ -356,7 +356,7 @@ func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) ([]Primar
 			}
 		}
 	}
-	return primaryDocuments, nil
+	return primaryDocuments
 }
 
 func GetMessageTypeByCode(code string) MessageType {

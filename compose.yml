@@ -39,6 +39,7 @@ services:
       database:
         condition: service_healthy
     environment:
+      - TZ=Europe/Berlin
       - GIN_MODE=${GIN_MODE}
       - TOKEN_DAY_LIFESPAN=${TOKEN_DAY_LIFESPAN}
       - TOKEN_PRIVATE_KEY=${TOKEN_PRIVATE_KEY}

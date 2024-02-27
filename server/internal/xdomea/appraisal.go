@@ -74,7 +74,7 @@ func SetAppraisalForProcessRecordObjects(
 	return updatedProcessRecordObjects, nil
 }
 
-func FinalizeMessageAppraisal(message db.Message) db.Message {
+func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message {
 	markUnappraisedRecordObjectsAsDiscardable(message)
 	process, found := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
 	if !found {
@@ -84,6 +84,7 @@ func FinalizeMessageAppraisal(message db.Message) db.Message {
 	appraisalStep.Complete = true
 	completionTime := time.Now()
 	appraisalStep.CompletionTime = &completionTime
+	appraisalStep.CompletedBy = &completedBy
 	db.UpdateProcessStep(appraisalStep)
 	message.AppraisalComplete = true
 	db.UpdateMessage(message)

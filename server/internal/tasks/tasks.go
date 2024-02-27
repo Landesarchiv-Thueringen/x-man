@@ -66,7 +66,7 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 }
 
 // MarkDone marks the task and its process stop completed successfully.
-func MarkDone(task *db.Task) {
+func MarkDone(task *db.Task, completedBy *string) {
 	// Update task
 	task.State = db.TaskStateSucceeded
 	db.UpdateTask(*task)
@@ -74,6 +74,9 @@ func MarkDone(task *db.Task) {
 	task.ProcessStep.Complete = true
 	completionTime := time.Now()
 	task.ProcessStep.CompletionTime = &completionTime
+	if completedBy != nil {
+		task.ProcessStep.CompletedBy = completedBy
+	}
 	db.UpdateProcessStep(*task.ProcessStep)
 }
 

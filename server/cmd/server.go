@@ -413,7 +413,9 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	message = xdomea.FinalizeMessageAppraisal(message)
+	userID := context.MustGet("userId").([]byte)
+	userName := auth.GetDisplayName(userID)
+	message = xdomea.FinalizeMessageAppraisal(message, userName)
 	messagePath := messagestore.Store0502Message(message)
 	process := db.GetProcessForMessage(message)
 	process.Message0502Path = &messagePath
@@ -495,11 +497,7 @@ func getPrimaryDocuments(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	primaryDocuments, err := db.GetAllPrimaryDocumentsWithFormatVerification(messageID)
-	if err != nil {
-		context.AbortWithError(http.StatusNotFound, err)
-		return
-	}
+	primaryDocuments := db.GetAllPrimaryDocumentsWithFormatVerification(messageID)
 	context.JSON(http.StatusOK, primaryDocuments)
 }
 
@@ -549,13 +547,15 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
+	userID := context.MustGet("userId").([]byte)
+	userName := auth.GetDisplayName(userID)
 	task := tasks.Start(db.TaskTypeArchiving, process, 0)
 	go func() {
 		err = dimag.ImportMessageSync(process, message)
 		if err != nil {
 			tasks.MarkFailed(&task, err.Error(), true)
 		} else {
-			tasks.MarkDone(&task)
+			tasks.MarkDone(&task, &userName)
 		}
 	}()
 }

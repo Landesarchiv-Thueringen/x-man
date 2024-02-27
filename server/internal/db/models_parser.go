@@ -118,6 +118,8 @@ type ProcessStep struct {
 	Complete bool `gorm:"default:false" json:"complete"`
 	// CompletionTime is the time at which Complete was set to true.
 	CompletionTime *time.Time `json:"completionTime"`
+	// CompletedBy is the name of the user who performed the process step.
+	CompletedBy *string `json:"completedBy"`
 	// Tasks are all tasks associated with the process step.
 	//
 	// A task of the state "running" indicates that the process step is

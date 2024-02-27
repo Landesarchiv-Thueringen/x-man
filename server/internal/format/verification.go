@@ -70,7 +70,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	}
 	wg.Wait()
 	if len(errorMessages) == 0 {
-		tasks.MarkDone(&task)
+		tasks.MarkDone(&task, nil)
 	} else {
 		tasks.MarkFailed(&task, strings.Join(errorMessages, "\n"), true)
 	}
