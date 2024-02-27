@@ -45,7 +45,7 @@
                 <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               }
               <div matListItemTitle>
-                {{ item.title }}
+                <ng-container>{{ item.title }}</ng-container>
                 @if (item.onClick) {
                   <button
                     mat-button
