@@ -227,9 +227,9 @@ func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
 	storeDir := message.StoreDir
 	transferFile := message.TransferDirMessagePath
 	if keepTransferFile {
-		fmt.Println("Deleting message", message.ID, "(keeping transfer file)")
+		log.Println("Deleting message", message.ID, "(keeping transfer file)")
 	} else {
-		fmt.Println("Deleting message", message.ID)
+		log.Println("Deleting message", message.ID)
 	}
 	db.DeleteMessage(message)
 	// Delete message storage
@@ -255,7 +255,7 @@ func cleanupEmptyProcess(processID string) {
 	if !found {
 		panic(fmt.Sprintf("process not found: %v", processID))
 	}
-	fmt.Println("cleanupEmptyProcess", processID)
+	log.Println("cleanupEmptyProcess", processID)
 	if process.Message0501ID == nil && process.Message0503ID == nil && process.Message0505ID == nil {
 		if found = DeleteProcess(processID); !found {
 			panic(fmt.Sprintf("process not found: %v", processID))

@@ -35,13 +35,13 @@ var client http.Client = http.Client{
 var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 
 func VerifyFileFormats(process db.Process, message db.Message) {
-	fmt.Printf("Starting VerifyFileFormats for message %v...\n", message.ID)
+	log.Printf("Starting VerifyFileFormats for message %v...\n", message.ID)
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Error: VerifyFileFormats for message %v panicked: %v\n", message.ID, r)
 			debug.PrintStack()
 		} else {
-			fmt.Printf("VerifyFileFormats for message %v done\n", message.ID)
+			log.Printf("VerifyFileFormats for message %v done\n", message.ID)
 		}
 	}()
 	primaryDocuments := db.GetAllPrimaryDocuments(message.ID)

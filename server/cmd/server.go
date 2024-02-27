@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
@@ -17,6 +16,7 @@ import (
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -95,7 +95,7 @@ func main() {
 }
 
 func initServer() {
-	fmt.Println(defaultResponse)
+	log.Println(defaultResponse)
 	db.Init()
 	// It's important to the migrate after the database initialization.
 	MigrateData()
@@ -105,7 +105,7 @@ func initServer() {
 func MigrateData() {
 	xManVersion := db.GetXManVersion()
 	if xManVersion == 0 {
-		fmt.Printf("Migrating database from X-Man version %d to %d... ", xManVersion, XMAN_VERSION)
+		log.Printf("Migrating database from X-Man version %d to %d... ", xManVersion, XMAN_VERSION)
 		db.Migrate()
 		xdomea.InitMessageTypes()
 		xdomea.InitXdomeaVersions()
@@ -114,9 +114,9 @@ func MigrateData() {
 		xdomea.InitMediumCodelist()
 		agency.InitAgencies()
 		db.SetXManVersion(XMAN_VERSION)
-		fmt.Println("done")
+		log.Println("done")
 	} else {
-		fmt.Printf("Database is up do date with X-Man version %d\n", XMAN_VERSION)
+		log.Printf("Database is up do date with X-Man version %d\n", XMAN_VERSION)
 	}
 }
 

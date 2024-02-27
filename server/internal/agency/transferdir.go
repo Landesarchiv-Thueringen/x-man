@@ -1,11 +1,11 @@
 package agency
 
 import (
-	"fmt"
 	"io/ioutil"
 	"lath/xman/internal/db"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/xdomea"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -48,7 +48,7 @@ func readMessages() {
 			if !file.IsDir() && xdomea.IsMessage(file.Name()) {
 				fullPath := filepath.Join(agency.TransferDir, file.Name())
 				if !db.IsMessageAlreadyProcessed(fullPath) {
-					fmt.Println("Processing new message " + fullPath)
+					log.Println("Processing new message " + fullPath)
 					go messagestore.StoreMessage(agency, fullPath)
 				}
 			}

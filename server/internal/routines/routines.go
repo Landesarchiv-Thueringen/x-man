@@ -72,7 +72,7 @@ func tryRestart(task *db.Task) {
 // The time after which processes are deleted can be configured via the
 // environment variable `DELETE_ARCHIVED_PROCESSES_AFTER_DAYS`.
 func cleanupArchivedProcesses() {
-	fmt.Println("Starting cleanupArchivedProcesses...")
+	log.Println("Starting cleanupArchivedProcesses...")
 	defer logDoneOrRecover("cleanupArchivedProcesses")
 	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
 	if err != nil {
@@ -83,7 +83,7 @@ func cleanupArchivedProcesses() {
 	for _, process := range processes {
 		if process.ProcessState.Archiving.Complete &&
 			process.ProcessState.Archiving.CompletionTime.Before(deleteBeforeTime) {
-			fmt.Println("Deleting process", process.XdomeaID)
+			log.Println("Deleting process", process.XdomeaID)
 			deleteProcess(process)
 		}
 	}
@@ -105,6 +105,6 @@ func logDoneOrRecover(name string) {
 		log.Println("Error:", name, "panicked:", r)
 		debug.PrintStack()
 	} else {
-		fmt.Println(name, "done")
+		log.Println(name, "done")
 	}
 }
