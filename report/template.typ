@@ -4,20 +4,17 @@
 
 #set page(
   numbering: "1",
-  // margin: (
-  //   top: 2cm,
-  //   bottom: 2cm,
-  //   x: 1cm,
-  // )
+  margin: 1.5cm,
 )
 
 #set text(
   lang: "de",
-  font: "Noto Sans"
+  font: "Noto Sans",
+  size: 10pt,
 )
 
-#let fallbackEmpty(string, fallback: "-") = {
-  if string == "" or string == none { fallback } else { string }
+#let fallback(input, fallback: "-") = {
+  if input == "" or input == none or input == 0 { fallback } else { input }
 }
 
 #let formatDate(dateString) = [
@@ -65,6 +62,14 @@
   [#formatFloat(v, 2) #suffix]
 }
 
+#let formatRecordObjectType(type) = (
+  file: "Akte",
+  subFile: "Teilakte",
+  process: "Vorgang",
+  subProcess: "Teilvorgang",
+).at(type)
+
+
 #let formatAppraisalCode(code) = [
   #[
     #show "A": [archivieren]
@@ -74,6 +79,7 @@
 ]
 
 #let topMatter(data) = [
+  #v(2em)
   #block(spacing: 2em)[
     #set text(2em)
     *Übernahmebericht*
@@ -101,65 +107,80 @@
   #if data.Message0501Stats != none [
     == Anbietung
     #table(
-      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
       inset: 0.5em,
-      align: (x, y) => (left, right).at(calc.rem(x, 2)),
       stroke: none,
-      [Akten:], [#data.Message0501Stats.TotalFiles],
-      [Vorgänge:], [#data.Message0501Stats.TotalProcesses],
-      [Dokumente:], [#data.Message0501Stats.TotalDocuments],
-      [Unterakten:], [#data.Message0501Stats.TotalSubFiles],
-      [Untervorgänge:], [#data.Message0501Stats.TotalSubProcesses],
-      [Anhänge:], [#data.Message0501Stats.TotalAttachments],
+      [],
+      [*Akten*],
+      [*Teilakten*],
+      [*Vorgänge*],
+      [*Teilvorgänge*],
+      [*Dokumente*],
+      [*Anhänge*],
+      [],
+      [#fallback(data.Message0501Stats.Files)],
+      [#fallback(data.Message0501Stats.SubFiles)],
+      [#fallback(data.Message0501Stats.Processes)],
+      [#fallback(data.Message0501Stats.SubProcesses)],
+      [#fallback(data.Message0501Stats.Documents)],
+      [#fallback(data.Message0501Stats.Attachments)],
     )
   ]
   #if data.AppraisalStats != none [
     == Bewertung
     #table(
-      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
       inset: 0.5em,
-      align: (x, y) => (left, right).at(calc.rem(x, 2)),
       stroke: none,
-      [*Akten*], [],
-      [*Vorgänge*], [],
-      [*Dokumente*], [],
-      block(inset: (left: 1em))[archivieren:], [#data.AppraisalStats.Files.Archived],
-      block(inset: (left: 1em))[archivieren:], [#data.AppraisalStats.Processes.Archived],
-      block(inset: (left: 1em))[archivieren:], [#data.AppraisalStats.Documents.Archived],
-      block(inset: (left: 1em))[kassieren:], [#data.AppraisalStats.Files.Discarded],
-      block(inset: (left: 1em))[kassieren:], [#data.AppraisalStats.Processes.Discarded],
-      block(inset: (left: 1em))[kassieren:], [#data.AppraisalStats.Documents.Discarded],
-      [*Unterakten*], [],
-      [*Untervorgänge*], [],
-      [*Anhänge*], [],
-      block(inset: (left: 1em))[archivieren:], [#data.AppraisalStats.SubFiles.Archived],
-      block(inset: (left: 1em))[archivieren:], [#data.AppraisalStats.SubProcesses.Archived],
-      block(inset: (left: 1em))[archivieren:], [#data.AppraisalStats.Attachments.Archived],
-      block(inset: (left: 1em))[kassieren:], [#data.AppraisalStats.SubFiles.Discarded],
-      block(inset: (left: 1em))[kassieren:], [#data.AppraisalStats.SubProcesses.Discarded],
-      block(inset: (left: 1em))[kassieren:], [#data.AppraisalStats.Attachments.Discarded],
+      [],
+      [*Akten*],
+      [*Teilakten*],
+      [*Vorgänge*],
+      [*Teilvorgänge*],
+      [*Dokumente*],
+      [*Anhänge*],
+      [*Archivieren*],
+      [#fallback(data.AppraisalStats.Files.Archived)],
+      [#fallback(data.AppraisalStats.SubFiles.Archived)],
+      [#fallback(data.AppraisalStats.Processes.Archived)],
+      [#fallback(data.AppraisalStats.SubProcesses.Archived)],
+      [#fallback(data.AppraisalStats.Documents.Archived)],
+      [#fallback(data.AppraisalStats.Attachments.Archived)],
+      [*Kassieren*],
+      [#fallback(data.AppraisalStats.Files.Discarded)],
+      [#fallback(data.AppraisalStats.SubFiles.Discarded)],
+      [#fallback(data.AppraisalStats.Processes.Discarded)],
+      [#fallback(data.AppraisalStats.SubProcesses.Discarded)],
+      [#fallback(data.AppraisalStats.Documents.Discarded)],
+      [#fallback(data.AppraisalStats.Attachments.Discarded)],
     )
   ]
   == Übernahme
   #table(
-    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
     inset: 0.5em,
-    align: (x, y) => (left, right).at(calc.rem(x, 2)),
     stroke: none,
-    [Akten:], [#data.Message0503Stats.TotalFiles],
-    [Vorgänge:], [#data.Message0503Stats.TotalProcesses],
-    [Dokumente:], [#data.Message0503Stats.TotalDocuments],
-    [Unterakten:], [#data.Message0503Stats.TotalSubFiles],
-    [Untervorgänge:], [#data.Message0503Stats.TotalSubProcesses],
-    [Anhänge:], [#data.Message0503Stats.TotalAttachments],
+    [],
+    [*Akten*],
+    [*Teilakten*],
+    [*Vorgänge*],
+    [*Teilvorgänge*],
+    [*Dokumente*],
+    [*Anhänge*],
+    [],
+    [#fallback(data.Message0503Stats.Files)],
+    [#fallback(data.Message0503Stats.SubFiles)],
+    [#fallback(data.Message0503Stats.Processes)],
+    [#fallback(data.Message0503Stats.SubProcesses)],
+    [#fallback(data.Message0503Stats.Documents)],
+    [#fallback(data.Message0503Stats.Attachments)],
   )
   #table(
-    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
     inset: 0.5em,
-    align: (x, y) => (left, right).at(calc.rem(x, 2)),
     stroke: none,
-    [Dateien:], [#data.FileStats.TotalFiles],
-    [Gesamtgröße:], [#formatFilesize(data.FileStats.TotalBytes)]
+    [], [*Dateien*], [*Gesamtgröße*], [], [], [],[],
+    [], [#data.FileStats.TotalFiles], [#formatFilesize(data.FileStats.TotalBytes)],
   )
   == Archivierung
   TODO
@@ -182,113 +203,114 @@
   )
 ]
 
-#let fileRecordObjectsTable(fileRecordObjects, level) = [
-  #if fileRecordObjects.len() > 0 [
-    #heading(level: level)[
-      Akten (#fileRecordObjects.len())
+
+#let contentList(elements, level) = [
+  #for el in elements [
+    #heading(
+      level: level
+    )[#formatRecordObjectType(el.recordObjectType) #el.generalMetadata.xdomeaID: #el.generalMetadata.subject]
+    #[
+      #set block(above: 0.2em)
+      #table(
+        columns: (1fr),
+        inset: 0.5em,
+        stroke: none,
+        [*Laufzeit*],
+        [#formatDate(el.lifetime.start) -- #formatDate(el.lifetime.end)],
+      )
+      #table(
+        columns: (1fr, 5fr),
+        inset: 0.5em,
+        stroke: none,
+        [*Bewertung*],
+        [*Bewertungsnotiz*],
+        [#formatAppraisalCode(el.archiveMetadata.appraisalCode)],
+        [#fallback(el.archiveMetadata.internalAppraisalNote)],
+      )
+      #if el.recordObjectType == "file" or el.recordObjectType == "subFile" [
+        #if  el.children == none [
+          #table(
+            columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+            inset: 0.5em,
+            stroke: none,
+            [*Teilakten*],
+            [*Vorgänge*],
+            [*Teilvorgänge*],
+            [*Dokumente*],
+            [*Anhänge*],
+            [],
+            [#fallback(el.contentStats.SubFiles.Total)],
+            [#fallback(el.contentStats.Processes.Total)],
+            [#fallback(el.contentStats.SubProcesses.Total)],
+            [#fallback(el.contentStats.Documents.Total)],
+            [#fallback(el.contentStats.Attachments.Total)],
+          )
+        ] else [
+          #table(
+            columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+            inset: 0.5em,
+            stroke: none,
+            [],
+            [*Teilakten*],
+            [*Vorgänge*],
+            [*Teilvorgänge*],
+            [*Dokumente*],
+            [*Anhänge*],
+            [*Gesamt*],
+            [#fallback(el.contentStats.SubFiles.Total)],
+            [#fallback(el.contentStats.Processes.Total)],
+            [#fallback(el.contentStats.SubProcesses.Total)],
+            [#fallback(el.contentStats.Documents.Total)],
+            [#fallback(el.contentStats.Attachments.Total)],
+            [*Archivieren*],
+            [#fallback(el.contentStats.SubFiles.Archived)],
+            [#fallback(el.contentStats.Processes.Archived)],
+            [#fallback(el.contentStats.SubProcesses.Archived)],
+            [#fallback(el.contentStats.Documents.Archived)],
+            [#fallback(el.contentStats.Attachments.Archived)],
+            [*Kassieren*],
+            [#fallback(el.contentStats.SubFiles.Discarded)],
+            [#fallback(el.contentStats.Processes.Discarded)],
+            [#fallback(el.contentStats.SubProcesses.Discarded)],
+            [#fallback(el.contentStats.Documents.Discarded)],
+            [#fallback(el.contentStats.Attachments.Discarded)],
+          )
+        ]
+      ]
+      // TODO: handle processes
+      #table(
+        columns: (1fr, 1fr),
+        inset: 0.5em,
+        stroke: none,
+        [*Speichervolumen*],
+        [*Signatur*],
+        [TODO],
+        [TODO],
+      )
     ]
-    #table(
-      fill: rgb("#3f51b520"),
-      columns: (auto, 1fr, auto),
-      [*Aktenzeichen*], [*Betreff*], [*Bewertung*],
-      ..fileRecordObjects.map(f => (
-        f.generalMetadata.xdomeaID,
-        f.generalMetadata.subject,
-        f.archiveMetadata.appraisalCode,
-      )).flatten()
-    )
+    // #table(
+    //   columns: 2,
+    //   inset: 0.5em,
+    //   stroke: none,
+    //   [Laufzeit:], [#formatDate(el.lifetime.start) -- #formatDate(el.lifetime.end)],
+    //   [Bewertung:], [#formatAppraisalCode(el.archiveMetadata.appraisalCode)],
+    //   [Bewertungsnotiz:], [#fallback(el.archiveMetadata.internalAppraisalNote)],
+    //   [Umfang:], [TODO],
+    //   [Speichervolumen:], [TODO],
+    //   [Signatur:], [TODO],
+    // )
+    #if el.children != none [
+      #block(inset: (left: 2.4em))[  
+        #contentList(el.children, level + 1)
+      ]
+    ]
   ]
 ]
 
-#let processRecordObjectsTable(processRecordObjects, level) = [
-  #if processRecordObjects.len() > 0 [
-    #heading(level: level)[
-      Vorgänge (#processRecordObjects.len())
-    ]
-    #table(
-      fill: rgb("#00800020"),
-      columns: (auto, 1fr, auto),
-      [*Aktenzeichen*], [*Betreff*], [*Bewertung*],
-      ..processRecordObjects.map(f => (
-        f.generalMetadata.xdomeaID,
-        f.generalMetadata.subject,
-        f.archiveMetadata.appraisalCode,
-      )).flatten()
-    )
-  ]
-]
-
-#let documentRecordObjectsTable(documentRecordObjects, level) = [
-  #if documentRecordObjects.len() > 0 [
-    #heading(level: level)[
-      Dokumente (#documentRecordObjects.len())
-    ]
-    #table(
-      fill: rgb("#ffa50020"),
-      columns: (auto, 1fr),
-      [*Aktenzeichen*], [*Betreff*], 
-      ..documentRecordObjects.map(f => (
-        f.generalMetadata.xdomeaID,
-        f.generalMetadata.subject,
-      )).flatten()
-    )
-  ]
-]
-
-#let processRecordObjects(processRecordObjects, level) = [
-  #for p in processRecordObjects [
-    #if p.archiveMetadata.appraisalCode == "A" [
-      #heading(level: level, text(rgb("#008000"))[#p.generalMetadata.xdomeaID #p.generalMetadata.subject])
-      #processRecordObjectsTable(p.subprocesses, level + 1)
-      #documentRecordObjectsTable(p.documents, level + 1)
-    ]
-  ]
-]
-
-#let fileRecordObjects(fileRecordObjects, level) = [
-  #for f in fileRecordObjects [
-    #if f.archiveMetadata.appraisalCode == "A" [
-      #heading(level: level, text(rgb("#3f51b5"))[#f.generalMetadata.xdomeaID #f.generalMetadata.subject])
-      #fileRecordObjectsTable(f.subfiles, level + 1)
-      #processRecordObjectsTable(f.processes, level + 1)
-      #processRecordObjects(f.processes, level + 1)
-    ]
-  ]
-]
-
-#let recordObjects(message) = [
-  #let rootLevel = 1
-  #fileRecordObjectsTable(message.fileRecordObjects, rootLevel)
-  #processRecordObjectsTable(message.processRecordObjects, rootLevel)
-  #documentRecordObjectsTable(message.documentRecordObjects, rootLevel)
-  #fileRecordObjects(message.fileRecordObjects, rootLevel)
-  #processRecordObjects(message.processRecordObjects, rootLevel)
-]
-
-
-
-
-#let contents(message) = [
-  // #let fileCounter = counter("files")
+#let contents(elements) = [
   = Inhalte
-  // === Akten (#message.fileRecordObjects.len())
-  #for f in message.fileRecordObjects [
-    // #fileCounter.step()
-    == Akte #f.generalMetadata.xdomeaID: #f.generalMetadata.subject
-    #table(
-      columns: 2,
-      inset: 0.5em,
-      // align: (x, y) => (left, right).at(calc.rem(x, 2)),
-      stroke: none,
-      [Laufzeit:], [#formatDate(f.lifetime.start) -- #formatDate(f.lifetime.end)],
-      [Bewertung:], [#formatAppraisalCode(f.archiveMetadata.appraisalCode)],
-      [Bewertungsnotiz:], [#fallbackEmpty(f.archiveMetadata.internalAppraisalNote)],
-      [Umfang:], [TODO],
-      [Speichervolumen:], [TODO],
-      [Signatur:], [TODO],
-    )
-    
-  ]
+  #let rootLevel = 2
+  #contentList(elements, rootLevel)
 ]
 
 #let report(data) = [
@@ -296,7 +318,7 @@
   #overview(data)
   #pagebreak()
   // #recordObjects(data.Message0503)
-  #contents(data.Message0501)
+  #contents(data.Content)
   #pagebreak()
   #fileStats(data.FileStats)
 ]
