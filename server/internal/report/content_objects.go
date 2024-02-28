@@ -58,7 +58,7 @@ func getContentObjectForFile(
 	contentObject.ArchiveMetadata = file.ArchiveMetadata
 	contentObject.Lifetime = file.Lifetime
 	contentObject.ContentStats = getFileAppraisalStats(file)
-	if fileHasDeviatingAppraisals(file) {
+	if contentObject.ContentStats.HasDeviatingAppraisals {
 		contentObject.Children = make([]ContentObject, 0)
 		for _, subFile := range file.SubFileRecordObjects {
 			contentObject.Children = append(
@@ -92,7 +92,7 @@ func getContentObjectForProcess(
 	contentObject.ArchiveMetadata = process.ArchiveMetadata
 	contentObject.Lifetime = process.Lifetime
 	contentObject.ContentStats = getProcessAppraisalStats(process)
-	if processHasDeviatingAppraisals(process) {
+	if contentObject.ContentStats.HasDeviatingAppraisals {
 		contentObject.Children = make([]ContentObject, 0)
 		for _, subProcess := range process.SubProcessRecordObjects {
 			contentObject.Children = append(
@@ -102,34 +102,4 @@ func getContentObjectForProcess(
 		}
 	}
 	return
-}
-
-// fileHasDeviatingAppraisals returns true if the given file has any child object
-// with an appraisal code that differs from the file's own appraisal code.
-func fileHasDeviatingAppraisals(file db.FileRecordObject) bool {
-	for _, subFile := range file.SubFileRecordObjects {
-		if *subFile.ArchiveMetadata.AppraisalCode != *file.ArchiveMetadata.AppraisalCode ||
-			fileHasDeviatingAppraisals(subFile) {
-			return true
-		}
-	}
-	for _, process := range file.ProcessRecordObjects {
-		if *process.ArchiveMetadata.AppraisalCode != *file.ArchiveMetadata.AppraisalCode ||
-			processHasDeviatingAppraisals(process) {
-			return true
-		}
-	}
-	return false
-}
-
-// processHasDeviatingAppraisals returns true if the given process has any child object
-// with an appraisal code that differs from the process's own appraisal code.
-func processHasDeviatingAppraisals(process db.ProcessRecordObject) bool {
-	for _, subProcess := range process.SubProcessRecordObjects {
-		if *subProcess.ArchiveMetadata.AppraisalCode != *process.ArchiveMetadata.AppraisalCode ||
-			processHasDeviatingAppraisals(subProcess) {
-			return true
-		}
-	}
-	return false
 }

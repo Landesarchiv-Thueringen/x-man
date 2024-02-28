@@ -23,12 +23,17 @@ func (objectStats *ObjectAppraisalStats) addObject(archiveMetadata db.ArchiveMet
 }
 
 type AppraisalStats struct {
-	Files        ObjectAppraisalStats
-	SubFiles     ObjectAppraisalStats
-	Processes    ObjectAppraisalStats
-	SubProcesses ObjectAppraisalStats
-	Documents    ObjectAppraisalStats
-	Attachments  ObjectAppraisalStats
+	// HasDeviatingAppraisals indicates whether there are any appraisals within
+	// the stats that differ from the parent element's own appraisal code.
+	//
+	// If the parent is a message, appraisal code "A" is used for comparison.
+	HasDeviatingAppraisals bool
+	Files                  ObjectAppraisalStats
+	SubFiles               ObjectAppraisalStats
+	Processes              ObjectAppraisalStats
+	SubProcesses           ObjectAppraisalStats
+	Documents              ObjectAppraisalStats
+	Attachments            ObjectAppraisalStats
 }
 
 func (a *AppraisalStats) processFiles(files []db.FileRecordObject, isSubLevel bool) {
@@ -71,6 +76,24 @@ func (a *AppraisalStats) processDocuments(
 	}
 }
 
+// checkForDeviatingAppraisals checks if the stats object has processed  any
+// elements with an appraisal code different from the one given and sets
+// HasDeviatingAppraisals accordingly.
+//
+// Should be called after all objects have been processed.
+func (a *AppraisalStats) checkForDeviatingAppraisals(appraisalCode string) {
+	switch appraisalCode {
+	case "A":
+		a.HasDeviatingAppraisals = a.Files.Discarded+a.SubFiles.Discarded+
+			a.Processes.Discarded+a.SubProcesses.Discarded > 0
+	case "V":
+		a.HasDeviatingAppraisals = a.Files.Archived+a.SubFiles.Archived+
+			a.Processes.Archived+a.SubProcesses.Archived > 0
+	default:
+		panic("unexpected appraisal code: " + appraisalCode)
+	}
+}
+
 func getAppraisalStats(message db.Message) (a AppraisalStats) {
 	a.processFiles(message.FileRecordObjects, false)
 	a.processProcesses(message.ProcessRecordObjects, false)
@@ -79,6 +102,7 @@ func getAppraisalStats(message db.Message) (a AppraisalStats) {
 	// the message itself).
 	code := "A"
 	a.processDocuments(message.DocumentRecordObjects, false, db.ArchiveMetadata{AppraisalCode: &code})
+	a.checkForDeviatingAppraisals(code)
 	return
 }
 
@@ -86,11 +110,13 @@ func getFileAppraisalStats(file db.FileRecordObject) (a AppraisalStats) {
 	a.processFiles(file.SubFileRecordObjects, true)
 	a.processProcesses(file.ProcessRecordObjects, false)
 	a.processDocuments(file.DocumentRecordObjects, false, *file.ArchiveMetadata)
+	a.checkForDeviatingAppraisals(*file.ArchiveMetadata.AppraisalCode)
 	return
 }
 
 func getProcessAppraisalStats(process db.ProcessRecordObject) (a AppraisalStats) {
 	a.processProcesses(process.SubProcessRecordObjects, false)
 	a.processDocuments(process.DocumentRecordObjects, false, *process.ArchiveMetadata)
+	a.checkForDeviatingAppraisals(*process.ArchiveMetadata.AppraisalCode)
 	return
 }
