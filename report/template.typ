@@ -110,7 +110,7 @@
     data.Process.institution,
     [Objektart:],
     [E-Akte],
-    [Aussonderungs-ID:],
+    [Prozess-ID:],
     data.Process.xdomeaID,
     [Anbietung erhalten:],
     if data.Process.processState.receive0501.complete {
@@ -143,7 +143,7 @@
   #table(
     columns: 2,
     stroke: none,
-    [Gesamt-?speicher-?volumen:],
+    [Gesamt-?speicher-?volumen übernommen:],
     [#formatFilesize(data.FileStats.TotalBytes)],
   )
   #[
@@ -160,7 +160,7 @@
           label-key: 0,
           value-key: 1,
           radius: 4,
-          slice-style: (eastern, olive),
+          slice-style: (rgb("#e53a31"), olive),
           inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
           outer-label: (content: "%", radius: 120%),
         )
@@ -234,11 +234,11 @@
       [Bewertungs-?notiz:],
       [#fallback(el.archiveMetadata.internalAppraisalNote)],
     )
-    #if el.children != none [
-      #block(inset: (left: 2.4em))[
-        #contentList(el.children, nextLevel)
-      ]
-    ]
+    // #if el.children != none [
+    //   #block(inset: (left: 2.4em))[
+    //     #contentList(el.children, level + 1)
+    //   ]
+    // ]
   ]
 ]
 
