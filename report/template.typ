@@ -1,3 +1,5 @@
+#import "@preview/cetz:0.2.1"
+
 #set document(title: [Übernahmebericht])
 
 #set page(numbering: "1", margin: (x: 2cm))
@@ -132,6 +134,7 @@
 ]
 
 #let overview(data) = [
+  #v(1fr)
   = Übersicht
   #table(
     columns: (1fr, 1fr, 1fr),
@@ -148,14 +151,29 @@
     stroke: none,
     [Gesamt-?speicher-?volumen:],
     [#formatFilesize(data.FileStats.TotalBytes)],
-    [Anteil übernommen:],
-    [
-      #formatFloat(
-        100 * data.AppraisalStats.Files.Archived / data.AppraisalStats.Files.Total,
-        2,
-      ) %
-    ],
   )
+  #[
+    #v(1fr)
+    #set align(center)
+    #cetz.canvas(
+      {
+        let data = (
+          ([übernommen], data.AppraisalStats.Files.Archived),
+          ([kassiert], data.AppraisalStats.Files.Discarded),
+        )
+        cetz.chart.piechart(
+          data,
+          label-key: 0,
+          value-key: 1,
+          radius: 4,
+          slice-style: (eastern, olive),
+          inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
+          outer-label: (content: "%", radius: 120%),
+        )
+      },
+    )
+    #v(2fr)
+  ]
 ]
 
 #let fileStats(fileStats) = [

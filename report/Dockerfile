@@ -11,4 +11,6 @@ RUN apk add --update typst font-noto
 WORKDIR /app
 COPY --from=build /app/report .
 COPY template.typ .
+# Preload Typst packages 
+RUN typst compile template.typ || true
 CMD ["./report"]
