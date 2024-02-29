@@ -4,7 +4,6 @@ import "lath/xman/internal/db"
 
 type ArchivePackage struct {
 	Title          string
-	Lifetime       string
 	Representation Representation
 }
 

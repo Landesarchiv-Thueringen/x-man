@@ -50,6 +50,7 @@ services:
       - AD_PASS=${AD_PASS}
       - AD_ACCESS_GROUP=${AD_ACCESS_GROUP}
       - AD_ADMIN_GROUP=${AD_ADMIN_GROUP}
+      - ARCHIVE_TARGET=${ARCHIVE_TARGET}
       - DIMAG_SFTP_SERVER_URL=${DIMAG_SFTP_SERVER_URL}
       - DIMAG_SFTP_UPLOAD_DIR=${DIMAG_SFTP_UPLOAD_DIR}
       - DIMAG_SFTP_USER=${DIMAG_SFTP_USER}
@@ -64,6 +65,7 @@ services:
     volumes:
       - message_store:/xman/message_store
       - ./transfer_dir:/xman/transfer_dir
+      - ./archive:/xman/archive
 
   report:
     build:

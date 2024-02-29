@@ -8,6 +8,7 @@ import (
 	"io"
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
+	"lath/xman/internal/archive/filesystem"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/clearing"
 	"lath/xman/internal/db"
@@ -551,7 +552,14 @@ func archive0503Message(context *gin.Context) {
 	userName := auth.GetDisplayName(userID)
 	task := tasks.Start(db.TaskTypeArchiving, process, 0)
 	go func() {
-		err = dimag.ImportMessageSync(process, message)
+		switch archiveTarget := os.Getenv("ARCHIVE_TARGET"); archiveTarget {
+		case "filesystem":
+			err = filesystem.ArchiveMessage(process, message)
+		case "dimag":
+			err = dimag.ImportMessageSync(process, message)
+		default:
+			panic("unknown archive target: " + archiveTarget)
+		}
 		if err != nil {
 			tasks.MarkFailed(&task, err.Error(), true)
 		} else {
