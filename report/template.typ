@@ -93,7 +93,7 @@
 
 #let formatContentStats(stats) = [
   #let statsList = (
-    "Files", "SubFiles", "Processes", "SubProcesses", "Documents", "Attachments",
+    "Files", "SubFiles", "Processes", "SubProcesses", "Documents",
   ).map(key => (key, stats.at(key))).filter(el => el.last().Total > 0)
   #if stats.HasDeviatingAppraisals [
     #statsList.map(el => [
@@ -145,7 +145,7 @@
   #if data.Message0501Stats != none [
     == Anbietung
     #table(
-      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
       stroke: none,
       [],
       [*Akten*],
@@ -153,20 +153,18 @@
       [*Vorgänge*],
       [*Teilvorgänge*],
       [*Dokumente*],
-      [*Anhänge*],
       [],
       [#fallback(data.Message0501Stats.Files)],
       [#fallback(data.Message0501Stats.SubFiles)],
       [#fallback(data.Message0501Stats.Processes)],
       [#fallback(data.Message0501Stats.SubProcesses)],
       [#fallback(data.Message0501Stats.Documents)],
-      [#fallback(data.Message0501Stats.Attachments)],
     )
   ]
   #if data.AppraisalStats != none [
     == Bewertung
     #table(
-      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+      columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
       stroke: none,
       [],
       [*Akten*],
@@ -174,26 +172,23 @@
       [*Vorgänge*],
       [*Teilvorgänge*],
       [*Dokumente*],
-      [*Anhänge*],
       [*Archivieren*],
       [#fallback(data.AppraisalStats.Files.Archived)],
       [#fallback(data.AppraisalStats.SubFiles.Archived)],
       [#fallback(data.AppraisalStats.Processes.Archived)],
       [#fallback(data.AppraisalStats.SubProcesses.Archived)],
       [#fallback(data.AppraisalStats.Documents.Archived)],
-      [#fallback(data.AppraisalStats.Attachments.Archived)],
       [*Kassieren*],
       [#fallback(data.AppraisalStats.Files.Discarded)],
       [#fallback(data.AppraisalStats.SubFiles.Discarded)],
       [#fallback(data.AppraisalStats.Processes.Discarded)],
       [#fallback(data.AppraisalStats.SubProcesses.Discarded)],
       [#fallback(data.AppraisalStats.Documents.Discarded)],
-      [#fallback(data.AppraisalStats.Attachments.Discarded)],
     )
   ]
   == Übernahme
   #table(
-    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
     stroke: none,
     [],
     [*Akten*],
@@ -201,19 +196,17 @@
     [*Vorgänge*],
     [*Teilvorgänge*],
     [*Dokumente*],
-    [*Anhänge*],
     [],
     [#fallback(data.Message0503Stats.Files)],
     [#fallback(data.Message0503Stats.SubFiles)],
     [#fallback(data.Message0503Stats.Processes)],
     [#fallback(data.Message0503Stats.SubProcesses)],
     [#fallback(data.Message0503Stats.Documents)],
-    [#fallback(data.Message0503Stats.Attachments)],
   )
   #table(
-    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
+    columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr),
     stroke: none,
-    [], [*Dateien*], [*Gesamtgröße*], [], [], [],[],
+    [], [*Dateien*], [*Gesamtgröße*], [], [], [],
     [], [#data.FileStats.TotalFiles], [#formatFilesize(data.FileStats.TotalBytes)],
   )
   == Archivierung
