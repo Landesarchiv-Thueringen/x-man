@@ -1,17 +1,11 @@
 #import "@preview/cetz:0.2.1"
 
-#set document(title: [Übernahmebericht])
-
-#set page(numbering: "1", margin: (x: 2cm))
-
-#set text(lang: "de", font: "Noto Sans", size: 10pt)
-
 #let fallback(input, fallback: "-") = {
   if input == "" or input == none or input == 0 { fallback } else { input }
 }
 
 #let formatDate(dateString) = [
-  #let values = dateString.split(regex("[-]"))
+  #let values = dateString.split(regex("[-T]"))
   #let date = datetime(
     year: int(values.at(0)),
     month: int(values.at(1)),
@@ -255,6 +249,22 @@
 ]
 
 #let report(data) = [
+  #let title = [
+    Übernahmebericht --
+    #data.Process.agency.abbreviation -- E-Akte --
+    #formatDate(data.Process.processState.archiving.completionTime)
+  ]
+
+  #set document(title: title)
+  #set page(numbering: "1", margin: (x: 2cm), header: locate(loc => {
+    let (page,) = counter(page).at(loc)
+    if page > 1 {
+      show sym.dash.en: "/"
+      [#h(1fr) #title]
+    }
+  }))
+  #set text(lang: "de", font: "Noto Sans", size: 10pt)
+
   #topMatter(data)
   #overview(data)
   #pagebreak()
