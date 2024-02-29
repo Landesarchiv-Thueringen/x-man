@@ -243,10 +243,16 @@
 
 
 #let contentList(elements, level) = [
-  // #set text(size: 8pt)
+  #let currentAppraisalCode = ""
+  #let nextLevel = level + 1
   #for el in elements [
+    #if level <= 2 and currentAppraisalCode != el.archiveMetadata.appraisalCode {
+      currentAppraisalCode = el.archiveMetadata.appraisalCode
+      nextLevel = level + 2
+      heading(level: level)[#formatAppraisalCode(currentAppraisalCode)]
+    }
     #heading(
-      level: level
+      level: level + 1
     )[
       #formatRecordObjectType(el.recordObjectType): #el.generalMetadata.xdomeaID
       (#el.archiveMetadata.appraisalCode)\
@@ -266,7 +272,7 @@
     )
     #if el.children != none [
       #block(inset: (left: 2.4em))[  
-        #contentList(el.children, level + 1)
+        #contentList(el.children, nextLevel)
       ]
     ]
   ]

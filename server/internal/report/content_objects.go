@@ -2,6 +2,7 @@ package report
 
 import (
 	"lath/xman/internal/db"
+	"sort"
 
 	"github.com/google/uuid"
 )
@@ -39,6 +40,11 @@ func getContentObjects(message0501 db.Message, message0503 db.Message) (contentO
 	for _, process := range message.ProcessRecordObjects {
 		contentObjects = append(contentObjects, getContentObjectForProcess(process, false))
 	}
+	sort.Slice(contentObjects, func(i, j int) bool {
+		lhs := contentObjects[i]
+		rhs := contentObjects[j]
+		return *lhs.ArchiveMetadata.AppraisalCode < *rhs.ArchiveMetadata.AppraisalCode
+	})
 	return
 }
 
