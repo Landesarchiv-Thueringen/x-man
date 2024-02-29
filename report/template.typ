@@ -111,6 +111,12 @@
   V: "Vernichten",
 ).at(code)
 
+#let formatValidity(validity) = {
+  if (validity == none) { "-" }
+  else if (validity) { "valide" }
+  else { "invalide" }
+}
+
 #let topMatter(data) = [
   // #v(2em)
   #block(spacing: 2em)[
@@ -215,18 +221,30 @@
 ]
 
 #let fileStats(fileStats) = [
-  = Datei-Statistik
-  #set align(center)
+  = Primärdateien
   #table(
-    columns: 2,
-    align: (x, y) => (left, right).at(x),
+    columns: 5,
     stroke: none,
-    [*Dateityp*], [*Archivierte Dateien*],
-    ..fileStats.FilesByFileType.pairs().map(pair => (
-      raw(pair.at(0)),
-      [#pair.at(1)]
-    )).flatten(),
-    [*Gesamt*], [*#fileStats.TotalFiles*],
+    align: (x, y) => (if x == 4 and  y > 0 { right } else { left }),
+    [*PUID*], [*MIME-Type*], [*Formatversion*], [*Validität*], [*Dateien*],
+    ..fileStats.PUIDEntries.map(p => { 
+      let rows = ()
+      let first = true
+      for e in p.Entries {
+        if first {
+          rows.push(p.PUID)
+        } else {
+          rows.push([])
+        }
+        rows.push(fallback(e.MimeType))
+        rows.push(fallback(e.FormatVersion))
+        rows.push(formatValidity(e.Valid))
+        rows.push([#e.NumberFiles])
+        first = false
+      }
+      rows
+     }).flatten(),
+    [*Gesamt*], [], [], [], [*#fileStats.TotalFiles*],
   )
 ]
 
