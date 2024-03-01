@@ -1,3 +1,4 @@
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
@@ -14,6 +15,13 @@ import { Process, ProcessService, ProcessStep } from '../process.service';
   selector: 'app-process-table',
   templateUrl: './process-table.component.html',
   styleUrls: ['./process-table.component.scss'],
+  animations: [
+    trigger('expand', [
+      state('false', style({ height: 0, paddingTop: 0, paddingBottom: 0, visibility: 'hidden', overflow: 'hidden' })),
+      transition('false => true', [style({ visibility: 'visible' }), animate(200, style({ height: '*' }))]),
+      transition('true => false', [style({ overflow: 'hidden' }), animate(200)]),
+    ]),
+  ],
 })
 export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   readonly dataSource: MatTableDataSource<Process> = new MatTableDataSource<Process>();
@@ -47,6 +55,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   allUsersControl = new FormControl(window.localStorage.getItem('show-all-user-processes') === 'true', {
     nonNullable: true,
   });
+  showFilters = window.localStorage.getItem('show-process-filters') === 'true';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -111,6 +120,14 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.processSubscription.unsubscribe();
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+    window.localStorage.setItem('show-process-filters', this.showFilters.toString());
+    if (!this.showFilters) {
+      this.filter.setValue({ institution: null, state: null, string: null });
+    }
   }
 
   private populateInstitutions(processes: Process[]): void {

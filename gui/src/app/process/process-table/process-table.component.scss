@@ -8,12 +8,19 @@
   }
 }
 
+.spacer {
+  flex-grow: 1;
+}
+
 .row {
   display: flex;
   align-items: center;
-  h1 {
-    flex-grow: 1;
-  }
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+h1 {
+  margin-bottom: 4px;
 }
 
 .archived-row {
@@ -23,9 +30,14 @@
   background-color: rgba(192, 0, 0, 0.1);
 }
 
+.filters-container {
+  flex-shrink: 0;
+}
+
 .filters {
   display: flex;
   gap: 1em;
+  padding: 0 0.5em;
   .string-field {
     flex-grow: 1;
   }

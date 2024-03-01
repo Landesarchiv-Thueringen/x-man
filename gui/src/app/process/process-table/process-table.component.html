@@ -1,37 +1,49 @@
 <div class="row">
   <h1>Aussonderungen ({{ dataSource.data.length }})</h1>
+  <button mat-flat-button [color]="showFilters ? 'primary' : null" (click)="toggleFilters()">
+    @if (showFilters) {
+      <mat-icon>filter_alt</mat-icon>
+    } @else {
+      <mat-icon class="material-icons-outlined">filter_alt</mat-icon>
+    }
+    Filtern
+  </button>
+  <div class="spacer"></div>
   @if (isAdmin) {
     <mat-slide-toggle [formControl]="allUsersControl">Für alle Mitarbeiter anzeigen</mat-slide-toggle>
   }
 </div>
-<form [formGroup]="filter" class="filters">
-  <mat-form-field class="string-field">
-    <mat-label>Filtern</mat-label>
-    <input matInput formControlName="string" />
-  </mat-form-field>
-  <mat-form-field class="institution-field">
-    <mat-label>Abgebende Stelle</mat-label>
-    <mat-select formControlName="institution">
-      <mat-option>Alle anzeigen ({{ getElementsForInstitution($any("")) }})</mat-option>
-      @for (value of institutions; track value) {
-        <mat-option [value]="value" [disabled]="getElementsForInstitution(value) === 0"
-          >{{ value }} ({{ getElementsForInstitution(value) }})</mat-option
-        >
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field class="status-field">
-    <mat-label>Status</mat-label>
-    <mat-select formControlName="state">
-      <mat-option>Alle anzeigen ({{ getElementsForState($any("")) }})</mat-option>
-      @for (value of stateValues; track value) {
-        <mat-option [value]="value.value" [disabled]="getElementsForState(value.value) === 0"
-          >{{ value.viewValue }} ({{ getElementsForState(value.value) }})</mat-option
-        >
-      }
-    </mat-select>
-  </mat-form-field>
-</form>
+
+<div class="filters-container" [@expand]="showFilters">
+  <form [formGroup]="filter" class="filters">
+    <mat-form-field class="string-field">
+      <mat-label>Filtern</mat-label>
+      <input matInput formControlName="string" />
+    </mat-form-field>
+    <mat-form-field class="institution-field">
+      <mat-label>Abgebende Stelle</mat-label>
+      <mat-select formControlName="institution">
+        <mat-option>Alle anzeigen ({{ getElementsForInstitution($any("")) }})</mat-option>
+        @for (value of institutions; track value) {
+          <mat-option [value]="value" [disabled]="getElementsForInstitution(value) === 0"
+            >{{ value }} ({{ getElementsForInstitution(value) }})</mat-option
+          >
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="status-field">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="state">
+        <mat-option>Alle anzeigen ({{ getElementsForState($any("")) }})</mat-option>
+        @for (value of stateValues; track value) {
+          <mat-option [value]="value.value" [disabled]="getElementsForState(value.value) === 0"
+            >{{ value.viewValue }} ({{ getElementsForState(value.value) }})</mat-option
+          >
+        }
+      </mat-select>
+    </mat-form-field>
+  </form>
+</div>
 
 <div class="table-outer-container mat-elevation-z8">
   <div class="table-container">
