@@ -62,7 +62,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 			}()
 			err := verifyDocument(message.StoreDir, primaryDocument)
 			if err != nil {
-				errorMessage := fmt.Sprintf("%s: %s", primaryDocument.FileName, err.Error())
+				errorMessage := fmt.Sprintf("%s\n%s", primaryDocument.FileName, err.Error())
 				errorMessages = append(errorMessages, errorMessage)
 			}
 			tasks.MarkItemComplete(&task)
@@ -72,7 +72,7 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	if len(errorMessages) == 0 {
 		tasks.MarkDone(&task, nil)
 	} else {
-		tasks.MarkFailed(&task, strings.Join(errorMessages, "\n"), true)
+		tasks.MarkFailed(&task, strings.Join(errorMessages, "\n\n"), true)
 	}
 }
 
@@ -109,7 +109,7 @@ func verifyDocument(storeDir string, primaryDocument db.PrimaryDocument) error {
 		return err
 	}
 	if response.StatusCode != http.StatusOK {
-		log.Println(response.StatusCode)
+		return fmt.Errorf("POST \"%s\": %d", borgEndpoint, response.StatusCode)
 	}
 	var parsedResponse db.FormatVerification
 	err = json.NewDecoder(response.Body).Decode(&parsedResponse)
