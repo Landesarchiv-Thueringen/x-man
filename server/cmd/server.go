@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -37,13 +36,7 @@ func main() {
 	routines.Init()
 	router := gin.Default()
 	router.ForwardedByClientIP = true
-	router.SetTrustedProxies([]string{"*"})
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"*"}
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type"}
-	corsConfig.AllowMethods = []string{"GET", "PATCH"}
-	// It's important that the cors configuration is used before declaring the routes
-	router.Use(cors.New(corsConfig))
+	router.SetTrustedProxies([]string{})
 	router.GET("api", getDefaultResponse)
 	router.GET("api/login", auth.Login)
 	authorized := router.Group("/")
