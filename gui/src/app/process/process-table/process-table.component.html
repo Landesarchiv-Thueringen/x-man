@@ -33,7 +33,7 @@
   </mat-form-field>
 </form>
 
-<div class="mat-elevation-z8">
+<div class="table-outer-container mat-elevation-z8">
   <div class="table-container">
     <mat-table
       [dataSource]="dataSource"
@@ -205,7 +205,7 @@
         </mat-cell>
       </ng-container>
 
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
         [class.error-row]="hasUnresolvedError(row)"
@@ -214,5 +214,5 @@
     </mat-table>
   </div>
 
-  <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Anbietung auswählen"></mat-paginator>
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Anbietung auswählen"></mat-paginator>
 </div>

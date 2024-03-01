@@ -37,8 +37,14 @@
   }
 }
 
+.table-outer-container {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .table-container {
-  overflow-x: auto;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
