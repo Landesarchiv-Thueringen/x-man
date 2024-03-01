@@ -226,5 +226,9 @@
     </mat-table>
   </div>
 
-  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Anbietung auswählen"></mat-paginator>
+  <mat-paginator
+    [pageSizeOptions]="[10, 15, 25, 100]"
+    (page)="onPaginate($event)"
+    aria-label="Seite auswählen"
+  ></mat-paginator>
 </div>

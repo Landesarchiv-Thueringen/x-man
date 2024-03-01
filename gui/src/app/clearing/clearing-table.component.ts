@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
@@ -35,6 +35,7 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
+    this.paginator.pageSize = this.getPageSize();
     this.dataSource.sort = this.sort;
     // refetch errors every `updateInterval` milliseconds
 
@@ -74,5 +75,18 @@ export class ClearingTableComponent implements AfterViewInit, OnDestroy {
   openDetails(processingError: Partial<ProcessingError>) {
     const dialogRef = this.dialog.open(ClearingDetailsComponent, { data: processingError });
     dialogRef.afterClosed().subscribe((result) => {});
+  }
+
+  onPaginate(event: PageEvent): void {
+    window.localStorage.setItem('main-table-page-size', event.pageSize.toString());
+  }
+
+  private getPageSize(): number {
+    const savedPageSize = window.localStorage.getItem('main-table-page-size');
+    if (savedPageSize) {
+      return parseInt(savedPageSize);
+    } else {
+      return 10;
+    }
   }
 }

@@ -45,5 +45,9 @@
       <mat-row *matRowDef="let row; columns: displayedColumns" [class.resolved-row]="row.resolved"></mat-row>
     </mat-table>
   </div>
-  <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Verarbeitungsfehler auswählen"></mat-paginator>
+  <mat-paginator
+    [pageSizeOptions]="[10, 15, 25, 100]"
+    (page)="onPaginate($event)"
+    aria-label="Seite auswählen"
+  ></mat-paginator>
 </div>

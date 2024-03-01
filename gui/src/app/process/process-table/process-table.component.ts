@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
@@ -115,6 +115,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.paginator.pageSize = this.getPageSize();
     this.dataSource.sort = this.sort;
   }
 
@@ -128,6 +129,19 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     if (!this.showFilters) {
       this.filter.setValue({ institution: null, state: null, string: null });
     }
+  }
+
+  private getPageSize(): number {
+    const savedPageSize = window.localStorage.getItem('main-table-page-size');
+    if (savedPageSize) {
+      return parseInt(savedPageSize);
+    } else {
+      return 10;
+    }
+  }
+
+  onPaginate(event: PageEvent): void {
+    window.localStorage.setItem('main-table-page-size', event.pageSize.toString());
   }
 
   private populateInstitutions(processes: Process[]): void {
