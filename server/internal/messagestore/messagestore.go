@@ -204,6 +204,7 @@ func DeleteProcess(processID string) bool {
 	}
 	storeDir := process.StoreDir
 	transferFiles := db.GetAllTransferFilesOfProcess(process)
+	log.Println("Deleting process", processID)
 	// Delete database entries
 	db.DeleteProcess(process.ID)
 	// Delete message storage

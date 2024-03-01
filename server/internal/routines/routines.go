@@ -83,7 +83,6 @@ func cleanupArchivedProcesses() {
 	for _, process := range processes {
 		if process.ProcessState.Archiving.Complete &&
 			process.ProcessState.Archiving.CompletionTime.Before(deleteBeforeTime) {
-			log.Println("Deleting process", process.ID)
 			deleteProcess(process)
 		}
 	}
