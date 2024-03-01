@@ -27,10 +27,12 @@ func (v *XdomeaVersion) IsVersionPriorTo300() bool {
 }
 
 type Process struct {
-	ID               uuid.UUID         `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	// ID is the process ID as parsed from an Xdomea message (ProzessID). It is
+	// a UUID, but since that cannot be verified conveniently when read from an
+	// XML file, we store it as string.
+	ID               string            `gorm:"primaryKey;" json:"id"`
 	CreatedAt        time.Time         `json:"receivedAt"`
 	UpdatedAt        time.Time         `json:"-"`
-	XdomeaID         string            `json:"xdomeaID"`
 	AgencyID         uint              `json:"-"`
 	Agency           Agency            `gorm:"foreignKey:AgencyID;references:ID" json:"agency"`
 	StoreDir         string            `json:"-"`
@@ -52,7 +54,7 @@ type Process struct {
 
 // BeforeDelete deletes associated rows of the deleted Process.
 func (p *Process) BeforeDelete(tx *gorm.DB) (err error) {
-	if p.ID == uuid.Nil {
+	if p.ID == "" {
 		return fmt.Errorf("failed to delete associations for Process")
 	}
 	process := Process{ID: p.ID}

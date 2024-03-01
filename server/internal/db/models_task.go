@@ -2,8 +2,6 @@ package db
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type TaskState string
@@ -24,7 +22,7 @@ type Task struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	ProcessID uuid.UUID `json:"processId"`
+	ProcessID string    `json:"processId"`
 	// Process is the process that the task is for
 	Process       *Process `json:"process"`
 	ProcessStepID uint     `json:"-"`

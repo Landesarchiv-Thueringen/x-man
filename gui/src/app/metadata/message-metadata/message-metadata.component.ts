@@ -66,7 +66,7 @@ export class MessageMetadataComponent {
           });
         }),
         // Get and handle process
-        switchMap((message) => this.processService.observeProcessByXdomeaID(message.messageHead.processID)),
+        switchMap((message) => this.processService.observeProcess(message.messageHead.processID)),
         tap((process) => {
           const isFirstValue = !this.process;
           this.process = process;
@@ -96,7 +96,7 @@ export class MessageMetadataComponent {
   saveNote(): void {
     const value = this.form.get('note')?.value ?? '';
     if (this.process!.note !== value) {
-      this.processService.setNote(this.process!.xdomeaID, value).subscribe(() => {
+      this.processService.setNote(this.process!.id, value).subscribe(() => {
         this.process!.note = value;
         this.notification.show('Notiz gespeichert');
       });
@@ -109,7 +109,7 @@ export class MessageMetadataComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.processService.deleteProcess(this.process!.xdomeaID).subscribe(() => {
+          this.processService.deleteProcess(this.process!.id).subscribe(() => {
             this.notification.show('Aussonderung gelöscht');
             this.router.navigate(['/']);
           });

@@ -51,11 +51,11 @@
               [routerLink]="['/nachricht', data.process.message0503Id || data.process.message0501Id]"
               target="_blank"
             >
-              {{ data.process.xdomeaID }}
+              {{ data.process.id }}
               <mat-icon iconPositionEnd>open_in_new</mat-icon>
             </a>
           } @else {
-            {{ data.process.xdomeaID }}
+            {{ data.process.id }}
           }
         </div>
       </div>

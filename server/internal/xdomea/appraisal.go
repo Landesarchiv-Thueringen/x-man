@@ -76,7 +76,7 @@ func SetAppraisalForProcessRecordObjects(
 
 func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message {
 	markUnappraisedRecordObjectsAsDiscardable(message)
-	process, found := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	process, found := db.GetProcess(message.MessageHead.ProcessID)
 	if !found {
 		panic(fmt.Sprintf("process not found: %v", message.MessageHead.ProcessID))
 	}

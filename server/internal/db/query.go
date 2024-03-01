@@ -420,24 +420,24 @@ func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
 		Where(&process).
 		First(&process)
 	if result.Error != nil {
-		return Message{}, fmt.Errorf("failed to read process {%s}: %w", process.XdomeaID, result.Error)
+		return Message{}, fmt.Errorf("failed to read process {%s}: %w", process.ID, result.Error)
 	}
 	switch code {
 	case "0501":
 		if process.Message0501 == nil {
-			return Message{}, errors.New("process {" + process.XdomeaID + "} has no 0501 message")
+			return Message{}, errors.New("process {" + process.ID + "} has no 0501 message")
 		} else {
 			return *process.Message0501, nil
 		}
 	case "0503":
 		if process.Message0503 == nil {
-			return Message{}, errors.New("process {" + process.XdomeaID + "} has no 0503 message")
+			return Message{}, errors.New("process {" + process.ID + "} has no 0503 message")
 		} else {
 			return *process.Message0503, nil
 		}
 	case "0505":
 		if process.Message0505 == nil {
-			return Message{}, errors.New("process {" + process.XdomeaID + "} has no 0505 message")
+			return Message{}, errors.New("process {" + process.ID + "} has no 0505 message")
 		} else {
 			return *process.Message0505, nil
 		}
@@ -465,36 +465,17 @@ func GetMessagesByCode(code string) []Message {
 	return messages
 }
 
-func GetProcess(ID uuid.UUID) (Process, error) {
-	process := Process{ID: ID}
-	result := db.
-		Preload("Agency").
-		Preload("Message0501.MessageHead").
-		Preload("Message0501.MessageType").
-		Preload("Message0503.MessageHead").
-		Preload("Message0503.MessageType").
-		Preload("ProcessingErrors").
-		Preload("ProcessState.Receive0501." + clause.Associations).
-		Preload("ProcessState.Appraisal." + clause.Associations).
-		Preload("ProcessState.Receive0505." + clause.Associations).
-		Preload("ProcessState.Receive0503." + clause.Associations).
-		Preload("ProcessState.FormatVerification." + clause.Associations).
-		Preload("ProcessState.Archiving." + clause.Associations).
-		First(&process)
-	return process, result.Error
-}
-
 func GetProcessStep(ID uint) (ProcessStep, error) {
 	processStep := ProcessStep{ID: ID}
 	result := db.First(&processStep)
 	return processStep, result.Error
 }
 
-func GetProcessByXdomeaID(xdomeaID string) (Process, bool) {
-	if xdomeaID == "" {
-		panic("called GetProcessByXdomeaID with empty string")
+func GetProcess(processID string) (Process, bool) {
+	if processID == "" {
+		panic("called GetProcess with empty string")
 	}
-	process := Process{XdomeaID: xdomeaID}
+	process := Process{ID: processID}
 	result := db.Model(&Process{}).
 		Preload("Agency").
 		Preload("Message0501.MessageHead").

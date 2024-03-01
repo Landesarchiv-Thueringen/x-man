@@ -111,7 +111,7 @@
     [Objektart:],
     [E-Akte],
     [Prozess-ID:],
-    data.Process.xdomeaID,
+    data.Process.id,
     [Anbietung erhalten:],
     if data.Process.processState.receive0501.complete {
       formatDateTime(data.Process.processState.receive0501.completionTime)

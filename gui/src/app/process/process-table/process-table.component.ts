@@ -173,7 +173,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
    * Implements a track-by predicate for Angular to match table rows on data updates.
    */
   trackProcess(index: number, item: Process): string {
-    return item.xdomeaID;
+    return item.id;
   }
 
   /**

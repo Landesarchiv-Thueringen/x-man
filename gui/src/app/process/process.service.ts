@@ -13,9 +13,8 @@ export interface Agency {
 }
 
 export interface Process {
-  id: string;
   agency: Agency;
-  xdomeaID: string;
+  id: string;
   receivedAt: string;
   institution: string;
   note: string;
@@ -63,20 +62,20 @@ export class ProcessService {
     }
   }
 
-  observeProcessByXdomeaID(id: string): Observable<Process> {
+  observeProcess(id: string): Observable<Process> {
     if (id !== this.cachedProcessId) {
       this.cachedProcessId = id;
       this.cachedProcess = interval(environment.updateInterval).pipe(
         startWith(void 0),
-        switchMap(() => this.httpClient.get<Process>(this.apiEndpoint + '/process-by-xdomea-id/' + id)),
+        switchMap(() => this.httpClient.get<Process>(this.apiEndpoint + '/process/' + id)),
         shareReplay({ bufferSize: 1, refCount: true }),
       );
     }
     return this.cachedProcess!;
   }
 
-  getProcessByXdomeaID(id: string): Observable<Process> {
-    return this.observeProcessByXdomeaID(id).pipe(first());
+  getProcess(id: string): Observable<Process> {
+    return this.observeProcess(id).pipe(first());
   }
 
   setNote(processId: string, note: string): Observable<void> {

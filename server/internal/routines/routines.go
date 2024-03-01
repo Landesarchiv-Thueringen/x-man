@@ -57,8 +57,8 @@ func tryRestart(task *db.Task) {
 	var couldRestart = false
 	switch task.Type {
 	case db.TaskTypeFormatVerification:
-		process, err := db.GetProcess(task.ProcessID)
-		if err == nil {
+		process, found := db.GetProcess(task.ProcessID)
+		if found {
 			go format.VerifyFileFormats(process, *process.Message0503)
 			couldRestart = true
 		}
@@ -83,7 +83,7 @@ func cleanupArchivedProcesses() {
 	for _, process := range processes {
 		if process.ProcessState.Archiving.Complete &&
 			process.ProcessState.Archiving.CompletionTime.Before(deleteBeforeTime) {
-			log.Println("Deleting process", process.XdomeaID)
+			log.Println("Deleting process", process.ID)
 			deleteProcess(process)
 		}
 	}
@@ -92,9 +92,9 @@ func cleanupArchivedProcesses() {
 // deleteProcess deletes the given process and all associated data from the
 // database and removes all associated message files from the message store.
 func deleteProcess(process db.Process) {
-	found := messagestore.DeleteProcess(process.XdomeaID)
+	found := messagestore.DeleteProcess(process.ID)
 	if !found {
-		panic(fmt.Sprintf("failed to delete process %v: not found", process.XdomeaID))
+		panic(fmt.Sprintf("failed to delete process %v: not found", process.ID))
 	}
 }
 

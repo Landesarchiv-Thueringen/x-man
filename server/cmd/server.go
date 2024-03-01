@@ -50,7 +50,7 @@ func main() {
 	authorized.Use(auth.AuthRequired())
 	authorized.GET("api/config", getConfig)
 	authorized.GET("api/processes/my", getMyProcesses)
-	authorized.GET("api/process-by-xdomea-id/:id", getProcessByXdomeaID)
+	authorized.GET("api/process/:id", getProcess)
 	authorized.GET("api/messages/0501", get0501Messages)
 	authorized.GET("api/messages/0503", get0503Messages)
 	authorized.GET("api/message/:id", getMessageByID)
@@ -156,13 +156,13 @@ func resolveProcessingError(context *gin.Context) {
 	context.Status(http.StatusAccepted)
 }
 
-func getProcessByXdomeaID(context *gin.Context) {
+func getProcess(context *gin.Context) {
 	id, err := uuid.Parse(context.Param("id"))
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	process, found := db.GetProcessByXdomeaID(id.String())
+	process, found := db.GetProcess(id.String())
 	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
@@ -198,7 +198,7 @@ func getMessageByID(context *gin.Context) {
 	}
 	message, found := db.GetCompleteMessageByID(id)
 	if !found {
-		context.AbortWithError(http.StatusNotFound, err)
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	context.JSON(http.StatusOK, message)
@@ -342,7 +342,7 @@ func setProcessNote(context *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	process, found := db.GetProcessByXdomeaID(processId)
+	process, found := db.GetProcess(processId)
 	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
 	}
@@ -504,7 +504,7 @@ func getPrimaryDocuments(context *gin.Context) {
 
 func getReport(context *gin.Context) {
 	processID := context.Param("processId")
-	process, found := db.GetProcessByXdomeaID(processID)
+	process, found := db.GetProcess(processID)
 	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
 		return
@@ -539,7 +539,7 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	process, found := db.GetProcessByXdomeaID(message.MessageHead.ProcessID)
+	process, found := db.GetProcess(message.MessageHead.ProcessID)
 	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
 		return

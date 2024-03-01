@@ -95,7 +95,7 @@ export class MessageTreeComponent implements AfterViewInit {
         switchMap((params) => this.messageService.getMessage(params['id'])),
         tap((message) => (this.message = message)),
         // Get process, update periodically
-        switchMap((message) => this.processService.observeProcessByXdomeaID(message.messageHead.processID)),
+        switchMap((message) => this.processService.observeProcess(message.messageHead.processID)),
         tap((process) => (this.process = process)),
         // Initialize tree
         //
@@ -324,7 +324,7 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   downloadReport() {
-    this.processService.getReport(this.process!.xdomeaID).subscribe((report) => {
+    this.processService.getReport(this.process!.id).subscribe((report) => {
       const a = document.createElement('a');
       document.body.appendChild(a);
       a.download = `Übernahmebericht ${this.process!.agency.abbreviation} ${this.process!.receivedAt}.pdf`;

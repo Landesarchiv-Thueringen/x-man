@@ -26,7 +26,7 @@ type ProcessingError struct {
 	CreatedAt      time.Time                 `json:"detectedAt"`
 	UpdatedAt      time.Time                 `json:"-"`
 	Type           ProcessingErrorType       `json:"type"`
-	ProcessID      *uuid.UUID                `json:"-"`
+	ProcessID      *string                   `json:"-"`
 	Process        *Process                  `json:"process"`
 	ProcessStepID  *uint                     `json:"-"`
 	ProcessStep    *ProcessStep              `json:"-"`

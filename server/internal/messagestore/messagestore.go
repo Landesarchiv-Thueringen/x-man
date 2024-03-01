@@ -198,7 +198,7 @@ func DeleteProcess(processID string) bool {
 	if processID == "" {
 		panic("called DeleteProcess with empty string")
 	}
-	process, found := db.GetProcessByXdomeaID(processID)
+	process, found := db.GetProcess(processID)
 	if !found {
 		return false
 	}
@@ -251,7 +251,7 @@ func cleanupEmptyProcess(processID string) {
 	if processID == "" {
 		panic("called cleanupEmptyProcess with empty string")
 	}
-	process, found := db.GetProcessByXdomeaID(processID)
+	process, found := db.GetProcess(processID)
 	if !found {
 		panic(fmt.Sprintf("process not found: %v", processID))
 	}

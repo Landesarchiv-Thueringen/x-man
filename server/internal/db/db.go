@@ -145,7 +145,7 @@ func InitAgencies(agencies []Agency) {
 
 func AddProcess(
 	agency Agency,
-	xdomeaID string,
+	processID string,
 	processStoreDir string,
 	institution *string,
 ) Process {
@@ -153,7 +153,7 @@ func AddProcess(
 	processState := AddProcessState()
 	process = Process{
 		Agency:       agency,
-		XdomeaID:     xdomeaID,
+		ID:           processID,
 		StoreDir:     processStoreDir,
 		Institution:  institution,
 		ProcessState: processState,
@@ -166,9 +166,9 @@ func AddProcess(
 }
 
 // DeleteProcess deletes the given process and all its associations.
-func DeleteProcess(id uuid.UUID) {
-	if id == uuid.Nil {
-		panic("called DeleteProcess with nil ID")
+func DeleteProcess(id string) {
+	if id == "" {
+		panic("called DeleteProcess with empty string")
 	}
 	// Note that we don't use inline (`Delete(&Process{}, id)`) or explicit
 	// (`Where("...")`) conditions. `BeforeDelete` and `AfterDelete` hooks only
@@ -190,7 +190,7 @@ func DeleteMessage(message Message) {
 		panic("called DeleteMessage with nil ID")
 	}
 	processID := message.MessageHead.ProcessID
-	process, found := GetProcessByXdomeaID(processID)
+	process, found := GetProcess(processID)
 	if !found {
 		panic("process not found: " + processID)
 	}
@@ -281,7 +281,7 @@ func AddProcessState() ProcessState {
 
 func AddMessage(
 	agency Agency,
-	xdomeaID string,
+	processID string,
 	processStoreDir string,
 	message Message,
 ) (Process, Message, error) {
@@ -295,7 +295,7 @@ func AddMessage(
 	if result.Error != nil {
 		return process, message, result.Error
 	}
-	process, found := GetProcessByXdomeaID(xdomeaID)
+	process, found := GetProcess(processID)
 	// The process was not found. Create a new process.
 	if !found {
 		var institution *string
@@ -303,7 +303,7 @@ func AddMessage(
 		if message.MessageHead.Sender.Institution != nil {
 			institution = message.MessageHead.Sender.Institution.Name
 		}
-		process = AddProcess(agency, xdomeaID, processStoreDir, institution)
+		process = AddProcess(agency, processID, processStoreDir, institution)
 	} else {
 		// Check if the process has already a message with the type of the given message.
 		_, err := GetMessageOfProcessByCode(process, message.MessageType.Code)
@@ -486,8 +486,8 @@ func addProcessingError(e ProcessingError) {
 // It fills some missing fields if sufficient information is provided.
 func CreateProcessingError(e ProcessingError) {
 	if e.Process == nil && e.ProcessID != nil {
-		process, err := GetProcess(*e.ProcessID)
-		if err == nil {
+		process, found := GetProcess(*e.ProcessID)
+		if found {
 			e.Process = &process
 		}
 	}
