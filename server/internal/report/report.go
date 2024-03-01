@@ -46,7 +46,9 @@ func GetReportData(process db.Process) (reportData ReportData, err error) {
 	reportData.Message0503Stats = &messageStats
 	reportData.Message0503 = message0503
 	reportData.FileStats = getFileStats(process)
-	writeToFile(reportData, "/data/data.json")
+	if os.Getenv("DEBUG_MODE") == "true" {
+		writeToFile(reportData, "/debug-data/data.json")
+	}
 	return
 }
 
