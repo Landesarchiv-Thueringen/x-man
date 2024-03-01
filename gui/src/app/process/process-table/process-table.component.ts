@@ -25,7 +25,7 @@ import { Process, ProcessService, ProcessStep } from '../process.service';
 })
 export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   readonly dataSource: MatTableDataSource<Process> = new MatTableDataSource<Process>();
-  readonly displayedColumns: string[] = [
+  readonly displayedColumns = [
     'institution',
     'note',
     'message0501',
@@ -34,7 +34,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     'message0503',
     'formatVerification',
     'archivingComplete',
-  ];
+  ] as const;
   readonly processSubscription: Subscription;
   readonly stateValues = [
     { value: 'message0501', viewValue: 'Anbietung erhalten' },
@@ -65,27 +65,27 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     private formBuilder: FormBuilder,
     private authService: AuthService,
   ) {
-    this.dataSource.sortingDataAccessor = (item: Process, property: string) => {
-      // TODO: fix
+    this.dataSource.sortingDataAccessor = ((
+      process: Process,
+      property: ProcessTableComponent['displayedColumns'][number],
+    ) => {
       switch (property) {
-        case 'receivedAt':
-          return item.receivedAt;
-        case 'institution':
-          return item.institution ? item.institution : '';
         case 'message0501':
-          return (!!item.message0501).toString();
+          return process.processState.receive0501.completionTime ?? '';
         case 'appraisalComplete':
-          return item.message0501 ? item.message0501.appraisalComplete.toString() : (!!item.message0501).toString();
+          return process.processState.appraisal.completionTime ?? '';
         case 'received0502':
-          return (!!item.message0501 && !!item.message0503).toString();
+          return process.processState.receive0505.completionTime ?? '';
         case 'message0503':
-          return (!!item.message0503).toString();
+          return process.processState.receive0503.completionTime ?? '';
+        case 'formatVerification':
+          return process.processState.formatVerification.completionTime ?? '';
         case 'archivingComplete':
-          return (!!item.processState.archiving.complete).toString();
+          return process.processState.archiving.completionTime ?? '';
         default:
-          throw new Error('sorting error: unhandled column');
+          return process[property] ?? '';
       }
-    };
+    }) as (data: Process, sortHeaderId: string) => string;
     // We use object instead of string for filter. Hence we cast to the "wrong" types in both assignments below.
     this.filter.valueChanges.subscribe((filter) => (this.dataSource.filter = filter as string));
     this.dataSource.filterPredicate = this.filterPredicate as (data: Process, filter: string) => boolean;
