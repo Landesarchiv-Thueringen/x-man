@@ -190,7 +190,10 @@ export class MessageMetadataComponent {
     for (const processingError of this.process.processingErrors) {
       let onClick;
       if (this.auth.isAdmin()) {
-        onClick = () => this.dialog.open(ClearingDetailsComponent, { data: processingError });
+        onClick = () =>
+          this.dialog.open(ClearingDetailsComponent, {
+            data: { ...processingError, process: this.process, message: this.message },
+          });
       }
       if (processingError.resolved) {
         items.push({
