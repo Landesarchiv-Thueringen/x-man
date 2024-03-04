@@ -7,8 +7,7 @@
           <mat-cell *matCellDef="let fileInfo">
             <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'true'">check</mat-icon>
             <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'false'">close</mat-icon>
-            <div *ngIf="fileInfo[tableColumn] && !['true', 'false'].includes(fileInfo[tableColumn].value)">
-              {{ fileInfo[tableColumn].value }}
+            <div *ngIf="fileInfo[tableColumn] && !['true', 'false'].includes(fileInfo[tableColumn].value)" span innerHtml="{{ fileInfo[tableColumn].value | featureBreak }}">
             </div>
           </mat-cell>
         </ng-container>

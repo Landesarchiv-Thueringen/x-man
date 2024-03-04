@@ -23,6 +23,14 @@
     overflow-wrap: anywhere;
   }
 
+  .cdk-header-cell.cdk-column-fileName, .cdk-cell.cdk-column-fileName {
+    flex-grow: 3;
+  }
+
+  .cdk-header-cell.cdk-column-mimeType, .cdk-cell.cdk-column-mimeType {
+    flex-grow: 2;
+  }
+
   .cdk-cell.cdk-column-status {
     gap: 0.5em;
   }
