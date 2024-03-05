@@ -44,7 +44,7 @@ import { ProcessMetadataComponent } from './metadata/process-metadata/process-me
 import { RecordObjectAppraisalPipe } from './metadata/record-object-appraisal-pipe';
 import { ProcessTableComponent } from './process/process-table/process-table.component';
 import { AuthInterceptor } from './utility/authorization/auth-interceptor';
-import { FeatureBreakPipe } from './utility/formatting/feature-break.pipe';
+import { BreakOpportunitiesPipe } from './utility/formatting/break-opportunities.pipe';
 import { FileFeaturePipe } from './utility/localization/file-attribut-de.pipe';
 import { PaginatorDeService } from './utility/localization/paginator-de.service';
 registerLocaleData(localeDe);
@@ -52,29 +52,29 @@ registerLocaleData(localeDe);
 @NgModule({
   declarations: [
     AppComponent,
+    AppraisalFormComponent,
+    BreakOpportunitiesPipe,
+    ClearingTableComponent,
     DocumentMetadataComponent,
-    MainNavigationComponent,
-    MessageTreeComponent,
-    MessageMetadataComponent,
-    FeatureBreakPipe,
+    DocumentVersionMetadataComponent,
     FileFeaturePipe,
     FileMetadataComponent,
     FileOverviewComponent,
-    InstitutMetadataComponent,
-    ProcessMetadataComponent,
-    RecordObjectAppraisalPipe,
-    ProcessTableComponent,
-    DocumentVersionMetadataComponent,
-    ClearingTableComponent,
-    PrimaryDocumentsTableComponent,
-    AppraisalFormComponent,
     FinalizeAppraisalDialogComponent,
+    InstitutMetadataComponent,
+    MainNavigationComponent,
+    MessageMetadataComponent,
+    MessageTreeComponent,
+    PrimaryDocumentsTableComponent,
+    ProcessMetadataComponent,
+    ProcessTableComponent,
+    RecordObjectAppraisalPipe,
     StartArchivingDialogComponent,
   ],
   imports: [
-    BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    BrowserModule,
     ClipboardModule,
     FormsModule,
     HttpClientModule,
@@ -95,8 +95,8 @@ registerLocaleData(localeDe);
     MatSnackBarModule,
     MatSortModule,
     MatTableModule,
-    MatTreeModule,
     MatToolbarModule,
+    MatTreeModule,
     ReactiveFormsModule,
   ],
   providers: [
@@ -105,8 +105,6 @@ registerLocaleData(localeDe);
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     DatePipe,
-    FeatureBreakPipe,
-    FileFeaturePipe,
   ],
   bootstrap: [AppComponent],
 })
