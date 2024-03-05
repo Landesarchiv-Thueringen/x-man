@@ -157,7 +157,7 @@ func getProcess(context *gin.Context) {
 	}
 	process, found := db.GetProcess(id.String())
 	if !found {
-		context.AbortWithError(http.StatusNotFound, err)
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	context.JSON(http.StatusOK, process)

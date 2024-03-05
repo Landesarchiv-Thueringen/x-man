@@ -55,9 +55,9 @@ export class AgenciesComponent implements AfterViewInit {
     return this.collectionsService.getCollectionById(agency.collectionId).pipe(map((c) => c?.name ?? ''));
   }
 
-  getArchivistNames(agency: Agency): Observable<string> {
+  getUserNames(agency: Agency): Observable<string> {
     return this.usersService
-      .getUsersByIds(agency.userIds)
+      .getUsersByIds(agency.users.map((user) => user.id))
       .pipe(map((user) => user.map((u) => u.displayName).join('; ')));
   }
 
@@ -79,7 +79,6 @@ export class AgenciesComponent implements AfterViewInit {
       name: 'Neue Abgebende Stelle',
       abbreviation: '',
       transferDir: '',
-      userIds: [],
     });
   }
 }

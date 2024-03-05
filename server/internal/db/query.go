@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -33,10 +32,13 @@ func GetAgencies() []Agency {
 }
 
 func GetAgenciesForUser(userID []byte) []Agency {
+	if len(userID) == 0 {
+		panic("called GetAgenciesForUser with empty user ID")
+	}
 	var agencies []Agency
 	result := db.
 		Preload(clause.Associations).
-		Where("? <@ user_ids", pq.ByteaArray([][]byte{userID})).
+		Where("id IN (SELECT agency_id FROM agency_users WHERE user_id = ?)", userID).
 		Find(&agencies)
 	if result.Error != nil {
 		panic(result.Error)

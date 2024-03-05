@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Collection } from '../collections/collections.service';
+import { User } from '../users/users.service';
 
 export interface Agency {
   id: number;
@@ -13,7 +14,12 @@ export interface Agency {
   transferDir: string;
   collectionId?: number;
   collection?: Collection;
-  userIds: string[];
+  users: User[];
+}
+
+export interface CompleteUser extends User {
+  agencies: Agency[];
+  emailNotifications: boolean;
 }
 
 @Injectable({
@@ -43,7 +49,7 @@ export class AgenciesService {
     });
   }
 
-  updateAgency(id: number, updatedValues: Agency) {
+  updateAgency(id: number, updatedValues: Omit<Agency, 'id'>) {
     const found = this.agencies.value.find((i) => i.id === id);
     if (found) {
       Object.assign(found, updatedValues);

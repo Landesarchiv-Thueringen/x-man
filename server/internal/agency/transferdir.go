@@ -2,12 +2,15 @@ package agency
 
 import (
 	"io/ioutil"
+	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
+	"lath/xman/internal/mail"
 	"lath/xman/internal/messagestore"
 	"lath/xman/internal/xdomea"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"time"
 )
 
@@ -49,7 +52,23 @@ func readMessages() {
 				fullPath := filepath.Join(agency.TransferDir, file.Name())
 				if !db.IsMessageAlreadyProcessed(fullPath) {
 					log.Println("Processing new message " + fullPath)
-					go messagestore.StoreMessage(agency, fullPath)
+					go func() {
+						defer func() {
+							if r := recover(); r != nil {
+								log.Println("Error: readMessages panicked:", r)
+								debug.PrintStack()
+							}
+						}()
+						messageID, err := messagestore.StoreMessage(agency, fullPath)
+						if err == nil {
+							for _, user := range agency.Users {
+								address := auth.GetMailAddress(user.ID)
+								mail.SendMailNew0501(address, agency.Name, messageID.String())
+							}
+						} else {
+							log.Printf("Error when processing message: %v\n", err)
+						}
+					}()
 				}
 			}
 		}

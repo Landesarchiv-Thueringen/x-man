@@ -40,10 +40,15 @@ services:
         condition: service_healthy
     environment:
       - TZ=Europe/Berlin
-      - GIN_MODE=${GIN_MODE}
+      - ORIGIN=${ORIGIN}
       - TOKEN_DAY_LIFESPAN=${TOKEN_DAY_LIFESPAN}
       - TOKEN_PRIVATE_KEY=${TOKEN_PRIVATE_KEY}
       - DELETE_ARCHIVED_PROCESSES_AFTER_DAYS=${DELETE_ARCHIVED_PROCESSES_AFTER_DAYS}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_STARTTLS=${SMTP_STARTTLS}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
       - AD_URL=${AD_URL}
       - AD_BASE_DN=${AD_BASE_DN}
       - AD_USER=${AD_USER}
@@ -74,8 +79,6 @@ services:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
         - NO_PROXY=.tsa.thlv.de,.thlv.de
-    environment:
-      - GIN_MODE=${GIN_MODE}
 
 volumes:
   database:

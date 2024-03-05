@@ -29,10 +29,10 @@
     <mat-cell *matCellDef="let element">{{ element.abbreviation }}</mat-cell>
   </ng-container>
 
-  <!-- Archivist Column -->
+  <!-- Users Column -->
   <ng-container matColumnDef="users">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Zuständige Mitarbeiter</mat-header-cell>
-    <mat-cell *matCellDef="let element">{{ getArchivistNames(element) | async }}</mat-cell>
+    <mat-cell *matCellDef="let element">{{ getUserNames(element) | async }}</mat-cell>
   </ng-container>
 
   <!-- Collection Column -->

@@ -53,8 +53,8 @@ export class AgencyDetailsComponent {
       nonNullable: true,
       validators: Validators.required,
     }),
-    prefix: new FormControl(this.agency.prefix),
-    code: new FormControl(this.agency.code),
+    prefix: new FormControl(this.agency.prefix, { nonNullable: true }),
+    code: new FormControl(this.agency.code, { nonNullable: true }),
     transferDir: new FormControl(this.agency.transferDir, {
       nonNullable: true,
       validators: Validators.required,
@@ -62,7 +62,7 @@ export class AgencyDetailsComponent {
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
     }),
-    userIds: new FormControl(this.agency.userIds ?? [], { nonNullable: true }),
+    userIds: new FormControl(this.agency.users?.map((user) => user.id) ?? [], { nonNullable: true }),
   });
   archivistsFilterControl = new FormControl('');
   filteredArchivists: Observable<User[]>;
@@ -167,7 +167,12 @@ export class AgencyDetailsComponent {
         await this.testTransferDirectory();
       }
       if (this.testResult !== 'failed') {
-        this.dialogRef.close(this.form.value);
+        const { userIds, ...agency } = this.form.getRawValue();
+        const updateAgency: Omit<Agency, 'id'> = {
+          ...agency,
+          users: userIds.map((userId) => ({ id: userId }) as User),
+        };
+        this.dialogRef.close(updateAgency);
       }
     }
   }

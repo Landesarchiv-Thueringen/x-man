@@ -62,6 +62,21 @@ func GetDisplayName(userID []byte) string {
 	}
 }
 
+func GetMailAddress(userID []byte) string {
+	l := connectReadonly()
+	defer l.Close()
+	user := getCompleteLdapUserEntry(l, userID)
+	if user == nil {
+		panic("could not find user with ID " + string(userID))
+	}
+	mail := user.GetAttributeValue("mail")
+	if mail == "" {
+		dn := user.GetAttributeValue("DN")
+		panic("user " + dn + " has no mail address configured")
+	}
+	return mail
+}
+
 // authorizeUser connects to the LDAP server and checks the given users
 // credentials.
 //
@@ -225,7 +240,34 @@ func getLdapUserEntry(l *ldap.Conn, key string, value string) *ldap.Entry {
 		os.Getenv("AD_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
 		fmt.Sprintf("(&(objectClass=organizationalPerson)(%s=%s))", key, ldap.EscapeFilter(value)),
-		[]string{"dn", "displayName", "objectGUID"},
+		[]string{"dn", "displayName", "objectGUID", "mail"},
+		nil,
+	)
+	sr, err := l.Search(searchRequest)
+	if err != nil {
+		panic(err)
+	}
+	if len(sr.Entries) != 1 {
+		return nil
+	}
+	return sr.Entries[0]
+}
+
+// getCompleteLdapUserEntry searches for a user with the given objectGUID and
+// returns their LDAP entry with all available fields.
+//
+// `l` should be an open LDAP connection with readonly access.
+//
+// Returns nil when the user could not be found.
+func getCompleteLdapUserEntry(l *ldap.Conn, objectGUID []byte) *ldap.Entry {
+	if len(objectGUID) == 0 {
+		panic("called getCompleteLdapUserEntry with empty ID")
+	}
+	searchRequest := ldap.NewSearchRequest(
+		os.Getenv("AD_BASE_DN"),
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		fmt.Sprintf("(&(objectClass=organizationalPerson)(objectGUID=%s))", ldap.EscapeFilter(string(objectGUID))),
+		[]string{},
 		nil,
 	)
 	sr, err := l.Search(searchRequest)

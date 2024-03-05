@@ -548,8 +548,14 @@ func CreateAgency(agency Agency) (uint, error) {
 
 func UpdateAgency(id uint, agency Agency) error {
 	agency.ID = id
-	result := db.Save(&agency)
-	return result.Error
+	err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&agency).Association("Users").Replace(agency.Users); err != nil {
+			return err
+		}
+		tx.Save(&agency)
+		return nil
+	})
+	return err
 }
 
 func DeleteAgency(id uint) bool {

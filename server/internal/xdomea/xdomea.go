@@ -139,6 +139,10 @@ func GetMessageName(id string, messageType db.MessageType) string {
 	return id + messageSuffix + ".xml"
 }
 
+// TODO: description
+//
+// It returns an error when a reading the message resulted in any processing
+// error.
 func AddMessage(
 	agency db.Agency,
 	xdomeaID string,
@@ -179,7 +183,9 @@ func AddMessage(
 	if err != nil {
 		return process, message, err
 	}
-	compareAgencyFields(agency, message, process)
+	if foundMismatch := compareAgencyFields(agency, message, process); foundMismatch {
+		return process, message, errors.New("compareAgencyFields discovered mismatch")
+	}
 	if messageType.Code == "0503" {
 		// get primary documents
 		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
@@ -389,7 +395,9 @@ func checkProcessRecordObjectsOfMessage0503(
 // and creates a processing error if not.
 //
 // Only values that are set in `agency` are checked.
-func compareAgencyFields(agency db.Agency, message db.Message, process db.Process) {
+//
+// Returns "true" if a mismatch was found.
+func compareAgencyFields(agency db.Agency, message db.Message, process db.Process) bool {
 	a := message.MessageHead.Sender.AgencyIdentification
 	if a == nil ||
 		(agency.Prefix != "" && a.Prefix == nil) ||
@@ -425,6 +433,8 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 			AdditionalInfo: info,
 		}
 		db.CreateProcessingError(processingErr)
-
+		return true
+	} else {
+		return false
 	}
 }

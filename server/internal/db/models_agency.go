@@ -2,8 +2,6 @@ package db
 
 import (
 	"time"
-
-	"github.com/lib/pq"
 )
 
 // Agency represents an institution as configured in the administration panel.
@@ -25,11 +23,20 @@ type Agency struct {
 	Code string `json:"code"`
 	// TransferDir is the directory that the Agency uses to pass messages
 	TransferDir string `json:"transferDir"`
-	// UserIDs is the LDAP objectGUIDs of users responsible for processes of
-	// this Agency
-	UserIDs      pq.ByteaArray `gorm:"type:bytea[];not null" json:"userIds"`
-	CollectionID *uint         `json:"collectionId"`
-	Collection   *Collection   `json:"collection"`
+	// Users are users responsible for processes of this Agency
+	Users        []User      `gorm:"many2many:agency_users" json:"users"`
+	CollectionID *uint       `json:"collectionId"`
+	Collection   *Collection `json:"collection"`
+}
+
+type User struct {
+	// ID is the LDAP objectGUID
+	ID []byte `gorm:"primaryKey;type:bytea" json:"id"`
+	// Agencies is the list of agencies that the user is responsible for
+	Agencies []Agency `gorm:"many2many:agency_users" json:"agencies"`
+	// EmailNotifications is the user's setting to receive e-mail notifications
+	// from x-man
+	EmailNotifications bool `json:"emailNotifications"`
 }
 
 // Collection refers to an archive collection within DIMAG.

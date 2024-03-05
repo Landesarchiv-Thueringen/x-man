@@ -11,7 +11,6 @@ func InitAgencies() {
 			Abbreviation: "TMIK",
 			TransferDir:  "/xman/transfer_dir",
 			Code:         "TMIK",
-			UserIDs:      [][]byte{},
 		},
 	}
 	db.InitAgencies(agencies)

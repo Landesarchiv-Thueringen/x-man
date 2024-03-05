@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 
 	"github.com/google/uuid"
@@ -18,28 +17,22 @@ import (
 
 var storeDir = "message_store"
 
-func StoreMessage(agency db.Agency, messagePath string) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Error: StoreMessage panicked:", r)
-			debug.PrintStack()
-		}
-	}()
-	id := xdomea.GetMessageID(messagePath)
+func StoreMessage(agency db.Agency, messagePath string) (uuid.UUID, error) {
+	processID := xdomea.GetMessageID(messagePath)
 	transferDir := filepath.Dir(messagePath)
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := os.MkdirTemp("", id)
+	tempDir, err := os.MkdirTemp("", processID)
 	if err != nil {
 		panic(err)
 	}
 	defer os.RemoveAll(tempDir)
-	// Open the original message in the transfer directory.
-	message, err := os.Open(messagePath)
+	// Open the original messageFile in the transfer directory.
+	messageFile, err := os.Open(messagePath)
 	if err != nil {
 		panic(err)
 	}
-	defer message.Close()
+	defer messageFile.Close()
 	// Create a file in the temporary directory.
 	copyPath := path.Join(tempDir, messageName)
 	copy, err := os.Create(copyPath)
@@ -48,20 +41,23 @@ func StoreMessage(agency db.Agency, messagePath string) {
 	}
 	defer copy.Close()
 	// Copy the message to the new file.
-	_, err = io.Copy(copy, message)
+	_, err = io.Copy(copy, messageFile)
 	if err != nil {
 		panic(err)
 	}
-	extractMessage(agency, transferDir, messagePath, copyPath, id)
+	message, err := extractMessage(agency, transferDir, messagePath, copyPath, processID)
+	return message.ID, err
 }
 
+// extractMessage parses the given message file into a database entry and saves
+// it to the database. It returns the saved entry.
 func extractMessage(
 	agency db.Agency,
 	transferDir string,
 	transferDirMessagePath string,
 	messagePath string,
 	id string,
-) {
+) (db.Message, error) {
 	messageType, err := xdomea.GetMessageTypeImpliedByPath(messagePath)
 	// The error should never happen because the message filter should prevent the pross
 	if err != nil {
@@ -116,6 +112,7 @@ func extractMessage(
 			db.UpdateProcess(process)
 		}
 	}
+	return message, err
 }
 
 func Store0502Message(message db.Message) string {
