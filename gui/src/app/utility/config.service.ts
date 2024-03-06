@@ -6,6 +6,7 @@ import { AuthService } from './authorization/auth.service';
 
 export interface Config {
   deleteArchivedProcessesAfterDays: number;
+  supportsEmailNotifications: boolean;
 }
 
 /**

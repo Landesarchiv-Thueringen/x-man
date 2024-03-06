@@ -58,7 +58,8 @@ func main() {
 	authorized.GET("api/primary-document", getPrimaryDocument)
 	authorized.GET("api/primary-documents/:id", getPrimaryDocuments)
 	authorized.GET("api/report/:processId", getReport)
-	authorized.GET("api/agencies/my", getMyAgencies)
+	authorized.GET("api/user-info/my", getMyUserInformation)
+	authorized.POST("api/user-preferences", setUserPreferences)
 	authorized.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
 	authorized.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
 	authorized.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
@@ -74,6 +75,7 @@ func main() {
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.POST("api/processing-errors/resolve/:id", resolveProcessingError)
 	admin.GET("api/users", auth.Users)
+	admin.GET("api/user-info", getUserInformation)
 	admin.GET("api/agencies", getAgencies)
 	admin.PUT("api/agency", putAgency)
 	admin.POST("api/agency/:id", postAgency)
@@ -120,8 +122,10 @@ func getDefaultResponse(context *gin.Context) {
 
 func getConfig(context *gin.Context) {
 	deleteArchivedProcessesAfterDays, _ := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
+	supportsEmailNotifications := os.Getenv("SMTP_SERVER") != ""
 	context.JSON(http.StatusOK, gin.H{
 		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
+		"supportsEmailNotifications":       supportsEmailNotifications,
 	})
 }
 
@@ -561,22 +565,44 @@ func archive0503Message(context *gin.Context) {
 	}()
 }
 
-func getMyAgencies(context *gin.Context) {
+func getUserInformation(context *gin.Context) {
+	userIDString, hasUserID := context.GetQuery("userId")
+	if !hasUserID {
+		context.AbortWithStatus(http.StatusBadRequest)
+	}
+	userID, err := base64.StdEncoding.DecodeString(userIDString)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	userInfo := db.GetUserInformation(userID)
+	context.JSON(http.StatusOK, userInfo)
+}
+
+func getMyUserInformation(context *gin.Context) {
 	userID := context.MustGet("userId").([]byte)
-	agencies := db.GetAgenciesForUser(userID)
-	context.JSON(http.StatusOK, agencies)
+	userInfo := db.GetUserInformation(userID)
+	context.JSON(http.StatusOK, userInfo)
+}
+
+func setUserPreferences(context *gin.Context) {
+	userID := context.MustGet("userId").([]byte)
+	body, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		panic(err)
+	}
+	var userPreferences db.UserPreferences
+	err = json.Unmarshal(body, &userPreferences)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	db.UpdateUserPreferences(userID, userPreferences)
 }
 
 func getAgencies(context *gin.Context) {
 	var agencies []db.Agency
-	if userIDString, hasUserID := context.GetQuery("userId"); hasUserID {
-		userID, err := base64.StdEncoding.DecodeString(userIDString)
-		if err != nil {
-			context.AbortWithError(http.StatusUnprocessableEntity, err)
-			return
-		}
-		agencies = db.GetAgenciesForUser(userID)
-	} else if collectionIDString, hasCollectionID := context.GetQuery("collectionId"); hasCollectionID {
+	if collectionIDString, hasCollectionID := context.GetQuery("collectionId"); hasCollectionID {
 		collectionID, err := strconv.ParseUint(collectionIDString, 10, 32)
 		if err != nil {
 			context.AbortWithError(http.StatusUnprocessableEntity, err)

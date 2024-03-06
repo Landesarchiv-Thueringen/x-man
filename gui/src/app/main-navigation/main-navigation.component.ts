@@ -1,9 +1,7 @@
-import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { environment } from '../../environments/environment';
-import { Agency } from '../admin/agencies/agencies.service';
 import { UserDetailsComponent } from '../admin/users/user-details.component';
+import { UsersService } from '../admin/users/users.service';
 import { AuthService } from '../utility/authorization/auth.service';
 
 @Component({
@@ -17,13 +15,13 @@ export class MainNavigationComponent {
   constructor(
     private auth: AuthService,
     private dialog: MatDialog,
-    private httpClient: HttpClient,
+    private users: UsersService,
   ) {}
 
   openUserDetails() {
     const user = this.auth.getCurrentLoginInformation()!.user;
-    this.httpClient.get<Agency[]>(environment.endpoint + '/agencies/my').subscribe((agencies) => {
-      this.dialog.open(UserDetailsComponent, { data: { user, agencies } });
+    this.users.getUserInformation().subscribe(({ agencies, preferences }) => {
+      this.dialog.open(UserDetailsComponent, { data: { user, agencies, preferences } });
     });
   }
 

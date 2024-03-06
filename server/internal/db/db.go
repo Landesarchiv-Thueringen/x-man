@@ -95,6 +95,8 @@ func Migrate() {
 		&ProcessingError{},
 		&Collection{},
 		&Task{},
+		&User{},
+		&UserPreferences{},
 	)
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate database: %v", err))
@@ -621,5 +623,25 @@ func DeleteTask(task Task) {
 		panic(result.Error)
 	} else if result.RowsAffected != 1 {
 		panic(fmt.Sprintf("failed to delete task %v: not found", task.ID))
+	}
+}
+
+// UpdateUserPreferences saves the preferences for the given user to the
+// database.
+//
+// Both the entry for the user and the entry for the user preferences are
+// created if they don't yet exist.
+func UpdateUserPreferences(userID []byte, userPreferences UserPreferences) {
+	if len(userID) == 0 {
+		panic("called GetUserSettings with empty ID")
+	}
+	userPreferences.UserID = userID
+	err := db.Transaction(func(tx *gorm.DB) error {
+		tx.Save(&User{ID: userID})
+		tx.Save(&userPreferences)
+		return nil
+	})
+	if err != nil {
+		panic(err)
 	}
 }

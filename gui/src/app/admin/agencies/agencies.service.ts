@@ -19,7 +19,8 @@ export interface Agency {
 
 export interface CompleteUser extends User {
   agencies: Agency[];
-  emailNotifications: boolean;
+  messageEmailNotifications: boolean;
+  errorEmailNotifications: boolean;
 }
 
 @Injectable({

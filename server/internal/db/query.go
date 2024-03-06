@@ -31,19 +31,22 @@ func GetAgencies() []Agency {
 	return agencies
 }
 
-func GetAgenciesForUser(userID []byte) []Agency {
+func GetUserInformation(userID []byte) (user User) {
 	if len(userID) == 0 {
-		panic("called GetAgenciesForUser with empty user ID")
+		panic("called GetUserInformation with empty user ID")
 	}
-	var agencies []Agency
 	result := db.
 		Preload(clause.Associations).
-		Where("id IN (SELECT agency_id FROM agency_users WHERE user_id = ?)", userID).
-		Find(&agencies)
+		Where(User{ID: userID}).
+		Limit(1).
+		Find(&user)
+	if len(user.Preferences.UserID) == 0 {
+		user.Preferences = GetDefaultPreferences()
+	}
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	return agencies
+	return
 }
 
 func GetAgenciesForCollection(collectionID uint) []Agency {
@@ -118,9 +121,12 @@ func GetProcesses() []Process {
 
 func GetProcessesForUser(userID []byte) []Process {
 	var processes []Process
-	agencies := GetAgenciesForUser(userID)
-	agencyIDs := make([]uint, len(agencies))
-	for i, v := range agencies {
+	userInfo := GetUserInformation(userID)
+	if len(userInfo.Agencies) == 0 {
+		return []Process{}
+	}
+	agencyIDs := make([]uint, len(userInfo.Agencies))
+	for i, v := range userInfo.Agencies {
 		agencyIDs[i] = v.ID
 	}
 	result := db.

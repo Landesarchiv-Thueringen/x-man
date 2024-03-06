@@ -63,7 +63,10 @@ func readMessages() {
 						if err == nil {
 							for _, user := range agency.Users {
 								address := auth.GetMailAddress(user.ID)
-								mail.SendMailNew0501(address, agency.Name, messageID.String())
+								preferences := db.GetUserInformation(user.ID).Preferences
+								if preferences.MessageEmailNotifications {
+									mail.SendMailNew0501(address, agency.Name, messageID.String())
+								}
 							}
 						} else {
 							log.Printf("Error when processing message: %v\n", err)

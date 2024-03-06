@@ -12,9 +12,10 @@ mat-chip-set {
   align-self: center;
 }
 
-h3 {
-  margin: 0;
-  color: var(--mdc-dialog-subhead-color, rgba(0, 0, 0, 0.87));
+.toggles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
 
 .mat-mdc-list-item-icon {

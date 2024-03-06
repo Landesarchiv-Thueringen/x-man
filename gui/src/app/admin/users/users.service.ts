@@ -11,6 +11,16 @@ export interface User {
   permissions: Permissions;
 }
 
+export interface UserInformation {
+  agencies: Agency[];
+  preferences: UserPreferences;
+}
+
+export interface UserPreferences {
+  messageEmailNotifications: boolean;
+  errorEmailNotifications: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -33,8 +43,16 @@ export class UsersService {
     return this.users.pipe(map((users) => ids.map((id) => this.findById(users, id))));
   }
 
-  getAgenciesForUser(userId: string): Observable<Agency[]> {
-    return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', { params: { userId } });
+  getUserInformation(userId?: string): Observable<UserInformation> {
+    if (userId) {
+      return this.httpClient.get<UserInformation>(environment.endpoint + '/user-info', { params: { userId } });
+    } else {
+      return this.httpClient.get<UserInformation>(environment.endpoint + '/user-info/my');
+    }
+  }
+
+  updateUserPreferences(preferences: UserPreferences): Observable<void> {
+    return this.httpClient.post<void>(environment.endpoint + '/user-preferences', preferences);
   }
 
   private findById(user: User[], id: string): User {
