@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +22,12 @@ const (
 	ErrorResolutionDeleteMessage   ProcessingErrorResolution = "delete-message"
 )
 
+// ProcessingError represents any problem that should be communicated to
+// clearing.
+//
+// Functions that encounter such a problem should return a ProcessingError.
+// Higher-level functions are responsible for calling
+// clearing.PassProcessingError.
 type ProcessingError struct {
 	ID             uint                      `gorm:"primaryKey" json:"id"`
 	CreatedAt      time.Time                 `json:"detectedAt"`
@@ -39,4 +46,8 @@ type ProcessingError struct {
 	Resolution     ProcessingErrorResolution `json:"resolution"`
 	Description    string                    `json:"description"`
 	AdditionalInfo string                    `json:"additionalInfo"`
+}
+
+func (p ProcessingError) Error() string {
+	return fmt.Sprintf("processing error: %v", p.Description)
 }

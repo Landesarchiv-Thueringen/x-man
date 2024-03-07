@@ -3,6 +3,7 @@ package routines
 
 import (
 	"fmt"
+	"lath/xman/internal/clearing"
 	"lath/xman/internal/db"
 	"lath/xman/internal/format"
 	"lath/xman/internal/messagestore"
@@ -59,11 +60,17 @@ func tryRestart(task *db.Task) {
 	case db.TaskTypeFormatVerification:
 		process, found := db.GetProcess(task.ProcessID)
 		if found {
-			go format.VerifyFileFormats(process, *process.Message0503)
+			go func() {
+				err := format.VerifyFileFormats(process, *process.Message0503)
+				clearing.HandleError(err)
+			}()
 			couldRestart = true
 		}
 	}
-	tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man", !couldRestart)
+	processingError := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
+	if !couldRestart {
+		clearing.HandleError(processingError)
+	}
 }
 
 // cleanupArchivedProcesses deletes processes that have been archived

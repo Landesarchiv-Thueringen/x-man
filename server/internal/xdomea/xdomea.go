@@ -183,24 +183,27 @@ func AddMessage(
 	if err != nil {
 		return process, message, err
 	}
-	if foundMismatch := compareAgencyFields(agency, message, process); foundMismatch {
-		return process, message, errors.New("compareAgencyFields discovered mismatch")
+	if err := compareAgencyFields(agency, message, process); err != nil {
+		return process, message, err
 	}
 	if messageType.Code == "0503" {
 		// get primary documents
 		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
 		err = checkMessage0503Integrity(process, message, primaryDocuments)
-		if err == nil {
-			// if 0501 message exists, transfer the internal appraisal note from 0501 to 0503 message
-			if process.Message0501 != nil {
-				err = TransferAppraisalNoteFrom0501To0503(process)
-				if err != nil {
-					log.Println(err)
-					return process, message, err
-				}
+		if err != nil {
+			return process, message, err
+		}
+		// if 0501 message exists, transfer the internal appraisal note from 0501 to 0503 message
+		if process.Message0501 != nil {
+			err = TransferAppraisalNoteFrom0501To0503(process)
+			if err != nil {
+				return process, message, err
 			}
-			// start format verification
-			format.VerifyFileFormats(process, message)
+		}
+		// start format verification
+		err = format.VerifyFileFormats(process, message)
+		if err != nil {
+			return process, message, err
 		}
 	}
 	return process, message, nil
@@ -216,7 +219,6 @@ func checkMessageValidity(agency db.Agency, message *db.Message, transferDirMess
 	message.SchemaValidation = messageIsValid
 	if err != nil {
 		if !messageIsValid {
-			var processingError db.ProcessingError
 			validationError, ok := err.(xsd.SchemaValidationError)
 			if ok {
 				var errorMessages []string
@@ -225,20 +227,19 @@ func checkMessageValidity(agency db.Agency, message *db.Message, transferDirMess
 					log.Printf("XML schema error: %s", e.Error())
 				}
 				additionalInfo := strings.Join(errorMessages, "\n")
-				processingError = db.ProcessingError{
+				return db.ProcessingError{
 					Agency:         &agency,
 					TransferPath:   &transferDirMessagePath,
 					Description:    "Schema-Validierung ungültig",
 					AdditionalInfo: additionalInfo,
 				}
 			} else {
-				processingError = db.ProcessingError{
+				return db.ProcessingError{
 					Agency:       &agency,
 					TransferPath: &transferDirMessagePath,
 					Description:  "Schema-Validierung ungültig",
 				}
 			}
-			db.CreateProcessingError(processingError)
 		}
 		return err
 	}
@@ -255,14 +256,11 @@ func checkMessage0503Integrity(
 		filePath := path.Join(message0503.StoreDir, primaryDocument.FileName)
 		_, err := os.Stat(filePath)
 		if err != nil {
-			log.Println(err.Error())
-			processingErr := db.ProcessingError{
+			return db.ProcessingError{
 				Process:     &process,
 				Description: "Primärdatei fehlt in Abgabe",
 				Message:     &message0503,
 			}
-			db.CreateProcessingError(processingErr)
-			return err
 		}
 	}
 	// check if 0501 message exists
@@ -274,13 +272,11 @@ func checkMessage0503Integrity(
 	// check if appraisal of 0501 message is already complete
 	if !process.ProcessState.Appraisal.Complete {
 		errorMessage := "Die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
-		processingErr := db.ProcessingError{
+		return db.ProcessingError{
 			Process:     &process,
 			Description: errorMessage,
 			Message:     &message0503,
 		}
-		db.CreateProcessingError(processingErr)
-		return errors.New(errorMessage)
 	} else {
 		return checkRecordObjectsOfMessage0503(process, message0501, message0503)
 	}
@@ -311,14 +307,12 @@ func checkRecordObjectsOfMessage0503(
 	}
 	if message0503Incomplete {
 		errorMessage := "Die Abgabe ist nicht vollständig"
-		processingErr := db.ProcessingError{
+		return db.ProcessingError{
 			Process:        &process,
 			Description:    errorMessage,
 			AdditionalInfo: additionalInfo,
 			Message:        &message0503,
 		}
-		db.CreateProcessingError(processingErr)
-		return errors.New(errorMessage)
 	}
 	return nil
 }
@@ -395,9 +389,7 @@ func checkProcessRecordObjectsOfMessage0503(
 // and creates a processing error if not.
 //
 // Only values that are set in `agency` are checked.
-//
-// Returns "true" if a mismatch was found.
-func compareAgencyFields(agency db.Agency, message db.Message, process db.Process) bool {
+func compareAgencyFields(agency db.Agency, message db.Message, process db.Process) error {
 	a := message.MessageHead.Sender.AgencyIdentification
 	if a == nil ||
 		(agency.Prefix != "" && a.Prefix == nil) ||
@@ -425,16 +417,13 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 		} else {
 			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
 		}
-		processingErr := db.ProcessingError{
+		return db.ProcessingError{
 			Process:        &process,
 			Message:        &message,
 			Type:           db.ProcessingErrorAgencyMismatch,
 			Description:    "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
 			AdditionalInfo: info,
 		}
-		db.CreateProcessingError(processingErr)
-		return true
-	} else {
-		return false
 	}
+	return nil
 }

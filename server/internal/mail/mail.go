@@ -21,6 +21,15 @@ func SendMailNew0501(to string, agencyName string, messageID string) {
 	))
 }
 
+func SendMailProcessingError(to string, agencyName string, messageID string) {
+	url := os.Getenv("ORIGIN") + "/nachricht/" + messageID
+	sendMail(to, "Neue Anbietung von "+agencyName, fmt.Sprintf(
+		"<p>Es ist eine neue Anbietung von \"%s\" eingegangen.</p>"+
+			"<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>",
+		agencyName, url, url,
+	))
+}
+
 func sendMail(to, subject, body string) {
 	addr := os.Getenv("SMTP_SERVER")
 	if addr == "" {

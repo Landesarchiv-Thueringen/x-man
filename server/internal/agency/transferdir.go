@@ -3,6 +3,7 @@ package agency
 import (
 	"io/ioutil"
 	"lath/xman/internal/auth"
+	"lath/xman/internal/clearing"
 	"lath/xman/internal/db"
 	"lath/xman/internal/mail"
 	"lath/xman/internal/messagestore"
@@ -60,6 +61,7 @@ func readMessages() {
 							}
 						}()
 						messageID, err := messagestore.StoreMessage(agency, fullPath)
+						clearing.HandleError(err)
 						if err == nil {
 							for _, user := range agency.Users {
 								address := auth.GetMailAddress(user.ID)
@@ -68,8 +70,6 @@ func readMessages() {
 									mail.SendMailNew0501(address, agency.Name, messageID.String())
 								}
 							}
-						} else {
-							log.Printf("Error when processing message: %v\n", err)
 						}
 					}()
 				}

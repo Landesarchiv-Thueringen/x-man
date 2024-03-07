@@ -34,7 +34,7 @@ var client http.Client = http.Client{
 }
 var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 
-func VerifyFileFormats(process db.Process, message db.Message) {
+func VerifyFileFormats(process db.Process, message db.Message) error {
 	log.Printf("Starting VerifyFileFormats for message %v...\n", message.ID)
 	defer func() {
 		if r := recover(); r != nil {
@@ -72,8 +72,9 @@ func VerifyFileFormats(process db.Process, message db.Message) {
 	if len(errorMessages) == 0 {
 		tasks.MarkDone(&task, nil)
 	} else {
-		tasks.MarkFailed(&task, strings.Join(errorMessages, "\n\n"), true)
+		return tasks.MarkFailed(&task, strings.Join(errorMessages, "\n\n"))
 	}
+	return nil
 }
 
 // verifyDocument runs format verification on the given document using the

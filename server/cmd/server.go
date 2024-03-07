@@ -558,7 +558,8 @@ func archive0503Message(context *gin.Context) {
 			panic("unknown archive target: " + archiveTarget)
 		}
 		if err != nil {
-			tasks.MarkFailed(&task, err.Error(), true)
+			processingError := tasks.MarkFailed(&task, err.Error())
+			clearing.HandleError(processingError)
 		} else {
 			tasks.MarkDone(&task, &userName)
 		}

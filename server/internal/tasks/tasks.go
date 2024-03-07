@@ -34,7 +34,9 @@ func MarkItemComplete(task *db.Task) {
 }
 
 // MarkFailed marks the task and its process step failed.
-func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) {
+//
+// It returns a matching ProcessingError to be passed on.
+func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 	// Update task
 	task.State = db.TaskStateFailed
 	task.ErrorMessage = errorMessage
@@ -42,26 +44,24 @@ func MarkFailed(task *db.Task, errorMessage string, createProcessingError bool) 
 	// The process step is marked failed by the processing error
 
 	// Create processing error
-	if createProcessingError {
-		var processingErrorType db.ProcessingErrorType
-		var messageID uuid.UUID
-		switch task.Type {
-		case db.TaskTypeArchiving:
-			processingErrorType = db.ProcessingErrorArchivingFailed
-			messageID = *task.Process.Message0503ID
-		case db.TaskTypeFormatVerification:
-			processingErrorType = db.ProcessingErrorFormatVerificationFailed
-			messageID = *task.Process.Message0503ID
-		}
-		db.CreateProcessingError(db.ProcessingError{
-			ProcessID:      &task.ProcessID,
-			ProcessStepID:  &task.ProcessStepID,
-			Type:           processingErrorType,
-			AgencyID:       &task.Process.AgencyID,
-			Description:    getDisplayName(task.Type) + " fehlgeschlagen",
-			MessageID:      &messageID,
-			AdditionalInfo: errorMessage,
-		})
+	var processingErrorType db.ProcessingErrorType
+	var messageID uuid.UUID
+	switch task.Type {
+	case db.TaskTypeArchiving:
+		processingErrorType = db.ProcessingErrorArchivingFailed
+		messageID = *task.Process.Message0503ID
+	case db.TaskTypeFormatVerification:
+		processingErrorType = db.ProcessingErrorFormatVerificationFailed
+		messageID = *task.Process.Message0503ID
+	}
+	return db.ProcessingError{
+		ProcessID:      &task.ProcessID,
+		ProcessStepID:  &task.ProcessStepID,
+		Type:           processingErrorType,
+		AgencyID:       &task.Process.AgencyID,
+		Description:    getDisplayName(task.Type) + " fehlgeschlagen",
+		MessageID:      &messageID,
+		AdditionalInfo: errorMessage,
 	}
 }
 
