@@ -308,8 +308,8 @@ func AddMessage(
 		process = AddProcess(agency, processID, processStoreDir, institution)
 	} else {
 		// Check if the process has already a message with the type of the given message.
-		_, err := GetMessageOfProcessByCode(process, message.MessageType.Code)
-		if err == nil {
+		_, found := GetMessageOfProcessByCode(process, message.MessageType.Code)
+		if found {
 			panic("process already has message with type " + message.MessageType.Code)
 		}
 	}

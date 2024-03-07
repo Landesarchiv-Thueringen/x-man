@@ -264,9 +264,9 @@ func checkMessage0503Integrity(
 		}
 	}
 	// check if 0501 message exists
-	message0501, err := db.GetMessageOfProcessByCode(process, "0501")
+	message0501, found := db.GetMessageOfProcessByCode(process, "0501")
 	// 0501 Message doesn't exist. No further message validation necessary.
-	if err != nil {
+	if !found {
 		return nil
 	}
 	// check if appraisal of 0501 message is already complete

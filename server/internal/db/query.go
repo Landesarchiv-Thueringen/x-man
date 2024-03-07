@@ -1,8 +1,6 @@
 package db
 
 import (
-	"errors"
-	"fmt"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -421,37 +419,35 @@ func GetAllTransferFilesOfProcess(process Process) []string {
 	return messages
 }
 
-func GetMessageOfProcessByCode(process Process, code string) (Message, error) {
+func GetMessageOfProcessByCode(process Process, code string) (message Message, found bool) {
 	result := db.Model(&Process{}).
 		Preload("Message0501.MessageType").
 		Preload("Message0503.MessageType").
 		Where(&process).
-		First(&process)
+		Limit(1).
+		Find(&process)
 	if result.Error != nil {
-		return Message{}, fmt.Errorf("failed to read process {%s}: %w", process.ID, result.Error)
+		panic(result.Error)
 	}
+	if result.RowsAffected == 0 {
+		return
+	}
+	var messagePtr *Message
 	switch code {
 	case "0501":
-		if process.Message0501 == nil {
-			return Message{}, errors.New("process {" + process.ID + "} has no 0501 message")
-		} else {
-			return *process.Message0501, nil
-		}
+		messagePtr = process.Message0501
 	case "0503":
-		if process.Message0503 == nil {
-			return Message{}, errors.New("process {" + process.ID + "} has no 0503 message")
-		} else {
-			return *process.Message0503, nil
-		}
+		messagePtr = process.Message0503
 	case "0505":
-		if process.Message0505 == nil {
-			return Message{}, errors.New("process {" + process.ID + "} has no 0505 message")
-		} else {
-			return *process.Message0505, nil
-		}
+		messagePtr = process.Message0505
 	default:
-		panic("unsupported message type with code: " + code)
+		panic("unsupported message type: " + code)
 	}
+	if messagePtr != nil {
+		found = true
+		message = *messagePtr
+	}
+	return
 }
 
 func GetMessagesByCode(code string) []Message {
