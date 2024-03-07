@@ -10,7 +10,9 @@ package clearing
 
 import (
 	"fmt"
+	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
+	"lath/xman/internal/mail"
 	"lath/xman/internal/messagestore"
 	"log"
 )
@@ -61,7 +63,16 @@ func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorRe
 }
 
 func sendEmailNotifications(e db.ProcessingError) {
-	// TODO
+	users := auth.ListUsers()
+	for _, user := range users {
+		if user.Permissions.Admin {
+			preferences := db.GetUserInformation(user.ID).Preferences
+			if preferences.ErrorEmailNotifications {
+				mailAddr := auth.GetMailAddress(user.ID)
+				mail.SendMailProcessingError(mailAddr, e)
+			}
+		}
+	}
 }
 
 func augmentProcessingError(e db.ProcessingError) db.ProcessingError {

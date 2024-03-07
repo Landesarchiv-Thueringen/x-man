@@ -74,7 +74,7 @@ func main() {
 	admin.DELETE("api/process/:id", deleteProcess)
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.POST("api/processing-errors/resolve/:id", resolveProcessingError)
-	admin.GET("api/users", auth.Users)
+	admin.GET("api/users", Users)
 	admin.GET("api/user-info", getUserInformation)
 	admin.GET("api/agencies", getAgencies)
 	admin.PUT("api/agency", putAgency)
@@ -564,6 +564,11 @@ func archive0503Message(context *gin.Context) {
 			tasks.MarkDone(&task, &userName)
 		}
 	}()
+}
+
+func Users(c *gin.Context) {
+	users := auth.ListUsers()
+	c.JSON(http.StatusOK, users)
 }
 
 func getUserInformation(context *gin.Context) {

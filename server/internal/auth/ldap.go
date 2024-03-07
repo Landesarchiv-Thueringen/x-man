@@ -144,7 +144,8 @@ func authorizeUser(username string, password string) authorizationResult {
 	}
 }
 
-func listUsers() []userEntry {
+// ListUsers lists all users with basic access rights and their permissions
+func ListUsers() []userEntry {
 	if os.Getenv("AD_URL") == "" {
 		return []userEntry{}
 	}

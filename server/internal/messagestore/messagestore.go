@@ -17,7 +17,7 @@ import (
 
 var storeDir = "message_store"
 
-func StoreMessage(agency db.Agency, messagePath string) (uuid.UUID, error) {
+func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
 	processID := xdomea.GetMessageID(messagePath)
 	transferDir := filepath.Dir(messagePath)
 	messageName := filepath.Base(messagePath)
@@ -45,8 +45,7 @@ func StoreMessage(agency db.Agency, messagePath string) (uuid.UUID, error) {
 	if err != nil {
 		panic(err)
 	}
-	message, err := extractMessage(agency, transferDir, messagePath, copyPath, processID)
-	return message.ID, err
+	return extractMessage(agency, transferDir, messagePath, copyPath, processID)
 }
 
 // extractMessage parses the given message file into a database entry and saves

@@ -61,12 +61,6 @@ func Login(c *gin.Context) {
 	})
 }
 
-// Users lists all users with basic access rights and their permissions
-func Users(c *gin.Context) {
-	users := listUsers()
-	c.JSON(http.StatusOK, users)
-}
-
 // extractToken reads a bearer token from the HTTP authorization header.
 func extractToken(c *gin.Context) string {
 	authorization := c.Request.Header.Get("Authorization")

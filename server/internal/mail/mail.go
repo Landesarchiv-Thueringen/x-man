@@ -4,30 +4,55 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"lath/xman/internal/db"
 	"log"
 	"mime"
 	"net"
 	"net/smtp"
 	"os"
 	"regexp"
+	"strings"
 )
 
-func SendMailNew0501(to string, agencyName string, messageID string) {
-	url := os.Getenv("ORIGIN") + "/nachricht/" + messageID
-	sendMail(to, "Neue Anbietung von "+agencyName, fmt.Sprintf(
-		"<p>Es ist eine neue Anbietung von \"%s\" eingegangen.</p>"+
-			"<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>",
-		agencyName, url, url,
-	))
+func SendMailNewMessage(to string, agencyName string, message db.Message) {
+	var messageType string
+	switch message.MessageType.Code {
+	case "0501":
+		messageType = "Anbietung"
+	case "0503":
+		messageType = "Abgabe"
+	case "0505":
+		messageType = "Bewertungsbestätigung"
+	default:
+		panic("unhandled message type: " + message.MessageType.Code)
+	}
+	body := "<p>Es ist eine neue " + messageType + " von \"" + agencyName + "\" eingegangen.</p>\n"
+	origin := os.Getenv("ORIGIN")
+	if message.MessageType.Code == "0501" || message.MessageType.Code == "0503" {
+		url := origin + "/nachricht/" + message.ID.String()
+		body += fmt.Sprintf("<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>\n", url, url)
+	}
+	body += "<p>Sie bekommen diese E-Mail, weil Sie der abgebenden Stelle als zuständige(r) Archivar(in) zugeordnet sind.<br>\n" +
+		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
+	sendMail(to, "Neue "+messageType+" von "+agencyName, body)
 }
 
-func SendMailProcessingError(to string, agencyName string, messageID string) {
-	url := os.Getenv("ORIGIN") + "/nachricht/" + messageID
-	sendMail(to, "Neue Anbietung von "+agencyName, fmt.Sprintf(
-		"<p>Es ist eine neue Anbietung von \"%s\" eingegangen.</p>"+
-			"<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>",
-		agencyName, url, url,
-	))
+func SendMailProcessingError(to string, e db.ProcessingError) {
+	origin := os.Getenv("ORIGIN")
+	message := "<p>Ein Fehler wurde in der Steuerungsstelle eingetragen.</p>\n"
+	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Description)
+	if e.MessageID != nil {
+		url := origin + "/nachricht/" + e.MessageID.String()
+		message += fmt.Sprintf("<p>Nachricht: <a href=\"%s\">%s</a></p>\n", url, url)
+	}
+	if e.AdditionalInfo != "" {
+		message += fmt.Sprintf("<p>%s</p>", strings.ReplaceAll(e.AdditionalInfo, "\n", "\n<br>"))
+	}
+	message += fmt.Sprintf("<p>Sie bekommen diese E-Mail, weil Sie sich als Administrator für Benachrichtigungen für Fehler eingetragen haben.<br>\n"+
+		"Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>",
+		origin, origin,
+	)
+	sendMail(to, "Fehler in Steuerungsstelle: "+e.Description, message)
 }
 
 func sendMail(to, subject, body string) {

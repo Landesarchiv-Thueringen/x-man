@@ -60,14 +60,14 @@ func readMessages() {
 								debug.PrintStack()
 							}
 						}()
-						messageID, err := messagestore.StoreMessage(agency, fullPath)
+						message, err := messagestore.StoreMessage(agency, fullPath)
 						clearing.HandleError(err)
 						if err == nil {
 							for _, user := range agency.Users {
 								address := auth.GetMailAddress(user.ID)
 								preferences := db.GetUserInformation(user.ID).Preferences
 								if preferences.MessageEmailNotifications {
-									mail.SendMailNew0501(address, agency.Name, messageID.String())
+									mail.SendMailNewMessage(address, agency.Name, message)
 								}
 							}
 						}
