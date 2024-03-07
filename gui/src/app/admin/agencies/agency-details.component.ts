@@ -55,6 +55,7 @@ export class AgencyDetailsComponent {
     }),
     prefix: new FormControl(this.agency.prefix, { nonNullable: true }),
     code: new FormControl(this.agency.code, { nonNullable: true }),
+    contactEmail: new FormControl(this.agency.contactEmail, { nonNullable: true }),
     transferDir: new FormControl(this.agency.transferDir, {
       nonNullable: true,
       validators: Validators.required,

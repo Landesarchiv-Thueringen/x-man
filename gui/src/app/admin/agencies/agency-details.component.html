@@ -77,6 +77,17 @@
           </mat-form-field>
         </div>
       </mat-expansion-panel>
+      <mat-expansion-panel [expanded]="isNew">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Kontakt</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>E-Mail-Adresse</mat-label>
+            <input matInput formControlName="contactEmail" />
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
       <mat-expansion-panel #transferDirPanel [expanded]="isNew">
         <mat-expansion-panel-header>
           <mat-panel-title>Transferverzeichnis</mat-panel-title>

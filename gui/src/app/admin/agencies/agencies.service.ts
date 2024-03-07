@@ -11,6 +11,7 @@ export interface Agency {
   abbreviation: string;
   prefix: string;
   code: string;
+  contactEmail: string;
   transferDir: string;
   collectionId?: number;
   collection?: Collection;

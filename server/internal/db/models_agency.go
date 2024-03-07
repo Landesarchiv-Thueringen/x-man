@@ -21,6 +21,8 @@ type Agency struct {
 	Prefix string `json:"prefix"`
 	// Code is the agency code as by xdomea.
 	Code string `json:"code"`
+	// ContactEmail is the e-mail address to use to contact the agency.
+	ContactEmail string `json:"contactEmail"`
 	// TransferDir is the directory that the Agency uses to pass messages.
 	TransferDir string `json:"transferDir"`
 	// Users are users responsible for processes of this Agency.

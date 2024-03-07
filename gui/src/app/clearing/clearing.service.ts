@@ -2,8 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { Agency } from '../admin/agencies/agencies.service';
 import { Message } from '../message/message.service';
-import { Agency, Process } from '../process/process.service';
+import { Process } from '../process/process.service';
 
 type ProcessingErrorType = 'agency-mismatch';
 type ProcessingErrorResolution = 'reimport-message' | 'delete-message';

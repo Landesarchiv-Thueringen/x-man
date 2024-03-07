@@ -42,6 +42,33 @@ export class ClearingDetailsComponent {
     this.json = JSON.stringify(data, null, 2);
   }
 
+  sendEmail() {
+    let subject: string;
+    switch (this.data.message?.messageType.code) {
+      case '0501':
+        subject = 'Fehler bei xdomea-Anbietung';
+        break;
+      case '0503':
+        subject = 'Fehler bei xdomea-Abgabe';
+        break;
+      case '0505':
+        subject = 'Fehler bei xdomea-Bewertungsbestätigung';
+        break;
+      default:
+        subject = 'Fehler bei xdomea-Nachricht';
+    }
+    let body = 'Beim Einlesen einer xdomea-Nachricht ein ein Fehler aufgetreten: ' + this.data.description;
+    if (this.data.additionalInfo) {
+      body += '\n\nFehlerausgabe vom System:\n' + this.data.additionalInfo;
+    }
+    const a = document.createElement('a');
+    a.setAttribute(
+      'href',
+      `mailto:${this.data.agency!.contactEmail}?subject=${subject}&body=${encodeURIComponent(body)}`,
+    );
+    a.click();
+  }
+
   reimportMessage() {
     this.clearingService.resolveError(this.data.id, 'reimport-message').subscribe(() => {
       this.notificationService.show('Nachricht wird neu eingelesen...');

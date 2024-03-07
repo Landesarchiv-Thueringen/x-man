@@ -3,14 +3,10 @@ import { Injectable } from '@angular/core';
 import { Observable, interval } from 'rxjs';
 import { first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { Agency } from '../admin/agencies/agencies.service';
 import { Task } from '../admin/tasks/tasks.service';
 import { ProcessingError } from '../clearing/clearing.service';
 import { Message } from '../message/message.service';
-
-export interface Agency {
-  name: string;
-  abbreviation: string;
-}
 
 export interface Process {
   agency: Agency;
