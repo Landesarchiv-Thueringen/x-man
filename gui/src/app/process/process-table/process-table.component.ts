@@ -30,7 +30,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
     'note',
     'message0501',
     'appraisalComplete',
-    'received0502',
+    'message0505',
     'message0503',
     'formatVerification',
     'archivingComplete',
@@ -39,7 +39,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
   readonly stateValues = [
     { value: 'message0501', viewValue: 'Anbietung erhalten' },
     { value: 'appraisalComplete', viewValue: 'Bewertung abgeschlossen' },
-    { value: 'received0502', viewValue: 'Bewertung in VIS importiert' },
+    { value: 'message0505', viewValue: 'Bewertung in VIS importiert' },
     { value: 'message0503', viewValue: 'Abgabe erhalten' },
     { value: 'formatVerification', viewValue: 'Formatverifikation abgeschlossen' },
     { value: 'archivingComplete', viewValue: 'Abgabe archiviert' },
@@ -74,7 +74,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
           return process.processState.receive0501.completionTime ?? '';
         case 'appraisalComplete':
           return process.processState.appraisal.completionTime ?? '';
-        case 'received0502':
+        case 'message0505':
           return process.processState.receive0505.completionTime ?? '';
         case 'message0503':
           return process.processState.receive0503.completionTime ?? '';
@@ -187,7 +187,7 @@ export class ProcessTableComponent implements AfterViewInit, OnDestroy {
         return state;
       } else if (state === 'appraisalComplete' && process.processState.appraisal.complete) {
         return state;
-      } else if (state === 'received0502' && process.processState.receive0505.complete) {
+      } else if (state === 'message0505' && process.processState.receive0505.complete) {
         return state;
       } else if (state === 'message0503' && process.processState.receive0503.complete) {
         return state;

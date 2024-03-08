@@ -118,8 +118,8 @@
         </mat-cell>
       </ng-container>
 
-      <!-- dms received 0502 column -->
-      <ng-container matColumnDef="received0502">
+      <!-- 0505 message column -->
+      <ng-container matColumnDef="message0505">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in VIS importiert</mat-header-cell>
         <mat-cell *matCellDef="let process">
           @if (isStepFailed(process.processState.receive0505)) {
