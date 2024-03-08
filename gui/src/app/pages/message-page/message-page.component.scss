@@ -1,0 +1,32 @@
+:host {
+  display: flex;
+  align-content: flex-start;
+  flex-direction: column;
+  overflow: auto;
+  flex-grow: 1;
+}
+
+mat-sidenav-container {
+  flex-grow: 1;
+
+  mat-sidenav {
+    width: 55em;
+  }
+
+  mat-sidenav-content.mode-over {
+    padding-left: 64px;
+    .open-sidenav-button {
+      margin-left: -64px;
+      position: fixed;
+      top: 0;
+      flex-shrink: 0;
+      height: 100%;
+      width: 20px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      mat-icon {
+        margin: 0;
+      }
+    }
+  }
+}

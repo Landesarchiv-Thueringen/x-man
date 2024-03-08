@@ -1,0 +1,139 @@
+@use "sass:map";
+@use "@angular/material" as mat;
+
+.messsage-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+mat-toolbar {
+  display: flex;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  flex-shrink: 0;
+  column-gap: 0.5em;
+  justify-content: center;
+  background-color: white;
+}
+
+.message-tree {
+  flex-grow: 1;
+  overflow: auto;
+  margin-top: 2em;
+  margin-left: 2em;
+
+  .root-node {
+    position: sticky;
+    top: 0px;
+    background-color: white;
+    z-index: 2;
+  }
+
+  .node {
+    display: flex;
+    width: 100%;
+    border-radius: 30px;
+    margin-bottom: 0.8em;
+    margin-right: 2em;
+    cursor: pointer;
+
+    &.active {
+      background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
+    }
+
+    &:hover {
+      background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
+    }
+
+    .node-info {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .mat-icon {
+        // important icons shrink when overflow occurs
+        flex-shrink: 0;
+      }
+
+      .node-title {
+        display: flex;
+        flex-direction: column;
+        word-break: break-word;
+        padding-right: 4em;
+
+        .node-subtitle-line {
+          font-weight: 500;
+        }
+      }
+    }
+
+    .node-appraisal {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      font-weight: bold;
+
+      .appraisal-symbol {
+        width: 48px; // icon width for alignment
+        text-align: center;
+      }
+    }
+
+    .spacer {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+.message-icon {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  margin-right: 0.5em;
+}
+
+.file-icon {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  margin-right: 0.5em;
+}
+
+.process-icon {
+  color: green;
+  margin-right: 0.5em;
+}
+
+.document-icon {
+  color: orange;
+  margin-right: 0.5em;
+}
+
+.attachment-icon {
+  margin-right: 0.5em;
+}
+
+.primary-documents-icon {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  margin-right: 0.5em;
+}
+
+::ng-deep .message-tree-menu {
+  .active {
+    background-color: rgba(0, 0, 0, 0.04);
+    span,
+    mat-icon {
+      color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+    }
+  }
+  span {
+    flex-grow: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mat-icon.active-checkmark {
+    margin-right: 0;
+    margin-left: 2em;
+  }
+  a:not(.active) .active-checkmark {
+    visibility: hidden;
+  }
+}

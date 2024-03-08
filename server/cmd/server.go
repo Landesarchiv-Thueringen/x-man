@@ -52,7 +52,6 @@ func main() {
 	authorized.GET("api/document-record-object/:id", getDocumentRecordObjectByID)
 	authorized.GET("api/record-object-appraisals", getRecordObjectAppraisals)
 	authorized.GET("api/confidentiality-level-codelist", getConfidentialityLevelCodelist)
-	authorized.GET("api/message-appraisal-complete/:id", isMessageAppraisalComplete)
 	authorized.GET("api/all-record-objects-appraised/:id", AreAllRecordObjectsAppraised)
 	authorized.GET("api/message-type-code/:id", getMessageTypeCode)
 	authorized.GET("api/primary-document", getPrimaryDocument)
@@ -418,20 +417,6 @@ func finalizeMessageAppraisal(context *gin.Context) {
 	process := db.GetProcessForMessage(message)
 	process.Message0502Path = &messagePath
 	db.UpdateProcess(process)
-}
-
-func isMessageAppraisalComplete(context *gin.Context) {
-	id, err := uuid.Parse(context.Param("id"))
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	appraisalComplete, err := db.IsMessageAppraisalComplete(id)
-	if err != nil {
-		context.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-	context.JSON(http.StatusOK, appraisalComplete)
 }
 
 func AreAllRecordObjectsAppraised(context *gin.Context) {

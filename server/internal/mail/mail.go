@@ -29,7 +29,7 @@ func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	body := "<p>Es ist eine neue " + messageType + " von \"" + agencyName + "\" eingegangen.</p>\n"
 	origin := os.Getenv("ORIGIN")
 	if message.MessageType.Code == "0501" || message.MessageType.Code == "0503" {
-		url := origin + "/nachricht/" + message.ID.String()
+		url := origin + "/nachricht/" + message.MessageHead.ProcessID + "/" + message.MessageType.Code
 		body += fmt.Sprintf("<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
 	body += "<p>Sie bekommen diese E-Mail, weil Sie der abgebenden Stelle als zuständige(r) Archivar(in) zugeordnet sind.<br>\n" +
@@ -41,8 +41,8 @@ func SendMailProcessingError(to string, e db.ProcessingError) {
 	origin := os.Getenv("ORIGIN")
 	message := "<p>Ein Fehler wurde in der Steuerungsstelle eingetragen.</p>\n"
 	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Description)
-	if e.MessageID != nil {
-		url := origin + "/nachricht/" + e.MessageID.String()
+	if e.ProcessID != nil {
+		url := origin + "/nachricht/" + *e.ProcessID
 		message += fmt.Sprintf("<p>Nachricht: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
 	if e.AdditionalInfo != "" {
