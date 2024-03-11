@@ -9,7 +9,13 @@ func InitAgencies() {
 		{
 			Name:         "Thüringer Ministerium für Inneres und Kommunales",
 			Abbreviation: "TMIK",
-			TransferDir:  "/xman/transfer_dir",
+			TransferDir:  "/xman/transfer_dir/tmik",
+			Code:         "TMIK",
+		},
+		{
+			Name:         "Thüringer Staatskanzlei",
+			Abbreviation: "TSK",
+			TransferDir:  "/xman/transfer_dir/tsk",
 			Code:         "TMIK",
 		},
 	}
