@@ -215,6 +215,15 @@ func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
 	return file, result.Error
 }
 
+// Temporary fix to allow the appraisal of all children of the file record object.
+func GetFileRecordObjectWithChildrenByID(id uuid.UUID) (FileRecordObject, error) {
+	var file FileRecordObject
+	result := db.
+		Scopes(PreloadFileRecordObject("", 0, 4)).
+		First(&file, id)
+	return file, result.Error
+}
+
 func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, bool) {
 	if id == uuid.Nil {
 		panic("called GetProcessRecordObjectByID with ID nil")

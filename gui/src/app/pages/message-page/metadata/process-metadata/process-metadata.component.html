@@ -58,7 +58,8 @@
         </mat-expansion-panel-header>
         <div class="metadata">
           <div class="metadata-row">
-            <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"></div>
+            <!-- temporary fix: no process appraisal -->
+            <!-- <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"></div>
             <ng-template #appraisalInputReadonly>
               <mat-form-field class="appraisal-input" floatLabel="always">
                 <mat-label>Bewertungsentscheidung</mat-label>
@@ -74,13 +75,19 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-            </ng-template>
+            </ng-template> -->
+            <mat-form-field class="appraisal-input" floatLabel="always">
+              <mat-label>Bewertungsentscheidung</mat-label>
+              <input matInput formControlName="appraisal" readonly />
+            </mat-form-field>
+            <!-- fix end -->
             <mat-form-field class="appraisal-recomm-input" floatLabel="always">
               <mat-label>Behördlicher Bewertungsvorschlag</mat-label>
               <input matInput formControlName="appraisalRecomm" readonly />
             </mat-form-field>
           </div>
-          <mat-form-field class="internal-appraisal-note" floatLabel="always">
+          <!-- temporary fix: no process appraisal -->
+          <!-- <mat-form-field class="internal-appraisal-note" floatLabel="always">
             <mat-label>Interner Bewertungsvermerk</mat-label>
             <textarea
               #appraisalNote
@@ -90,7 +97,8 @@
               rows="5"
             >
             </textarea>
-          </mat-form-field>
+          </mat-form-field> -->
+          <!-- fix end -->
         </div>
       </mat-expansion-panel>
     </mat-accordion>

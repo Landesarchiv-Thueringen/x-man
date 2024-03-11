@@ -105,7 +105,9 @@
             }
           </mat-menu>
         }
-        <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
+        <!-- Temporary show appraisal only for files. -->
+        <!--<div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal"></div>-->
+        <div *ngIf="showAppraisal && node.type !== 'message' && node.type === 'file'" class="node-appraisal">
           <span class="spacer"></span>
           <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal }}</span>
           <mat-checkbox

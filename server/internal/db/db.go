@@ -386,7 +386,7 @@ func SetFileRecordObjectAppraisal(
 	appraisalCode string,
 	recursive bool,
 ) (FileRecordObject, error) {
-	fileRecordObject, err := GetFileRecordObjectByID(id)
+	fileRecordObject, err := GetFileRecordObjectWithChildrenByID(id)
 	if err != nil {
 		return fileRecordObject, err
 	}
@@ -405,8 +405,8 @@ func SetFileRecordObjectAppraisal(
 	}
 	// set appraisal for child elements if recursive appraisal was chosen
 	if recursive {
-		for _, process := range fileRecordObject.ProcessRecordObjects {
-			err = SetProcessRecordObjectAppraisal(&process, appraisalCode)
+		for _, appraisableObject := range fileRecordObject.GetAppraisableObjects() {
+			err = appraisableObject.SetAppraisal(appraisalCode)
 			if err != nil {
 				return fileRecordObject, err
 			}
