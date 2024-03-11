@@ -340,7 +340,7 @@ func checkFileRecordObjectsOfMessage0503(
 		if *file0501.ArchiveMetadata.AppraisalCode == "A" && !file0503Exists {
 			errorMessage :=
 				"0503 integrity check failed: missing file record object [" + file0501.ID.String() + "]"
-			*additionalInfo += "Akte [" + file0501.ID.String() + "] fehlt in Abgabe"
+			*additionalInfo += "Akte [" + file0501.ID.String() + "] fehlt in Abgabe\n"
 			log.Println(errorMessage)
 			message0503Incomplete = true
 		}
@@ -374,7 +374,7 @@ func checkProcessRecordObjectsOfMessage0503(
 		if *process0501.ArchiveMetadata.AppraisalCode == "A" && !process0503Exists {
 			errorMessage := "0503 integrity check failed: missing process record object [" +
 				process0501.ID.String() + "]"
-			*additionalInfo += "Vorgang [" + process0501.ID.String() + "] fehlt in Abgabe"
+			*additionalInfo += "Vorgang [" + process0501.ID.String() + "] fehlt in Abgabe\n"
 			log.Println(errorMessage)
 			message0503Incomplete = true
 		}
