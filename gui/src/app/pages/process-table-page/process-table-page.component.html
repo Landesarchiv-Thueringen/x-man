@@ -58,7 +58,7 @@
       <ng-container matColumnDef="institution">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgebende Stelle</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          {{ process.institution }}
+          {{ process.agency.name }}
           <a
             mat-button
             class="open-details-button"

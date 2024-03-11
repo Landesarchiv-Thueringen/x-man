@@ -170,7 +170,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   }
 
   private populateInstitutions(processes: Process[]): void {
-    this.institutions = [...new Set(processes.map((p) => p.institution))];
+    this.institutions = [...new Set(processes.map((p) => p.agency.name))];
   }
 
   /** The default filter predicate of MatTableDataSource that provides string matching on all data properties. */
@@ -189,7 +189,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
       // Match institution field
       (() => {
         if (filter.institution) {
-          return process.institution === filter.institution;
+          return process.agency.name === filter.institution;
         } else {
           return true;
         }
