@@ -59,7 +59,7 @@ func tryRestart(task *db.Task) {
 	switch task.Type {
 	case db.TaskTypeFormatVerification:
 		process, found := db.GetProcess(task.ProcessID)
-		if found {
+		if found && process.Message0503 != nil {
 			go func() {
 				err := format.VerifyFileFormats(process, *process.Message0503)
 				clearing.HandleError(err)
