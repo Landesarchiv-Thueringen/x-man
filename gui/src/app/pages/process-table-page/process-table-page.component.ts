@@ -95,6 +95,8 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
       property: ProcessTablePageComponent['displayedColumns'][number],
     ) => {
       switch (property) {
+        case 'institution':
+          return process.agency.name ?? '';
         case 'message0501':
           return process.processState.receive0501.completionTime ?? '';
         case 'appraisalComplete':
