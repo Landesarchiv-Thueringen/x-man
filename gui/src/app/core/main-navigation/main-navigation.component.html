@@ -21,5 +21,9 @@
         Abmelden
       </button>
     }
+    <mat-divider [vertical]="true"></mat-divider>
+    <button mat-button (click)="openAboutDialog()">
+      {{ (aboutInformation | async)?.version }}
+    </button>
   </mat-toolbar-row>
 </mat-toolbar>

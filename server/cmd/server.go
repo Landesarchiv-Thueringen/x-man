@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
@@ -27,9 +28,13 @@ import (
 	"github.com/google/uuid"
 )
 
-const XMAN_VERSION = 1
+const XMAN_MAJOR_VERSION = 1
+const XMAN_MINOR_VERSION = 0
+const XMAN_PATCH_VERSION = 0
 
-var defaultResponse = "LATh xdomea server is running"
+var XMAN_VERSION = fmt.Sprintf("%d.%d.%d", XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION)
+
+var defaultResponse = fmt.Sprintf("x-man server %s is running", XMAN_VERSION)
 
 func main() {
 	initServer()
@@ -38,6 +43,7 @@ func main() {
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{})
 	router.GET("api", getDefaultResponse)
+	router.GET("api/about", getAbout)
 	router.GET("api/login", auth.Login)
 	authorized := router.Group("/")
 	authorized.Use(auth.AuthRequired())
@@ -98,9 +104,9 @@ func initServer() {
 }
 
 func MigrateData() {
-	xManVersion := db.GetXManVersion()
-	if xManVersion == 0 {
-		log.Printf("Migrating database from X-Man version %d to %d... ", xManVersion, XMAN_VERSION)
+	major, minor, patch := db.GetXManVersion()
+	if major == 0 {
+		log.Printf("Migrating database from X-Man version %d.%d.%d to %s... ", major, minor, patch, XMAN_VERSION)
 		db.Migrate()
 		xdomea.InitMessageTypes()
 		xdomea.InitXdomeaVersions()
@@ -108,15 +114,21 @@ func MigrateData() {
 		xdomea.InitConfidentialityLevelCodelist()
 		xdomea.InitMediumCodelist()
 		agency.InitAgencies()
-		db.SetXManVersion(XMAN_VERSION)
+		db.SetXManVersion(XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION)
 		log.Println("done")
 	} else {
-		log.Printf("Database is up do date with X-Man version %d\n", XMAN_VERSION)
+		log.Printf("Database is up do date with X-Man version %s\n", XMAN_VERSION)
 	}
 }
 
 func getDefaultResponse(context *gin.Context) {
 	context.String(http.StatusOK, defaultResponse)
+}
+
+func getAbout(context *gin.Context) {
+	context.JSON(http.StatusOK, gin.H{
+		"version": XMAN_VERSION,
+	})
 }
 
 func getConfig(context *gin.Context) {

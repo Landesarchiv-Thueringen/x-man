@@ -33,23 +33,25 @@ func Init() {
 
 // GetXManVersion returns the x-man version that the database was migrated to.
 //
-// Returns 0 when starting x-man with a fresh database.
-func GetXManVersion() uint {
+// Returns (0,0,0) when starting x-man with a fresh database.
+func GetXManVersion() (uint, uint, uint) {
 	var serverState ServerState
 	result := db.Limit(1).Find(&serverState)
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	return serverState.XManVersion
+	return serverState.XManMajorVersion, serverState.XManMinorVersion, serverState.XManPatchVersion
 }
 
-func SetXManVersion(version uint) {
+func SetXManVersion(major, minor, patch uint) {
 	var serverState ServerState
 	result := db.Limit(1).Find(&serverState)
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	serverState.XManVersion = version
+	serverState.XManMajorVersion = major
+	serverState.XManMinorVersion = minor
+	serverState.XManPatchVersion = patch
 	result = db.Save(&serverState)
 	if result.Error != nil {
 		panic(result.Error)

@@ -16,3 +16,10 @@ mat-icon.title-icon {
 .spacer {
   flex: 1 1 auto;
 }
+
+.mat-divider.mat-divider-vertical {
+  height: 20px;
+  border-right-color: rgba(255, 255, 255, 0.5);
+  padding-right: 0.3em;
+  margin-right: 0.3em;
+}

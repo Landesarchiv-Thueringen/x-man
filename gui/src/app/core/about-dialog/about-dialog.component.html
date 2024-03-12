@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Über X-MAN</h2>
+
+<div mat-dialog-content>
+  <p>
+    Entwickelt vom
+    <a mat-button target="_blank" href="https://landesarchiv.thueringen.de/"
+      >Landesarchiv Thüringen <mat-icon>open_in_new</mat-icon></a
+    >
+  </p>
+  <p>Version: {{ (aboutInformation | async)?.version }}</p>
+  <p>
+    Quellcode:
+    <a mat-button target="_blank" href="https://github.com/Landesarchiv-Thueringen/x-man"
+      >GitHub <mat-icon>open_in_new</mat-icon></a
+    >
+  </p>
+  <p>
+    Lizenz:
+    <a mat-button target="_blank" href="https://www.gnu.org/licenses/gpl-3.0.html"
+      >GPLv3<mat-icon>open_in_new</mat-icon></a
+    >
+  </p>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close cdkFocusInitial>Schließen</button>
+</div>
