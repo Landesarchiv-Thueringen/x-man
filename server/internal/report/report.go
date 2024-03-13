@@ -41,7 +41,7 @@ func GetReportData(process db.Process) (reportData ReportData, err error) {
 	if !found {
 		panic(fmt.Sprintf("message not found: %v", *process.Message0503ID))
 	}
-	reportData.Content = getContentObjects(message0501, message0503)
+	reportData.Content = getContentObjects(message0503)
 	messageStats := getMessageContentStats(message0503)
 	reportData.Message0503Stats = &messageStats
 	reportData.Message0503 = message0503

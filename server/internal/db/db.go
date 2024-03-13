@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -66,6 +65,7 @@ func Migrate() {
 	// Migrate the complete schema.
 	err := db.AutoMigrate(
 		&Agency{},
+		&Appraisal{},
 		&XdomeaVersion{},
 		&Process{},
 		&ProcessState{},
@@ -383,96 +383,100 @@ func UpdateProcessStep(processStep ProcessStep) {
 	}
 }
 
-func SetFileRecordObjectAppraisal(
-	id uuid.UUID,
-	appraisalCode string,
-	recursive bool,
-) (FileRecordObject, error) {
-	fileRecordObject, err := GetFileRecordObjectByID(id)
-	if err != nil {
-		return fileRecordObject, err
+func GetAppraisableRecordObject(messageID uuid.UUID, recordObjectID uuid.UUID) AppraisableRecordObject {
+	if messageID == uuid.Nil {
+		panic("called GetAppraisableRecordObject with nil messageID")
+	} else if recordObjectID == uuid.Nil {
+		panic("called GetAppraisableRecordObject with nil recordObjectID")
 	}
-	// check if message appraisal is already completed, if true return error
-	message, found := GetCompleteMessageByID(fileRecordObject.MessageID)
-	if !found {
-		return fileRecordObject, fmt.Errorf("message not found: %v", fileRecordObject.MessageID)
+	fileRecordObject := FileRecordObject{MessageID: messageID, XdomeaID: recordObjectID}
+	result := db.Limit(1).Where(&fileRecordObject).Find(&fileRecordObject)
+	if result.Error != nil {
+		panic(result.Error)
+	} else if result.RowsAffected > 0 {
+		return &fileRecordObject
 	}
-	if message.AppraisalComplete {
-		return fileRecordObject, errors.New("message appraisal already finished")
+	processRecordObject := ProcessRecordObject{MessageID: messageID, XdomeaID: recordObjectID}
+	result = db.Limit(1).Where(&processRecordObject).Find(&processRecordObject)
+	if result.Error != nil {
+		panic(result.Error)
+	} else if result.RowsAffected > 0 {
+		return &processRecordObject
 	}
-	// set appraisal
-	err = fileRecordObject.SetAppraisal(appraisalCode)
-	if err != nil {
-		return fileRecordObject, err
-	}
-	// set appraisal for child elements if recursive appraisal was chosen
-	if recursive {
-		for _, process := range fileRecordObject.ProcessRecordObjects {
-			err = SetProcessRecordObjectAppraisal(&process, appraisalCode)
-			if err != nil {
-				return fileRecordObject, err
-			}
-		}
-	}
-	// return updated file record object
-	return GetFileRecordObjectByID(id)
+	return nil
 }
 
-func SetFileRecordObjectAppraisalNote(
-	id uuid.UUID,
-	appraisalNote string,
-) (FileRecordObject, error) {
-	fileRecordObject, err := GetFileRecordObjectByID(id)
-	if err != nil {
-		return fileRecordObject, err
+func GetAppraisalsForProcess(processID string) (appraisals []Appraisal) {
+	if processID == "" {
+		panic("called GetAppraisalsForProcess with empty processID")
 	}
-	// check if message appraisal is already completed, if true return error
-	message, found := GetCompleteMessageByID(fileRecordObject.MessageID)
-	if !found {
-		return fileRecordObject, fmt.Errorf("message not found: %v", fileRecordObject.MessageID)
+	result := db.Where(&Appraisal{ProcessID: processID}).Find(&appraisals)
+	if result.Error != nil {
+		panic(result.Error)
 	}
-	if message.AppraisalComplete {
-		return fileRecordObject, errors.New("message appraisal already finished")
-	}
-	// set note
-	err = fileRecordObject.SetAppraisalNote(appraisalNote)
-	if err != nil {
-		return fileRecordObject, err
-	}
-	// return updated file record object
-	return GetFileRecordObjectByID(id)
+	return
 }
 
-func SetProcessRecordObjectAppraisal(
-	processRecordObject *ProcessRecordObject,
-	appraisalCode string,
-) error {
-	// check if message appraisal is already completed, if true return error
-	message, found := GetCompleteMessageByID(processRecordObject.MessageID)
-	if !found {
-		panic(fmt.Sprintf("message not found: %v", processRecordObject.MessageID))
+func GetAppraisal(processID string, recordObjectID uuid.UUID) (a Appraisal) {
+	if processID == "" {
+		panic("called GetAppraisal with empty processID")
+	} else if recordObjectID == uuid.Nil {
+		panic("called GetAppraisal with nil recordObjectID")
 	}
-	if message.AppraisalComplete {
-		panic("message appraisal already finished")
+	a.ProcessID = processID
+	a.RecordObjectID = recordObjectID
+	result := db.Limit(1).Where(&a).Find(&a)
+	if result.Error != nil {
+		panic(result.Error)
 	}
-	// set appraisal
-	return processRecordObject.SetAppraisal(appraisalCode)
+	return
 }
 
-func SetProcessRecordObjectAppraisalNote(
-	processRecordObject *ProcessRecordObject,
-	appraisalNote string,
-) {
-	// check if message appraisal is already completed, if true return error
-	message, found := GetCompleteMessageByID(processRecordObject.MessageID)
-	if !found {
-		panic(fmt.Sprintf("message not found: %v", processRecordObject.MessageID))
+func SetAppraisal(processID string, recordObjectID uuid.UUID, decision AppraisalDecisionOption, internalNote string) {
+	patchAppraisal(processID, recordObjectID, &decision, &internalNote)
+}
+
+func SetAppraisalDecision(processID string, recordObjectID uuid.UUID, decision AppraisalDecisionOption) {
+	patchAppraisal(processID, recordObjectID, &decision, nil)
+}
+
+func SetAppraisalInternalNote(processID string, recordObjectID uuid.UUID, internalNote string) {
+	patchAppraisal(processID, recordObjectID, nil, &internalNote)
+}
+
+func patchAppraisal(processID string, recordObjectID uuid.UUID, decision *AppraisalDecisionOption, internalNote *string) {
+	if processID == "" {
+		panic("called SetAppraisal with empty processID")
+	} else if recordObjectID == uuid.Nil {
+		panic("called SetAppraisal with nil recordObjectID")
 	}
-	if message.AppraisalComplete {
-		panic("message appraisal already finished")
+	appraisal := Appraisal{ProcessID: processID, RecordObjectID: recordObjectID}
+	result := db.Limit(1).Where(&appraisal).Find(&appraisal)
+	if result.Error != nil {
+		panic(result.Error)
 	}
-	// set note
-	processRecordObject.SetAppraisalNote(appraisalNote)
+	if decision != nil {
+		appraisal.Decision = *decision
+	}
+	if internalNote != nil {
+		appraisal.InternalNote = *internalNote
+	}
+	result = db.Save(&appraisal)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+}
+
+func UpdateAppraisal(a Appraisal) {
+	if a.ProcessID == "" {
+		panic("called SetAppraisal with empty processID")
+	} else if a.RecordObjectID == uuid.Nil {
+		panic("called SetAppraisal with nil recordObjectID")
+	}
+	result := db.Save(&a)
+	if result.Error != nil {
+		panic(result.Error)
+	}
 }
 
 // AddProcessingError saves a processing error to the database.

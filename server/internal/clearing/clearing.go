@@ -89,8 +89,8 @@ func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
 		}
 	}
 	if e.Message == nil && e.MessageID != nil {
-		message, err := db.GetMessageByID(*e.MessageID)
-		if err == nil {
+		message, found := db.GetMessageByID(*e.MessageID)
+		if found {
 			e.Message = &message
 		}
 	}

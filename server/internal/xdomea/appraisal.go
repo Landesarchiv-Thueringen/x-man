@@ -1,7 +1,6 @@
 package xdomea
 
 import (
-	"errors"
 	"fmt"
 	"lath/xman/internal/db"
 	"time"
@@ -13,65 +12,164 @@ import (
 // with either an 'A' (de: archivieren) or 'V' (de: vernichten).
 func AreAllRecordObjectsAppraised(message db.Message) bool {
 	for _, appraisableObject := range message.GetAppraisableObjects() {
-		appraisalCode, found := appraisableObject.GetAppraisal()
-		if !found || appraisalCode == "B" {
+		appraisal := db.GetAppraisal(message.MessageHead.ProcessID, appraisableObject.GetID())
+		if appraisal.Decision != "A" && appraisal.Decision != "V" {
 			return false
 		}
 	}
 	return true
 }
 
-func SetAppraisalForFileRecordObjects(
-	fileRecordObjectIDs []string,
-	appraisalCode string,
-	appraisalNote *string,
-) ([]db.FileRecordObject, error) {
-	updatedFileRecordObjects := []db.FileRecordObject{}
-	for _, objectID := range fileRecordObjectIDs {
-		id, err := uuid.Parse(objectID)
-		if err != nil {
-			return updatedFileRecordObjects, fmt.Errorf("failed to parse object ID: %v", err)
-		}
-		fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode, false)
-		if err != nil {
-			return updatedFileRecordObjects, fmt.Errorf("failed to set appraisal: %v", err)
-		}
-		if appraisalNote != nil {
-			fileRecordObject, err = db.SetFileRecordObjectAppraisalNote(id, *appraisalNote)
-			if err != nil {
-				return updatedFileRecordObjects, fmt.Errorf("failed to set appraisal note: %v", err)
-			}
-		}
-		updatedFileRecordObjects = append(updatedFileRecordObjects, fileRecordObject)
+// SetAppraisalDecisionRecursive saves an appraisal decision for a record object
+// to the database.
+//
+// It updates child objects if the given record object to the new appraisal
+// decision if
+//   - the child object has not yet been appraised, or
+//   - the child object has been appraised with the same appraisal decision as
+//     the given object had before.
+//
+// It clears the internal appraisal note of children that it updates.
+//
+// If the decision to set is "A" and given record object is a sub object, it
+// makes sure that all ancestors are also set to "A".
+func SetAppraisalDecisionRecursive(
+	processID string,
+	recordObjectID string,
+	decision db.AppraisalDecisionOption,
+) error {
+	process, found := db.GetProcess(processID)
+	if !found {
+		return fmt.Errorf("process not found: %s", processID)
+	} else if process.Message0501ID == nil {
+		return fmt.Errorf("process \"%s\" has no 0501 message", processID)
+	} else if process.ProcessState.Appraisal.Complete {
+		return fmt.Errorf("appraisal already finished for process \"%s\"", processID)
 	}
-	return updatedFileRecordObjects, nil
+	parsedRecordObjectID, err := uuid.Parse(recordObjectID)
+	if err != nil {
+		return fmt.Errorf("failed to parse object ID \"%s\": %v", recordObjectID, err)
+	}
+	recordObject := db.GetAppraisableRecordObject(*process.Message0501ID, parsedRecordObjectID)
+	if recordObject == nil {
+		return fmt.Errorf("record object not found: %v", parsedRecordObjectID)
+	}
+	previousAppraisal := db.GetAppraisal(processID, recordObject.GetID())
+	db.SetAppraisalDecision(processID, recordObject.GetID(), decision)
+	if decision == db.AppraisalDecisionA {
+		markAncestorsToBeArchived(processID, recordObject)
+	}
+	for _, subObject := range recordObject.GetAppraisableChildren() {
+		a := db.GetAppraisal(processID, subObject.GetID())
+		if a.Decision == "" || a.Decision == previousAppraisal.Decision {
+			a.Decision = decision
+			a.InternalNote = ""
+			db.UpdateAppraisal(a)
+		}
+	}
+	return nil
 }
 
-func SetAppraisalForProcessRecordObjects(
-	processRecordObjectIDs []string,
-	appraisalCode string,
-	appraisalNote *string,
-) ([]db.ProcessRecordObject, error) {
-	updatedProcessRecordObjects := []db.ProcessRecordObject{}
-	for _, objectID := range processRecordObjectIDs {
-		id, err := uuid.Parse(objectID)
-		if err != nil {
-			return updatedProcessRecordObjects, fmt.Errorf("failed to parse object ID: %v", err)
-		}
-		processRecordObject, found := db.GetProcessRecordObjectByID(id)
-		if !found {
-			return updatedProcessRecordObjects, fmt.Errorf("process record object not found: %v", id)
-		}
-		err = db.SetProcessRecordObjectAppraisal(&processRecordObject, appraisalCode)
-		if err != nil {
-			return updatedProcessRecordObjects, fmt.Errorf("failed to set appraisal: %v", err)
-		}
-		if appraisalNote != nil {
-			db.SetProcessRecordObjectAppraisalNote(&processRecordObject, *appraisalNote)
-		}
-		updatedProcessRecordObjects = append(updatedProcessRecordObjects, processRecordObject)
+// SetAppraisalDecisionRecursive saves an internal appraisal note for a record
+// object to the database.
+func SetAppraisalInternalNote(
+	processID string,
+	recordObjectID string,
+	internalNote string,
+) error {
+	process, found := db.GetProcess(processID)
+	if !found {
+		return fmt.Errorf("process not found: %s", processID)
+	} else if process.Message0501ID == nil {
+		return fmt.Errorf("process \"%s\" has no 0501 message", processID)
+	} else if process.ProcessState.Appraisal.Complete {
+		return fmt.Errorf("appraisal already finished for process \"%s\"", processID)
 	}
-	return updatedProcessRecordObjects, nil
+	parsedRecordObjectID, err := uuid.Parse(recordObjectID)
+	if err != nil {
+		return fmt.Errorf("failed to parse object ID \"%s\": %v", recordObjectID, err)
+	}
+	recordObject := db.GetAppraisableRecordObject(*process.Message0501ID, parsedRecordObjectID)
+	if recordObject == nil {
+		return fmt.Errorf("record object not found: %v", parsedRecordObjectID)
+	}
+	db.SetAppraisalInternalNote(processID, recordObject.GetID(), internalNote)
+	return nil
+}
+
+// SetAppraisals saves an appraisal decision and optional internal note for a
+// number of record objects to the database.
+//
+// It checks whether any of the given objects are children of on another and
+// omits the appraisal note for all child objects.
+//
+// If the decision to set is "A", it makes sure that for all sub objects, all
+// ancestors are also set to "A".
+func SetAppraisals(
+	processID string,
+	recordObjectIDs []string,
+	decision db.AppraisalDecisionOption,
+	internalNote string,
+) error {
+	process, found := db.GetProcess(processID)
+	if !found {
+		return fmt.Errorf("process not found: %s", processID)
+	} else if process.Message0501ID == nil {
+		return fmt.Errorf("process \"%s\" has no 0501 message", processID)
+	} else if process.ProcessState.Appraisal.Complete {
+		return fmt.Errorf("appraisal already finished for process \"%s\"", processID)
+	}
+	recordObjects := make([]db.AppraisableRecordObject, len(recordObjectIDs))
+	for i, idString := range recordObjectIDs {
+		recordObjectID, err := uuid.Parse(idString)
+		if err != nil {
+			return fmt.Errorf("failed to parse object ID \"%s\": %v", idString, err)
+		}
+		recordObject := db.GetAppraisableRecordObject(*process.Message0501ID, recordObjectID)
+		if recordObject == nil {
+			return fmt.Errorf("record object not found: %v", recordObjectID)
+		}
+		recordObjects[i] = recordObject
+	}
+	isSubAppraisal := map[int]bool{}
+	// Mark all record objects as sub appraisals that have an ancestor of which
+	// we are setting the appraisal.
+	for i, recordObject := range recordObjects {
+		if isSubAppraisal[i] {
+			continue
+		}
+	SubObjectsLoop:
+		for _, subObject := range recordObject.GetAppraisableChildren() {
+			for j, o := range recordObjects {
+				if subObject.GetID() == o.GetID() {
+					isSubAppraisal[j] = true
+					continue SubObjectsLoop
+				}
+			}
+		}
+	}
+	for i, recordObject := range recordObjects {
+		if isSubAppraisal[i] {
+			db.SetAppraisal(processID, recordObject.GetID(), decision, "")
+		} else {
+			db.SetAppraisal(processID, recordObject.GetID(), decision, internalNote)
+			if decision == db.AppraisalDecisionA {
+				markAncestorsToBeArchived(processID, recordObject)
+			}
+		}
+	}
+	return nil
+}
+
+func markAncestorsToBeArchived(processID string, recordObject db.AppraisableRecordObject) {
+	for parent := recordObject.GetAppraisableParent(); parent != nil; parent = parent.GetAppraisableParent() {
+		a := db.GetAppraisal(processID, parent.GetID())
+		if a.Decision != db.AppraisalDecisionA {
+			a.Decision = db.AppraisalDecisionA
+			a.InternalNote = ""
+			db.UpdateAppraisal(a)
+		}
+	}
 }
 
 func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message {
@@ -86,70 +184,14 @@ func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message
 	appraisalStep.CompletionTime = &completionTime
 	appraisalStep.CompletedBy = &completedBy
 	db.UpdateProcessStep(appraisalStep)
-	message.AppraisalComplete = true
-	db.UpdateMessage(message)
 	return message
 }
 
 func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
 	for _, appraisableObject := range message.GetAppraisableObjects() {
-		appraisalCode, found := appraisableObject.GetAppraisal()
-		if !found || appraisalCode == "B" {
-			if err := appraisableObject.SetAppraisal("V"); err != nil {
-				panic(err)
-			}
+		appraisal := db.GetAppraisal(message.MessageHead.ProcessID, appraisableObject.GetID())
+		if appraisal.Decision != "A" && appraisal.Decision != "V" {
+			db.SetAppraisalDecision(message.MessageHead.ProcessID, appraisableObject.GetID(), "V")
 		}
 	}
-}
-
-func TransferAppraisalNoteFrom0501To0503(process db.Process) error {
-	if process.Message0501 == nil {
-		return errors.New("0501 message doesn't exist")
-	}
-	fileRecordObjects0501, err := db.GetAllFileRecordObjects(process.Message0501.ID)
-	if err != nil {
-		return err
-	}
-	processRecordObjects0501, err := db.GetAllProcessRecordObjects(process.Message0501.ID)
-	if err != nil {
-		return err
-	}
-	fileRecordObjects0503, err := db.GetAllFileRecordObjects(process.Message0503.ID)
-	if err != nil {
-		return err
-	}
-	processRecordObjects0503, err := db.GetAllProcessRecordObjects(process.Message0503.ID)
-	if err != nil {
-		return err
-	}
-	for recordObjectID, file0503 := range fileRecordObjects0503 {
-		file0501, ok := fileRecordObjects0501[recordObjectID]
-		if !ok {
-			return errors.New("file record object with ID " +
-				recordObjectID.String() + " not found in 0501 message")
-		}
-		note, err := file0501.GetAppraisalNote()
-		// if no appraisal note for the file record object exists, continue with next
-		if err != nil {
-			continue
-		}
-		err = file0503.SetAppraisalNote(note)
-		if err != nil {
-			return err
-		}
-	}
-	for recordObjectID, process0503 := range processRecordObjects0503 {
-		process0501, ok := processRecordObjects0501[recordObjectID]
-		if !ok {
-			return errors.New("process record object with ID " +
-				recordObjectID.String() + " not found in 0501 message")
-		}
-		note, err := process0501.GetAppraisalNote()
-		// if no appraisal note for the process record object exists, continue with next
-		if err != nil {
-			continue
-		}
-		process0503.SetAppraisalNote(note)
-	}
-	return nil
 }

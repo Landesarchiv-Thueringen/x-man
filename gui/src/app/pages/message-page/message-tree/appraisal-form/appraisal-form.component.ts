@@ -6,7 +6,7 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MessageService, RecordObjectAppraisal } from '../../../../services/message.service';
+import { AppraisalCode, MessageService } from '../../../../services/message.service';
 
 @Component({
   selector: 'app-appraisal-form',
@@ -25,7 +25,7 @@ import { MessageService, RecordObjectAppraisal } from '../../../../services/mess
 })
 export class AppraisalFormComponent {
   form: FormGroup;
-  recordObjectAppraisals?: RecordObjectAppraisal[];
+  recordObjectAppraisals?: AppraisalCode[];
   selectedAppraisal?: string;
 
   constructor(
@@ -37,7 +37,7 @@ export class AppraisalFormComponent {
       appraisal: new FormControl<string | null>(null, Validators.required),
       appraisalNote: new FormControl<string | null>(null),
     });
-    this.messageService.getAppraisalCodelist().subscribe((appraisals: RecordObjectAppraisal[]) => {
+    this.messageService.getAppraisalCodelist().subscribe((appraisals: AppraisalCode[]) => {
       this.recordObjectAppraisals = appraisals;
     });
   }

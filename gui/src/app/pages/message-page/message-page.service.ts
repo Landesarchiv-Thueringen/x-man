@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, distinctUntilChanged, filter, first, map, of, switchMap, take } from 'rxjs';
+import { Appraisal, AppraisalService } from '../../services/appraisal.service';
 import { Message, MessageService } from '../../services/message.service';
 import { Process, ProcessService } from '../../services/process.service';
 import { notNull } from '../../utils/predicates';
@@ -24,28 +25,51 @@ export class MessagePageService {
    */
   private message = new BehaviorSubject<Message | null>(null);
 
+  /**
+   * All appraisals for the current process.
+   *
+   * Appraisals can be updated by the user at any time.
+   */
+  private appraisals = new BehaviorSubject<Appraisal[] | null>(null);
+
+  private processId!: string;
+
   constructor(
-    route: ActivatedRoute,
+    private route: ActivatedRoute,
     private processService: ProcessService,
     private messageService: MessageService,
+    private appraisalService: AppraisalService,
   ) {
-    // Regularly fetch the process and update `this.process`.
-    route.params.pipe(take(1)).subscribe((params) => {
-      const processId = params['processId'];
+    this.registerProcessAndAppraisals();
+    this.registerMessage();
+  }
+
+  /** Regularly fetches the process and updates `this.process`.  */
+  private registerProcessAndAppraisals() {
+    this.route.params.pipe(take(1)).subscribe((params) => {
+      this.processId = params['processId'];
+      this.appraisalService
+        .observeAppraisals(this.processId)
+        .pipe(takeUntilDestroyed())
+        .subscribe((appraisals) => this.appraisals.next(appraisals));
       this.processService
-        .observeProcess(processId)
+        .observeProcess(this.processId)
         .pipe(takeUntilDestroyed())
         .subscribe((process) => this.process.next(process));
     });
-    // Fetch the message and update `this.message`.
-    route.params
+  }
+
+  /**
+   * Fetches the message and updates `this.message`.
+   */
+  private registerMessage() {
+    this.route.params
       .pipe(
         map((params) => params['messageCode']),
         filter((messageCode) => messageCode != ''),
         distinctUntilChanged(),
         switchMap((messageCode) =>
-          this.process.pipe(
-            filter(notNull),
+          this.getProcess().pipe(
             map((process) => {
               switch (messageCode) {
                 case '0501':
@@ -58,7 +82,6 @@ export class MessagePageService {
             }),
           ),
         ),
-        distinctUntilChanged(),
         switchMap((messageId) => {
           if (messageId) {
             return this.messageService.getMessage(messageId);
@@ -68,6 +91,10 @@ export class MessagePageService {
         }),
       )
       .subscribe((message) => this.message.next(message));
+  }
+
+  getProcessId(): string {
+    return this.processId;
   }
 
   getProcess(): Observable<Process> {
@@ -80,5 +107,22 @@ export class MessagePageService {
 
   observeMessage(): Observable<Message> {
     return this.message.pipe(filter(notNull));
+  }
+
+  observeAppraisal(recordObjectId: string): Observable<Appraisal | null> {
+    return this.observeAppraisals().pipe(
+      map((appraisals) => appraisals.find((a) => a.recordObjectID === recordObjectId) ?? null),
+    );
+  }
+
+  observeAppraisals(): Observable<Appraisal[]> {
+    return this.appraisals.pipe(filter(notNull));
+  }
+
+  observeAppraisalComplete(): Observable<boolean> {
+    return this.observeProcess().pipe(
+      map((process) => process.processState.appraisal.complete),
+      distinctUntilChanged(),
+    );
   }
 }

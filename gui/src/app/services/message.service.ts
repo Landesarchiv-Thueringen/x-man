@@ -5,8 +5,9 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 // utility
-import { BehaviorSubject, Observable, Subject, Subscriber, shareReplay } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscriber, filter, shareReplay } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { notNull } from '../utils/predicates';
 import { Process } from './process.service';
 
 export interface Message {
@@ -16,7 +17,6 @@ export interface Message {
   xdomeaVersion: string;
   schemaValidation: boolean;
   messageHead: MessageHead;
-  appraisalComplete: boolean;
   formatVerificationComplete: boolean;
   primaryDocumentCount: number;
   verificationCompleteCount: number;
@@ -58,6 +58,7 @@ export interface Institution {
 
 export interface FileRecordObject {
   id: string;
+  xdomeaID: string;
   messageID: string;
   recordObjectType: RecordObjectType;
   generalMetadata?: GeneralMetadata;
@@ -70,6 +71,7 @@ export interface FileRecordObject {
 
 export interface ProcessRecordObject {
   id: string;
+  xdomeaID: string;
   messageID: string;
   recordObjectType: RecordObjectType;
   generalMetadata?: GeneralMetadata;
@@ -82,6 +84,7 @@ export interface ProcessRecordObject {
 
 export interface DocumentRecordObject {
   id: string;
+  xdomeaID: string;
   messageID: string;
   recordObjectType: RecordObjectType;
   generalMetadata?: GeneralMetadata;
@@ -170,10 +173,9 @@ export interface ArchiveMetadata {
   id: number;
   appraisalCode: string;
   appraisalRecommCode: string;
-  internalAppraisalNote?: string;
 }
 
-export interface RecordObjectAppraisal {
+export interface AppraisalCode {
   id: number;
   code: string;
   shortDesc: string;
@@ -215,6 +217,7 @@ export interface DisplayText {
 
 export interface StructureNode {
   id: string;
+  xdomeaID: string;
   selected: boolean;
   displayText: DisplayText;
   type: StructureNodeType;
@@ -224,17 +227,12 @@ export interface StructureNode {
   children?: StructureNode[];
 }
 
-export interface MultiAppraisalResponse {
-  updatedFileRecordObjects: FileRecordObject[];
-  updatedProcessRecordObjects: ProcessRecordObject[];
-}
-
 @Injectable({
   providedIn: 'root',
 })
 export class MessageService {
   private apiEndpoint: string;
-  private appraisals?: RecordObjectAppraisal[];
+  private appraisalCodes = new BehaviorSubject<AppraisalCode[] | null>(null);
   private confidentialityLevelCodelist?: ConfidentialityLevel[];
 
   private structureNodes: Map<string, StructureNode>;
@@ -255,9 +253,7 @@ export class MessageService {
     this.structureNodes = new Map<string, StructureNode>();
     this.nodesSubject = new BehaviorSubject<StructureNode[]>(this.getRootStructureNodes());
     this.changedNodeSubject = new Subject<StructureNode>();
-    this.getAppraisalCodelist().subscribe((appraisals: RecordObjectAppraisal[]) => {
-      this.appraisals = appraisals;
-    });
+    this.fetchAppraisalCodelist().subscribe((codes) => this.appraisalCodes.next(codes));
     this.getConfidentialityLevelCodelist().subscribe((confidentialityLevelCodelist: ConfidentialityLevel[]) => {
       this.confidentialityLevelCodelist = confidentialityLevelCodelist;
     });
@@ -310,6 +306,7 @@ export class MessageService {
     const routerLink: string = 'details';
     const messageNode: StructureNode = {
       id: message.id,
+      xdomeaID: '',
       selected: true,
       displayText: displayText,
       type: 'message',
@@ -329,6 +326,7 @@ export class MessageService {
     const routerLink: string = 'formatverifikation';
     const primaryDocumentsNode: StructureNode = {
       id: uuidv4(),
+      xdomeaID: '',
       selected: false,
       displayText: displayText,
       type: 'primaryDocuments',
@@ -361,6 +359,7 @@ export class MessageService {
     const type = subfile ? 'subfile' : 'file';
     const fileNode: StructureNode = {
       id: fileRecordObject.id,
+      xdomeaID: fileRecordObject.xdomeaID,
       selected: false,
       displayText: displayText,
       type: type,
@@ -400,6 +399,7 @@ export class MessageService {
     const type = subprocess ? 'subprocess' : 'process';
     const processNode: StructureNode = {
       id: processRecordObject.id,
+      xdomeaID: processRecordObject.xdomeaID,
       selected: false,
       displayText: displayText,
       type: type,
@@ -432,6 +432,7 @@ export class MessageService {
     const type = attachment ? 'attachment' : 'document';
     const documentNode: StructureNode = {
       id: documentRecordObject.id,
+      xdomeaID: documentRecordObject.xdomeaID,
       selected: false,
       displayText: displayText,
       type: type,
@@ -528,8 +529,8 @@ export class MessageService {
     return this.httpClient.get<PrimaryDocument[]>(url);
   }
 
-  finalizeMessageAppraisal(id: string): Observable<void> {
-    const url = this.apiEndpoint + '/finalize-message-appraisal/' + id;
+  finalizeMessageAppraisal(messageId: string): Observable<void> {
+    const url = this.apiEndpoint + '/finalize-message-appraisal/' + messageId;
     const body = {};
     const options = {};
     return this.httpClient.patch<void>(url, body, options);
@@ -542,15 +543,12 @@ export class MessageService {
     return this.httpClient.patch<void>(url, body, options);
   }
 
-  getAppraisalCodelist(): Observable<RecordObjectAppraisal[]> {
-    if (this.appraisals) {
-      return new Observable((subscriber: Subscriber<RecordObjectAppraisal[]>) => {
-        subscriber.next(this.appraisals);
-        subscriber.complete();
-      });
-    } else {
-      return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/appraisal-codelist');
-    }
+  getAppraisalCodelist(): Observable<AppraisalCode[]> {
+    return this.appraisalCodes.pipe(filter(notNull));
+  }
+
+  private fetchAppraisalCodelist(): Observable<AppraisalCode[]> {
+    return this.httpClient.get<AppraisalCode[]>(this.apiEndpoint + '/appraisal-codelist');
   }
 
   getConfidentialityLevelCodelist(): Observable<ConfidentialityLevel[]> {
@@ -562,73 +560,6 @@ export class MessageService {
     } else {
       return this.httpClient.get<ConfidentialityLevel[]>(this.apiEndpoint + '/confidentiality-level-codelist');
     }
-  }
-
-  setFileRecordObjectAppraisal(id: string, appraisalCode: string): Observable<FileRecordObject> {
-    const url = this.apiEndpoint + '/file-record-object-appraisal';
-    const body = {};
-    const options = {
-      params: new HttpParams().set('id', id).set('appraisal', appraisalCode),
-    };
-    return this.httpClient.patch<FileRecordObject>(url, body, options);
-  }
-
-  setFileRecordObjectAppraisalNote(id: string, note?: string | null): Observable<FileRecordObject> {
-    const url = this.apiEndpoint + '/file-record-object-appraisal-note';
-    const body = {};
-    const options = {
-      params: new HttpParams().set('id', id).set('note', note ? note : ''),
-    };
-    return this.httpClient.patch<FileRecordObject>(url, body, options);
-  }
-
-  setProcessRecordObjectAppraisal(id: string, appraisalCode: string): Observable<ProcessRecordObject> {
-    const url = this.apiEndpoint + '/process-record-object-appraisal';
-    const body = {};
-    const options = {
-      params: new HttpParams().set('id', id).set('appraisal', appraisalCode),
-    };
-    return this.httpClient.patch<ProcessRecordObject>(url, body, options);
-  }
-
-  setProcessRecordObjectAppraisalNote(id: string, note: string | null): Observable<ProcessRecordObject> {
-    const url = this.apiEndpoint + '/process-record-object-appraisal-note';
-    const body = {};
-    const options = {
-      params: new HttpParams().set('id', id).set('note', note ? note : ''),
-    };
-    return this.httpClient.patch<ProcessRecordObject>(url, body, options);
-  }
-
-  setAppraisalForMultipleRecordObjects(
-    recordObjectIDs: string[],
-    appraisalCode: string,
-    appraisalNote: string | null,
-  ): Observable<MultiAppraisalResponse> {
-    const fileRecordObjectIDs: string[] = [];
-    const processRecordObjectIDs: string[] = [];
-    for (let id of recordObjectIDs) {
-      const node: StructureNode | undefined = this.structureNodes.get(id);
-      if (!node) {
-        throw new Error('record object ID not found');
-      }
-      if (node.type === 'file' || node.type === 'subfile') {
-        fileRecordObjectIDs.push(node.id);
-      } else if (node.type === 'process' || node.type === 'subprocess') {
-        processRecordObjectIDs.push(node.id);
-      } else {
-        throw new Error('appraisal can only be set for file and process record objects');
-      }
-    }
-    const url = this.apiEndpoint + '/multi-appraisal';
-    const body = {
-      fileRecordObjectIDs: fileRecordObjectIDs,
-      processRecordObjectIDs: processRecordObjectIDs,
-      appraisalCode: appraisalCode,
-      appraisalNote: appraisalNote,
-    };
-    const options = {};
-    return this.httpClient.patch<MultiAppraisalResponse>(url, body, options);
   }
 
   updateStructureNodeForRecordObject(
@@ -678,14 +609,11 @@ export class MessageService {
     this.changedNodeSubject.next(changedNode);
   }
 
-  getRecordObjectAppraisalByCode(
-    code: string | undefined,
-    appraisals: RecordObjectAppraisal[],
-  ): RecordObjectAppraisal | null {
+  getRecordObjectAppraisalByCode(code: string | undefined, appraisals: AppraisalCode[]): AppraisalCode | null {
     if (!code) {
       return null;
     }
-    const appraisal = appraisals.find((appraisal: RecordObjectAppraisal) => appraisal.code === code);
+    const appraisal = appraisals.find((appraisal: AppraisalCode) => appraisal.code === code);
     if (!appraisal) {
       throw new Error('record object appraisal with code <' + code + "> wasn't found");
     }

@@ -152,7 +152,6 @@ type Message struct {
 	MessageHead            MessageHead            `gorm:"foreignKey:MessageHeadID;references:ID;constraint:OnDelete:SET NULL" json:"messageHead"`
 	MessageTypeID          *uint                  `json:"-"`
 	MessageType            MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
-	AppraisalComplete      bool                   `json:"appraisalComplete"`
 	SchemaValidation       bool                   `gorm:"default:true" json:"schemaValidation"`
 	FileRecordObjects      []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects"`
 	ProcessRecordObjects   []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
@@ -590,13 +589,12 @@ type Lifetime struct {
 }
 
 type ArchiveMetadata struct {
-	XMLName               xml.Name  `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
-	ID                    uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt             time.Time `json:"-"`
-	UpdatedAt             time.Time `json:"-"`
-	AppraisalCode         *string   `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
-	AppraisalRecommCode   *string   `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
-	InternalAppraisalNote *string   `json:"internalAppraisalNote"`
+	XMLName             xml.Name  `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
+	ID                  uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt           time.Time `json:"-"`
+	UpdatedAt           time.Time `json:"-"`
+	AppraisalCode       *string   `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
+	AppraisalRecommCode *string   `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
 }
 
 type ArchiveMetadataVersionIndependent struct {

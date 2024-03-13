@@ -2,6 +2,7 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { AfterViewInit, Component, Inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -12,17 +13,18 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BehaviorSubject, filter, first, switchMap } from 'rxjs';
+import { Appraisal, AppraisalService } from '../../../services/appraisal.service';
 import {
   DisplayText,
   Message,
   MessageService,
-  MultiAppraisalResponse,
   StructureNode,
   StructureNodeType,
 } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
 import { Process, ProcessService, ProcessStep } from '../../../services/process.service';
 import { Task } from '../../../services/tasks.service';
+import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
 import { RecordObjectAppraisalPipe } from '../metadata/record-object-appraisal-pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
@@ -31,6 +33,7 @@ import { StartArchivingDialogComponent } from './start-archiving-dialog/start-ar
 
 export interface FlatNode {
   id: string;
+  xdomeaId: string;
   selected: boolean;
   parentID?: string;
   expandable: boolean;
@@ -38,7 +41,6 @@ export interface FlatNode {
   displayText: DisplayText;
   type: StructureNodeType;
   routerLink: string;
-  appraisal?: string;
 }
 
 @Component({
@@ -65,6 +67,7 @@ export class MessageTreeComponent implements AfterViewInit {
   private _transformer = (node: StructureNode, level: number): FlatNode => {
     return {
       id: node.id,
+      xdomeaId: node.xdomeaID,
       selected: node.selected,
       parentID: node.parentID,
       expandable: !!node.children && node.children.length > 0,
@@ -72,7 +75,6 @@ export class MessageTreeComponent implements AfterViewInit {
       displayText: node.displayText,
       type: node.type,
       routerLink: node.routerLink,
-      appraisal: node.appraisal,
     };
   };
 
@@ -93,9 +95,11 @@ export class MessageTreeComponent implements AfterViewInit {
   );
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   viewInitialized = new BehaviorSubject(false);
+  appraisals: { [xdomeaId: string]: Appraisal } = {};
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
+    private appraisalService: AppraisalService,
     private clipboard: Clipboard,
     private dialog: MatDialog,
     private messageService: MessageService,
@@ -105,6 +109,7 @@ export class MessageTreeComponent implements AfterViewInit {
     private router: Router,
     private messagePage: MessagePageService,
   ) {
+    this.registerAppraisals();
     this.messagePage.observeProcess().subscribe((process) => (this.process = process));
     this.messagePage.observeMessage().subscribe((message) => {
       this.message = message;
@@ -149,7 +154,6 @@ export class MessageTreeComponent implements AfterViewInit {
   updateFlatNodeInTreeControl(changedNode: StructureNode): void {
     const flatNode: FlatNode = this.treeControl.dataNodes.find((n: FlatNode) => n.id === changedNode.id)!;
     flatNode.selected = changedNode.selected;
-    flatNode.appraisal = changedNode.appraisal;
     flatNode.displayText = changedNode.displayText;
     flatNode.routerLink = changedNode.routerLink;
     flatNode.type = changedNode.type;
@@ -209,36 +213,42 @@ export class MessageTreeComponent implements AfterViewInit {
     this.notificationService.show('Objekt-Link in Zwischenspeicher kopiert');
   }
 
-  setAppraisalForMultipleRecorcObjects(): void {
+  setAppraisalForMultipleRecordObjects(): void {
     this.dialog
       .open(AppraisalFormComponent, { autoFocus: false })
       .afterClosed()
       .pipe(
-        filter((formResult) => !!formResult),
-        switchMap((formResult: any) => {
-          return this.messageService.setAppraisalForMultipleRecordObjects(
-            this.selectedNodes,
+        filter(notNull),
+        switchMap((formResult) =>
+          this.appraisalService.setAppraisals(
+            this.messagePage.getProcessId(),
+            this.selectedNodes.map((id) => this.messageService.getStructureNode(id)!.xdomeaID),
             formResult.appraisalCode,
             formResult.appraisalNote,
-          );
-        }),
+          ),
+        ),
       )
-      .subscribe({
-        error: (error: any) => {
-          console.error(error);
-          this.notificationService.show('Bewertung konnte nicht gespeichert werden');
-          this.disableSelection();
-        },
-        next: (response: MultiAppraisalResponse) => {
-          for (let fileRecordObject of response.updatedFileRecordObjects) {
-            this.messageService.updateStructureNodeForRecordObject(fileRecordObject);
-          }
-          for (let processRecordObject of response.updatedProcessRecordObjects) {
-            this.messageService.updateStructureNodeForRecordObject(processRecordObject);
-          }
-          this.notificationService.show('Bewertung erfolgreich gespeichert');
-          this.disableSelection();
-        },
+      .subscribe(() => {
+        this.notificationService.show('Bewertung erfolgreich gespeichert');
+        this.disableSelection();
+      });
+  }
+
+  getAppraisal(node: FlatNode): Appraisal {
+    return this.appraisals[node.xdomeaId];
+  }
+
+  private registerAppraisals(): void {
+    this.messagePage
+      .getProcess()
+      .pipe(
+        switchMap((process) => this.appraisalService.observeAppraisals(process.id)),
+        takeUntilDestroyed(),
+      )
+      .subscribe((appraisals) => {
+        for (const appraisal of appraisals) {
+          this.appraisals[appraisal.recordObjectID] = appraisal;
+        }
       });
   }
 
@@ -264,7 +274,8 @@ export class MessageTreeComponent implements AfterViewInit {
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
             this.notificationService.show('Bewertungsnachricht wurde erfolgreich versandt');
-            this.message!.appraisalComplete = true;
+            // TODO: trigger process update or
+            this.process!.processState.appraisal.complete = true;
           },
         });
     }

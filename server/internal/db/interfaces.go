@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -131,81 +130,48 @@ func (m *Message) GetRecordObjects() []RecordObject {
 }
 
 type AppraisableRecordObject interface {
-	GetAppraisal() (string, bool)
-	SetAppraisal(string) error
 	GetID() uuid.UUID
-	GetAppraisableObjects() []AppraisableRecordObject
+	GetAppraisableParent() AppraisableRecordObject
+	GetAppraisableChildren() []AppraisableRecordObject // TODO rename to GetAppraisableChildren
 }
 
-func (f *FileRecordObject) GetAppraisal() (string, bool) {
-	if f.ArchiveMetadata != nil &&
-		f.ArchiveMetadata.AppraisalCode != nil {
-		return *f.ArchiveMetadata.AppraisalCode, true
-	}
-	return "", false
-}
-
-func (f *FileRecordObject) SetAppraisal(appraisalCode string) error {
-	appraisal, found := GetAppraisalByCode(appraisalCode)
-	if !found {
-		return fmt.Errorf("unknown appraisal code: %v", appraisalCode)
-	}
-	// archive metadata not created
-	if f.ArchiveMetadata == nil {
-		archiveMetadata := ArchiveMetadata{
-			AppraisalCode: &appraisal.Code,
+// GetAppraisableChildren returns a child record objects of file which are appraisable.
+func (f *FileRecordObject) GetAppraisableChildren() []AppraisableRecordObject {
+	if len(f.SubFileRecordObjects)+len(f.ProcessRecordObjects) == 0 {
+		o, found := GetFileRecordObjectByID(f.ID, 1)
+		if !found {
+			panic("did not find file record object")
 		}
-		f.ArchiveMetadata = &archiveMetadata
-	} else {
-		f.ArchiveMetadata.AppraisalCode = &appraisal.Code
+		f = &o
 	}
-	// save archive metadata
-	result := db.Save(&f.ArchiveMetadata)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-	return nil
-}
-
-func (f *FileRecordObject) GetAppraisalNote() (string, error) {
-	if f.ArchiveMetadata != nil &&
-		f.ArchiveMetadata.InternalAppraisalNote != nil {
-		return *f.ArchiveMetadata.InternalAppraisalNote, nil
-	}
-	return "", errors.New("no appraisal note existing")
-}
-
-func (f *FileRecordObject) SetAppraisalNote(note string) error {
-	// archive metadata not created
-	if f.ArchiveMetadata == nil {
-		archiveMetadata := ArchiveMetadata{
-			InternalAppraisalNote: &note,
-		}
-		f.ArchiveMetadata = &archiveMetadata
-	} else {
-		f.ArchiveMetadata.InternalAppraisalNote = &note
-	}
-	// save archive metadata
-	result := db.Save(&f.ArchiveMetadata)
-	return result.Error
-}
-
-// GetAppraisableObjects returns a child record objects of file which are appraisable.
-func (f *FileRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
-	appraisableObjects := []AppraisableRecordObject{f}
+	appraisableObjects := []AppraisableRecordObject{}
 	// add all subfiles (de: Teilakten)
-	for subfileIndex := range f.SubFileRecordObjects {
-		appraisableObjects = append(appraisableObjects, &f.SubFileRecordObjects[subfileIndex])
+	for _, s := range f.SubFileRecordObjects {
+		appraisableObjects = append(appraisableObjects, &s)
+		appraisableObjects = append(appraisableObjects, s.GetAppraisableChildren()...)
 	}
 	// add all processes (de: Vorgänge)
-	for processIndex := range f.ProcessRecordObjects {
-		appraisableObjects = append(appraisableObjects, &f.ProcessRecordObjects[processIndex])
+	for _, s := range f.ProcessRecordObjects {
+		appraisableObjects = append(appraisableObjects, &s)
+		appraisableObjects = append(appraisableObjects, s.GetAppraisableChildren()...)
 	}
 	return appraisableObjects
 }
 
 func (f *FileRecordObject) GetID() uuid.UUID {
 	return f.XdomeaID
+}
+
+func (f *FileRecordObject) GetAppraisableParent() AppraisableRecordObject {
+	if f.ParentFileRecordID != nil {
+		parent, found := GetFileRecordObjectByID(*f.ParentFileRecordID, 0)
+		if !found {
+			panic(fmt.Sprintf("failed to get parent of file record object \"%v\"", f.ID))
+		}
+		return &parent
+	} else {
+		return nil
+	}
 }
 
 func (f *FileRecordObject) GetTitle() string {
@@ -262,83 +228,60 @@ func (p *ProcessRecordObject) GetCombinedLifetime() string {
 	return ""
 }
 
-func (p *ProcessRecordObject) GetAppraisal() (string, bool) {
-	if p.ArchiveMetadata != nil &&
-		p.ArchiveMetadata.AppraisalCode != nil {
-		return *p.ArchiveMetadata.AppraisalCode, true
-	}
-	return "", false
-}
-
-func (p *ProcessRecordObject) SetAppraisal(appraisalCode string) error {
-	appraisal, found := GetAppraisalByCode(appraisalCode)
-	if !found {
-		return fmt.Errorf("unknown appraisal code: %v", appraisalCode)
-	}
-	// archive metadata not created
-	if p.ArchiveMetadata == nil {
-		archiveMetadata := ArchiveMetadata{
-			AppraisalCode: &appraisal.Code,
-		}
-		p.ArchiveMetadata = &archiveMetadata
-	} else {
-		p.ArchiveMetadata.AppraisalCode = &appraisal.Code
-	}
-	// save archive metadata
-	result := db.Save(&p.ArchiveMetadata)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-	return nil
-}
-
-func (p *ProcessRecordObject) GetAppraisalNote() (string, error) {
-	if p.ArchiveMetadata != nil &&
-		p.ArchiveMetadata.InternalAppraisalNote != nil {
-		return *p.ArchiveMetadata.InternalAppraisalNote, nil
-	}
-	return "", errors.New("no appraisal note existing")
-}
-
-func (p *ProcessRecordObject) SetAppraisalNote(note string) {
-	// archive metadata not created
-	if p.ArchiveMetadata == nil {
-		archiveMetadata := ArchiveMetadata{
-			InternalAppraisalNote: &note,
-		}
-		p.ArchiveMetadata = &archiveMetadata
-	} else {
-		p.ArchiveMetadata.InternalAppraisalNote = &note
-	}
-	// save archive metadata
-	result := db.Save(&p.ArchiveMetadata)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-}
-
 func (p *ProcessRecordObject) GetID() uuid.UUID {
 	return p.XdomeaID
 }
 
-// GetAppraisableObjects returns a child record objects of process which are appraisable.
-func (p *ProcessRecordObject) GetAppraisableObjects() []AppraisableRecordObject {
-	appraisableObjects := []AppraisableRecordObject{p}
+func (p *ProcessRecordObject) GetAppraisableParent() AppraisableRecordObject {
+	if p.ParentFileRecordID != nil {
+		parent, found := GetFileRecordObjectByID(*p.ParentFileRecordID, 0)
+		if !found {
+			panic(fmt.Sprintf("failed to get parent of process record object \"%v\"", p.ID))
+		}
+		return &parent
+	} else if p.ParentProcessRecordID != nil {
+		parent, found := GetProcessRecordObjectByID(*p.ParentProcessRecordID, 0)
+		if !found {
+			panic(fmt.Sprintf("failed to get parent of process record object \"%v\"", p.ID))
+		}
+		return &parent
+	} else {
+		return nil
+	}
+}
+
+// GetAppraisableChildren returns a child record objects of process which are appraisable.
+func (p *ProcessRecordObject) GetAppraisableChildren() []AppraisableRecordObject {
+	if len(p.SubProcessRecordObjects) == 0 {
+		o, found := GetProcessRecordObjectByID(p.ID, 1)
+		if !found {
+			panic("did not find process record object")
+		}
+		p = &o
+	}
+	appraisableObjects := []AppraisableRecordObject{}
 	// add all subprocesses (de: Teilvorgänge)
-	for index := range p.SubProcessRecordObjects {
-		appraisableObjects = append(appraisableObjects, &p.SubProcessRecordObjects[index])
+	for _, s := range p.SubProcessRecordObjects {
+		appraisableObjects = append(appraisableObjects, &s)
+		appraisableObjects = append(appraisableObjects, s.GetAppraisableChildren()...)
 	}
 	return appraisableObjects
 }
 
 // GetAppraisableObjects returns all files, subfiles, processes and subprocesses of message.
 func (m *Message) GetAppraisableObjects() []AppraisableRecordObject {
-	var appraisableObjects []AppraisableRecordObject
-	for index := range m.FileRecordObjects {
-		appraisableObjects = append(appraisableObjects, m.FileRecordObjects[index].GetAppraisableObjects()...)
+	message := *m
+	if len(m.FileRecordObjects) == 0 {
+		message, _ = GetCompleteMessageByID(m.ID)
 	}
-	for index := range m.ProcessRecordObjects {
-		appraisableObjects = append(appraisableObjects, m.FileRecordObjects[index].GetAppraisableObjects()...)
+	var appraisableObjects []AppraisableRecordObject
+	for _, f := range message.FileRecordObjects {
+		appraisableObjects = append(appraisableObjects, &f)
+		appraisableObjects = append(appraisableObjects, f.GetAppraisableChildren()...)
+	}
+	for _, p := range message.ProcessRecordObjects {
+		appraisableObjects = append(appraisableObjects, &p)
+		appraisableObjects = append(appraisableObjects, p.GetAppraisableChildren()...)
 	}
 	return appraisableObjects
 }

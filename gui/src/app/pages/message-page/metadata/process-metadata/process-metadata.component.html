@@ -1,5 +1,5 @@
 <div class="metadata-section">
-  <form *ngIf="processRecordObject" [formGroup]="form">
+  <form *ngIf="recordObject" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -58,7 +58,7 @@
         </mat-expansion-panel-header>
         <div class="metadata">
           <div class="metadata-row">
-            <div *ngIf="messageAppraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"></div>
+            <div *ngIf="appraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"></div>
             <ng-template #appraisalInputReadonly>
               <mat-form-field class="appraisal-input" floatLabel="always">
                 <mat-label>Bewertungsentscheidung</mat-label>
@@ -68,8 +68,8 @@
             <ng-template #appraisalInputEditable>
               <mat-form-field class="appraisal-input" floatLabel="always">
                 <mat-label>Bewertungsentscheidung</mat-label>
-                <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event)">
-                  <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
+                <mat-select formControlName="appraisal" (selectionChange)="setAppraisal($event.value)">
+                  <mat-option *ngFor="let appraisal of appraisalCodes" [value]="appraisal.code">
                     {{ appraisal.shortDesc }}
                   </mat-option>
                 </mat-select>
@@ -82,13 +82,7 @@
           </div>
           <mat-form-field class="internal-appraisal-note" floatLabel="always">
             <mat-label>Interner Bewertungsvermerk</mat-label>
-            <textarea
-              #appraisalNote
-              matInput
-              formControlName="appraisalNote"
-              [readonly]="messageAppraisalComplete"
-              rows="5"
-            >
+            <textarea #appraisalNote matInput formControlName="appraisalNote" [readonly]="appraisalComplete" rows="5">
             </textarea>
           </mat-form-field>
         </div>

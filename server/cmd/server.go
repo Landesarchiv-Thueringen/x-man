@@ -65,14 +65,13 @@ func main() {
 	authorized.GET("api/report/:processId", getReport)
 	authorized.GET("api/user-info/my", getMyUserInformation)
 	authorized.POST("api/user-preferences", setUserPreferences)
-	authorized.PATCH("api/file-record-object-appraisal", setFileRecordObjectAppraisal)
-	authorized.PATCH("api/file-record-object-appraisal-note", setFileRecordObjectAppraisalNote)
-	authorized.PATCH("api/process-record-object-appraisal", setProcessRecordObjectAppraisal)
-	authorized.PATCH("api/process-record-object-appraisal-note", setProcessRecordObjectAppraisalNote)
-	authorized.PATCH("api/process-note/:processId", setProcessNote)
+	authorized.GET("api/appraisals/:processId", getAppraisals)
+	authorized.POST("api/appraisal-decision", setAppraisalDecision)
+	authorized.POST("api/appraisal-note", setAppraisalNote)
+	authorized.POST("api/appraisals", setAppraisals)
 	authorized.PATCH("api/finalize-message-appraisal/:id", finalizeMessageAppraisal)
-	authorized.PATCH("api/multi-appraisal", setAppraisalForMultipleRecordObjects)
 	authorized.PATCH("api/archive-0503-message/:id", archive0503Message)
+	authorized.PATCH("api/process-note/:processId", setProcessNote)
 	admin := router.Group("/")
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processes", getProcesses)
@@ -218,9 +217,9 @@ func getFileRecordObjectByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	fileRecordObject, err := db.GetFileRecordObjectByID(id)
-	if err != nil {
-		context.AbortWithError(http.StatusNotFound, err)
+	fileRecordObject, found := db.GetFileRecordObjectByID(id, 0)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	context.JSON(http.StatusOK, fileRecordObject)
@@ -232,9 +231,9 @@ func getProcessRecordObjectByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	processRecordObject, found := db.GetProcessRecordObjectByID(id)
+	processRecordObject, found := db.GetProcessRecordObjectByID(id, 0)
 	if !found {
-		context.AbortWithError(http.StatusNotFound, err)
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	context.JSON(http.StatusOK, processRecordObject)
@@ -246,9 +245,9 @@ func getDocumentRecordObjectByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	documentRecordObject, err := db.GetDocumentRecordObjectByID(id)
-	if err != nil {
-		context.AbortWithError(http.StatusNotFound, err)
+	documentRecordObject, found := db.GetDocumentRecordObjectByID(id)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	context.JSON(http.StatusOK, documentRecordObject)
@@ -274,102 +273,66 @@ func getConfidentialityLevelCodelist(context *gin.Context) {
 	context.JSON(http.StatusOK, codelist)
 }
 
-func setFileRecordObjectAppraisal(context *gin.Context) {
-	fileRecordObjectID := context.Query("id")
-	id, err := uuid.Parse(fileRecordObjectID)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	appraisalCode := context.Query("appraisal")
-	fileRecordObject, err := db.SetFileRecordObjectAppraisal(id, appraisalCode, true)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	context.JSON(http.StatusOK, fileRecordObject)
+func getAppraisals(context *gin.Context) {
+	processID := context.Param("processId")
+	appraisals := db.GetAppraisalsForProcess(processID)
+	context.JSON(http.StatusOK, appraisals)
 }
 
-func setFileRecordObjectAppraisalNote(context *gin.Context) {
-	fileRecordObjectID := context.Query("id")
-	id, err := uuid.Parse(fileRecordObjectID)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+func setAppraisalDecision(context *gin.Context) {
+	processID := context.Query("processId")
+	if processID == "" {
+		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	note := context.Query("note")
-	fileRecordObject, err := db.SetFileRecordObjectAppraisalNote(id, note)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	context.JSON(http.StatusOK, fileRecordObject)
-}
-
-func setProcessRecordObjectAppraisal(context *gin.Context) {
-	processRecordObjectID := context.Query("id")
-	id, err := uuid.Parse(processRecordObjectID)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	appraisalCode := context.Query("appraisal")
-	processRecordObject, found := db.GetProcessRecordObjectByID(id)
-	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	err = db.SetProcessRecordObjectAppraisal(&processRecordObject, appraisalCode)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	context.JSON(http.StatusOK, processRecordObject)
-}
-
-func setProcessRecordObjectAppraisalNote(context *gin.Context) {
-	processRecordObjectID := context.Query("id")
-	id, err := uuid.Parse(processRecordObjectID)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	note := context.Query("note")
-	processRecordObject, found := db.GetProcessRecordObjectByID(id)
-	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	db.SetProcessRecordObjectAppraisalNote(&processRecordObject, note)
-	context.JSON(http.StatusOK, processRecordObject)
-}
-
-func setProcessNote(context *gin.Context) {
-	processId := context.Param("processId")
-	note, err := io.ReadAll(context.Request.Body)
+	db.GetProcess(processID)
+	recordObjectID := context.Query("recordObjectId")
+	appraisalDecision, err := io.ReadAll(context.Request.Body)
 	if err != nil {
 		panic(err)
 	}
-	process, found := db.GetProcess(processId)
-	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
+	err = xdomea.SetAppraisalDecisionRecursive(processID,
+		recordObjectID,
+		db.AppraisalDecisionOption((appraisalDecision)))
+	if err != nil {
+		context.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
-	db.SetProcessNote(process, string(note))
+	appraisals := db.GetAppraisalsForProcess(processID)
+	context.JSON(http.StatusAccepted, appraisals)
+}
+
+func setAppraisalNote(context *gin.Context) {
+	processID := context.Query("processId")
+	if processID == "" {
+		context.String(http.StatusBadRequest, "missing query parameter processId")
+		return
+	}
+	db.GetProcess(processID)
+	recordObjectID := context.Query("recordObjectId")
+	appraisalInternalNote, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		panic(err)
+	}
+	err = xdomea.SetAppraisalInternalNote(processID,
+		recordObjectID,
+		string(appraisalInternalNote))
+	if err != nil {
+		context.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	appraisals := db.GetAppraisalsForProcess(processID)
+	context.JSON(http.StatusAccepted, appraisals)
 }
 
 type MultiAppraisalBody struct {
-	FileRecordObjectIDs    []string `json:"fileRecordObjectIDs"`
-	ProcessRecordObjectIDs []string `json:"processRecordObjectIDs"`
-	AppraisalCode          string   `json:"appraisalCode"`
-	AppraisalNote          *string  `json:"appraisalNote"`
+	ProcessID       string                     `json:"processId"`
+	RecordObjectIDs []string                   `json:"recordObjectIds"`
+	Decision        db.AppraisalDecisionOption `json:"decision"`
+	InternalNote    string                     `json:"internalNote"`
 }
 
-type MultiAppraisalResponse struct {
-	UpdatedFileRecordObjects    []db.FileRecordObject    `json:"updatedFileRecordObjects"`
-	UpdatedProcessRecordObjects []db.ProcessRecordObject `json:"updatedProcessRecordObjects"`
-}
-
-func setAppraisalForMultipleRecordObjects(context *gin.Context) {
+func setAppraisals(context *gin.Context) {
 	jsonBody, err := io.ReadAll(context.Request.Body)
 	if err != nil {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -381,29 +344,18 @@ func setAppraisalForMultipleRecordObjects(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	updatedFileRecordObjects, err := xdomea.SetAppraisalForFileRecordObjects(
-		parsedBody.FileRecordObjectIDs,
-		parsedBody.AppraisalCode,
-		parsedBody.AppraisalNote,
+	err = xdomea.SetAppraisals(
+		parsedBody.ProcessID,
+		parsedBody.RecordObjectIDs,
+		parsedBody.Decision,
+		parsedBody.InternalNote,
 	)
 	if err != nil {
-		context.AbortWithError(http.StatusBadRequest, err)
+		context.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to set appraisals: %v", err))
 		return
 	}
-	updatedProcessRecordObjects, err := xdomea.SetAppraisalForProcessRecordObjects(
-		parsedBody.ProcessRecordObjectIDs,
-		parsedBody.AppraisalCode,
-		parsedBody.AppraisalNote,
-	)
-	if err != nil {
-		context.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	response := MultiAppraisalResponse{
-		UpdatedFileRecordObjects:    updatedFileRecordObjects,
-		UpdatedProcessRecordObjects: updatedProcessRecordObjects,
-	}
-	context.JSON(http.StatusOK, response)
+	appraisals := db.GetAppraisalsForProcess(parsedBody.ProcessID)
+	context.JSON(http.StatusAccepted, appraisals)
 }
 
 func finalizeMessageAppraisal(context *gin.Context) {
@@ -414,19 +366,18 @@ func finalizeMessageAppraisal(context *gin.Context) {
 	}
 	message, found := db.GetCompleteMessageByID(id)
 	if !found {
-		context.AbortWithError(http.StatusNotFound, err)
+		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	if message.AppraisalComplete {
-		// appraisal for message is already complete
-		context.AbortWithStatus(http.StatusBadRequest)
+	process := db.GetProcessForMessage(message)
+	if process.ProcessState.Appraisal.Complete {
+		context.AbortWithStatus(http.StatusConflict)
 		return
 	}
 	userID := context.MustGet("userId").([]byte)
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
 	messagePath := messagestore.Store0502Message(message)
-	process := db.GetProcessForMessage(message)
 	process.Message0502Path = &messagePath
 	db.UpdateProcess(process)
 }
@@ -444,6 +395,19 @@ func AreAllRecordObjectsAppraised(context *gin.Context) {
 	}
 	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(message)
 	context.JSON(http.StatusOK, appraisalComplete)
+}
+
+func setProcessNote(context *gin.Context) {
+	processId := context.Param("processId")
+	note, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		panic(err)
+	}
+	process, found := db.GetProcess(processId)
+	if !found {
+		context.AbortWithStatus(http.StatusNotFound)
+	}
+	db.SetProcessNote(process, string(note))
 }
 
 func getMessageTypeCode(context *gin.Context) {

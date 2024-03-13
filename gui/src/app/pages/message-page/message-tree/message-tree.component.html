@@ -107,7 +107,9 @@
         }
         <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
           <span class="spacer"></span>
-          <span class="appraisal-symbol" *ngIf="node.appraisal">{{ node.appraisal | recordObjectAppraisal }}</span>
+          <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
+            appraisal.decision | recordObjectAppraisal
+          }}</span>
           <mat-checkbox
             *ngIf="showSelection"
             [(ngModel)]="node.selected"
@@ -124,7 +126,13 @@
       <mat-icon>content_copy</mat-icon>
       <span>Objekt-Link kopieren</span>
     </button>
-    <button mat-fab extended *ngIf="!message.appraisalComplete" color="primary" (click)="enableSelection()">
+    <button
+      mat-fab
+      extended
+      *ngIf="!process.processState.appraisal.complete"
+      color="primary"
+      (click)="enableSelection()"
+    >
       <mat-icon> check_box </mat-icon>
       Mehrfachauswahl
     </button>
@@ -132,7 +140,7 @@
       <mat-icon>summarize</mat-icon>
       <span>Übernahmebericht herunterladen</span>
     </button>
-    <button mat-fab extended *ngIf="!message.appraisalComplete" (click)="sendAppraisalMessage()">
+    <button mat-fab extended *ngIf="!process.processState.appraisal.complete" (click)="sendAppraisalMessage()">
       <mat-icon>forward_to_inbox</mat-icon>
       <span>Bewertung senden</span>
     </button>
@@ -159,7 +167,7 @@
     <button
       mat-fab
       extended
-      (click)="setAppraisalForMultipleRecorcObjects()"
+      (click)="setAppraisalForMultipleRecordObjects()"
       [disabled]="this.selectedNodes.length === 0"
     >
       <mat-icon> checklist </mat-icon>

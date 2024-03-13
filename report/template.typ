@@ -78,19 +78,6 @@
   }
 }
 
-#let formatContentStats(stats) = [
-  #let statsList = ("Files", "SubFiles", "Processes", "SubProcesses", "Documents",).map(key => (key, stats.at(key))).filter(el => el.last().Total > 0)
-  #if stats.HasDeviatingAppraisals [
-    #statsList.map(el => [
-      #formatContentStatsElement(el.first(), el.last().Total)
-      (davon #el.last().Archived übernommen, #el.last().Discarded kassiert)
-    ]).join([\
-    ])
-  ] else [
-    #statsList.map(el => formatContentStatsElement(el.first(), el.last().Total)).join(", ")
-  ]
-]
-
 #let formatAppraisalCode(code) = (A: "Archivieren", V: "Vernichten").at(code)
 
 #let formatValidity(validity) = {
@@ -232,7 +219,7 @@
       columns: 2,
       stroke: none,
       [Bewertungs-?notiz:],
-      [#fallback(el.archiveMetadata.internalAppraisalNote)],
+      [#fallback(el.appraisal.internalNote)],
     )
     // #if el.children != none [
     //   #block(inset: (left: 2.4em))[

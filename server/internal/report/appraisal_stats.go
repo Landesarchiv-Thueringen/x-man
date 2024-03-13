@@ -2,6 +2,8 @@ package report
 
 import (
 	"lath/xman/internal/db"
+
+	"github.com/google/uuid"
 )
 
 type ObjectAppraisalStats struct {
@@ -10,14 +12,14 @@ type ObjectAppraisalStats struct {
 	Discarded uint
 }
 
-func (objectStats *ObjectAppraisalStats) addObject(archiveMetadata db.ArchiveMetadata) {
-	switch *archiveMetadata.AppraisalCode {
+func (objectStats *ObjectAppraisalStats) addObject(a db.Appraisal) {
+	switch a.Decision {
 	case "A":
 		objectStats.Archived += 1
 	case "V":
 		objectStats.Discarded += 1
 	default:
-		panic("unexpected appraisal code: " + *archiveMetadata.AppraisalCode)
+		panic("unexpected appraisal code: " + a.Decision)
 	}
 	objectStats.Total += 1
 }
@@ -36,43 +38,45 @@ type AppraisalStats struct {
 	Attachments            ObjectAppraisalStats
 }
 
-func (a *AppraisalStats) processFiles(files []db.FileRecordObject, isSubLevel bool) {
+type appraisalMap = map[uuid.UUID]db.Appraisal
+
+func (a *AppraisalStats) processFiles(files []db.FileRecordObject, isSubLevel bool, m appraisalMap) {
 	for _, file := range files {
 		if isSubLevel {
-			a.SubFiles.addObject(*file.ArchiveMetadata)
+			a.SubFiles.addObject(m[file.XdomeaID])
 		} else {
-			a.Files.addObject(*file.ArchiveMetadata)
+			a.Files.addObject(m[file.XdomeaID])
 		}
-		a.processFiles(file.SubFileRecordObjects, true)
-		a.processProcesses(file.ProcessRecordObjects, false)
-		a.processDocuments(file.DocumentRecordObjects, false, *file.ArchiveMetadata)
+		a.processFiles(file.SubFileRecordObjects, true, m)
+		a.processProcesses(file.ProcessRecordObjects, false, m)
+		a.processDocuments(file.DocumentRecordObjects, false, m[file.XdomeaID])
 	}
 }
 
-func (a *AppraisalStats) processProcesses(processes []db.ProcessRecordObject, isSubLevel bool) {
+func (a *AppraisalStats) processProcesses(processes []db.ProcessRecordObject, isSubLevel bool, m appraisalMap) {
 	for _, process := range processes {
 		if isSubLevel {
-			a.SubProcesses.addObject(*process.ArchiveMetadata)
+			a.SubProcesses.addObject(m[process.XdomeaID])
 		} else {
-			a.Processes.addObject(*process.ArchiveMetadata)
+			a.Processes.addObject(m[process.XdomeaID])
 		}
-		a.processProcesses(process.SubProcessRecordObjects, false)
-		a.processDocuments(process.DocumentRecordObjects, false, *process.ArchiveMetadata)
+		a.processProcesses(process.SubProcessRecordObjects, false, m)
+		a.processDocuments(process.DocumentRecordObjects, false, m[process.XdomeaID])
 	}
 }
 
 func (a *AppraisalStats) processDocuments(
 	documents []db.DocumentRecordObject,
 	isSubLevel bool,
-	archiveMetadata db.ArchiveMetadata,
+	appraisal db.Appraisal,
 ) {
 	for _, document := range documents {
 		if isSubLevel {
-			a.Attachments.addObject(archiveMetadata)
+			a.Attachments.addObject(appraisal)
 		} else {
-			a.Documents.addObject(archiveMetadata)
+			a.Documents.addObject(appraisal)
 		}
-		a.processDocuments(document.Attachments, true, archiveMetadata)
+		a.processDocuments(document.Attachments, true, appraisal)
 	}
 }
 
@@ -94,29 +98,23 @@ func (a *AppraisalStats) checkForDeviatingAppraisals(appraisalCode string) {
 	}
 }
 
+func getAppraisalsMap(processID string) appraisalMap {
+	m := make(appraisalMap)
+	appraisals := db.GetAppraisalsForProcess(processID)
+	for _, a := range appraisals {
+		m[a.RecordObjectID] = a
+	}
+	return m
+}
+
 func getAppraisalStats(message db.Message) (a AppraisalStats) {
-	a.processFiles(message.FileRecordObjects, false)
-	a.processProcesses(message.ProcessRecordObjects, false)
+	m := getAppraisalsMap(message.MessageHead.ProcessID)
+	a.processFiles(message.FileRecordObjects, false, m)
+	a.processProcesses(message.ProcessRecordObjects, false, m)
 	// Treat all root-level documents as appraised to "A" since documents always
 	// inherit their appraisal from their parent element (which in this case is
 	// the message itself).
-	code := "A"
-	a.processDocuments(message.DocumentRecordObjects, false, db.ArchiveMetadata{AppraisalCode: &code})
-	a.checkForDeviatingAppraisals(code)
-	return
-}
-
-func getFileAppraisalStats(file db.FileRecordObject) (a AppraisalStats) {
-	a.processFiles(file.SubFileRecordObjects, true)
-	a.processProcesses(file.ProcessRecordObjects, false)
-	a.processDocuments(file.DocumentRecordObjects, false, *file.ArchiveMetadata)
-	a.checkForDeviatingAppraisals(*file.ArchiveMetadata.AppraisalCode)
-	return
-}
-
-func getProcessAppraisalStats(process db.ProcessRecordObject) (a AppraisalStats) {
-	a.processProcesses(process.SubProcessRecordObjects, false)
-	a.processDocuments(process.DocumentRecordObjects, false, *process.ArchiveMetadata)
-	a.checkForDeviatingAppraisals(*process.ArchiveMetadata.AppraisalCode)
+	a.processDocuments(message.DocumentRecordObjects, false, db.Appraisal{Decision: "A"})
+	a.checkForDeviatingAppraisals("A")
 	return
 }

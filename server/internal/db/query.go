@@ -149,10 +149,13 @@ func GetProcessesForUser(userID []byte) []Process {
 	return processes
 }
 
-func GetMessageByID(id uuid.UUID) (Message, error) {
+func GetMessageByID(id uuid.UUID) (Message, bool) {
 	var message Message
-	result := db.First(&message, id)
-	return message, result.Error
+	result := db.Limit(1).Find(&message, id)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return message, result.RowsAffected > 0
 }
 
 func GetCompleteMessageByID(id uuid.UUID) (Message, bool) {
@@ -178,7 +181,14 @@ func GetProcessForMessage(message Message) Process {
 		panic("called GetProcessForMessage with nil message.ID")
 	}
 	var process = Process{}
-	result := db.Where("? in (message0501_id, message0503_id, message0505_id)", message.ID).First(&process)
+	result := db.Where("? in (message0501_id, message0503_id, message0505_id)", message.ID).
+		Preload("ProcessState.Receive0501." + clause.Associations).
+		Preload("ProcessState.Appraisal." + clause.Associations).
+		Preload("ProcessState.Receive0505." + clause.Associations).
+		Preload("ProcessState.Receive0503." + clause.Associations).
+		Preload("ProcessState.FormatVerification." + clause.Associations).
+		Preload("ProcessState.Archiving." + clause.Associations).
+		First(&process)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -207,34 +217,43 @@ func GetMessageTypeCode(id uuid.UUID) (string, error) {
 	return message.MessageType.Code, nil
 }
 
-func GetFileRecordObjectByID(id uuid.UUID) (FileRecordObject, error) {
-	var file FileRecordObject
+func GetFileRecordObjectByID(id uuid.UUID, preloadDepth uint) (file FileRecordObject, found bool) {
+	if id == uuid.Nil {
+		panic("called GetFileRecordObjectByID with ID nil")
+	}
 	result := db.
-		Scopes(PreloadFileRecordObject("", 0, 0)).
-		First(&file, id)
-	return file, result.Error
+		Scopes(PreloadFileRecordObject("", 0, preloadDepth)).
+		Limit(1).Find(&file, id)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	found = result.RowsAffected > 0
+	return
 }
 
-func GetProcessRecordObjectByID(id uuid.UUID) (ProcessRecordObject, bool) {
+func GetProcessRecordObjectByID(id uuid.UUID, preloadDepth uint) (process ProcessRecordObject, found bool) {
 	if id == uuid.Nil {
 		panic("called GetProcessRecordObjectByID with ID nil")
 	}
-	var process ProcessRecordObject
 	result := db.
-		Scopes(PreloadProcessRecordObject("", 0, 0)).
+		Scopes(PreloadProcessRecordObject("", 0, preloadDepth)).
 		Limit(1).Find(&process, id)
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	return process, result.RowsAffected == 1
+	found = result.RowsAffected > 0
+	return
 }
 
-func GetDocumentRecordObjectByID(id uuid.UUID) (DocumentRecordObject, error) {
-	var document DocumentRecordObject
+func GetDocumentRecordObjectByID(id uuid.UUID) (document DocumentRecordObject, found bool) {
+	if id == uuid.Nil {
+		panic("called GetDocumentRecordObjectByID with ID nil")
+	}
 	result := db.
 		Scopes(PreloadDocumentRecordObject("")).
-		First(&document, id)
-	return document, result.Error
+		Limit(1).Find(&document, id)
+	found = result.RowsAffected > 0
+	return
 }
 
 func GetAllFileRecordObjects(messageID uuid.UUID) (map[uuid.UUID]FileRecordObject, error) {

@@ -27,7 +27,7 @@ func Generate0502Message(message db.Message) string {
 		MessageHead: messageHead,
 	}
 	for _, o := range message.GetAppraisableObjects() {
-		appraisedObject := GenerateAppraisedObject(o, xdomeaVersion)
+		appraisedObject := GenerateAppraisedObject(messageHead.ProcessID, o, xdomeaVersion)
 		message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 	}
 	xmlBytes, err := xml.MarshalIndent(message0502, " ", " ")
@@ -52,25 +52,24 @@ func Generate0502Message(message db.Message) string {
 
 // GenerateAppraisedObject returns xdomea version dependent appraised object.
 func GenerateAppraisedObject(
+	processID string,
 	o db.AppraisableRecordObject,
 	xdomeaVersion db.XdomeaVersion,
 ) db.GeneratorAppraisedObject {
 	var appraisedObject db.GeneratorAppraisedObject
-	appraisal, found := o.GetAppraisal()
-	if !found {
-		panic(fmt.Sprintf("appraisal not found: %v", o.GetID()))
-	} else if appraisal == "B" {
-		panic(fmt.Sprintf("called GenerateAppraisedObject with appraisal B: %v", o.GetID()))
+	appraisal := db.GetAppraisal(processID, o.GetID())
+	if appraisal.Decision != "A" && appraisal.Decision != "V" {
+		panic(fmt.Sprintf("called GenerateAppraisedObject with appraisal \"%s\": %v", appraisal.Decision, o.GetID()))
 	}
 
 	var objectAppraisal db.GeneratorObjectAppraisal
 	if xdomeaVersion.IsVersionPriorTo300() {
 		objectAppraisal = db.GeneratorObjectAppraisal{
-			AppraisalCodePre300: &appraisal,
+			AppraisalCodePre300: (*string)(&appraisal.Decision),
 		}
 	} else {
 		appraisalCode := db.GeneratorCode{
-			Code: appraisal,
+			Code: string(appraisal.Decision),
 		}
 		objectAppraisal = db.GeneratorObjectAppraisal{
 			AppraisalCode: &appraisalCode,
