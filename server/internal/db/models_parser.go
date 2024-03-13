@@ -183,13 +183,6 @@ func (m *Message) BeforeDelete(tx *gorm.DB) (err error) {
 	return
 }
 
-type MessageType struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-	Code      string    `json:"code"`
-}
-
 type Message0501 struct {
 	XMLName               xml.Name               `gorm:"-" xml:"Aussonderung.Anbieteverzeichnis.0501" json:"-"`
 	MessageHead           MessageHead            `xml:"Kopf" json:"messageHead"`

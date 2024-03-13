@@ -94,7 +94,7 @@ func InitConfidentialityLevelCodelist() {
 func InitMediumCodelist() {
 	mediumCodelist := []*db.Medium{
 		{ID: "001", ShortDesc: "Elektronisch", Desc: "Elektronisch: Das Schriftgutobjekt liegt ausschließlich in elektronischer Form vor."},
-		{ID: "002", ShortDesc: "Hybrid", Desc: "Hybrid: Das Schriftgutobjekt liegt teilweise in	elektronischer Form und teilweise als Papier vor."},
+		{ID: "002", ShortDesc: "Hybrid", Desc: "Hybrid: Das Schriftgutobjekt liegt teilweise in elektronischer Form und teilweise als Papier vor."},
 		{ID: "003", ShortDesc: "Papier", Desc: "Papier: Das Schriftgutobjekt liegt ausschließlich als Papier vor."},
 	}
 	db.InitMediumCodelist(mediumCodelist)

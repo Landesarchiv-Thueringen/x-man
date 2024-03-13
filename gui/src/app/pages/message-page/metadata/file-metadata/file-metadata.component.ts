@@ -69,9 +69,7 @@ export class FileMetadataComponent implements AfterViewInit, OnDestroy {
         switchMap((params: Params) => this.messageService.getFileRecordObject(params['id'])),
         tap((fileRecordObject) => (this.fileRecordObject = fileRecordObject)),
       ),
-      this.messageService
-        .getRecordObjectAppraisals()
-        .pipe(tap((appraisals) => (this.recordObjectAppraisals = appraisals))),
+      this.messageService.getAppraisalCodelist().pipe(tap((appraisals) => (this.recordObjectAppraisals = appraisals))),
     ]).subscribe(() => this.setMetadata());
 
     // update metadata if record object changes

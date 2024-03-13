@@ -366,7 +366,7 @@ func GetMessageTypeByCode(code string) MessageType {
 	return messageType
 }
 
-func GetRecordObjectAppraisals() []RecordObjectAppraisal {
+func GetAppraisalCodelist() []RecordObjectAppraisal {
 	var appraisals []RecordObjectAppraisal
 	result := db.Find(&appraisals)
 	if result.Error != nil {

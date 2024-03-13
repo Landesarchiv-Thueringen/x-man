@@ -58,9 +58,7 @@ export class ProcessMetadataComponent implements AfterViewInit, OnDestroy {
         switchMap((params: Params) => this.messageService.getProcessRecordObject(params['id'])),
         tap((processRecordObject) => (this.processRecordObject = processRecordObject)),
       ),
-      this.messageService
-        .getRecordObjectAppraisals()
-        .pipe(tap((appraisals) => (this.recordObjectAppraisals = appraisals))),
+      this.messageService.getAppraisalCodelist().pipe(tap((appraisals) => (this.recordObjectAppraisals = appraisals))),
       this.messagePage
         .observeMessage()
         .pipe(tap((message) => (this.messageAppraisalComplete = message.appraisalComplete))),

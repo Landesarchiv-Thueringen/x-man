@@ -255,7 +255,7 @@ export class MessageService {
     this.structureNodes = new Map<string, StructureNode>();
     this.nodesSubject = new BehaviorSubject<StructureNode[]>(this.getRootStructureNodes());
     this.changedNodeSubject = new Subject<StructureNode>();
-    this.getRecordObjectAppraisals().subscribe((appraisals: RecordObjectAppraisal[]) => {
+    this.getAppraisalCodelist().subscribe((appraisals: RecordObjectAppraisal[]) => {
       this.appraisals = appraisals;
     });
     this.getConfidentialityLevelCodelist().subscribe((confidentialityLevelCodelist: ConfidentialityLevel[]) => {
@@ -542,14 +542,14 @@ export class MessageService {
     return this.httpClient.patch<void>(url, body, options);
   }
 
-  getRecordObjectAppraisals(): Observable<RecordObjectAppraisal[]> {
+  getAppraisalCodelist(): Observable<RecordObjectAppraisal[]> {
     if (this.appraisals) {
       return new Observable((subscriber: Subscriber<RecordObjectAppraisal[]>) => {
         subscriber.next(this.appraisals);
         subscriber.complete();
       });
     } else {
-      return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/record-object-appraisals');
+      return this.httpClient.get<RecordObjectAppraisal[]>(this.apiEndpoint + '/appraisal-codelist');
     }
   }
 

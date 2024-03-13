@@ -56,7 +56,7 @@ func main() {
 	authorized.GET("api/file-record-object/:id", getFileRecordObjectByID)
 	authorized.GET("api/process-record-object/:id", getProcessRecordObjectByID)
 	authorized.GET("api/document-record-object/:id", getDocumentRecordObjectByID)
-	authorized.GET("api/record-object-appraisals", getRecordObjectAppraisals)
+	authorized.GET("api/appraisal-codelist", getAppraisalCodelist)
 	authorized.GET("api/confidentiality-level-codelist", getConfidentialityLevelCodelist)
 	authorized.GET("api/all-record-objects-appraised/:id", AreAllRecordObjectsAppraised)
 	authorized.GET("api/message-type-code/:id", getMessageTypeCode)
@@ -264,8 +264,8 @@ func get0503Messages(context *gin.Context) {
 	context.JSON(http.StatusOK, messages)
 }
 
-func getRecordObjectAppraisals(context *gin.Context) {
-	appraisals := db.GetRecordObjectAppraisals()
+func getAppraisalCodelist(context *gin.Context) {
+	appraisals := db.GetAppraisalCodelist()
 	context.JSON(http.StatusOK, appraisals)
 }
 

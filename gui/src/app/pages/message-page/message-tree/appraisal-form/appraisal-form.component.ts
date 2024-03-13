@@ -37,7 +37,7 @@ export class AppraisalFormComponent {
       appraisal: new FormControl<string | null>(null, Validators.required),
       appraisalNote: new FormControl<string | null>(null),
     });
-    this.messageService.getRecordObjectAppraisals().subscribe((appraisals: RecordObjectAppraisal[]) => {
+    this.messageService.getAppraisalCodelist().subscribe((appraisals: RecordObjectAppraisal[]) => {
       this.recordObjectAppraisals = appraisals;
     });
   }
