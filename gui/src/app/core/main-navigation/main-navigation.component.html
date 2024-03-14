@@ -20,10 +20,8 @@
         <mat-icon>logout</mat-icon>
         Abmelden
       </button>
+      <mat-divider [vertical]="true"></mat-divider>
     }
-    <mat-divider [vertical]="true"></mat-divider>
-    <button mat-button (click)="openAboutDialog()">
-      {{ (aboutInformation | async)?.version }}
-    </button>
+    <button mat-button (click)="openAboutDialog()">v{{ (aboutInformation | async)?.version }}</button>
   </mat-toolbar-row>
 </mat-toolbar>
