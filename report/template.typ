@@ -84,6 +84,22 @@
   if (validity == none) { "-" } else if (validity) { "valide" } else { "invalide" }
 }
 
+#let formatLifetime(lifetime) = {
+  if (lifetime == none) {
+    return [-]
+  }
+  let keys = lifetime.keys()
+  if (keys.contains("start") and keys.contains("end")) {
+    [#formatDate(lifetime.start) -- #formatDate(lifetime.end)]
+  } else if (keys.contains("start")) {
+    [ab #formatDate(lifetime.start)]
+  } else if (keys.contains("end")) {
+    [bis #formatDate(lifetime.end)]
+  } else {
+    [-]
+  }
+}
+
 #let topMatter(data) = [
   // #v(2em)
   #block(spacing: 2em)[
@@ -217,7 +233,7 @@
       columns: (auto, 1fr, auto, 1fr),
       stroke: none,
       [Laufzeit:],
-      [#formatDate(el.lifetime.start) -- #formatDate(el.lifetime.end)],
+      formatLifetime(el.lifetime),
       [],
       [],
       [Speicher-?volumen:],
