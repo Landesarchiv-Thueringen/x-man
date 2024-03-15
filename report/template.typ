@@ -138,16 +138,26 @@
     #set align(center)
     #cetz.canvas(
       {
-        let data = (
-          ([übernommen], data.AppraisalStats.Files.Archived),
-          ([kassiert], data.AppraisalStats.Files.Discarded),
-        )
+        let values = ()
+        if (data.AppraisalStats.Files.Archived > 0) {
+          values.push(([übernommen], data.AppraisalStats.Files.Archived, (fill: olive)))
+        }
+        if (data.AppraisalStats.Files.Discarded > 0) {
+          values.push((
+            [kassiert],
+            data.AppraisalStats.Files.Discarded,
+            (fill: rgb("#e53a31")),
+          ))
+        }
         cetz.chart.piechart(
-          data,
+          values,
           label-key: 0,
           value-key: 1,
           radius: 4,
-          slice-style: (rgb("#e53a31"), olive),
+          slice-style: (
+            // slice-style as a somewhat peculiar indexing strategy...
+            index => values.at(calc.rem-euclid(values.len() - index - 1, values.len())).at(2)
+          ),
           inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
           outer-label: (content: "%", radius: 120%),
         )
