@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Params } from '@angular/router';
 import { combineLatest, switchMap } from 'rxjs';
 import { debounceTime, shareReplay, skip } from 'rxjs/operators';
-import { Appraisal, AppraisalDecision, AppraisalService } from '../../../../services/appraisal.service';
+import { Appraisal, AppraisalDecision } from '../../../../services/appraisal.service';
 import { AppraisalCode, MessageService, ProcessRecordObject } from '../../../../services/message.service';
 import { MessagePageService } from '../../message-page.service';
 
@@ -29,7 +29,6 @@ export class ProcessMetadataComponent {
   form: FormGroup;
 
   constructor(
-    private appraisalService: AppraisalService,
     private formBuilder: FormBuilder,
     private messagePage: MessagePageService,
     private messageService: MessageService,
@@ -109,14 +108,10 @@ export class ProcessMetadataComponent {
   }
 
   setAppraisal(decision: AppraisalDecision): void {
-    if (this.recordObject) {
-      this.appraisalService.setDecision(this.messagePage.getProcessId(), this.recordObject.xdomeaID, decision);
-    }
+    this.messagePage.setAppraisalDecision(this.recordObject!.xdomeaID, decision);
   }
 
   setAppraisalNote(note: string): void {
-    if (this.recordObject) {
-      this.appraisalService.setInternalNote(this.messagePage.getProcessId(), this.recordObject.xdomeaID, note);
-    }
+    this.messagePage.setAppraisalInternalNote(this.recordObject!.xdomeaID, note);
   }
 }

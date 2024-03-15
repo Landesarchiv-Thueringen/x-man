@@ -13,7 +13,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BehaviorSubject, filter, first, switchMap } from 'rxjs';
-import { Appraisal, AppraisalService } from '../../../services/appraisal.service';
+import { Appraisal } from '../../../services/appraisal.service';
 import {
   DisplayText,
   Message,
@@ -99,7 +99,6 @@ export class MessageTreeComponent implements AfterViewInit {
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
-    private appraisalService: AppraisalService,
     private clipboard: Clipboard,
     private dialog: MatDialog,
     private messageService: MessageService,
@@ -220,8 +219,7 @@ export class MessageTreeComponent implements AfterViewInit {
       .pipe(
         filter(notNull),
         switchMap((formResult) =>
-          this.appraisalService.setAppraisals(
-            this.messagePage.getProcessId(),
+          this.messagePage.setAppraisals(
             this.selectedNodes.map((id) => this.messageService.getStructureNode(id)!.xdomeaID),
             formResult.appraisalCode,
             formResult.appraisalNote,
@@ -240,11 +238,8 @@ export class MessageTreeComponent implements AfterViewInit {
 
   private registerAppraisals(): void {
     this.messagePage
-      .getProcess()
-      .pipe(
-        switchMap((process) => this.appraisalService.observeAppraisals(process.id)),
-        takeUntilDestroyed(),
-      )
+      .observeAppraisals()
+      .pipe(takeUntilDestroyed())
       .subscribe((appraisals) => {
         for (const appraisal of appraisals) {
           this.appraisals[appraisal.recordObjectID] = appraisal;

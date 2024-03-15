@@ -1,21 +1,35 @@
 import { Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, Observable, distinctUntilChanged, filter, first, map, of, switchMap, take } from 'rxjs';
-import { Appraisal, AppraisalService } from '../../services/appraisal.service';
+import {
+  BehaviorSubject,
+  Observable,
+  distinctUntilChanged,
+  filter,
+  first,
+  firstValueFrom,
+  map,
+  of,
+  switchMap,
+  take,
+} from 'rxjs';
+import { Appraisal, AppraisalDecision, AppraisalService } from '../../services/appraisal.service';
 import { Message, MessageService } from '../../services/message.service';
 import { Process, ProcessService } from '../../services/process.service';
 import { notNull } from '../../utils/predicates';
 
 /**
  * A Service to provide data the the message page and its child components.
+ *
+ * It's lifetime is linked to that of the message-page component.
  */
 @Injectable()
 export class MessagePageService {
   /**
    * The process references by the page URL.
    *
-   * We update the process regularly by refetching it from the backend.
+   * We update the process regularly by refetching it from the backend, however,
+   * the process ID should not change for the lifetime of the message page.
    */
   private process = new BehaviorSubject<Process | null>(null);
   /**
@@ -24,15 +38,12 @@ export class MessagePageService {
    * We fetch the message once when the relevant URL parameter changes.
    */
   private message = new BehaviorSubject<Message | null>(null);
-
   /**
    * All appraisals for the current process.
    *
    * Appraisals can be updated by the user at any time.
    */
   private appraisals = new BehaviorSubject<Appraisal[] | null>(null);
-
-  private processId!: string;
 
   constructor(
     private route: ActivatedRoute,
@@ -45,15 +56,14 @@ export class MessagePageService {
   }
 
   /** Regularly fetches the process and updates `this.process`.  */
-  private registerProcessAndAppraisals() {
+  private async registerProcessAndAppraisals() {
     this.route.params.pipe(take(1)).subscribe((params) => {
-      this.processId = params['processId'];
-      this.appraisalService
-        .observeAppraisals(this.processId)
-        .pipe(takeUntilDestroyed())
-        .subscribe((appraisals) => this.appraisals.next(appraisals));
+      const processId = params['processId'];
+      // Fetch appraisals once, will be updated when changed by other functions.
+      this.appraisalService.getAppraisals(processId).subscribe((appraisals) => this.appraisals.next(appraisals));
+      // Observe process until destroyed.
       this.processService
-        .observeProcess(this.processId)
+        .observeProcess(processId)
         .pipe(takeUntilDestroyed())
         .subscribe((process) => this.process.next(process));
     });
@@ -93,12 +103,8 @@ export class MessagePageService {
       .subscribe((message) => this.message.next(message));
   }
 
-  getProcessId(): string {
-    return this.processId;
-  }
-
   getProcess(): Observable<Process> {
-    return this.observeProcess().pipe(first());
+    return this.process.pipe(first(notNull));
   }
 
   observeProcess(): Observable<Process> {
@@ -124,5 +130,27 @@ export class MessagePageService {
       map((process) => process.processState.appraisal.complete),
       distinctUntilChanged(),
     );
+  }
+
+  async setAppraisalDecision(recordObjectId: string, decision: AppraisalDecision): Promise<void> {
+    const process = await firstValueFrom(this.getProcess());
+    const appraisals = await firstValueFrom(this.appraisalService.setDecision(process.id, recordObjectId, decision));
+    this.appraisals.next(appraisals);
+  }
+
+  async setAppraisalInternalNote(recordObjectId: string, internalNote: string): Promise<void> {
+    const process = await firstValueFrom(this.getProcess());
+    const appraisals = await firstValueFrom(
+      this.appraisalService.setInternalNote(process.id, recordObjectId, internalNote),
+    );
+    this.appraisals.next(appraisals);
+  }
+
+  async setAppraisals(recordObjectIds: string[], decision: AppraisalDecision, internalNote: string): Promise<void> {
+    const process = await firstValueFrom(this.getProcess());
+    const appraisals = await firstValueFrom(
+      this.appraisalService.setAppraisals(process.id, recordObjectIds, decision, internalNote),
+    );
+    this.appraisals.next(appraisals);
   }
 }
