@@ -132,15 +132,19 @@ func (m *Message) GetRecordObjects() []RecordObject {
 type AppraisableRecordObject interface {
 	GetID() uuid.UUID
 	GetAppraisableParent() AppraisableRecordObject
-	GetAppraisableChildren() []AppraisableRecordObject // TODO rename to GetAppraisableChildren
+	GetAppraisableChildren() []AppraisableRecordObject
 }
 
 // GetAppraisableChildren returns a child record objects of file which are appraisable.
 func (f *FileRecordObject) GetAppraisableChildren() []AppraisableRecordObject {
 	if len(f.SubFileRecordObjects)+len(f.ProcessRecordObjects) == 0 {
-		o, found := GetFileRecordObjectByID(f.ID, 1)
-		if !found {
-			panic("did not find file record object")
+		o := FileRecordObject{}
+		result := db.
+			Preload("SubFileRecordObjects").
+			Preload("ProcessRecordObjects").
+			First(&o, f.ID)
+		if result.Error != nil {
+			panic(result.Error)
 		}
 		f = &o
 	}
@@ -164,7 +168,7 @@ func (f *FileRecordObject) GetID() uuid.UUID {
 
 func (f *FileRecordObject) GetAppraisableParent() AppraisableRecordObject {
 	if f.ParentFileRecordID != nil {
-		parent, found := GetFileRecordObjectByID(*f.ParentFileRecordID, 0)
+		parent, found := GetFileRecordObjectByID(*f.ParentFileRecordID)
 		if !found {
 			panic(fmt.Sprintf("failed to get parent of file record object \"%v\"", f.ID))
 		}
@@ -234,13 +238,13 @@ func (p *ProcessRecordObject) GetID() uuid.UUID {
 
 func (p *ProcessRecordObject) GetAppraisableParent() AppraisableRecordObject {
 	if p.ParentFileRecordID != nil {
-		parent, found := GetFileRecordObjectByID(*p.ParentFileRecordID, 0)
+		parent, found := GetFileRecordObjectByID(*p.ParentFileRecordID)
 		if !found {
 			panic(fmt.Sprintf("failed to get parent of process record object \"%v\"", p.ID))
 		}
 		return &parent
 	} else if p.ParentProcessRecordID != nil {
-		parent, found := GetProcessRecordObjectByID(*p.ParentProcessRecordID, 0)
+		parent, found := GetProcessRecordObjectByID(*p.ParentProcessRecordID)
 		if !found {
 			panic(fmt.Sprintf("failed to get parent of process record object \"%v\"", p.ID))
 		}
@@ -253,9 +257,12 @@ func (p *ProcessRecordObject) GetAppraisableParent() AppraisableRecordObject {
 // GetAppraisableChildren returns a child record objects of process which are appraisable.
 func (p *ProcessRecordObject) GetAppraisableChildren() []AppraisableRecordObject {
 	if len(p.SubProcessRecordObjects) == 0 {
-		o, found := GetProcessRecordObjectByID(p.ID, 1)
-		if !found {
-			panic("did not find process record object")
+		o := ProcessRecordObject{}
+		result := db.
+			Preload("SubProcessRecordObjects").
+			First(&o, p.ID)
+		if result.Error != nil {
+			panic(result.Error)
 		}
 		p = &o
 	}

@@ -217,7 +217,7 @@ func getFileRecordObjectByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	fileRecordObject, found := db.GetFileRecordObjectByID(id, 0)
+	fileRecordObject, found := db.GetFileRecordObjectByID(id)
 	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
 		return
@@ -231,7 +231,7 @@ func getProcessRecordObjectByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	processRecordObject, found := db.GetProcessRecordObjectByID(id, 0)
+	processRecordObject, found := db.GetProcessRecordObjectByID(id)
 	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
 		return

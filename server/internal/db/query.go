@@ -217,12 +217,12 @@ func GetMessageTypeCode(id uuid.UUID) (string, error) {
 	return message.MessageType.Code, nil
 }
 
-func GetFileRecordObjectByID(id uuid.UUID, preloadDepth uint) (file FileRecordObject, found bool) {
+func GetFileRecordObjectByID(id uuid.UUID) (file FileRecordObject, found bool) {
 	if id == uuid.Nil {
 		panic("called GetFileRecordObjectByID with ID nil")
 	}
 	result := db.
-		Scopes(PreloadFileRecordObject("", 0, preloadDepth)).
+		Scopes(PreloadFileRecordObject("", 0, 0)).
 		Limit(1).Find(&file, id)
 	if result.Error != nil {
 		panic(result.Error)
@@ -231,12 +231,12 @@ func GetFileRecordObjectByID(id uuid.UUID, preloadDepth uint) (file FileRecordOb
 	return
 }
 
-func GetProcessRecordObjectByID(id uuid.UUID, preloadDepth uint) (process ProcessRecordObject, found bool) {
+func GetProcessRecordObjectByID(id uuid.UUID) (process ProcessRecordObject, found bool) {
 	if id == uuid.Nil {
 		panic("called GetProcessRecordObjectByID with ID nil")
 	}
 	result := db.
-		Scopes(PreloadProcessRecordObject("", 0, preloadDepth)).
+		Scopes(PreloadProcessRecordObject("", 0, 0)).
 		Limit(1).Find(&process, id)
 	if result.Error != nil {
 		panic(result.Error)
