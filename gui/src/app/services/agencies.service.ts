@@ -16,12 +16,24 @@ export interface Agency {
   collectionId?: number;
   collection?: Collection;
   users: User[];
+  filesystemTransferDir?: FilesystemTransferDir;
+  webDAVTransferDir?: WebDAVTransferDir;
 }
 
 export interface CompleteUser extends User {
   agencies: Agency[];
   messageEmailNotifications: boolean;
   errorEmailNotifications: boolean;
+}
+
+export interface FilesystemTransferDir {
+  path: string;
+}
+
+export interface WebDAVTransferDir {
+  url: string;
+  user: string | null;
+  password: string | null;
 }
 
 @Injectable({

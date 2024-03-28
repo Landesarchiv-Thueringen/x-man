@@ -35,4 +35,4 @@ services:
       USERNAME: ${WEBDAV_USERNAME}
       PASSWORD: ${WEBDAV_PASSWORD}
     volumes:
-      - webdav:/var/lib/dav
+      - ./webdav:/var/lib/dav

@@ -60,6 +60,14 @@ export class AgencyDetailsComponent {
       nonNullable: true,
       validators: Validators.required,
     }),
+    filesystemTransferDir: new FormGroup({
+      path: new FormControl('', { nonNullable: true }),
+    }),
+    webDAVTransferDir: new FormGroup({
+      url: new FormControl('', { nonNullable: true }),
+      user: new FormControl(),
+      password: new FormControl(),
+    }),
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
     }),
@@ -168,11 +176,12 @@ export class AgencyDetailsComponent {
         await this.testTransferDirectory();
       }
       if (this.testResult !== 'failed') {
-        const { userIds, ...agency } = this.form.getRawValue();
+        const { userIds, filesystemTransferDir, webDAVTransferDir, ...agency } = this.form.getRawValue();
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
           users: userIds.map((userId) => ({ id: userId }) as User),
         };
+        console.log(updateAgency);
         this.dialogRef.close(updateAgency);
       }
     }

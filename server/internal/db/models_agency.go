@@ -24,11 +24,33 @@ type Agency struct {
 	// ContactEmail is the e-mail address to use to contact the agency.
 	ContactEmail string `json:"contactEmail"`
 	// TransferDir is the directory that the Agency uses to pass messages.
-	TransferDir string `json:"transferDir"`
+	TransferDir           string                 `json:"transferDir"`
+	FilesystemTransferDir *FilesystemTransferDir `json:"filesystemTransferDir"`
+	WebDAVTransferDir     *WebDAVTransferDir     `json:"webDAVTransferDir"`
 	// Users are users responsible for processes of this Agency.
 	Users        []User      `gorm:"many2many:agency_users" json:"users"`
 	CollectionID *uint       `json:"collectionId"`
 	Collection   *Collection `json:"collection"`
+}
+
+// Contains all information needed to establish an directory of a filesystem as transfer directory.
+type FilesystemTransferDir struct {
+	ID        uint      `gorm:"primaryKey" json:"-"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Path      string    `json:"name"`
+	AgencyID  uint      `json:"-"`
+}
+
+// Contains all information needed to establish an directory of a filesystem as transfer directory.
+type WebDAVTransferDir struct {
+	ID        uint      `gorm:"primaryKey" json:"-"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	URL       string    `json:"url"`
+	User      *string   `json:"user"`
+	Password  *string   `json:"password"`
+	AgencyID  uint      `json:"-"`
 }
 
 type User struct {
