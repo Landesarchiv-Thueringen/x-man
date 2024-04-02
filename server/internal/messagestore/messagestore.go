@@ -17,6 +17,7 @@ import (
 
 var storeDir = "message_store"
 
+// StoreMessage extracts the message from the transfer directory into the message store.
 func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
 	processID := xdomea.GetMessageID(messagePath)
 	transferDir := filepath.Dir(messagePath)
