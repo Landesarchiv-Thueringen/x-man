@@ -77,7 +77,7 @@
           </mat-form-field>
         </div>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="isNew">
+      <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title>Kontakt</mat-panel-title>
         </mat-expansion-panel-header>
@@ -88,16 +88,54 @@
           </mat-form-field>
         </div>
       </mat-expansion-panel>
-      <mat-expansion-panel #transferDirPanel [expanded]="isNew">
+      <mat-expansion-panel #transferDirPanel [expanded]="true" formGroupName="transferDir">
         <mat-expansion-panel-header>
           <mat-panel-title>Transferverzeichnis</mat-panel-title>
         </mat-expansion-panel-header>
         <div class="row">
+          <mat-form-field class="protocol-field">
+            <mat-label>Protokoll</mat-label>
+            <mat-select formControlName="protocol">
+              <mat-option value="file">file:</mat-option>
+              <mat-option value="dav">dav:</mat-option>
+              <mat-option value="davs">davs:</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <span>//</span>
           <mat-form-field>
-            <mat-label>Transferverzeichnis</mat-label>
-            <input matInput formControlName="transferDir" type="url" />
+            <mat-label>Host</mat-label>
+            <input
+              matInput
+              formControlName="host"
+              type="url"
+              (blur)="fixupTransferDirInputs()"
+              placeholder="adresse.zum.host[:port]"
+            />
+          </mat-form-field>
+          <span>/</span>
+          <mat-form-field>
+            <mat-label>Pfad</mat-label>
+            <input
+              matInput
+              formControlName="path"
+              type="url"
+              (blur)="fixupTransferDirInputs()"
+              placeholder="pfad/zum/verzeichnis"
+            />
           </mat-form-field>
         </div>
+        @if (form.get("transferDir")?.get("protocol")?.value?.startsWith("dav")) {
+          <div class="row">
+            <mat-form-field>
+              <mat-label>Nutzername</mat-label>
+              <input matInput formControlName="username" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Passwort</mat-label>
+              <input matInput formControlName="password" />
+            </mat-form-field>
+          </div>
+        }
         <button
           class="test-button"
           mat-button

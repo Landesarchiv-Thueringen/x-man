@@ -9,7 +9,11 @@ h2 {
 
 .row {
   display: flex;
+  align-items: center;
   gap: 1em;
+  > span {
+    margin-bottom: 22px;
+  }
 }
 
 mat-form-field {
@@ -18,6 +22,11 @@ mat-form-field {
 
 .name-field {
   flex-basis: 500px;
+}
+
+.protocol-field {
+  flex-basis: 150px;
+  flex-grow: 0;
 }
 
 .test-button {
