@@ -23,8 +23,10 @@ type Agency struct {
 	Code string `json:"code"`
 	// ContactEmail is the e-mail address to use to contact the agency.
 	ContactEmail string `json:"contactEmail"`
-	// TransferDir is the directory that the Agency uses to pass messages.
-	TransferDir string `json:"transferDir"`
+	// TransferDirURL contains the protocoll, host, username and password needed to access a file share.
+	// Possible values for the protocoll are file, webdav, webdavs.
+	// The username and password are optional.
+	TransferDirURL string `json:"transferDirURL"`
 	// Users are users responsible for processes of this Agency.
 	Users        []User      `gorm:"many2many:agency_users" json:"users"`
 	CollectionID *uint       `json:"collectionId"`
