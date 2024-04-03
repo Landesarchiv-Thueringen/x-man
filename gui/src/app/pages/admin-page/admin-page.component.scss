@@ -12,10 +12,11 @@ mat-sidenav {
   a {
     width: 100%;
     justify-content: flex-start;
+    padding: 0 var(--mat-filled-button-horizontal-padding, 16px);
   }
-  a:not(.active) {
-    background-color: transparent;
-    color: var(--mdc-text-button-label-text-color);
+  a.active {
+    background-color: var(--mdc-filled-button-container-color);
+    color: var(--mdc-filled-button-label-text-color);
   }
 }
 
