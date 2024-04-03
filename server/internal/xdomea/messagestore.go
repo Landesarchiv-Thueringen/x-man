@@ -1,26 +1,23 @@
-package messagestore
+package xdomea
 
 import (
 	"archive/zip"
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/google/uuid"
 )
 
-var storeDir = "message_store"
+const storeDir = "message_store"
 
 // StoreMessage extracts the message from the transfer directory into the message store.
 func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
-	processID := xdomea.GetMessageID(messagePath)
-	transferDir := filepath.Dir(messagePath)
+	processID := GetMessageID(messagePath)
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory ist the message ID.
 	tempDir, err := os.MkdirTemp("", processID)
@@ -46,20 +43,19 @@ func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
 	if err != nil {
 		panic(err)
 	}
-	return extractMessage(agency, transferDir, messagePath, copyPath, processID)
+	return extractMessage(agency, messagePath, copyPath, processID)
 }
 
 // extractMessage parses the given message file into a database entry and saves
 // it to the database. It returns the saved entry.
 func extractMessage(
 	agency db.Agency,
-	transferDir string,
 	transferDirMessagePath string,
 	messagePath string,
 	id string,
 ) (db.Message, error) {
-	messageType, err := xdomea.GetMessageTypeImpliedByPath(messagePath)
-	// The error should never happen because the message filter should prevent the pross
+	messageType, err := GetMessageTypeImpliedByPath(messagePath)
+	// The error should never happen because the message filter should prevent the processing of unknown message types.
 	if err != nil {
 		panic(fmt.Sprintf("failed to extract message: %v", err))
 	}
@@ -93,98 +89,16 @@ func extractMessage(
 			panic(err)
 		}
 	}
-	process, message, err :=
-		xdomea.AddMessage(
+	_, message, err :=
+		AddMessage(
 			agency,
 			id,
 			messageType,
 			processStoreDir,
 			messageStoreDir,
-			transferDir,
 			transferDirMessagePath,
 		)
-	// if no error occurred while processing the message
-	if err == nil {
-		// store the confirmation message that the 0501 message was received
-		if messageType.Code == "0501" {
-			messagePath := Store0504Message(message)
-			process.Message0504Path = &messagePath
-			db.UpdateProcess(process)
-		}
-	}
 	return message, err
-}
-
-func Store0502Message(message db.Message) string {
-	messageXml := xdomea.Generate0502Message(message)
-	return storeMessage(
-		message.MessageHead.ProcessID,
-		messageXml,
-		xdomea.Message0502MessageSuffix,
-		message.TransferDir,
-	)
-}
-
-func Store0504Message(message db.Message) string {
-	messageXml := xdomea.Generate0504Message(message)
-	return storeMessage(
-		message.MessageHead.ProcessID,
-		messageXml,
-		xdomea.Message0504MessageSuffix,
-		message.TransferDir,
-	)
-}
-
-func storeMessage(
-	messageID string,
-	messageXml string,
-	messageSuffix string,
-	transferDir string,
-) string {
-	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := os.MkdirTemp("", messageID)
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(tempDir)
-	xmlName := messageID + messageSuffix + ".xml"
-	messageName := messageID + messageSuffix + ".zip"
-	messagePath := path.Join(tempDir, messageName)
-	messageArchive, err := os.Create(messagePath)
-	if err != nil {
-		panic(err)
-	}
-	defer messageArchive.Close()
-	zipWriter := zip.NewWriter(messageArchive)
-	defer zipWriter.Close()
-	zipEntry, err := zipWriter.Create(xmlName)
-	if err != nil {
-		panic(err)
-	}
-	xmlStringReader := strings.NewReader(messageXml)
-	_, err = io.Copy(zipEntry, xmlStringReader)
-	if err != nil {
-		panic(err)
-	}
-	// important close zip writer and message archive so it can be written on disk
-	zipWriter.Close()
-	messageArchive.Close()
-	messageArchive, err = os.Open(messagePath)
-	if err != nil {
-		panic(err)
-	}
-	messageTransferDirPath := path.Join(transferDir, messageName)
-	messageInTransferDir, err := os.Create(messageTransferDirPath)
-	if err != nil {
-		panic(err)
-	}
-	defer messageInTransferDir.Close()
-	// Copy the message to the transfer directory.
-	_, err = io.Copy(messageInTransferDir, messageArchive)
-	if err != nil {
-		panic(err)
-	}
-	return messageTransferDirPath
 }
 
 // DeleteProcess deletes the given process from the database and removes all
@@ -223,7 +137,7 @@ func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
 		panic("message not found " + id.String())
 	}
 	storeDir := message.StoreDir
-	transferFile := message.TransferDirMessagePath
+	transferFile := message.TransferDirURL
 	if keepTransferFile {
 		log.Println("Deleting message", message.ID, "(keeping transfer file)")
 	} else {

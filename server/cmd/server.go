@@ -7,13 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"lath/xman/internal/agency"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/archive/filesystem"
 	"lath/xman/internal/auth"
-	"lath/xman/internal/clearing"
 	"lath/xman/internal/db"
-	"lath/xman/internal/messagestore"
 	"lath/xman/internal/report"
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
@@ -99,7 +96,7 @@ func initServer() {
 	db.Init()
 	// It's important to the migrate after the database initialization.
 	MigrateData()
-	agency.MonitorTransferDirs()
+	xdomea.MonitorTransferDirs()
 }
 
 func MigrateData() {
@@ -112,7 +109,7 @@ func MigrateData() {
 		xdomea.InitRecordObjectAppraisals()
 		xdomea.InitConfidentialityLevelCodelist()
 		xdomea.InitMediumCodelist()
-		agency.InitAgencies()
+		xdomea.InitAgencies()
 		db.SetXManVersion(XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION)
 		log.Println("done")
 	} else {
@@ -159,7 +156,7 @@ func resolveProcessingError(context *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	clearing.Resolve(processingError, db.ProcessingErrorResolution(body))
+	xdomea.Resolve(processingError, db.ProcessingErrorResolution(body))
 	context.Status(http.StatusAccepted)
 }
 
@@ -190,7 +187,7 @@ func getProcesses(context *gin.Context) {
 
 func deleteProcess(context *gin.Context) {
 	id := context.Param("id")
-	if found := messagestore.DeleteProcess(id); found {
+	if found := xdomea.DeleteProcess(id); found {
 		context.Status(http.StatusAccepted)
 	} else {
 		context.Status(http.StatusNotFound)
@@ -377,7 +374,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 	userID := context.MustGet("userId").([]byte)
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
-	messagePath := messagestore.Store0502Message(message)
+	messagePath := xdomea.Send0502Message(process.Agency, message)
 	process.Message0502Path = &messagePath
 	db.UpdateProcess(process)
 }
@@ -520,7 +517,7 @@ func archive0503Message(context *gin.Context) {
 		}
 		if err != nil {
 			processingError := tasks.MarkFailed(&task, err.Error())
-			clearing.HandleError(processingError)
+			xdomea.HandleError(processingError)
 		} else {
 			tasks.MarkDone(&task, &userName)
 		}
@@ -710,7 +707,7 @@ func testTransferDir(context *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	success := agency.TestTransferDir(string(body))
+	success := xdomea.TestTransferDir(string(body))
 	if success {
 		context.JSON(http.StatusOK, gin.H{"result": "success"})
 	} else {

@@ -6,14 +6,13 @@
 //
 // HandleError should be called by the highest-level function that still needs
 // to know about the error.
-package clearing
+package xdomea
 
 import (
 	"fmt"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
 	"lath/xman/internal/mail"
-	"lath/xman/internal/messagestore"
 	"log"
 )
 
@@ -44,9 +43,9 @@ func HandleError(err error) {
 func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorResolution) {
 	switch resolution {
 	case db.ErrorResolutionReimportMessage:
-		messagestore.DeleteMessage(*processingError.MessageID, true)
+		DeleteMessage(*processingError.MessageID, true)
 	case db.ErrorResolutionDeleteMessage:
-		messagestore.DeleteMessage(*processingError.MessageID, false)
+		DeleteMessage(*processingError.MessageID, false)
 	default:
 		panic(fmt.Sprintf("unknown resolution: %s", resolution))
 	}
@@ -95,7 +94,7 @@ func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
 		}
 	}
 	if e.TransferPath == nil && e.Message != nil {
-		e.TransferPath = &e.Message.TransferDirMessagePath
+		e.TransferPath = &e.Message.TransferDirURL
 	}
 	if e.Message != nil && e.Process != nil && e.ProcessStep == nil && e.ProcessStepID == nil {
 		switch e.Message.MessageType.Code {

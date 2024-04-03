@@ -3,11 +3,10 @@ package routines
 
 import (
 	"fmt"
-	"lath/xman/internal/clearing"
 	"lath/xman/internal/db"
 	"lath/xman/internal/format"
-	"lath/xman/internal/messagestore"
 	"lath/xman/internal/tasks"
+	"lath/xman/internal/xdomea"
 	"log"
 	"os"
 	"runtime/debug"
@@ -62,14 +61,14 @@ func tryRestart(task *db.Task) {
 		if found && process.Message0503 != nil {
 			go func() {
 				err := format.VerifyFileFormats(process, *process.Message0503)
-				clearing.HandleError(err)
+				xdomea.HandleError(err)
 			}()
 			couldRestart = true
 		}
 	}
 	processingError := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
 	if !couldRestart {
-		clearing.HandleError(processingError)
+		xdomea.HandleError(processingError)
 	}
 }
 
@@ -98,7 +97,7 @@ func cleanupArchivedProcesses() {
 // deleteProcess deletes the given process and all associated data from the
 // database and removes all associated message files from the message store.
 func deleteProcess(process db.Process) {
-	found := messagestore.DeleteProcess(process.ID)
+	found := xdomea.DeleteProcess(process.ID)
 	if !found {
 		panic(fmt.Sprintf("failed to delete process %v: not found", process.ID))
 	}

@@ -1,142 +1,23 @@
 package xdomea
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
+	"io"
 	"lath/xman/internal/db"
 	"lath/xman/internal/format"
 	"log"
 	"os"
 	"path"
-	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
-var uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-var Message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
-var Message0502MessageSuffix = "_Aussonderung.Bewertungsverzeichnis.0502"
-var Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
-var Message0504MessageSuffix = "_Aussonderung.AnbietungEmpfangBestaetigen.0504"
-var Message0505MessageSuffix = "_Aussonderung.BewertungEmpfangBestaetigen.0505"
-var message0501RegexString = uuidRegexString + Message0501MessageSuffix + ".zip"
-var message0503RegexString = uuidRegexString + Message0503MessageSuffix + ".zip"
-var message0505RegexString = uuidRegexString + Message0505MessageSuffix + ".zip"
-var uuidRegex = regexp.MustCompile(uuidRegexString)
-var message0501Regex = regexp.MustCompile(message0501RegexString)
-var message0503Regex = regexp.MustCompile(message0503RegexString)
-var message0505Regex = regexp.MustCompile(message0505RegexString)
-var namespaceRegex = regexp.MustCompile("^urn:xoev-de:xdomea:schema:([0-9].[0-9].[0=9])$")
+func ProcessNewMessage(agency db.Agency, localPath string, transferDirPath string) {
 
-func InitMessageTypes() {
-	messageTypes := []*db.MessageType{
-		{Code: "0000"}, // unknown message type
-		{Code: "0501"},
-		{Code: "0502"},
-		{Code: "0503"},
-		{Code: "0504"},
-		{Code: "0505"},
-		{Code: "0506"},
-		{Code: "0507"},
-	}
-	db.InitMessageTypes(messageTypes)
-}
-
-func InitXdomeaVersions() {
-	versions := []*db.XdomeaVersion{
-		{
-			Code:    "2.3.0",
-			URI:     "urn:xoev-de:xdomea:schema:2.3.0",
-			XSDPath: "xsd/2.3.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
-		},
-		{
-			Code:    "2.4.0",
-			URI:     "urn:xoev-de:xdomea:schema:2.4.0",
-			XSDPath: "xsd/2.4.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
-		},
-		{
-			Code:    "3.0.0",
-			URI:     "urn:xoev-de:xdomea:schema:3.0.0",
-			XSDPath: "xsd/3.0.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
-		},
-		{
-			Code:    "3.1.0",
-			URI:     "urn:xoev-de:xdomea:schema:3.1.0",
-			XSDPath: "xsd/3.1.0/xdomea-Nachrichten-AussonderungDurchfuehren.xsd",
-		},
-	}
-	db.InitXdomeaVersions(versions)
-}
-
-func InitRecordObjectAppraisals() {
-	appraisals := []*db.RecordObjectAppraisal{
-		{Code: "A", ShortDesc: "Archivieren", Desc: "Das Schriftgutobjekt ist archivwürdig."},
-		{Code: "B", ShortDesc: "Durchsicht", Desc: "Das Schriftgutobjekt ist zum Bewerten markiert."},
-		{Code: "V", ShortDesc: "Vernichten", Desc: "Das Schriftgutobjekt ist zum Vernichten markiert."},
-	}
-	db.InitRecordObjectAppraisals(appraisals)
-}
-
-func InitConfidentialityLevelCodelist() {
-	confidentialityLevelCodelist := []*db.ConfidentialityLevel{
-		{ID: "001", ShortDesc: "Geheim", Desc: "Geheim: Das Schriftgutobjekt ist als geheim eingestuft."},
-		{ID: "002", ShortDesc: "NfD", Desc: "NfD: Das Schriftgutobjekt ist als \"nur für den Dienstgebrauch (nfD)\" eingestuft."},
-		{ID: "003", ShortDesc: "Offen", Desc: "Offen: Das Schriftgutobjekt ist nicht eingestuft."},
-		{ID: "004", ShortDesc: "Streng geheim", Desc: "Streng geheim: Das Schriftgutobjekt ist als streng geheim eingestuft."},
-		{ID: "005", ShortDesc: "Vertraulich", Desc: "Vertraulich: Das Schriftgutobjekt ist als vertraulich eingestuft."},
-	}
-	db.InitConfidentialityLevelCodelist(confidentialityLevelCodelist)
-}
-
-func InitMediumCodelist() {
-	mediumCodelist := []*db.Medium{
-		{ID: "001", ShortDesc: "Elektronisch", Desc: "Elektronisch: Das Schriftgutobjekt liegt ausschließlich in elektronischer Form vor."},
-		{ID: "002", ShortDesc: "Hybrid", Desc: "Hybrid: Das Schriftgutobjekt liegt teilweise in elektronischer Form und teilweise als Papier vor."},
-		{ID: "003", ShortDesc: "Papier", Desc: "Papier: Das Schriftgutobjekt liegt ausschließlich als Papier vor."},
-	}
-	db.InitMediumCodelist(mediumCodelist)
-}
-
-func IsMessage(path string) bool {
-	fileName := filepath.Base(path)
-	return message0501Regex.MatchString(fileName) ||
-		message0503Regex.MatchString(fileName) ||
-		message0505Regex.MatchString(fileName)
-}
-
-func GetMessageTypeImpliedByPath(path string) (db.MessageType, error) {
-	fileName := filepath.Base(path)
-	if message0501Regex.MatchString(fileName) {
-		return db.GetMessageTypeByCode("0501"), nil
-	} else if message0503Regex.MatchString(fileName) {
-		return db.GetMessageTypeByCode("0503"), nil
-	} else if message0505Regex.MatchString(fileName) {
-		return db.GetMessageTypeByCode("0505"), nil
-	}
-	return db.GetMessageTypeByCode("0000"), errors.New("unknown message type: " + path)
-}
-
-func GetMessageID(path string) string {
-	fileName := filepath.Base(path)
-	return uuidRegex.FindString(fileName)
-}
-
-func GetMessageName(id string, messageType db.MessageType) string {
-	messageSuffix := ""
-	switch messageType.Code {
-	case "0501":
-		messageSuffix = Message0501MessageSuffix
-	case "0503":
-		messageSuffix = Message0503MessageSuffix
-	case "0505":
-		messageSuffix = Message0505MessageSuffix
-	default:
-		panic("message type not supported: " + messageType.Code)
-	}
-	return id + messageSuffix + ".xml"
 }
 
 // TODO: description
@@ -149,7 +30,6 @@ func AddMessage(
 	messageType db.MessageType,
 	processStoreDir string,
 	messageStoreDir string,
-	transferDir string,
 	transferDirMessagePath string,
 ) (db.Process, db.Message, error) {
 	var process db.Process
@@ -161,11 +41,10 @@ func AddMessage(
 		panic("message doesn't exist: " + messagePath)
 	}
 	message = db.Message{
-		MessageType:            messageType,
-		TransferDir:            transferDir,
-		TransferDirMessagePath: transferDirMessagePath,
-		StoreDir:               messageStoreDir,
-		MessagePath:            messagePath,
+		MessageType:    messageType,
+		TransferDirURL: transferDirMessagePath,
+		StoreDir:       messageStoreDir,
+		MessagePath:    messagePath,
 	}
 	err = checkMessageValidity(agency, &message, transferDirMessagePath)
 	if err != nil {
@@ -197,7 +76,73 @@ func AddMessage(
 			return process, message, err
 		}
 	}
+	// if no error occurred while processing the message
+	if err == nil {
+		// store the confirmation message that the 0501 message was received
+		if messageType.Code == "0501" {
+			messagePath := Send0504Message(agency, message)
+			process.Message0504Path = &messagePath
+			db.UpdateProcess(process)
+		}
+	}
 	return process, message, nil
+}
+
+func Send0502Message(agency db.Agency, message db.Message) string {
+	messageXml := Generate0502Message(message)
+	return sendMessage(
+		agency,
+		message.MessageHead.ProcessID,
+		messageXml,
+		Message0502MessageSuffix,
+	)
+}
+
+func Send0504Message(agency db.Agency, message db.Message) string {
+	messageXml := Generate0504Message(message)
+	return sendMessage(
+		agency,
+		message.MessageHead.ProcessID,
+		messageXml,
+		Message0504MessageSuffix,
+	)
+}
+
+func sendMessage(
+	agency db.Agency,
+	messageID string,
+	messageXml string,
+	messageSuffix string,
+) string {
+	// Create temporary directory. The name of the directory ist the message ID.
+	tempDir, err := os.MkdirTemp("", messageID)
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tempDir)
+	xmlName := messageID + messageSuffix + ".xml"
+	messageName := messageID + messageSuffix + ".zip"
+	messagePath := path.Join(tempDir, messageName)
+	messageArchive, err := os.Create(messagePath)
+	if err != nil {
+		panic(err)
+	}
+	defer messageArchive.Close()
+	zipWriter := zip.NewWriter(messageArchive)
+	defer zipWriter.Close()
+	zipEntry, err := zipWriter.Create(xmlName)
+	if err != nil {
+		panic(err)
+	}
+	xmlStringReader := strings.NewReader(messageXml)
+	_, err = io.Copy(zipEntry, xmlStringReader)
+	if err != nil {
+		panic(err)
+	}
+	// important close zip writer and message archive so it can be written on disk
+	zipWriter.Close()
+	messageArchive.Close()
+	return CopyMessageToTransferDirectory(agency, messagePath)
 }
 
 // checkMessageValidity performs a xsd schema validation against the message XML file.

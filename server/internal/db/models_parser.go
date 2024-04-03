@@ -140,23 +140,22 @@ type ProcessStep struct {
 }
 
 type Message struct {
-	ID                     uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CreatedAt              time.Time              `json:"-"`
-	UpdatedAt              time.Time              `json:"-"`
-	TransferDir            string                 `json:"-"`
-	TransferDirMessagePath string                 `json:"-"`
-	StoreDir               string                 `json:"-"`
-	MessagePath            string                 `json:"-"`
-	XdomeaVersion          string                 `json:"xdomeaVersion"`
-	MessageHeadID          *uint                  `json:"-"`
-	MessageHead            MessageHead            `gorm:"foreignKey:MessageHeadID;references:ID;constraint:OnDelete:SET NULL" json:"messageHead"`
-	MessageTypeID          *uint                  `json:"-"`
-	MessageType            MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
-	SchemaValidation       bool                   `gorm:"default:true" json:"schemaValidation"`
-	FileRecordObjects      []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects"`
-	ProcessRecordObjects   []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
-	DocumentRecordObjects  []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects"`
-	ProcessingErrors       []ProcessingError      `json:"processingErrors"`
+	ID                    uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	CreatedAt             time.Time              `json:"-"`
+	UpdatedAt             time.Time              `json:"-"`
+	TransferDirURL        string                 `json:"-"`
+	StoreDir              string                 `json:"-"`
+	MessagePath           string                 `json:"-"`
+	XdomeaVersion         string                 `json:"xdomeaVersion"`
+	MessageHeadID         *uint                  `json:"-"`
+	MessageHead           MessageHead            `gorm:"foreignKey:MessageHeadID;references:ID;constraint:OnDelete:SET NULL" json:"messageHead"`
+	MessageTypeID         *uint                  `json:"-"`
+	MessageType           MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
+	SchemaValidation      bool                   `gorm:"default:true" json:"schemaValidation"`
+	FileRecordObjects     []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects"`
+	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
+	DocumentRecordObjects []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects"`
+	ProcessingErrors      []ProcessingError      `json:"processingErrors"`
 }
 
 // BeforeDelete deletes associated rows of the deleted Message.
