@@ -2,15 +2,12 @@ package xdomea
 
 import (
 	"io"
-	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
-	"lath/xman/internal/mail"
 	"log"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
-	"runtime/debug"
 	"time"
 
 	"github.com/studio-b12/gowebdav"
@@ -77,30 +74,9 @@ func readMessagesFromLocalFilesystem(agency db.Agency, transferDirURL *url.URL) 
 		panic(err)
 	}
 	for _, file := range files {
-		if !file.IsDir() && IsMessage(file.Name()) {
-			fullPath := filepath.Join(rootDir, file.Name())
-			if !db.IsMessageAlreadyProcessed(fullPath) {
-				log.Println("Processing new message " + fullPath)
-				go func() {
-					defer func() {
-						if r := recover(); r != nil {
-							log.Println("Error: readMessages panicked:", r)
-							debug.PrintStack()
-						}
-					}()
-					message, err := StoreMessage(agency, fullPath)
-					HandleError(err)
-					if err == nil {
-						for _, user := range agency.Users {
-							address := auth.GetMailAddress(user.ID)
-							preferences := db.GetUserInformation(user.ID).Preferences
-							if preferences.MessageEmailNotifications {
-								mail.SendMailNewMessage(address, agency.Name, message)
-							}
-						}
-					}
-				}()
-			}
+		if !db.IsMessageAlreadyProcessed(file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+			log.Println("Processing new message " + file.Name())
+			go ProcessNewMessage(agency, file.Name())
 		}
 	}
 }
@@ -117,10 +93,8 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
 	}
 	for _, file := range files {
 		if !db.IsMessageAlreadyProcessed(file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
-			log.Println(file.Name())
-			processID := GetMessageID(file.Name())
-			localPath := copMessageFromWebDAV(agency, file.Name())
-			extractMessage(agency, file.Name(), localPath, processID)
+			log.Println("Processing new message " + file.Name())
+			go ProcessNewMessage(agency, file.Name())
 		}
 	}
 }
@@ -200,16 +174,29 @@ func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) string {
 	return webdavFilePath
 }
 
+func CopyMessageFromTransferDirectory(agency db.Agency, messagePath string) string {
+	transferDirURL, err := url.Parse(agency.TransferDirURL)
+	if err != nil {
+		panic(err)
+	}
+	switch transferDirURL.Scheme {
+	case string(Local):
+		return copyFileFromLocalFilesystem(transferDirURL, messagePath)
+	case string(WebDAV):
+		return copMessageFromWebDAV(transferDirURL, messagePath)
+	case string(WebDAVSec):
+		return copMessageFromWebDAV(transferDirURL, messagePath)
+	default:
+		panic("unknown transfer directory scheme")
+	}
+}
+
 // copMessageFromWebDAV copies the file specified by webDAVFilePath.
 // The copied file is localy stored in a temporary directory.
 // The caller of this function should remove the temporary directory.
 //
 // Returns the local path of the copied file.
-func copMessageFromWebDAV(agency db.Agency, webDAVFilePath string) string {
-	transferDirURL, err := url.Parse(agency.TransferDirURL)
-	if err != nil {
-		panic(err)
-	}
+func copMessageFromWebDAV(transferDirURL *url.URL, webDAVFilePath string) string {
 	client, err := getWebDAVClient(transferDirURL)
 	if err != nil {
 		panic(err)
@@ -234,6 +221,41 @@ func copMessageFromWebDAV(agency db.Agency, webDAVFilePath string) string {
 		panic(err)
 	}
 	return filePath
+}
+
+// copyFileFromLocalFilesystem copies the file specified by messagePath.
+// The copied file is localy stored in a temporary directory.
+// The caller of this function should remove the temporary directory.
+//
+// Returns the local path of the copied file.
+func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) string {
+	processID := GetMessageID(messagePath)
+	messageName := filepath.Base(messagePath)
+	// Create temporary directory. The name of the directory contains the message ID.
+	tempDir, err := os.MkdirTemp("", processID)
+	if err != nil {
+		panic(err)
+	}
+	transferDirPath := filepath.Join(transferDirURL.Path, messagePath)
+	// Open the original messageFile in the transfer directory.
+	messageFile, err := os.Open(transferDirPath)
+	if err != nil {
+		panic(err)
+	}
+	defer messageFile.Close()
+	// Create a file in the temporary directory.
+	copyPath := path.Join(tempDir, messageName)
+	copy, err := os.Create(copyPath)
+	if err != nil {
+		panic(err)
+	}
+	defer copy.Close()
+	// Copy the message to the new file.
+	_, err = io.Copy(copy, messageFile)
+	if err != nil {
+		panic(err)
+	}
+	return copyPath
 }
 
 func RemoveFileFromTransferDir(agency db.Agency, path string) {

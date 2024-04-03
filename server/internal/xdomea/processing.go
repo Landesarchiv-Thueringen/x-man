@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
 	"lath/xman/internal/format"
+	"lath/xman/internal/mail"
 	"log"
 	"os"
 	"path"
@@ -16,8 +18,55 @@ import (
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
-func ProcessNewMessage(agency db.Agency, localPath string, transferDirPath string) {
-
+func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
+	// extract process ID from message filename
+	processID := GetMessageID(transferDirMessagePath)
+	// extract message type from message filename
+	messageType, err := GetMessageTypeImpliedByPath(transferDirMessagePath)
+	// copy message from transfer directory to a local temporary directory
+	localMessagePath := CopyMessageFromTransferDirectory(agency, transferDirMessagePath)
+	// extract message to message storage
+	processStoreDir, messageStoreDir, err := extractMessageToMessageStore(
+		agency,
+		transferDirMessagePath,
+		localMessagePath,
+		processID,
+		messageType,
+	)
+	// error happened while extracting the message
+	if err != nil {
+		HandleError(db.ProcessingError{
+			Agency:         &agency,
+			TransferPath:   &transferDirMessagePath,
+			Description:    "Fehler beim Entpacken der Nachricht",
+			AdditionalInfo: err.Error(),
+		})
+	}
+	process, message, err := AddMessage(
+		agency,
+		processID,
+		messageType,
+		processStoreDir,
+		messageStoreDir,
+		transferDirMessagePath,
+	)
+	// if no error occurred while processing the message
+	if err == nil {
+		// send the confirmation message that the 0501 message was received
+		if messageType.Code == "0501" {
+			messagePath := Send0504Message(agency, message)
+			process.Message0504Path = &messagePath
+			db.UpdateProcess(process)
+		}
+		// send e-mail notification to users
+		for _, user := range agency.Users {
+			address := auth.GetMailAddress(user.ID)
+			preferences := db.GetUserInformation(user.ID).Preferences
+			if preferences.MessageEmailNotifications {
+				mail.SendMailNewMessage(address, agency.Name, message)
+			}
+		}
+	}
 }
 
 // TODO: description
@@ -26,7 +75,7 @@ func ProcessNewMessage(agency db.Agency, localPath string, transferDirPath strin
 // error.
 func AddMessage(
 	agency db.Agency,
-	xdomeaID string,
+	processID string,
 	messageType db.MessageType,
 	processStoreDir string,
 	messageStoreDir string,
@@ -34,7 +83,7 @@ func AddMessage(
 ) (db.Process, db.Message, error) {
 	var process db.Process
 	var message db.Message
-	messageName := GetMessageName(xdomeaID, messageType)
+	messageName := GetMessageName(processID, messageType)
 	messagePath := path.Join(messageStoreDir, messageName)
 	_, err := os.Stat(messagePath)
 	if err != nil {
@@ -56,7 +105,7 @@ func AddMessage(
 		return process, message, err
 	}
 	// Store message in database with parsed message metadata.
-	process, message, err = db.AddMessage(agency, xdomeaID, processStoreDir, message)
+	process, message, err = db.AddMessage(agency, processID, processStoreDir, message)
 	if err != nil {
 		return process, message, err
 	}
@@ -76,73 +125,7 @@ func AddMessage(
 			return process, message, err
 		}
 	}
-	// if no error occurred while processing the message
-	if err == nil {
-		// store the confirmation message that the 0501 message was received
-		if messageType.Code == "0501" {
-			messagePath := Send0504Message(agency, message)
-			process.Message0504Path = &messagePath
-			db.UpdateProcess(process)
-		}
-	}
 	return process, message, nil
-}
-
-func Send0502Message(agency db.Agency, message db.Message) string {
-	messageXml := Generate0502Message(message)
-	return sendMessage(
-		agency,
-		message.MessageHead.ProcessID,
-		messageXml,
-		Message0502MessageSuffix,
-	)
-}
-
-func Send0504Message(agency db.Agency, message db.Message) string {
-	messageXml := Generate0504Message(message)
-	return sendMessage(
-		agency,
-		message.MessageHead.ProcessID,
-		messageXml,
-		Message0504MessageSuffix,
-	)
-}
-
-func sendMessage(
-	agency db.Agency,
-	messageID string,
-	messageXml string,
-	messageSuffix string,
-) string {
-	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := os.MkdirTemp("", messageID)
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(tempDir)
-	xmlName := messageID + messageSuffix + ".xml"
-	messageName := messageID + messageSuffix + ".zip"
-	messagePath := path.Join(tempDir, messageName)
-	messageArchive, err := os.Create(messagePath)
-	if err != nil {
-		panic(err)
-	}
-	defer messageArchive.Close()
-	zipWriter := zip.NewWriter(messageArchive)
-	defer zipWriter.Close()
-	zipEntry, err := zipWriter.Create(xmlName)
-	if err != nil {
-		panic(err)
-	}
-	xmlStringReader := strings.NewReader(messageXml)
-	_, err = io.Copy(zipEntry, xmlStringReader)
-	if err != nil {
-		panic(err)
-	}
-	// important close zip writer and message archive so it can be written on disk
-	zipWriter.Close()
-	messageArchive.Close()
-	return CopyMessageToTransferDirectory(agency, messagePath)
 }
 
 // checkMessageValidity performs a xsd schema validation against the message XML file.
@@ -362,4 +345,61 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 		}
 	}
 	return nil
+}
+
+func Send0502Message(agency db.Agency, message db.Message) string {
+	messageXml := Generate0502Message(message)
+	return sendMessage(
+		agency,
+		message.MessageHead.ProcessID,
+		messageXml,
+		Message0502MessageSuffix,
+	)
+}
+
+func Send0504Message(agency db.Agency, message db.Message) string {
+	messageXml := Generate0504Message(message)
+	return sendMessage(
+		agency,
+		message.MessageHead.ProcessID,
+		messageXml,
+		Message0504MessageSuffix,
+	)
+}
+
+func sendMessage(
+	agency db.Agency,
+	processID string,
+	messageXml string,
+	messageSuffix string,
+) string {
+	// Create temporary directory. The name of the directory ist the message ID.
+	tempDir, err := os.MkdirTemp("", processID)
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tempDir)
+	xmlName := processID + messageSuffix + ".xml"
+	messageName := processID + messageSuffix + ".zip"
+	messagePath := path.Join(tempDir, messageName)
+	messageArchive, err := os.Create(messagePath)
+	if err != nil {
+		panic(err)
+	}
+	defer messageArchive.Close()
+	zipWriter := zip.NewWriter(messageArchive)
+	defer zipWriter.Close()
+	zipEntry, err := zipWriter.Create(xmlName)
+	if err != nil {
+		panic(err)
+	}
+	xmlStringReader := strings.NewReader(messageXml)
+	_, err = io.Copy(zipEntry, xmlStringReader)
+	if err != nil {
+		panic(err)
+	}
+	// important close zip writer and message archive so it can be written on disk
+	zipWriter.Close()
+	messageArchive.Close()
+	return CopyMessageToTransferDirectory(agency, messagePath)
 }

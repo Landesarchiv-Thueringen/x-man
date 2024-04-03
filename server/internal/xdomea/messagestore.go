@@ -8,98 +8,52 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/google/uuid"
 )
 
 const storeDir = "message_store"
 
-// StoreMessage extracts the message from the transfer directory into the message store.
-func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
-	processID := GetMessageID(messagePath)
-	messageName := filepath.Base(messagePath)
-	// Create temporary directory. The name of the directory contains the message ID.
-	tempDir, err := os.MkdirTemp("", processID)
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(tempDir)
-	// Open the original messageFile in the transfer directory.
-	messageFile, err := os.Open(messagePath)
-	if err != nil {
-		panic(err)
-	}
-	defer messageFile.Close()
-	// Create a file in the temporary directory.
-	copyPath := path.Join(tempDir, messageName)
-	copy, err := os.Create(copyPath)
-	if err != nil {
-		panic(err)
-	}
-	defer copy.Close()
-	// Copy the message to the new file.
-	_, err = io.Copy(copy, messageFile)
-	if err != nil {
-		panic(err)
-	}
-	transferDirMessagePath := filepath.Base(messagePath)
-	return extractMessage(agency, transferDirMessagePath, copyPath, processID)
-}
-
 // extractMessage parses the given message file into a database entry and saves
 // it to the database. It returns the saved entry.
-func extractMessage(
+func extractMessageToMessageStore(
 	agency db.Agency,
 	transferDirMessagePath string,
-	messagePath string,
+	localMessagePath string,
 	processID string,
-) (db.Message, error) {
-	messageType, err := GetMessageTypeImpliedByPath(messagePath)
-	// The error should never happen because the message filter should prevent the processing of unknown message types.
-	if err != nil {
-		panic(fmt.Sprintf("failed to extract message: %v", err))
-	}
+	messageType db.MessageType,
+) (string, string, error) {
 	processStoreDir := path.Join(storeDir, processID)
 	// Create the message store directory if necessary.
 	messageStoreDir := path.Join(processStoreDir, messageType.Code)
-	err = os.MkdirAll(messageStoreDir, 0700)
+	err := os.MkdirAll(messageStoreDir, 0700)
 	if err != nil {
-		panic(err)
+		return processStoreDir, messageStoreDir, nil
 	}
 	// Open the message archive (zip).
-	archive, err := zip.OpenReader(messagePath)
+	archive, err := zip.OpenReader(localMessagePath)
 	if err != nil {
-		panic(err)
+		return processStoreDir, messageStoreDir, nil
 	}
 	defer archive.Close()
 	for _, f := range archive.File {
 		fileInArchive, err := f.Open()
 		if err != nil {
-			panic(err)
+			return processStoreDir, messageStoreDir, nil
 		}
 		defer fileInArchive.Close()
 		fileStorePath := path.Join(messageStoreDir, f.Name)
 		fileInStore, err := os.Create(fileStorePath)
 		if err != nil {
-			panic(err)
+			return processStoreDir, messageStoreDir, nil
 		}
 		defer fileInStore.Close()
 		_, err = io.Copy(fileInStore, fileInArchive)
 		if err != nil {
-			panic(err)
+			return processStoreDir, messageStoreDir, nil
 		}
 	}
-	_, message, err :=
-		AddMessage(
-			agency,
-			processID,
-			messageType,
-			processStoreDir,
-			messageStoreDir,
-			filepath.Base(transferDirMessagePath),
-		)
-	return message, err
+	return processStoreDir, messageStoreDir, nil
 }
 
 // DeleteProcess deletes the given process from the database and removes all
