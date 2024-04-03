@@ -73,4 +73,5 @@ type Collection struct {
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 	Name      string    `json:"name"`
+	DimagID   string    `json:"dimagId"`
 }

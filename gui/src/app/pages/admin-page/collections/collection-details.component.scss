@@ -1,8 +1,13 @@
-.delete-button {
-  margin-right: auto;
+.mat-mdc-dialog-title + .mat-mdc-dialog-content {
+  padding-top: 5px;
+  padding-bottom: 4px;
 }
 
-h3 {
-  margin: 0;
-  color: var(--mdc-dialog-subhead-color, rgba(0, 0, 0, 0.87));
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+.delete-button {
+  margin-right: auto;
 }

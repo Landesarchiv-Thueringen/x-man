@@ -28,23 +28,3 @@
 </mat-table>
 
 <button class="add-new-button" mat-flat-button (click)="newCollection()"><mat-icon>add</mat-icon>Neuer Bestand</button>
-
-<ng-template #newCollectionDialog>
-  <h3 mat-dialog-title>Neuer Bestand</h3>
-  <div mat-dialog-content>
-    <mat-form-field>
-      <mat-label>Name</mat-label>
-      <input matInput [formControl]="newCollectionNameControl" />
-    </mat-form-field>
-  </div>
-  <div mat-dialog-actions>
-    <button mat-button mat-dialog-close>Abbrechen</button>
-    <button
-      mat-flat-button
-      [mat-dialog-close]="newCollectionNameControl.value"
-      [disabled]="!newCollectionNameControl.valid"
-    >
-      Hinzufügen
-    </button>
-  </div>
-</ng-template>

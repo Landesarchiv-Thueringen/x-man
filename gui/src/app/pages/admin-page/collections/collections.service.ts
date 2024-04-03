@@ -8,6 +8,7 @@ import { Agency } from '../../../services/agencies.service';
 export interface Collection {
   id: number;
   name: string;
+  dimagId: string;
 }
 
 @Injectable({
@@ -38,6 +39,17 @@ export class CollectionsService {
     this.httpClient.put<string>(environment.endpoint + '/collection', collection).subscribe((response) => {
       const id = parseInt(response);
       this.collections.next([...this.collections.value, { ...collection, id }]);
+    });
+  }
+
+  updateCollection(id: number, collection: Omit<Collection, 'id'>) {
+    this.httpClient.post<string>(environment.endpoint + '/collection/' + id, collection).subscribe(() => {
+      const collections = [...this.collections.value];
+      const index = collections.findIndex((c) => c.id === id);
+      if (index >= 0) {
+        collections[index] = { ...collection, id };
+      }
+      this.collections.next(collections);
     });
   }
 

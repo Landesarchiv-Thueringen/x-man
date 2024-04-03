@@ -1,24 +1,53 @@
-<h2 mat-dialog-title>{{ collection.name }}</h2>
+<h2 mat-dialog-title>
+  @if (isNew) {
+    Neuer Bestand
+  } @else {
+    {{ collection.name }}
+  }
+</h2>
 <div mat-dialog-content>
-  @if (institutions | async; as institutions) {
-    @if (institutions.length > 0) {
-      <h3>Zugeordnete abgebende Stellen</h3>
-      <mat-list role="list">
-        @for (institution of institutions; track institution) {
-          <mat-list-item>
-            <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
-            <div matListItemTitle>{{ institution.name }}</div>
-          </mat-list-item>
+  <form [formGroup]="form">
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" cdkFocusInitial (focus)="isNew && $any($event.target).select()" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Dimag-ID</mat-label>
+      <input matInput formControlName="dimagId" />
+    </mat-form-field>
+  </form>
+
+  @if (!isNew) {
+    <mat-accordion multi>
+      <mat-expansion-panel expanded>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Zugeordnete abgebende Stellen</mat-panel-title>
+        </mat-expansion-panel-header>
+        @if (institutions | async; as institutions) {
+          @if (institutions.length > 0) {
+            <h3>Zugeordnete abgebende Stellen</h3>
+            <mat-list role="list">
+              @for (institution of institutions; track institution) {
+                <mat-list-item>
+                  <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
+                  <div matListItemTitle>{{ institution.name }}</div>
+                </mat-list-item>
+              }
+            </mat-list>
+          } @else {
+            <p>Keine zugeordneten abgebenden Stellen</p>
+          }
         }
-      </mat-list>
-    } @else {
-      <p>Keine zugeordneten abgebenden Stellen</p>
-    }
+      </mat-expansion-panel>
+    </mat-accordion>
   }
 </div>
 <div mat-dialog-actions>
-  <button class="delete-button error-button" mat-button (click)="deleteCollection()">Löschen</button>
-  <button mat-button mat-dialog-close cdkFocusInitial>Schließen</button>
+  @if (!isNew) {
+    <button class="delete-button error-button" mat-button (click)="deleteCollection()">Löschen</button>
+  }
+  <button mat-button mat-dialog-close>Abbrechen</button>
+  <button mat-flat-button mat-dialog-close cdkFocusInitial (click)="save()" [disabled]="!form.valid">Speichern</button>
 </div>
 
 <ng-template #deleteDialog>
@@ -28,6 +57,6 @@
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>
-    <button mat-flat-button class="error-button" [mat-dialog-close]="true">Löschen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
   </div>
 </ng-template>
