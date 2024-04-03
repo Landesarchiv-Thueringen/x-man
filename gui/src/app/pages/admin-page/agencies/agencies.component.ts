@@ -62,7 +62,7 @@ export class AgenciesComponent implements AfterViewInit {
   }
 
   openDetails(agency: Partial<Agency>) {
-    const dialogRef = this.dialog.open(AgencyDetailsComponent, { data: agency });
+    const dialogRef = this.dialog.open(AgencyDetailsComponent, { data: agency, maxWidth: '80vw' });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         if (agency.id == null) {
