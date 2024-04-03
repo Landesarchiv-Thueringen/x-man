@@ -56,9 +56,15 @@ export class AgencyDetailsComponent {
     prefix: new FormControl(this.agency.prefix, { nonNullable: true }),
     code: new FormControl(this.agency.code, { nonNullable: true }),
     contactEmail: new FormControl(this.agency.contactEmail, { nonNullable: true }),
-    transferDir: new FormControl(this.agency.transferDir, {
-      nonNullable: true,
-      validators: Validators.required,
+    transferDir: new FormGroup({
+      protocol: new FormControl('', {
+        nonNullable: true,
+        validators: Validators.required,
+      }),
+      host: new FormControl('', { validators: [Validators.required] }),
+      path: new FormControl('', { validators: [Validators.required] }),
+      username: new FormControl(''),
+      password: new FormControl(''),
     }),
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
@@ -95,6 +101,7 @@ export class AgencyDetailsComponent {
   ) {
     // Reset 'testResult' when the value of 'transferDir' changes
     this.form.get('transferDir')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));
+    this.initTransferDirGroup();
     // Disable close on backdrop click as soon as the user modifies any value
     this.form.valueChanges.pipe(take(1)).subscribe(() => (this.dialogRef.disableClose = true));
     // Bind autocomplete results for archivists
@@ -118,11 +125,11 @@ export class AgencyDetailsComponent {
    * Sets `loadingTestResult` to true while running.
    */
   async testTransferDirectory() {
+    this.fixupTransferDirInputs();
     this.transferDirPanel.open();
-    const value = this.form.getRawValue().transferDir;
-    if (this.form.valid && !this.loadingTestResult) {
+    if (this.form.get('transferDir')?.valid && !this.loadingTestResult) {
       this.loadingTestResult = true;
-      const observable = this.transferDirectoryService.testTransferDir(value);
+      const observable = this.transferDirectoryService.testTransferDir(this.getTransferDirURI());
       try {
         const testResult = await firstValueFrom(observable);
         this.testResult = testResult.result;
@@ -168,10 +175,11 @@ export class AgencyDetailsComponent {
         await this.testTransferDirectory();
       }
       if (this.testResult !== 'failed') {
-        const { userIds, ...agency } = this.form.getRawValue();
+        const { userIds, transferDir, ...agency } = this.form.getRawValue();
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
           users: userIds.map((userId) => ({ id: userId }) as User),
+          transferDir: this.getTransferDirURI(),
         };
         this.dialogRef.close(updateAgency);
       }
@@ -206,5 +214,87 @@ export class AgencyDetailsComponent {
         this.dialogRef.close();
       }
     });
+  }
+
+  /** Trims and removes superfluous characters likely to be inserted by users. */
+  fixupTransferDirInputs(): void {
+    const transferDir = this.form.get('transferDir');
+    let host = transferDir?.getRawValue().host;
+    host = host?.trim();
+    transferDir?.get('host')?.setValue(host);
+    let path = transferDir?.getRawValue().path;
+    path = path?.trim();
+    path = path?.replace(/^\/|\/$/g, ''); // trim leading and trailing slashes
+    transferDir?.get('path')?.setValue(path);
+  }
+
+  /** Combines information from the transfer-dir form group to a URI string. */
+  private getTransferDirURI(): string {
+    const transferDir = this.form.get('transferDir')!.value;
+    // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
+    const dummyProtocol = transferDir.protocol?.startsWith('dav') ? 'http' : transferDir.protocol;
+    const transferDirURL = new URL(dummyProtocol + '://' + (transferDir.host ?? '') + '/' + transferDir.path);
+    transferDirURL.username = transferDir.username ?? '';
+    transferDirURL.password = transferDir.password ?? '';
+    return transferDirURL.href.replace(/^http/, transferDir.protocol!);
+  }
+
+  /**
+   * Initial setup for the transfer-dir form group.
+   *
+   * - Registers change listeners that update the form group based on the
+   *   selected protocol.
+   * - Initializes the form fields with values extracted from the transfer-dir
+   *   URI saved in the database.
+   */
+  private initTransferDirGroup(): void {
+    // Update fields based on selected protocol
+    this.form
+      .get('transferDir')
+      ?.get('protocol')
+      ?.valueChanges.subscribe((value) => {
+        const path = this.form.get('transferDir')?.get('path');
+        const host = this.form.get('transferDir')?.get('host');
+        const username = this.form.get('transferDir')?.get('username');
+        const password = this.form.get('transferDir')?.get('password');
+        switch (value) {
+          case 'file':
+            path?.enable();
+            host?.disable();
+            host?.clearValidators();
+            host?.setValue(null);
+            username?.disable();
+            username?.setValue(null);
+            password?.disable();
+            password?.setValue(null);
+            break;
+          case 'dav':
+          case 'davs':
+            path?.enable();
+            host?.enable();
+            host?.setValidators(Validators.required);
+            username?.enable();
+            password?.enable();
+            break;
+        }
+        host?.updateValueAndValidity();
+      });
+    // Populate fields with initial values from the database
+    if (this.agency.transferDir) {
+      const [protocol, rest] = this.agency.transferDir.split('://');
+      try {
+        // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
+        const dummyProtocol = protocol?.startsWith('dav') ? 'http' : protocol;
+        const url = new URL(dummyProtocol + '://' + rest);
+        const formGroup = this.form.get('transferDir')!;
+        formGroup.get('protocol')?.setValue(protocol);
+        formGroup.get('username')?.setValue(url.username);
+        formGroup.get('password')?.setValue(url.password);
+        formGroup.get('host')?.setValue(url.host);
+        formGroup.get('path')?.setValue(url.pathname.replace(/^\//, '')); // trim leading slash
+      } catch (e) {
+        console.warn('Failed to parse transfer-dir URI', this.agency.transferDir, e);
+      }
+    }
   }
 }
