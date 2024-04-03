@@ -12,7 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, filter, first, switchMap } from 'rxjs';
+import { BehaviorSubject, Subject, concat, filter, first, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import {
   DisplayText,
@@ -24,6 +24,7 @@ import {
 import { NotificationService } from '../../../services/notification.service';
 import { Process, ProcessService, ProcessStep } from '../../../services/process.service';
 import { Task } from '../../../services/tasks.service';
+import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
 import { RecordObjectAppraisalPipe } from '../metadata/record-object-appraisal-pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
@@ -108,20 +109,26 @@ export class MessageTreeComponent implements AfterViewInit {
     private messagePage: MessagePageService,
   ) {
     this.registerAppraisals();
-    this.messagePage.observeProcess().subscribe((process) => (this.process = process));
-    this.messagePage.observeMessage().subscribe((message) => {
-      this.message = message;
-      this.initTree();
-      this.viewInitialized
-        .pipe(first((done) => done))
-        .pipe(switchMap(() => this.route.firstChild!.params))
-        .subscribe((params) => {
-          if (params['id']) {
-            this.expandNode(params['id']);
-            this.document.getElementById(params['id'])?.scrollIntoView({ block: 'center' });
-          }
-        });
+    const processReady = new Subject<void>();
+    this.messagePage.observeProcess().subscribe((process) => {
+      this.process = process;
+      processReady.complete();
     });
+    concat(processReady, this.messagePage.observeMessage())
+      .pipe(filter(notNull))
+      .subscribe((message) => {
+        this.message = message;
+        this.initTree();
+        this.viewInitialized
+          .pipe(first((done) => done))
+          .pipe(switchMap(() => this.route.firstChild!.params))
+          .subscribe((params) => {
+            if (params['id']) {
+              this.expandNode(params['id']);
+              this.document.getElementById(params['id'])?.scrollIntoView({ block: 'center' });
+            }
+          });
+      });
   }
 
   ngAfterViewInit() {
