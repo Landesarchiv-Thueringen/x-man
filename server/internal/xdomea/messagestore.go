@@ -19,7 +19,7 @@ const storeDir = "message_store"
 func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
 	processID := GetMessageID(messagePath)
 	messageName := filepath.Base(messagePath)
-	// Create temporary directory. The name of the directory ist the message ID.
+	// Create temporary directory. The name of the directory contains the message ID.
 	tempDir, err := os.MkdirTemp("", processID)
 	if err != nil {
 		panic(err)
@@ -124,8 +124,8 @@ func DeleteProcess(processID string) bool {
 		panic(err)
 	}
 	// Delete transfer files
-	for _, p := range transferFiles {
-		RemoveFileFromTransferDir(process.Agency, p)
+	for _, path := range transferFiles {
+		RemoveFileFromTransferDir(process.Agency, path)
 	}
 	return true
 }

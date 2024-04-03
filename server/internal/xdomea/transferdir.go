@@ -116,7 +116,12 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
 		panic(err)
 	}
 	for _, file := range files {
-		log.Println(file.Name)
+		if !db.IsMessageAlreadyProcessed(file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+			log.Println(file.Name())
+			processID := GetMessageID(file.Name())
+			localPath := copMessageFromWebDAV(agency, file.Name())
+			extractMessage(agency, file.Name(), localPath, processID)
+		}
 	}
 }
 
@@ -193,6 +198,42 @@ func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) string {
 		panic(err)
 	}
 	return webdavFilePath
+}
+
+// copMessageFromWebDAV copies the file specified by webDAVFilePath.
+// The copied file is localy stored in a temporary directory.
+// The caller of this function should remove the temporary directory.
+//
+// Returns the local path of the copied file.
+func copMessageFromWebDAV(agency db.Agency, webDAVFilePath string) string {
+	transferDirURL, err := url.Parse(agency.TransferDirURL)
+	if err != nil {
+		panic(err)
+	}
+	client, err := getWebDAVClient(transferDirURL)
+	if err != nil {
+		panic(err)
+	}
+	reader, err := client.ReadStream(webDAVFilePath)
+	if err != nil {
+		panic(err)
+	}
+	tempDir, err := os.MkdirTemp("", "")
+	if err != nil {
+		panic(err)
+	}
+	fileName := filepath.Base(webDAVFilePath)
+	filePath := filepath.Join(tempDir, fileName)
+	file, err := os.Create(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	_, err = io.Copy(file, reader)
+	if err != nil {
+		panic(err)
+	}
+	return filePath
 }
 
 func RemoveFileFromTransferDir(agency db.Agency, path string) {
