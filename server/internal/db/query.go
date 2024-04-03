@@ -199,7 +199,7 @@ func GetProcessForMessage(message Message) Process {
 // IsMessageAlreadyProcessed checks if a message exists, which was already processed,
 // determined by the path in the transfer directory.
 func IsMessageAlreadyProcessed(path string) bool {
-	result := db.Where(&Message{TransferDirURL: path}).Limit(1).Find(&Message{})
+	result := db.Where(&Message{TransferDirPath: path}).Limit(1).Find(&Message{})
 	if result.RowsAffected > 0 {
 		return true
 	}
@@ -414,19 +414,19 @@ func GetAllTransferFilesOfProcess(process Process) []string {
 		panic(result.Error)
 	}
 	if p.Message0501 != nil {
-		messages = append(messages, p.Message0501.TransferDirURL)
+		messages = append(messages, p.Message0501.TransferDirPath)
 	}
 	if p.Message0502Path != nil {
 		messages = append(messages, *p.Message0502Path)
 	}
 	if p.Message0503 != nil {
-		messages = append(messages, p.Message0503.TransferDirURL)
+		messages = append(messages, p.Message0503.TransferDirPath)
 	}
 	if p.Message0504Path != nil {
 		messages = append(messages, *p.Message0504Path)
 	}
 	if p.Message0505 != nil {
-		messages = append(messages, p.Message0505.TransferDirURL)
+		messages = append(messages, p.Message0505.TransferDirPath)
 	}
 	return messages
 }

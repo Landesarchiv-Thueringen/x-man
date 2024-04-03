@@ -143,7 +143,7 @@ type Message struct {
 	ID                    uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
 	CreatedAt             time.Time              `json:"-"`
 	UpdatedAt             time.Time              `json:"-"`
-	TransferDirURL        string                 `json:"-"`
+	TransferDirPath       string                 `json:"-"`
 	StoreDir              string                 `json:"-"`
 	MessagePath           string                 `json:"-"`
 	XdomeaVersion         string                 `json:"xdomeaVersion"`

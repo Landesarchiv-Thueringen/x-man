@@ -94,7 +94,7 @@ func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
 		}
 	}
 	if e.TransferPath == nil && e.Message != nil {
-		e.TransferPath = &e.Message.TransferDirURL
+		e.TransferPath = &e.Message.TransferDirPath
 	}
 	if e.Message != nil && e.Process != nil && e.ProcessStep == nil && e.ProcessStepID == nil {
 		switch e.Message.MessageType.Code {

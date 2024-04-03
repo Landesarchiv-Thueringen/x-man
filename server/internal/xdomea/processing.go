@@ -41,10 +41,10 @@ func AddMessage(
 		panic("message doesn't exist: " + messagePath)
 	}
 	message = db.Message{
-		MessageType:    messageType,
-		TransferDirURL: transferDirMessagePath,
-		StoreDir:       messageStoreDir,
-		MessagePath:    messagePath,
+		MessageType:     messageType,
+		TransferDirPath: transferDirMessagePath,
+		StoreDir:        messageStoreDir,
+		MessagePath:     messagePath,
 	}
 	err = checkMessageValidity(agency, &message, transferDirMessagePath)
 	if err != nil {

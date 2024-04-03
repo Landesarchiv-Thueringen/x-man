@@ -43,7 +43,8 @@ func StoreMessage(agency db.Agency, messagePath string) (db.Message, error) {
 	if err != nil {
 		panic(err)
 	}
-	return extractMessage(agency, messagePath, copyPath, processID)
+	transferDirMessagePath := filepath.Base(messagePath)
+	return extractMessage(agency, transferDirMessagePath, copyPath, processID)
 }
 
 // extractMessage parses the given message file into a database entry and saves
@@ -52,14 +53,14 @@ func extractMessage(
 	agency db.Agency,
 	transferDirMessagePath string,
 	messagePath string,
-	id string,
+	processID string,
 ) (db.Message, error) {
 	messageType, err := GetMessageTypeImpliedByPath(messagePath)
 	// The error should never happen because the message filter should prevent the processing of unknown message types.
 	if err != nil {
 		panic(fmt.Sprintf("failed to extract message: %v", err))
 	}
-	processStoreDir := path.Join(storeDir, id)
+	processStoreDir := path.Join(storeDir, processID)
 	// Create the message store directory if necessary.
 	messageStoreDir := path.Join(processStoreDir, messageType.Code)
 	err = os.MkdirAll(messageStoreDir, 0700)
@@ -92,11 +93,11 @@ func extractMessage(
 	_, message, err :=
 		AddMessage(
 			agency,
-			id,
+			processID,
 			messageType,
 			processStoreDir,
 			messageStoreDir,
-			transferDirMessagePath,
+			filepath.Base(transferDirMessagePath),
 		)
 	return message, err
 }
@@ -123,10 +124,8 @@ func DeleteProcess(processID string) bool {
 		panic(err)
 	}
 	// Delete transfer files
-	for _, f := range transferFiles {
-		if err := os.Remove(f); err != nil {
-			panic(err)
-		}
+	for _, p := range transferFiles {
+		RemoveFileFromTransferDir(process.Agency, p)
 	}
 	return true
 }
@@ -137,7 +136,7 @@ func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
 		panic("message not found " + id.String())
 	}
 	storeDir := message.StoreDir
-	transferFile := message.TransferDirURL
+	transferFile := message.TransferDirPath
 	if keepTransferFile {
 		log.Println("Deleting message", message.ID, "(keeping transfer file)")
 	} else {

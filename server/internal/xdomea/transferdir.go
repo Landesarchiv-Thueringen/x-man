@@ -145,8 +145,6 @@ func CopyMessageToTransferDirectory(agency db.Agency, messagePath string) string
 	if err != nil {
 		panic(err)
 	}
-	log.Println(agency)
-	log.Println(transferDirURL.Scheme)
 	switch transferDirURL.Scheme {
 	case string(Local):
 		return copyMessageToLocalFilesystem(transferDirURL, messagePath)
@@ -195,4 +193,40 @@ func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) string {
 		panic(err)
 	}
 	return webdavFilePath
+}
+
+func RemoveFileFromTransferDir(agency db.Agency, path string) {
+	transferDirURL, err := url.Parse(agency.TransferDirURL)
+	if err != nil {
+		panic(err)
+	}
+	switch transferDirURL.Scheme {
+	case string(Local):
+		RemoveFileFromLocalFilesystem(transferDirURL, path)
+	case string(WebDAV):
+		RemoveFileFromWebDAV(transferDirURL, path)
+	case string(WebDAVSec):
+		RemoveFileFromWebDAV(transferDirURL, path)
+	default:
+		panic("unknown transfer directory scheme")
+	}
+}
+
+func RemoveFileFromLocalFilesystem(transferDirURL *url.URL, path string) {
+	fullPath := filepath.Join(transferDirURL.Path, path)
+	err := os.Remove(fullPath)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func RemoveFileFromWebDAV(transferDirURL *url.URL, path string) {
+	client, err := getWebDAVClient(transferDirURL)
+	if err != nil {
+		panic(err)
+	}
+	err = client.Remove(path)
+	if err != nil {
+		panic(err)
+	}
 }
