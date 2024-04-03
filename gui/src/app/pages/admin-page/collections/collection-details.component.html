@@ -17,8 +17,8 @@
   }
 </div>
 <div mat-dialog-actions>
-  <button mat-button mat-dialog-close>Schließen</button>
-  <button class="delete-button" mat-flat-button color="warn" (click)="deleteCollection()">Löschen</button>
+  <button class="delete-button error-button" mat-button (click)="deleteCollection()">Löschen</button>
+  <button mat-button mat-dialog-close cdkFocusInitial>Schließen</button>
 </div>
 
 <ng-template #deleteDialog>
@@ -27,7 +27,7 @@
     <p>Möchten Sie den Bestand "{{ collection.name }}" löschen?</p>
   </div>
   <div mat-dialog-actions>
-    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
     <button mat-button mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true">Löschen</button>
   </div>
 </ng-template>

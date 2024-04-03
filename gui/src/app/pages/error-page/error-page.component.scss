@@ -4,9 +4,9 @@
 :host {
   display: grid;
   height: 100%;
-  color: white;
-  background-color: mat.get-color-from-palette(mat.$indigo-palette, 700);
-  --mat-divider-color: rgba(255, 255, 255, 0.3);
+  color: var(--mat-app-text-color);
+  background-color: var(--mat-primary-30);
+  --mat-divider-color: var(--mat-app-text-color);
 }
 
 .container {
@@ -16,5 +16,6 @@
 }
 
 mat-divider {
+  opacity: 0.65;
   margin-bottom: 1em;
 }

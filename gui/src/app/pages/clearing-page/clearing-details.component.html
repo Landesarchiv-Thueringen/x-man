@@ -45,7 +45,7 @@
         <div role="cell">Aussonderung</div>
         <div role="cell">
           @if (data.process) {
-            <a mat-button color="primary" [routerLink]="['/nachricht', data.process.id]" target="_blank">
+            <a mat-button [routerLink]="['/nachricht', data.process.id]" target="_blank">
               {{ data.process.id }}
               <mat-icon iconPositionEnd>open_in_new</mat-icon>
             </a>
@@ -59,7 +59,6 @@
         <div role="cell">
           <a
             mat-button
-            color="primary"
             [routerLink]="['/nachricht', data.message.messageHead.processID, data.message.messageType.code]"
             target="_blank"
           >
@@ -88,12 +87,12 @@
 </div>
 
 <div mat-dialog-actions>
+  <button mat-button mat-dialog-close>Schließen</button>
   @if (!data.resolved) {
-    <button mat-flat-button [matMenuTriggerFor]="menu" color="primary">
+    <button mat-flat-button [matMenuTriggerFor]="menu">
       Lösen <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
     </button>
   }
-  <button mat-button mat-dialog-close>Schließen</button>
 </div>
 
 <mat-menu #menu="matMenu">

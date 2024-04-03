@@ -3,7 +3,7 @@
 :host {
   display: grid;
   height: 100%;
-  background-color: mat.get-color-from-palette(mat.$indigo-palette, 700);
+  background-color: var(--mat-primary-30);
 }
 
 mat-card {

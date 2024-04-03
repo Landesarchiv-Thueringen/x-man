@@ -1,6 +1,6 @@
 <h1>Bestände ({{ dataSource.data.length }})</h1>
 
-<mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+<mat-table [dataSource]="dataSource" matSort>
   <!-- Icon Column -->
   <ng-container matColumnDef="icon">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
@@ -27,9 +27,7 @@
   <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
 </mat-table>
 
-<button class="add-new-button" mat-flat-button color="primary" (click)="newCollection()">
-  <mat-icon>add</mat-icon>Neuer Bestand
-</button>
+<button class="add-new-button" mat-flat-button (click)="newCollection()"><mat-icon>add</mat-icon>Neuer Bestand</button>
 
 <ng-template #newCollectionDialog>
   <h3 mat-dialog-title>Neuer Bestand</h3>
@@ -40,14 +38,13 @@
     </mat-form-field>
   </div>
   <div mat-dialog-actions>
+    <button mat-button mat-dialog-close>Abbrechen</button>
     <button
       mat-flat-button
-      color="primary"
       [mat-dialog-close]="newCollectionNameControl.value"
       [disabled]="!newCollectionNameControl.valid"
     >
       Hinzufügen
     </button>
-    <button mat-button mat-dialog-close>Abbrechen</button>
   </div>
 </ng-template>

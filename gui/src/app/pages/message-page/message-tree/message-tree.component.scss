@@ -7,14 +7,12 @@
   height: 100%;
 }
 
-mat-toolbar {
+.actions {
   display: flex;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+  margin: 1em;
   flex-shrink: 0;
   column-gap: 0.5em;
   justify-content: center;
-  background-color: white;
 }
 
 .message-tree {
@@ -26,7 +24,6 @@ mat-toolbar {
   .root-node {
     position: sticky;
     top: 0px;
-    background-color: white;
     z-index: 2;
   }
 
@@ -34,16 +31,17 @@ mat-toolbar {
     display: flex;
     width: 100%;
     border-radius: 30px;
+    padding: 4px;
     margin-bottom: 0.8em;
     margin-right: 2em;
     cursor: pointer;
 
     &.active {
-      background-color: mat.get-color-from-palette(mat.$indigo-palette, 100);
+      background-color: var(--mat-primary-90);
     }
 
     &:hover {
-      background-color: mat.get-color-from-palette(mat.$indigo-palette, 50);
+      background-color: var(--mat-primary-95);
     }
 
     .node-info {
@@ -120,7 +118,7 @@ mat-toolbar {
     background-color: rgba(0, 0, 0, 0.04);
     span,
     mat-icon {
-      color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+      color: var(--mat-primary);
     }
   }
   span {

@@ -1,6 +1,6 @@
 <div class="row">
   <h1>Aussonderungen ({{ dataSource.data.length }})</h1>
-  <button mat-flat-button [color]="showFilters ? 'primary' : null" (click)="toggleFilters()">
+  <button mat-flat-button (click)="toggleFilters()">
     @if (showFilters) {
       <mat-icon>filter_alt</mat-icon>
     } @else {
@@ -45,7 +45,7 @@
   </form>
 </div>
 
-<div class="table-outer-container mat-elevation-z8">
+<div class="table-outer-container">
   <div class="table-container">
     <mat-table
       [dataSource]="dataSource"

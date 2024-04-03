@@ -161,11 +161,9 @@
   </form>
 </div>
 <div mat-dialog-actions>
-  <button mat-flat-button color="primary" [disabled]="!form.valid || testResult === 'failed'" (click)="save()">
-    Speichern
-  </button>
+  <button *ngIf="!isNew" class="delete-button error-button" mat-button (click)="deleteAgency()">Löschen</button>
   <button mat-button mat-dialog-close>Abbrechen</button>
-  <button *ngIf="!isNew" class="delete-button" mat-flat-button color="warn" (click)="deleteAgency()">Löschen</button>
+  <button mat-flat-button [disabled]="!form.valid || testResult === 'failed'" (click)="save()">Speichern</button>
 </div>
 
 <ng-template #deleteDialog>
@@ -174,7 +172,7 @@
     <p>Möchten Sie die abgebende Stelle "{{ oldName }}" löschen?</p>
   </div>
   <div mat-dialog-actions>
-    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
     <button mat-button mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
   </div>
 </ng-template>

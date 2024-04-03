@@ -1,5 +1,5 @@
 <div class="file-analysis-section">
-  <div class="file-analysis-table mat-elevation-z8">
+  <div class="file-analysis-table">
     <div class="table-content">
       <mat-table [dataSource]="dataSource">
         <ng-container *ngFor="let tableColumn of generatedTableColumnList" matColumnDef="{{ tableColumn }}">
@@ -36,9 +36,9 @@
       </mat-table>
     </div>
 
-    <mat-toolbar class="table-toolbar">
+    <div class="table-toolbar">
       <span class="spacer"></span>
       <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 15]" showFirstLastButtons></mat-paginator>
-    </mat-toolbar>
+    </div>
   </div>
 </div>

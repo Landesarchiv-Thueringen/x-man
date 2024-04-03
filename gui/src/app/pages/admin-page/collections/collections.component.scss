@@ -1,6 +1,12 @@
+@import "../../../../styles/mixins.scss";
+
 :host {
   display: flex;
   flex-direction: column;
+}
+
+mat-table {
+  @include tableBorder;
 }
 
 .mat-mdc-row {
@@ -37,11 +43,7 @@
 }
 
 ::ng-deep .new-collection-dialog {
-  [mat-dialog-title] {
-    margin-bottom: 0;
-  }
-
-  .mdc-dialog .mdc-dialog__content {
-    padding-top: 16px;
+  .mat-mdc-dialog-container .mat-mdc-dialog-title + .mat-mdc-dialog-content {
+    padding-top: 5px;
   }
 }

@@ -1,5 +1,7 @@
 .mat-mdc-dialog-container :host mat-dialog-content {
-  padding-top: 3px; // make room for box shadow
+  // Make room for box shadow.
+  padding-top: 3px;
+  padding-bottom: 4px;
 }
 
 pre {

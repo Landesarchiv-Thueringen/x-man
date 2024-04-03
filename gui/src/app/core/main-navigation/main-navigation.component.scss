@@ -1,6 +1,9 @@
+@use "@angular/material" as mat;
+
 mat-toolbar {
   position: relative;
   z-index: 2;
+  @include mat.elevation(4);
 }
 
 mat-icon.title-icon {
@@ -10,7 +13,7 @@ mat-icon.title-icon {
 }
 
 .active {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .spacer {

@@ -128,6 +128,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
       const primaryDocument = this.primaryDocuments.get(id);
       this.dialog.open(FileOverviewComponent, {
         autoFocus: false,
+        maxWidth: '80vw',
         data: {
           primaryDocument: primaryDocument,
         },

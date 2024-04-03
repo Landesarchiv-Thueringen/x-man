@@ -1,6 +1,8 @@
 [mat-dialog-content] {
   display: flex;
   flex-direction: column;
+  // Prevent cutting of shadows
+  padding-bottom: 4px;
 }
 
 h2 {

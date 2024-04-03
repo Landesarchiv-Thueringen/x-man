@@ -78,7 +78,7 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
   }
 
   openDetails(processingError: Partial<ProcessingError>) {
-    const dialogRef = this.dialog.open(ClearingDetailsComponent, { data: processingError });
+    const dialogRef = this.dialog.open(ClearingDetailsComponent, { maxWidth: '80vw', data: processingError });
     dialogRef.afterClosed().subscribe((result) => {});
   }
 

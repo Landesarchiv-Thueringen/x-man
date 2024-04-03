@@ -13,8 +13,9 @@ mat-sidenav {
     width: 100%;
     justify-content: flex-start;
   }
-  a.active {
-    background-color: rgba(0, 0, 0, 0.12);
+  a:not(.active) {
+    background-color: transparent;
+    color: var(--mdc-text-button-label-text-color);
   }
 }
 

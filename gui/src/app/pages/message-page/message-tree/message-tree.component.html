@@ -121,32 +121,36 @@
     </mat-tree-node>
   </mat-tree>
 
-  <mat-toolbar *ngIf="process && message && !showSelection" class="message-actions">
-    <button mat-fab extended color="primary" (click)="copyMessageUrl()">
+  <div *ngIf="process && message && !showSelection" class="actions message-actions">
+    <button mat-flat-button (click)="copyMessageUrl()">
       <mat-icon>content_copy</mat-icon>
       <span>Objekt-Link kopieren</span>
     </button>
-    <button
-      mat-fab
-      extended
-      *ngIf="!process.processState.appraisal.complete"
-      color="primary"
-      (click)="enableSelection()"
-    >
+    <button mat-flat-button *ngIf="!process.processState.appraisal.complete" (click)="enableSelection()">
       <mat-icon> check_box </mat-icon>
       Mehrfachauswahl
     </button>
-    <button *ngIf="process?.processState?.archiving?.complete" mat-fab extended (click)="downloadReport()">
+    <button
+      mat-flat-button
+      class="tertiary-button"
+      *ngIf="process?.processState?.archiving?.complete"
+      (click)="downloadReport()"
+    >
       <mat-icon>summarize</mat-icon>
       <span>Übernahmebericht herunterladen</span>
     </button>
-    <button mat-fab extended *ngIf="!process.processState.appraisal.complete" (click)="sendAppraisalMessage()">
+    <button
+      mat-flat-button
+      class="tertiary-button"
+      *ngIf="!process.processState.appraisal.complete"
+      (click)="sendAppraisalMessage()"
+    >
       <mat-icon>forward_to_inbox</mat-icon>
       <span>Bewertung senden</span>
     </button>
     <button
-      mat-fab
-      extended
+      mat-flat-button
+      class="tertiary-button"
       *ngIf="
         message.messageType.code === '0503' &&
         process.processState.formatVerification.complete &&
@@ -157,21 +161,17 @@
       <mat-icon>archive</mat-icon>
       <span>Abgabe archivieren</span>
     </button>
-  </mat-toolbar>
+  </div>
 
-  <mat-toolbar *ngIf="process && message && showSelection" class="appraisal-actions">
-    <button class="abort-button" mat-fab extended (click)="disableSelection()" color="primary">
-      <mat-icon> cancel </mat-icon>
-      Abbrechen
-    </button>
+  <div *ngIf="process && message && showSelection" class="actions appraisal-actions">
+    <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
     <button
-      mat-fab
-      extended
+      mat-flat-button
       (click)="setAppraisalForMultipleRecordObjects()"
       [disabled]="this.selectedNodes.length === 0"
     >
-      <mat-icon> checklist </mat-icon>
+      <mat-icon>checklist</mat-icon>
       Bewerten
     </button>
-  </mat-toolbar>
+  </div>
 </div>

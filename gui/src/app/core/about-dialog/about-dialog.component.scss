@@ -1,0 +1,9 @@
+[mat-dialog-content] {
+  // Prevent scrollbar caused by overflowing click targets
+  padding-bottom: 4px;
+  margin-bottom: -4px;
+}
+
+p {
+  margin: 0;
+}

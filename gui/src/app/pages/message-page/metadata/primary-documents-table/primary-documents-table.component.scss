@@ -1,3 +1,5 @@
+@import "../../../../../styles/mixins.scss";
+
 :host {
   display: block;
   padding-top: 3em;
@@ -12,6 +14,10 @@
   margin-top: 2em;
 }
 
+.file-analysis-table {
+  @include tableBorder;
+}
+
 .table-content {
   .mat-mdc-row {
     position: relative;
@@ -23,11 +29,13 @@
     overflow-wrap: anywhere;
   }
 
-  .cdk-header-cell.cdk-column-fileName, .cdk-cell.cdk-column-fileName {
+  .cdk-header-cell.cdk-column-fileName,
+  .cdk-cell.cdk-column-fileName {
     flex-grow: 3;
   }
 
-  .cdk-header-cell.cdk-column-mimeType, .cdk-cell.cdk-column-mimeType {
+  .cdk-header-cell.cdk-column-mimeType,
+  .cdk-cell.cdk-column-mimeType {
     flex-grow: 2;
   }
 
@@ -69,7 +77,6 @@
 }
 
 .table-toolbar {
-  background-color: white;
   column-gap: 1em;
 
   mat-paginator {

@@ -12,11 +12,10 @@
         {{ node.text }}
       </div>
       <button
-        mat-mini-fab
+        mat-icon-button
         *ngIf="node.type === 'format'"
         (click)="downloadPrimaryFile(node.fileID, node.fileName)"
         class="download-button"
-        color="primary"
       >
         <mat-icon>download</mat-icon>
       </button>

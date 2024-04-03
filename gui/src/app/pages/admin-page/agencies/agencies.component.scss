@@ -1,6 +1,12 @@
+@import "../../../../styles/mixins.scss";
+
 :host {
   display: flex;
   flex-direction: column;
+}
+
+mat-table {
+  @include tableBorder;
 }
 
 .mat-mdc-row {

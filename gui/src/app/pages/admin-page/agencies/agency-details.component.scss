@@ -1,10 +1,7 @@
-h2 {
-  margin-bottom: 0;
-}
-
-[mat-dialog-content] {
-  // Make room for overflowing elements (compensate with h1 bottom margin)
-  padding-top: 16px;
+.mat-mdc-dialog-title + .mat-mdc-dialog-content {
+  // Make room for overflowing elements
+  padding-top: 5px;
+  padding-bottom: 4px;
 }
 
 .row {
@@ -59,6 +56,6 @@ mat-form-field {
   }
 }
 
-.mat-mdc-dialog-actions .mat-mdc-button-base + .mat-mdc-button-base.delete-button {
-  margin-left: auto;
+.delete-button {
+  margin-right: auto;
 }

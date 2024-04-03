@@ -123,7 +123,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>Administration</mat-panel-title>
           </mat-expansion-panel-header>
-          <button mat-flat-button color="warn" class="delete-button" (click)="deleteProcess()" type="button">
+          <button mat-flat-button class="error-button delete-button" (click)="deleteProcess()" type="button">
             <mat-icon>delete</mat-icon>
             <span>Aussonderung löschen</span>
           </button>
@@ -139,7 +139,7 @@
     <p>Möchten Sie die Aussonderung und alle zugehörigen Transfernachrichten löschen?</p>
   </div>
   <div mat-dialog-actions>
-    <button mat-flat-button color="warn" [mat-dialog-close]="true">Löschen</button>
     <button mat-button mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
   </div>
 </ng-template>

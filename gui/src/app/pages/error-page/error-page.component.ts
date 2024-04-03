@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute } from '@angular/router';
@@ -12,6 +12,8 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class ErrorPageComponent {
   code: string | null = null;
+
+  @HostBinding('class.dark-theme') readonly darkTheme = true;
 
   constructor(route: ActivatedRoute, dialogs: MatDialog) {
     route.params.subscribe((params) => {

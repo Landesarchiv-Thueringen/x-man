@@ -1,3 +1,9 @@
+@import "../../../../styles/mixins.scss";
+
+mat-table {
+  @include tableBorder;
+}
+
 .cdk-column-state {
   box-sizing: content-box;
   flex: 0 0 24px;

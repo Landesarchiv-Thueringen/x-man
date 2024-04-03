@@ -1,6 +1,6 @@
 <h1>Abgebende Stellen ({{ dataSource.data.length }})</h1>
 
-<mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+<mat-table [dataSource]="dataSource" matSort>
   <!-- Icon Column -->
   <ng-container matColumnDef="icon">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
@@ -45,6 +45,6 @@
   <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
 </mat-table>
 
-<button class="add-new-button" mat-flat-button color="primary" (click)="newAgency()">
+<button class="add-new-button" mat-flat-button (click)="newAgency()">
   <mat-icon>add</mat-icon>Neue abgebende Stelle
 </button>

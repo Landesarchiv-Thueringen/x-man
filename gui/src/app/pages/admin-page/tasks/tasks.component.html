@@ -1,6 +1,6 @@
 <h1>Prozesse ({{ dataSource.data.length }})</h1>
 
-<mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8" [trackBy]="trackTableRow">
+<mat-table [dataSource]="dataSource" matSort [trackBy]="trackTableRow">
   <!-- State Column -->
   <ng-container matColumnDef="state">
     <mat-header-cell *matHeaderCellDef mat-sort-header></mat-header-cell>
