@@ -13,6 +13,7 @@ type ArchivePackageData struct {
 	IOLifetime       string
 	REPTitle         string
 	PrimaryDocuments []db.PrimaryDocument
+	CollectionID     string
 }
 
 type DimagControl struct {

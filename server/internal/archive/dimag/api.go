@@ -22,7 +22,6 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 //
 // ImportMessageSync returns after the archiving process completed.
 func ImportMessageSync(process db.Process, message db.Message, collection db.Collection) error {
-	// TODO: respect collection parameter
 	err := InitConnection()
 	if err != nil {
 		log.Println("couldn't init connection to DIMAG sftp server")
@@ -35,6 +34,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			IOLifetime:       fileRecordObject.GetCombinedLifetime(),
 			REPTitle:         "originale Repräsentation einer Akte extrahiert aus einer E-Akten-Ablieferung",
 			PrimaryDocuments: fileRecordObject.GetPrimaryDocuments(),
+			CollectionID:     collection.DimagID,
 		}
 		err = importArchivePackage(message, archivePackageData)
 		if err != nil {
@@ -47,6 +47,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			IOLifetime:       processRecordObject.GetCombinedLifetime(),
 			REPTitle:         "originale Repräsentation eines Vorgangs extrahiert aus einer E-Akten-Ablieferung",
 			PrimaryDocuments: processRecordObject.GetPrimaryDocuments(),
+			CollectionID:     collection.DimagID,
 		}
 		err = importArchivePackage(message, archivePackageData)
 		if err != nil {
@@ -66,6 +67,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			IOLifetime:       "-",
 			REPTitle:         repTitle,
 			PrimaryDocuments: primaryDocuments,
+			CollectionID:     collection.DimagID,
 		}
 		err = importArchivePackage(message, archivePackageData)
 		if err != nil {
