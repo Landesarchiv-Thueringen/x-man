@@ -39,7 +39,7 @@ export class AgenciesComponent implements AfterViewInit {
       .pipe(takeUntilDestroyed())
       .subscribe((agencies) => (this.dataSource.data = agencies));
     this.collectionsService
-      .getCollections()
+      .observeCollections()
       .pipe(takeUntilDestroyed())
       .subscribe((collections) => (this.collections = collections));
   }

@@ -536,8 +536,8 @@ export class MessageService {
     return this.httpClient.patch<void>(url, body, options);
   }
 
-  archive0503Message(id: string): Observable<void> {
-    const url = this.apiEndpoint + '/archive-0503-message/' + id;
+  archive0503Message(messageId: string, collectionId: number): Observable<void> {
+    const url = this.apiEndpoint + '/archive-0503-message/' + messageId + '?collectionId=' + collectionId;
     const body = {};
     const options = {};
     return this.httpClient.patch<void>(url, body, options);

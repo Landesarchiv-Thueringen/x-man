@@ -27,7 +27,7 @@ export class CollectionsComponent {
     private dialog: MatDialog,
   ) {
     this.collectionsService
-      .getCollections()
+      .observeCollections()
       .pipe(takeUntilDestroyed())
       .subscribe((collections) => (this.dataSource.data = collections));
   }

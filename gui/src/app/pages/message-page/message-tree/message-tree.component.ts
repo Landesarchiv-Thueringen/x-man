@@ -284,11 +284,14 @@ export class MessageTreeComponent implements AfterViewInit {
       this.dialog
         .open(StartArchivingDialogComponent, {
           autoFocus: false,
+          data: {
+            agency: this.process?.agency,
+          },
         })
         .afterClosed()
         .pipe(
           filter((formResult) => !!formResult),
-          switchMap(() => {
+          switchMap((formResult) => {
             // marks archiving process as started
             // hides the button to start the process
             this.process?.processState.archiving.tasks.push({
@@ -296,7 +299,7 @@ export class MessageTreeComponent implements AfterViewInit {
             } as Task);
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
-            return this.messageService.archive0503Message(this.message!.id);
+            return this.messageService.archive0503Message(this.message!.id, formResult.collectionId);
           }),
         )
         .subscribe({

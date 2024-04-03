@@ -489,6 +489,16 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
+	collectionIDString, hasCollectionID := context.GetQuery("collectionId")
+	if !hasCollectionID || collectionIDString == "0" {
+		context.String(http.StatusBadRequest, "missing query parameter \"collectionId\"")
+		return
+	}
+	collectionID, err := strconv.ParseUint(collectionIDString, 10, 0)
+	if err != nil {
+		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
 	message, found := db.GetCompleteMessageByID(messageID)
 	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
@@ -503,6 +513,11 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
+	collection, found := db.GetCollection(uint(collectionID))
+	if !found {
+		context.String(http.StatusNotFound, fmt.Sprintf("collection not found: %d", collectionID))
+		return
+	}
 	userID := context.MustGet("userId").([]byte)
 	userName := auth.GetDisplayName(userID)
 	task := tasks.Start(db.TaskTypeArchiving, process, 0)
@@ -511,7 +526,7 @@ func archive0503Message(context *gin.Context) {
 		case "filesystem":
 			err = filesystem.ArchiveMessage(process, message)
 		case "dimag":
-			err = dimag.ImportMessageSync(process, message)
+			err = dimag.ImportMessageSync(process, message, collection)
 		default:
 			panic("unknown archive target: " + archiveTarget)
 		}

@@ -21,7 +21,8 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 // The record objects in the message should be complete loaded.
 //
 // ImportMessageSync returns after the archiving process completed.
-func ImportMessageSync(process db.Process, message db.Message) error {
+func ImportMessageSync(process db.Process, message db.Message, collection db.Collection) error {
+	// TODO: respect collection parameter
 	err := InitConnection()
 	if err != nil {
 		log.Println("couldn't init connection to DIMAG sftp server")

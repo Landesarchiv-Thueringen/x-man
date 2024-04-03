@@ -68,6 +68,18 @@ func GetCollections() []Collection {
 	return collections
 }
 
+func GetCollection(collectionID uint) (Collection, bool) {
+	if collectionID == 0 {
+		panic("called GetCollection with collectionID 0")
+	}
+	var collection Collection
+	result := db.Preload(clause.Associations).Where(Collection{ID: collectionID}).Limit(1).Find(&collection)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return collection, result.RowsAffected > 0
+}
+
 func GetTasks() []Task {
 	var tasks []Task
 	result := db.Preload(clause.Associations).Find(&tasks)

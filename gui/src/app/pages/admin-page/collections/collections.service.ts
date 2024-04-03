@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { filter, first, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Agency } from '../../../services/agencies.service';
+import { notNull } from '../../../utils/predicates';
 
 export interface Collection {
   id: number;
@@ -15,7 +16,7 @@ export interface Collection {
   providedIn: 'root',
 })
 export class CollectionsService {
-  private readonly collections = new BehaviorSubject<Collection[]>([]);
+  private readonly collections = new BehaviorSubject<Collection[] | null>(null);
 
   constructor(private httpClient: HttpClient) {
     httpClient
@@ -24,11 +25,15 @@ export class CollectionsService {
   }
 
   getCollections(): Observable<Collection[]> {
-    return this.collections;
+    return this.collections.pipe(first(notNull));
+  }
+
+  observeCollections(): Observable<Collection[]> {
+    return this.collections.pipe(filter(notNull));
   }
 
   getCollectionById(id: number): Observable<Collection | null> {
-    return this.collections.pipe(map((collections) => collections.find((c) => c.id === id) ?? null));
+    return this.getCollections().pipe(map((collections) => collections.find((c) => c.id === id) ?? null));
   }
 
   getInstitutionsForCollection(collectionId: number): Observable<Agency[]> {
@@ -38,13 +43,13 @@ export class CollectionsService {
   createCollection(collection: Omit<Collection, 'id'>) {
     this.httpClient.put<string>(environment.endpoint + '/collection', collection).subscribe((response) => {
       const id = parseInt(response);
-      this.collections.next([...this.collections.value, { ...collection, id }]);
+      this.collections.next([...(this.collections.value ?? []), { ...collection, id }]);
     });
   }
 
   updateCollection(id: number, collection: Omit<Collection, 'id'>) {
     this.httpClient.post<string>(environment.endpoint + '/collection/' + id, collection).subscribe(() => {
-      const collections = [...this.collections.value];
+      const collections = [...(this.collections.value ?? [])];
       const index = collections.findIndex((c) => c.id === id);
       if (index >= 0) {
         collections[index] = { ...collection, id };
@@ -54,7 +59,7 @@ export class CollectionsService {
   }
 
   deleteCollection(collection: Collection) {
-    this.collections.next(this.collections.value.filter((c) => c !== collection));
+    this.collections.next(this.collections.value!.filter((c) => c !== collection));
     this.httpClient.delete(environment.endpoint + '/collection/' + collection.id).subscribe();
   }
 }
