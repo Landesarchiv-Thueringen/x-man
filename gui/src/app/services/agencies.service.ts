@@ -12,7 +12,7 @@ export interface Agency {
   prefix: string;
   code: string;
   contactEmail: string;
-  transferDir: string;
+  transferDirURL: string;
   collectionId?: number;
   collection?: Collection;
   users: User[];

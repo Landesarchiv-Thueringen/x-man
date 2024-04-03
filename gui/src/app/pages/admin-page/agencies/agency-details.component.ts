@@ -179,7 +179,7 @@ export class AgencyDetailsComponent {
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
           users: userIds.map((userId) => ({ id: userId }) as User),
-          transferDir: this.getTransferDirURI(),
+          transferDirURL: this.getTransferDirURI(),
         };
         this.dialogRef.close(updateAgency);
       }
@@ -280,8 +280,8 @@ export class AgencyDetailsComponent {
         host?.updateValueAndValidity();
       });
     // Populate fields with initial values from the database
-    if (this.agency.transferDir) {
-      const [protocol, rest] = this.agency.transferDir.split('://');
+    if (this.agency.transferDirURL) {
+      const [protocol, rest] = this.agency.transferDirURL.split('://');
       try {
         // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
         const dummyProtocol = protocol?.startsWith('dav') ? 'http' : protocol;
@@ -293,7 +293,7 @@ export class AgencyDetailsComponent {
         formGroup.get('host')?.setValue(url.host);
         formGroup.get('path')?.setValue(url.pathname.replace(/^\//, '')); // trim leading slash
       } catch (e) {
-        console.warn('Failed to parse transfer-dir URI', this.agency.transferDir, e);
+        console.warn('Failed to parse transfer-dir URI', this.agency.transferDirURL, e);
       }
     }
   }

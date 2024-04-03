@@ -78,7 +78,7 @@ export class AgenciesComponent implements AfterViewInit {
     this.openDetails({
       name: 'Neue Abgebende Stelle',
       abbreviation: '',
-      transferDir: '',
+      transferDirURL: '',
     });
   }
 }
