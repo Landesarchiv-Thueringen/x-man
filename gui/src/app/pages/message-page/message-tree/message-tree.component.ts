@@ -24,7 +24,6 @@ import {
 import { NotificationService } from '../../../services/notification.service';
 import { Process, ProcessService, ProcessStep } from '../../../services/process.service';
 import { Task } from '../../../services/tasks.service';
-import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
 import { RecordObjectAppraisalPipe } from '../metadata/record-object-appraisal-pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
@@ -216,19 +215,16 @@ export class MessageTreeComponent implements AfterViewInit {
     this.dialog
       .open(AppraisalFormComponent, { autoFocus: false })
       .afterClosed()
-      .pipe(
-        filter(notNull),
-        switchMap((formResult) =>
-          this.messagePage.setAppraisals(
+      .subscribe(async (formResult) => {
+        if (formResult) {
+          await this.messagePage.setAppraisals(
             this.selectedNodes.map((id) => this.messageService.getStructureNode(id)!.xdomeaID),
             formResult.appraisalCode,
             formResult.appraisalNote,
-          ),
-        ),
-      )
-      .subscribe(() => {
-        this.notificationService.show('Bewertung erfolgreich gespeichert');
-        this.disableSelection();
+          );
+          this.notificationService.show('Bewertung erfolgreich gespeichert');
+          this.disableSelection();
+        }
       });
   }
 
