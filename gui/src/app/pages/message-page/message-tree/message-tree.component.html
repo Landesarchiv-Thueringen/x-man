@@ -126,7 +126,11 @@
       <mat-icon>content_copy</mat-icon>
       <span>Objekt-Link kopieren</span>
     </button>
-    <button mat-flat-button *ngIf="!process.processState.appraisal.complete" (click)="enableSelection()">
+    <button
+      mat-flat-button
+      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete"
+      (click)="enableSelection()"
+    >
       <mat-icon> check_box </mat-icon>
       Mehrfachauswahl
     </button>
@@ -142,7 +146,7 @@
     <button
       mat-flat-button
       class="tertiary-button"
-      *ngIf="!process.processState.appraisal.complete"
+      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete"
       (click)="sendAppraisalMessage()"
     >
       <mat-icon>forward_to_inbox</mat-icon>
