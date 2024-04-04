@@ -12,7 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, Subject, concat, filter, first, switchMap } from 'rxjs';
+import { ReplaySubject, Subject, concat, filter, firstValueFrom, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import {
   DisplayText,
@@ -94,7 +94,7 @@ export class MessageTreeComponent implements AfterViewInit {
     (node) => node.children,
   );
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-  viewInitialized = new BehaviorSubject(false);
+  viewInitialized = new ReplaySubject<void>(1);
   appraisals: { [xdomeaId: string]: Appraisal } = {};
 
   constructor(
@@ -116,23 +116,20 @@ export class MessageTreeComponent implements AfterViewInit {
     });
     concat(processReady, this.messagePage.observeMessage())
       .pipe(filter(notNull))
-      .subscribe((message) => {
+      .subscribe(async (message) => {
         this.message = message;
         this.initTree();
-        this.viewInitialized
-          .pipe(first((done) => done))
-          .pipe(switchMap(() => this.route.firstChild!.params))
-          .subscribe((params) => {
-            if (params['id']) {
-              this.expandNode(params['id']);
-              this.document.getElementById(params['id'])?.scrollIntoView({ block: 'center' });
-            }
-          });
+        await firstValueFrom(this.viewInitialized);
+        const params = await firstValueFrom(this.route.firstChild!.params);
+        if (params['id']) {
+          this.expandNode(params['id']);
+          this.document.getElementById(params['id'])?.scrollIntoView({ block: 'center' });
+        }
       });
   }
 
   ngAfterViewInit() {
-    this.viewInitialized.next(true);
+    this.viewInitialized.next(void 0);
   }
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
