@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, first, map } from 'rxjs/operators';
+import { filter, first, map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Agency } from '../../../services/agencies.service';
 import { notNull } from '../../../utils/predicates';
@@ -17,6 +17,7 @@ export interface Collection {
 })
 export class CollectionsService {
   private readonly collections = new BehaviorSubject<Collection[] | null>(null);
+  private dimagIds?: Observable<string[]>;
 
   constructor(private httpClient: HttpClient) {
     httpClient
@@ -61,5 +62,12 @@ export class CollectionsService {
   deleteCollection(collection: Collection) {
     this.collections.next(this.collections.value!.filter((c) => c !== collection));
     this.httpClient.delete(environment.endpoint + '/collection/' + collection.id).subscribe();
+  }
+
+  getDimagIds(): Observable<string[]> {
+    if (!this.dimagIds) {
+      this.dimagIds = this.httpClient.get<string[]>(environment.endpoint + '/collectionDimagIds').pipe(shareReplay(1));
+    }
+    return this.dimagIds;
   }
 }

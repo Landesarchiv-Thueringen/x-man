@@ -7,6 +7,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
 import { Observable } from 'rxjs';
 import { Agency } from '../../../services/agencies.service';
 import { Collection, CollectionsService } from './collections.service';
@@ -27,6 +28,7 @@ import { Collection, CollectionsService } from './collections.service';
     MatFormFieldModule,
     MatInputModule,
     MatListModule,
+    MatSelectModule,
     ReactiveFormsModule,
   ],
   templateUrl: './collection-details.component.html',
@@ -36,7 +38,7 @@ export class CollectionDetailsComponent {
   @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
 
   readonly isNew = this.collection == null;
-  form = new FormGroup({
+  readonly form = new FormGroup({
     name: new FormControl(this.collection?.name ?? 'Neuer Bestand', {
       nonNullable: true,
       validators: Validators.required,
@@ -46,7 +48,8 @@ export class CollectionDetailsComponent {
       validators: Validators.required,
     }),
   });
-  institutions?: Observable<Agency[]>;
+  readonly dimagIds = this.collectionsService.getDimagIds();
+  readonly institutions?: Observable<Agency[]>;
 
   constructor(
     private dialogRef: MatDialogRef<CollectionDetailsComponent>,

@@ -13,7 +13,11 @@
     </mat-form-field>
     <mat-form-field>
       <mat-label>Dimag-ID</mat-label>
-      <input matInput formControlName="dimagId" />
+      <mat-select formControlName="dimagId">
+        @for (dimagId of dimagIds | async; track dimagId) {
+          <mat-option [value]="dimagId">{{ dimagId }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
   </form>
 

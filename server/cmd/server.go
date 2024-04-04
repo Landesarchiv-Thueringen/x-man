@@ -87,6 +87,7 @@ func main() {
 	admin.DELETE("api/collection/:id", deleteCollection)
 	admin.POST("api/test-transfer-dir", testTransferDir)
 	admin.GET("api/tasks", getTasks)
+	admin.GET("api/collectionDimagIds", getCollectionDimagIDs)
 	addr := "0.0.0.0:80"
 	router.Run(addr)
 }
@@ -733,4 +734,9 @@ func testTransferDir(context *gin.Context) {
 func getTasks(context *gin.Context) {
 	tasks := db.GetTasks()
 	context.JSON(http.StatusOK, tasks)
+}
+
+func getCollectionDimagIDs(context *gin.Context) {
+	ids := dimag.GetCollectionIDs()
+	context.JSON(http.StatusOK, ids)
 }

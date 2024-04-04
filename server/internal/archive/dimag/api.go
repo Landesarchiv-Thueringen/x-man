@@ -2,7 +2,7 @@ package dimag
 
 import (
 	"encoding/xml"
-	"errors"
+	"fmt"
 	"io"
 	"lath/xman/internal/db"
 	"log"
@@ -120,22 +120,73 @@ func importArchivePackage(message db.Message, archivePackageData ArchivePackageD
 }
 
 func processImportResponse(response *http.Response) error {
-	if response.StatusCode == http.StatusOK {
-		body, err := io.ReadAll(response.Body)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		var parsedResponse EnvelopeImportDocResponse
-		err = xml.Unmarshal(body, &parsedResponse)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		if parsedResponse.Body.ImportDocResponse.Status != 200 {
-			log.Println(parsedResponse.Body.ImportDocResponse.Message)
-			return errors.New("DIMAG ingest error")
-		}
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("DIMAG ingest error: status code %d", response.StatusCode)
+	}
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	var parsedResponse EnvelopeImportDocResponse
+	err = xml.Unmarshal(body, &parsedResponse)
+	if err != nil {
+		return err
+	}
+	if parsedResponse.Body.ImportDocResponse.Status != 200 {
+		log.Println(parsedResponse.Body.ImportDocResponse.Message)
+		return fmt.Errorf("DIMAG ingest error: %s", parsedResponse.Body.ImportDocResponse.Message)
 	}
 	return nil
+}
+
+// getCollectionIDs gets a list of all collection IDs via a SOAP request from DIMAG.
+func GetCollectionIDs() []string {
+	requestMetadata := GetAIDforKeyValue{
+		Username: DimagApiUser,
+		Password: DimagApiPassword,
+		Key:      "merkmal",
+		Value:    "Bestand",
+		Typ:      "Struct",
+	}
+	soapRequest := EnvelopeGetAIDforKeyValue{
+		SoapNs:  SoapNs,
+		DimagNs: DimagNs,
+		Header:  EnvelopeHeader{},
+		Body: EnvelopeBodyGetAIDforKeyValue{
+			GetAIDforKeyValue: requestMetadata,
+		},
+	}
+	xmlBytes, err := xml.Marshal(soapRequest)
+	if err != nil {
+		panic(err)
+	}
+	requestString := string(xmlBytes)
+	req, err := http.NewRequest("POST", DimagApiEndpoint, strings.NewReader(requestString))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "text/xml;charset=UTF-8")
+	req.Header.Set("SOAPAction", "getAIDforKeyValue")
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		panic(fmt.Sprintf("status code: %d", response.StatusCode))
+	}
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	var parsedResponse EnvelopeGetAIDforKeyValueResponse
+	err = xml.Unmarshal(body, &parsedResponse)
+	if err != nil {
+		panic(err)
+	}
+	if parsedResponse.Body.GetAIDforKeyValueResponse.Status != 200 {
+		panic(parsedResponse.Body.GetAIDforKeyValueResponse.Message)
+	}
+	return strings.Split(parsedResponse.Body.GetAIDforKeyValueResponse.AIDList, ";")
 }
