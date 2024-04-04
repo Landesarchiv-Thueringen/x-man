@@ -51,11 +51,9 @@ func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorRe
 	}
 	processingError, found := db.GetProcessingError(processingError.ID)
 	if found {
-		db.UpdateProcessingError(db.ProcessingError{
-			ID:         processingError.ID,
-			Resolved:   true,
-			Resolution: resolution,
-		})
+		processingError.Resolved = true
+		processingError.Resolution = resolution
+		db.UpdateProcessingError(processingError)
 	} else {
 		// The processing error has already been deleted.
 	}
