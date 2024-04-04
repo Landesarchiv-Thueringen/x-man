@@ -7,7 +7,7 @@ import { Message } from '../services/message.service';
 import { Process } from '../services/process.service';
 
 type ProcessingErrorType = 'agency-mismatch';
-type ProcessingErrorResolution = 'reimport-message' | 'delete-message';
+type ProcessingErrorResolution = 'mark-solved' | 'reimport-message' | 'delete-message';
 
 export interface ProcessingError {
   id: number;

@@ -42,6 +42,8 @@ func HandleError(err error) {
 // returns an error.
 func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorResolution) {
 	switch resolution {
+	case db.ErrorResolutionMarkSolved:
+		// Do nothing
 	case db.ErrorResolutionReimportMessage:
 		DeleteMessage(*processingError.MessageID, true)
 	case db.ErrorResolutionDeleteMessage:

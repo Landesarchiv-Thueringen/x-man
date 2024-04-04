@@ -11,6 +11,9 @@
         <div role="cell">Lösung</div>
         <div role="cell">
           @switch (data.resolution) {
+            @case ("mark-solved") {
+              Als gelöst markiert
+            }
             @case ("reimport-message") {
               Nachricht neu eingelesen
             }
@@ -102,6 +105,10 @@
       <span>E-Mail an Abgebende Stelle</span>
     </button>
   }
+  <button mat-menu-item (click)="markSolved()">
+    <mat-icon>done</mat-icon>
+    <span>Als gelöst markieren</span>
+  </button>
   <button mat-menu-item (click)="reimportMessage()">
     <mat-icon>replay</mat-icon>
     <span>Nachricht erneut einlesen</span>
