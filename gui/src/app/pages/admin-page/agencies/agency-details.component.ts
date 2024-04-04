@@ -260,6 +260,7 @@ export class AgencyDetailsComponent {
         switch (value) {
           case 'file':
             path?.enable();
+            path?.setValidators(Validators.required);
             host?.disable();
             host?.clearValidators();
             host?.setValue(null);
@@ -271,6 +272,7 @@ export class AgencyDetailsComponent {
           case 'dav':
           case 'davs':
             path?.enable();
+            path?.clearValidators();
             host?.enable();
             host?.setValidators(Validators.required);
             username?.enable();

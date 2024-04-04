@@ -24,8 +24,30 @@ const (
 var ticker time.Ticker
 var stop chan bool
 
-func TestTransferDir(dir string) bool {
-	_, err := os.ReadDir(dir)
+func TestTransferDir(testURL string) bool {
+	transferDirURL, err := url.Parse(testURL)
+	if err != nil {
+		return false
+	}
+	switch transferDirURL.Scheme {
+	case string(Local):
+		return TestLocalFilesystem(transferDirURL)
+	case string(WebDAV):
+		return TestWebDAV(transferDirURL)
+	case string(WebDAVSec):
+		return TestWebDAV(transferDirURL)
+	default:
+		panic("unknown transfer directory scheme")
+	}
+}
+
+func TestLocalFilesystem(transferDirURL *url.URL) bool {
+	_, err := os.ReadDir(transferDirURL.Path)
+	return err == nil
+}
+
+func TestWebDAV(transferDirURL *url.URL) bool {
+	_, err := getWebDAVClient(transferDirURL)
 	return err == nil
 }
 
