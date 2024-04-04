@@ -26,6 +26,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	messageType, err := GetMessageTypeImpliedByPath(transferDirMessagePath)
 	// copy message from transfer directory to a local temporary directory
 	localMessagePath := CopyMessageFromTransferDirectory(agency, transferDirMessagePath)
+	defer os.Remove(localMessagePath)
 	// extract message to message storage
 	processStoreDir, messageStoreDir, err := extractMessageToMessageStore(
 		agency,
