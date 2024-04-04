@@ -10,11 +10,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { ClearingService, ProcessingError } from '../../services/clearing.service';
 import { NotificationService } from '../../services/notification.service';
+import { BreakOpportunitiesPipe } from '../../shared/break-opportunities.pipe';
 
 @Component({
   selector: 'app-clearing-details',
   standalone: true,
   imports: [
+    BreakOpportunitiesPipe,
     CommonModule,
     MatButtonModule,
     MatDialogModule,

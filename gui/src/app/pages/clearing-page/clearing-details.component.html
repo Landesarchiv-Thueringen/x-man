@@ -37,7 +37,7 @@
     @if (data.transferPath) {
       <div role="row">
         <div role="cell">Transfer-Datei</div>
-        <div role="cell">{{ data.transferPath }}</div>
+        <div role="cell" [innerHtml]="data.transferPath | breakOpportunities"></div>
       </div>
     }
     @if (data.process) {

@@ -11,10 +11,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { switchMap } from 'rxjs';
 import { Feature, MessageService, PrimaryDocument } from '../../../../services/message.service';
+import { BreakOpportunitiesPipe } from '../../../../shared/break-opportunities.pipe';
 import { MessagePageService } from '../../message-page.service';
 import { FileOverviewComponent } from '../primary-document/primary-document-metadata.component';
 import { FileFeaturePipe } from '../tool-output/file-attribut-de.pipe';
-import { BreakOpportunitiesPipe } from './break-opportunities.pipe';
 import { StatusIcons, StatusIconsService } from './status-icons.service';
 
 const OVERVIEW_FEATURES = [
