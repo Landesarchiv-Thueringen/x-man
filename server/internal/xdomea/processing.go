@@ -18,6 +18,7 @@ import (
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
+// ProcessNewMessage
 func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	// extract process ID from message filename
 	processID := GetMessageID(transferDirMessagePath)
@@ -42,6 +43,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 			AdditionalInfo: err.Error(),
 		})
 	}
+	// save message
 	process, message, err := AddMessage(
 		agency,
 		processID,
@@ -50,6 +52,26 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		messageStoreDir,
 		transferDirMessagePath,
 	)
+	if err != nil {
+		HandleError(err)
+	}
+	err = compareAgencyFields(agency, message, process)
+	if err != nil {
+		HandleError(err)
+	}
+	if messageType.Code == "0503" {
+		// get primary documents
+		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
+		err = checkMessage0503Integrity(process, message, primaryDocuments)
+		if err != nil {
+			HandleError(err)
+		}
+		// start format verification
+		err = format.VerifyFileFormats(process, message)
+		if err != nil {
+			HandleError(err)
+		}
+	}
 	// if no error occurred while processing the message
 	if err == nil {
 		// send the confirmation message that the 0501 message was received
@@ -69,10 +91,9 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	}
 }
 
-// TODO: description
+// AddMessage parses the message and saves it in the database.
 //
-// It returns an error when a reading the message resulted in any processing
-// error.
+// It returns an error when a reading the message resulted in any processing error.
 func AddMessage(
 	agency db.Agency,
 	processID string,
@@ -105,27 +126,7 @@ func AddMessage(
 		return process, message, err
 	}
 	// Store message in database with parsed message metadata.
-	process, message, err = db.AddMessage(agency, processID, processStoreDir, message)
-	if err != nil {
-		return process, message, err
-	}
-	if err := compareAgencyFields(agency, message, process); err != nil {
-		return process, message, err
-	}
-	if messageType.Code == "0503" {
-		// get primary documents
-		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
-		err = checkMessage0503Integrity(process, message, primaryDocuments)
-		if err != nil {
-			return process, message, err
-		}
-		// start format verification
-		err = format.VerifyFileFormats(process, message)
-		if err != nil {
-			return process, message, err
-		}
-	}
-	return process, message, nil
+	return db.AddMessage(agency, processID, processStoreDir, message)
 }
 
 // checkMessageValidity performs a xsd schema validation against the message XML file.

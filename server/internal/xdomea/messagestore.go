@@ -16,6 +16,8 @@ const storeDir = "message_store"
 
 // extractMessage parses the given message file into a database entry and saves
 // it to the database. It returns the saved entry.
+//
+// Returns the directories in message store for the process and the message or an error.
 func extractMessageToMessageStore(
 	agency db.Agency,
 	transferDirMessagePath string,
