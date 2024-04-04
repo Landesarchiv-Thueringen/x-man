@@ -29,7 +29,6 @@
         </mat-expansion-panel-header>
         @if (institutions | async; as institutions) {
           @if (institutions.length > 0) {
-            <h3>Zugeordnete abgebende Stellen</h3>
             <mat-list role="list">
               @for (institution of institutions; track institution) {
                 <mat-list-item>
