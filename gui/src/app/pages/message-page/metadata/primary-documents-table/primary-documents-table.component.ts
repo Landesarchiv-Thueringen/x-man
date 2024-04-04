@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -87,6 +87,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
+    this.paginator.pageSize = this.getPageSize();
   }
 
   processFileInformation(primaryDocuments: PrimaryDocument[]): void {
@@ -133,6 +134,19 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
           primaryDocument: primaryDocument,
         },
       });
+    }
+  }
+
+  onPaginate(event: PageEvent): void {
+    window.localStorage.setItem('format-verification-table-page-size', event.pageSize.toString());
+  }
+
+  private getPageSize(): number {
+    const savedPageSize = window.localStorage.getItem('format-verification-table-page-size');
+    if (savedPageSize) {
+      return parseInt(savedPageSize);
+    } else {
+      return 10;
     }
   }
 }

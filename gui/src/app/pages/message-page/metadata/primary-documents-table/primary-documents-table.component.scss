@@ -1,24 +1,28 @@
 @import "../../../../../styles/mixins.scss";
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
   padding-top: 3em;
   padding-bottom: 3em;
   padding-left: 5em;
   padding-right: 5em;
 }
 
-.file-analysis-section {
+.file-analysis-table {
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  margin-top: 2em;
-}
-
-.file-analysis-table {
   @include tableBorder;
 }
 
 .table-content {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   .mat-mdc-row {
     position: relative;
   }
