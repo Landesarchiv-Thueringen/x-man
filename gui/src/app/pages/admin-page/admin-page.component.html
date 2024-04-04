@@ -7,12 +7,14 @@
           Abgebende Stellen
         </a>
       </mat-list-item>
-      <mat-list-item>
-        <a mat-button routerLink="bestände" [routerLinkActive]="['active']">
-          <mat-icon class="material-symbols-rounded">shelves</mat-icon>
-          Bestände
-        </a>
-      </mat-list-item>
+      @if (config()?.archiveTarget === "dimag") {
+        <mat-list-item>
+          <a mat-button routerLink="bestände" [routerLinkActive]="['active']">
+            <mat-icon class="material-symbols-rounded">shelves</mat-icon>
+            Bestände
+          </a>
+        </mat-list-item>
+      }
       <mat-list-item>
         <a mat-button routerLink="mitarbeiter" [routerLinkActive]="['active']">
           <mat-icon class="material-symbols-rounded">person</mat-icon>

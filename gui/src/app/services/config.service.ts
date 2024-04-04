@@ -2,11 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, first, shareReplay, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { notNull } from '../utils/predicates';
 import { AuthService } from './auth.service';
 
 export interface Config {
   deleteArchivedProcessesAfterDays: number;
   supportsEmailNotifications: boolean;
+  archiveTarget: 'dimag' | 'filesystem';
 }
 
 /**
@@ -23,7 +25,7 @@ export class ConfigService {
     private httpClient: HttpClient,
   ) {
     this.config = this.auth.observeLoginInformation().pipe(
-      first((i) => i != null),
+      first(notNull),
       switchMap(() => this.httpClient.get<Config>(environment.endpoint + '/config')),
       shareReplay(1),
     );

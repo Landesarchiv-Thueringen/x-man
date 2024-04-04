@@ -131,9 +131,11 @@ func getAbout(context *gin.Context) {
 func getConfig(context *gin.Context) {
 	deleteArchivedProcessesAfterDays, _ := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
 	supportsEmailNotifications := os.Getenv("SMTP_SERVER") != ""
+	archiveTarget := os.Getenv("ARCHIVE_TARGET")
 	context.JSON(http.StatusOK, gin.H{
 		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
 		"supportsEmailNotifications":       supportsEmailNotifications,
+		"archiveTarget":                    archiveTarget,
 	})
 }
 
@@ -490,16 +492,7 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	collectionIDString, hasCollectionID := context.GetQuery("collectionId")
-	if !hasCollectionID || collectionIDString == "0" {
-		context.String(http.StatusBadRequest, "missing query parameter \"collectionId\"")
-		return
-	}
-	collectionID, err := strconv.ParseUint(collectionIDString, 10, 0)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+
 	message, found := db.GetCompleteMessageByID(messageID)
 	if !found {
 		context.AbortWithError(http.StatusNotFound, err)
@@ -514,16 +507,30 @@ func archive0503Message(context *gin.Context) {
 		context.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
 		return
 	}
-	collection, found := db.GetCollection(uint(collectionID))
-	if !found {
-		context.String(http.StatusNotFound, fmt.Sprintf("collection not found: %d", collectionID))
-		return
+	archiveTarget := os.Getenv("ARCHIVE_TARGET")
+	var collection db.Collection
+	if archiveTarget == "dimag" {
+		collectionIDString, hasCollectionID := context.GetQuery("collectionId")
+		if !hasCollectionID || collectionIDString == "0" {
+			context.String(http.StatusBadRequest, "missing query parameter \"collectionId\"")
+			return
+		}
+		collectionID, err := strconv.ParseUint(collectionIDString, 10, 0)
+		if err != nil {
+			context.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		collection, found = db.GetCollection(uint(collectionID))
+		if !found {
+			context.String(http.StatusNotFound, fmt.Sprintf("collection not found: %d", collectionID))
+			return
+		}
 	}
 	userID := context.MustGet("userId").([]byte)
 	userName := auth.GetDisplayName(userID)
 	task := tasks.Start(db.TaskTypeArchiving, process, 0)
 	go func() {
-		switch archiveTarget := os.Getenv("ARCHIVE_TARGET"); archiveTarget {
+		switch archiveTarget {
 		case "filesystem":
 			err = filesystem.ArchiveMessage(process, message)
 		case "dimag":

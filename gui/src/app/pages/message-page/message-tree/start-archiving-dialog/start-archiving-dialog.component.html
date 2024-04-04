@@ -9,7 +9,7 @@
     Der Archivierungsprozess kann mehrere Minuten dauern. Sie können diesen Dialog schließen. Der Prozess wird weiter
     durchgeführt. Sie können den aktuellen Stand weiter in der Gesamtübersicht der Aussonderungen sehen.
   </p>
-  @if (collections | async; as collections) {
+  @if (config()?.archiveTarget === "dimag" && collections(); as collections) {
     <mat-form-field>
       <mat-label>Bestand</mat-label>
       <mat-select [formControl]="collectionControl">
@@ -27,7 +27,7 @@
     mat-flat-button
     class="tertiary-button"
     (click)="startArchivingProcess()"
-    [disabled]="!collectionControl.valid"
+    [disabled]="config()?.archiveTarget === 'dimag' && !collectionControl.valid"
   >
     Archivierungsprozess starten
   </button>
