@@ -1,10 +1,13 @@
 package report
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"lath/xman/internal/db"
+	"net/http"
 	"os"
 )
 
@@ -19,7 +22,27 @@ type ReportData struct {
 	Message0503      db.Message
 }
 
-func GetReportData(process db.Process) (reportData ReportData, err error) {
+func GetReport(process db.Process) (contentLength int64, contentType string, body io.Reader) {
+	values, err := getReportData(process)
+	if err != nil {
+		panic(err)
+	}
+	jsonValue, _ := json.Marshal(values)
+	resp, err := http.Post("http://report/render", "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		panic(err)
+	} else if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		println(string(body))
+		panic(fmt.Sprintf("status code: %d", resp.StatusCode))
+	}
+	contentLength = resp.ContentLength
+	contentType = resp.Header.Get("Content-Type")
+	body = resp.Body
+	return
+}
+
+func getReportData(process db.Process) (reportData ReportData, err error) {
 	if process.Message0503ID == nil {
 		return reportData, errors.New("tried to get report of process with Message0503ID == nil")
 	}

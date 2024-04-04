@@ -18,6 +18,7 @@ export interface UserInformation {
 
 export interface UserPreferences {
   messageEmailNotifications: boolean;
+  reportByEmail: boolean;
   errorEmailNotifications: boolean;
 }
 

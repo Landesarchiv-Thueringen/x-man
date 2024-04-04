@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,6 +10,7 @@ import (
 	"lath/xman/internal/archive/filesystem"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
+	"lath/xman/internal/mail"
 	"lath/xman/internal/report"
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
@@ -467,22 +467,8 @@ func getReport(context *gin.Context) {
 		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	values, err := report.GetReportData(process)
-	if err != nil {
-		context.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	jsonValue, _ := json.Marshal(values)
-	resp, err := http.Post("http://report/render", "application/json", bytes.NewBuffer(jsonValue))
-	if err != nil {
-		panic(err)
-	} else if resp.StatusCode != http.StatusOK {
-		context.String(http.StatusInternalServerError, "Internal server error")
-		body, _ := io.ReadAll(resp.Body)
-		println(string(body))
-		return
-	}
-	context.DataFromReader(http.StatusOK, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
+	contentLength, contentType, body := report.GetReport(process)
+	context.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
 }
 
 // archive0503Message archives all metadata and primary files in the digital archive.
@@ -543,6 +529,21 @@ func archive0503Message(context *gin.Context) {
 			xdomea.HandleError(processingError)
 		} else {
 			tasks.MarkDone(&task, &userName)
+			preferences := db.GetUserInformation(userID).Preferences
+			if preferences.ReportByEmail {
+				process, _ = db.GetProcess(message.MessageHead.ProcessID)
+				_, contentType, reader := report.GetReport(process)
+				body, err := io.ReadAll(reader)
+				if err != nil {
+					panic(err)
+				}
+				address := auth.GetMailAddress(userID)
+				filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
+				mail.SendMailReport(
+					address, process,
+					mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
+				)
+			}
 		}
 	}()
 }

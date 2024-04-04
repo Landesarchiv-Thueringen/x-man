@@ -18,12 +18,6 @@ export interface Agency {
   users: User[];
 }
 
-export interface CompleteUser extends User {
-  agencies: Agency[];
-  messageEmailNotifications: boolean;
-  errorEmailNotifications: boolean;
-}
-
 @Injectable({
   providedIn: 'root',
 })

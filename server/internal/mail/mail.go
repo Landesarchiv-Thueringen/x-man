@@ -1,18 +1,27 @@
 package mail
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"lath/xman/internal/db"
 	"log"
 	"mime"
+	"mime/multipart"
 	"net"
 	"net/smtp"
 	"os"
 	"regexp"
 	"strings"
 )
+
+type Attachment struct {
+	Filename    string
+	ContentType string
+	Body        []byte
+}
 
 func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	var messageType string
@@ -34,7 +43,16 @@ func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	}
 	body += "<p>Sie bekommen diese E-Mail, weil Sie der abgebenden Stelle als zuständige(r) Archivar(in) zugeordnet sind.<br>\n" +
 		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
-	sendMail(to, "Neue "+messageType+" von "+agencyName, body)
+	sendMail(to, "Neue "+messageType+" von "+agencyName, body, []Attachment{})
+}
+
+func SendMailReport(to string, process db.Process, report Attachment) {
+	agencyName := process.Agency.Name
+	body := "<p>Die Abgabe von " + agencyName + " wurde erfolgreich archiviert.</p>"
+	origin := os.Getenv("ORIGIN")
+	body += "<p>Sie bekommen diese E-Mail, weil Sie die Archivierung der Aussonderung abgeschlossen haben.<br>\n" +
+		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
+	sendMail(to, "Übernahmebericht für Abgabe von "+agencyName, body, []Attachment{report})
 }
 
 func SendMailProcessingError(to string, e db.ProcessingError) {
@@ -52,10 +70,10 @@ func SendMailProcessingError(to string, e db.ProcessingError) {
 		"Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>",
 		origin, origin,
 	)
-	sendMail(to, "Fehler in Steuerungsstelle: "+e.Description, message)
+	sendMail(to, "Fehler in Steuerungsstelle: "+e.Description, message, []Attachment{})
 }
 
-func sendMail(to, subject, body string) {
+func sendMail(to, subject, body string, attachments []Attachment) {
 	addr := os.Getenv("SMTP_SERVER")
 	if addr == "" {
 		log.Println("Not sending e-mail since SMTP_SERVER is not configured")
@@ -64,16 +82,7 @@ func sendMail(to, subject, body string) {
 		log.Println("Sending e-mail to " + to)
 	}
 	from := os.Getenv("SMTP_FROM_EMAIL")
-	content := fmt.Sprintf(
-		"From: X-MAN <%s>\r\n"+
-			"To: %s\r\n"+
-			"Subject: %s\r\n"+
-			"Content-Type: text/html; charset=utf-8\r\n"+
-			"\r\n%s",
-		from, to,
-		mime.QEncoding.Encode("utf-8", subject),
-		encodeCRLF(body),
-	)
+	content := getContent(to, from, subject, body, attachments)
 	useStartTLS := os.Getenv("SMTP_STARTTLS") != "false"
 	username := os.Getenv("SMTP_USER")
 	password := os.Getenv("SMTP_PASSWORD")
@@ -81,6 +90,41 @@ func sendMail(to, subject, body string) {
 	if err != nil {
 		log.Printf("Error sending e-mail: %v\n", err)
 	}
+}
+
+func getContent(to, from, subject, body string, attachments []Attachment) []byte {
+	buf := bytes.NewBuffer(nil)
+	buf.WriteString(fmt.Sprintf(
+		"From: X-MAN <%s>\r\n"+
+			"To: %s\r\n"+
+			"Subject: %s\r\n",
+		from, to, mime.QEncoding.Encode("utf-8", subject)))
+	buf.WriteString("MIME-Version: 1.0\r\n")
+	writer := multipart.NewWriter(buf)
+	boundary := writer.Boundary()
+	if len(attachments) > 0 {
+		buf.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\r\n\r\n", boundary))
+		buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+	}
+	buf.WriteString("Content-Type: text/html; charset=utf-8\r\n")
+	if len(attachments) > 0 {
+		buf.WriteString("Content-Disposition: inline\r\n")
+	}
+	buf.WriteString("\r\n")
+	buf.WriteString(encodeCRLF(body))
+	for _, a := range attachments {
+		buf.WriteString(fmt.Sprintf("\r\n\r\n--%s\r\n", boundary))
+		buf.WriteString(fmt.Sprintf("Content-Type: %s\r\n", a.ContentType))
+		buf.WriteString("Content-Transfer-Encoding: base64\r\n")
+		buf.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=%s\r\n\r\n", mime.QEncoding.Encode("utf-8", a.Filename)))
+		b := make([]byte, base64.StdEncoding.EncodedLen(len(a.Body)))
+		base64.StdEncoding.Encode(b, a.Body)
+		buf.Write(b)
+	}
+	if len(attachments) > 0 {
+		buf.WriteString(fmt.Sprintf("\r\n\r\n--%s--", boundary))
+	}
+	return buf.Bytes()
 }
 
 func encodeCRLF(input string) string {
@@ -94,7 +138,8 @@ func encodeCRLF(input string) string {
 // to force or disable StartTLS independently of the extensions announced by the
 // server.
 func sendMailInner(
-	addr, from, to, content string,
+	addr, from, to string,
+	content []byte,
 	useStartTLS bool,
 	username, password string,
 ) error {
@@ -135,15 +180,15 @@ func sendMailInner(
 	}
 
 	// Send the email body.
-	wc, err := c.Data()
+	w, err := c.Data()
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprint(wc, content)
+	_, err = w.Write(content)
 	if err != nil {
 		return err
 	}
-	err = wc.Close()
+	err = w.Close()
 	if err != nil {
 		return err
 	}

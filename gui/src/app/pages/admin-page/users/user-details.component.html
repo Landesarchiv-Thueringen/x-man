@@ -27,12 +27,13 @@
     @if (preferences && supportsEmailNotifications) {
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
-          <mat-panel-title>E-Mail-Benachrichtigungen</mat-panel-title>
+          <mat-panel-title>E-Mails</mat-panel-title>
         </mat-expansion-panel-header>
         <form class="toggles-container" [formGroup]="preferences">
           <mat-slide-toggle formControlName="messageEmailNotifications"
             >E-Mail Benachrichtigung bei neuer Nachricht</mat-slide-toggle
           >
+          <mat-slide-toggle formControlName="reportByEmail">Übernahmebericht per E-Mail</mat-slide-toggle>
           @if (isAdmin) {
             <mat-slide-toggle formControlName="errorEmailNotifications"
               >E-Mail Benachrichtigung bei neuem Fehler in der Steuerungsstellen</mat-slide-toggle

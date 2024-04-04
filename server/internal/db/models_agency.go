@@ -52,6 +52,9 @@ type UserPreferences struct {
 	// MessageEmailNotifications is the user's setting to receive e-mail notifications
 	// regarding new messages from x-man.
 	MessageEmailNotifications bool `json:"messageEmailNotifications"`
+	// ReportByEmail is the user's setting to receive the generated report after
+	// successfully archiving a message.
+	ReportByEmail bool `json:"reportByEmail"`
 	// ErrorEmailNotifications is a setting for users with administration
 	// privileges to receive e-mails for new processing errors.
 	ErrorEmailNotifications bool `json:"errorEmailNotifications"`
@@ -60,6 +63,7 @@ type UserPreferences struct {
 func GetDefaultPreferences() UserPreferences {
 	return UserPreferences{
 		MessageEmailNotifications: true,
+		ReportByEmail:             true,
 		ErrorEmailNotifications:   false,
 	}
 }
