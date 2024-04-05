@@ -101,7 +101,6 @@
 }
 
 #let topMatter(data) = [
-  // #v(2em)
   #block(spacing: 2em)[
     #set text(2em)
     *Übernahmebericht*
@@ -115,14 +114,27 @@
     [E-Akte],
     [Prozess-ID:],
     data.Process.id,
-    [Anbietung erhalten:],
-    if data.Process.processState.receive0501.complete {
-      formatDateTime(data.Process.processState.receive0501.completionTime)
-    } else [-],
-    [Bewertung versendet:],
-    formatDateTime(data.Process.processState.appraisal.completionTime),
-    [Bewertung durch:],
-    data.Process.processState.appraisal.completedBy,
+    [Aussonderungsverfahren:],
+    if data.Process.processState.receive0501.complete [
+      4-stufig
+    ] else [
+      2-stufig
+    ],
+    ..if data.Process.processState.appraisal.complete {
+      (
+        [Anbietung erhalten:],
+        formatDateTime(data.Process.processState.receive0501.completionTime),
+        [Bewertung versendet:],
+        formatDateTime(data.Process.processState.appraisal.completionTime),
+        [Bewertung durch:],
+        data.Process.processState.appraisal.completedBy,
+      )
+    } else {
+      (
+        [Abgabe erhalten:],
+        formatDateTime(data.Process.processState.receive0503.completionTime),
+      )
+    },
     [Abgabe archiviert:],
     formatDateTime(data.Process.processState.archiving.completionTime),
     [Archivierung durch:],
@@ -133,53 +145,63 @@
 #let overview(data) = [
   #v(1fr)
   = Übersicht
-  #table(
-    columns: (1fr, 1fr, 1fr),
-    stroke: none,
-    [*Angeboten*],
-    [*Übernommen*],
-    [*Kassiert*],
-    [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
-    [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
-    [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
-  )
-  #table(
-    columns: 2,
-    stroke: none,
-    [Gesamt-?speicher-?volumen übernommen:],
-    [#formatFilesize(data.FileStats.TotalBytes)],
-  )
-  #[
-    #v(1fr)
-    #set align(center)
-    #cetz.canvas(
-      {
-        let values = ()
-        if (data.AppraisalStats.Files.Archived > 0) {
-          values.push(([übernommen], data.AppraisalStats.Files.Archived, (fill: olive)))
-        }
-        if (data.AppraisalStats.Files.Discarded > 0) {
-          values.push((
-            [kassiert],
-            data.AppraisalStats.Files.Discarded,
-            (fill: rgb("#e53a31")),
-          ))
-        }
-        cetz.chart.piechart(
-          values,
-          label-key: 0,
-          value-key: 1,
-          radius: 4,
-          slice-style: (
-            // slice-style as a somewhat peculiar indexing strategy...
-            index => values.at(calc.rem-euclid(values.len() - index - 1, values.len())).at(2)
-          ),
-          inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
-          outer-label: (content: "%", radius: 120%),
-        )
-      },
+  #if data.AppraisalStats == none [
+    #table(
+      columns: (1fr),
+      stroke: none,
+      [*Übernommen*],
+      [#formatContentStatsElement("Files", data.Message0503Stats.Files)],
     )
-    #v(2fr)
+    #v(10fr)
+  ] else [
+    #table(
+      columns: (1fr, 1fr, 1fr),
+      stroke: none,
+      [*Angeboten*],
+      [*Übernommen*],
+      [*Kassiert*],
+      [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
+      [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
+      [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
+    )
+    #table(
+      columns: 2,
+      stroke: none,
+      [Gesamt-?speicher-?volumen übernommen:],
+      [#formatFilesize(data.FileStats.TotalBytes)],
+    )
+    #[
+      #v(1fr)
+      #set align(center)
+      #cetz.canvas(
+        {
+          let values = ()
+          if (data.AppraisalStats.Files.Archived > 0) {
+            values.push(([übernommen], data.AppraisalStats.Files.Archived, (fill: olive)))
+          }
+          if (data.AppraisalStats.Files.Discarded > 0) {
+            values.push((
+              [kassiert],
+              data.AppraisalStats.Files.Discarded,
+              (fill: rgb("#e53a31")),
+            ))
+          }
+          cetz.chart.piechart(
+            values,
+            label-key: 0,
+            value-key: 1,
+            radius: 4,
+            slice-style: (
+              // slice-style as a somewhat peculiar indexing strategy...
+              index => values.at(calc.rem-euclid(values.len() - index - 1, values.len())).at(2)
+            ),
+            inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
+            outer-label: (content: "%", radius: 120%),
+          )
+        },
+      )
+      #v(2fr)
+    ]
   ]
 ]
 
