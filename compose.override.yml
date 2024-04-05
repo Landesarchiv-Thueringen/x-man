@@ -36,3 +36,8 @@ services:
       PASSWORD: ${WEBDAV_PASSWORD}
     volumes:
       - webdav:/var/lib/dav
+
+  ldap:
+    image: ghcr.io/rroemhild/docker-test-openldap:master
+    ulimits:
+      nofile: 1024

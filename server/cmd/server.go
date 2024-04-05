@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -178,7 +177,7 @@ func getProcess(context *gin.Context) {
 }
 
 func getMyProcesses(context *gin.Context) {
-	userID := context.MustGet("userId").([]byte)
+	userID := context.MustGet("userId").(string)
 	processes := db.GetProcessesForUser(userID)
 	context.JSON(http.StatusOK, processes)
 }
@@ -374,7 +373,7 @@ func finalizeMessageAppraisal(context *gin.Context) {
 		context.AbortWithStatus(http.StatusConflict)
 		return
 	}
-	userID := context.MustGet("userId").([]byte)
+	userID := context.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
 	messagePath := xdomea.Send0502Message(process.Agency, message)
@@ -512,7 +511,7 @@ func archive0503Message(context *gin.Context) {
 			return
 		}
 	}
-	userID := context.MustGet("userId").([]byte)
+	userID := context.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
 	task := tasks.Start(db.TaskTypeArchiving, process, 0)
 	go func() {
@@ -558,23 +557,18 @@ func getUserInformation(context *gin.Context) {
 	if !hasUserID {
 		context.AbortWithStatus(http.StatusBadRequest)
 	}
-	userID, err := base64.StdEncoding.DecodeString(userIDString)
-	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	userInfo := db.GetUserInformation(userID)
+	userInfo := db.GetUserInformation(userIDString)
 	context.JSON(http.StatusOK, userInfo)
 }
 
 func getMyUserInformation(context *gin.Context) {
-	userID := context.MustGet("userId").([]byte)
+	userID := context.MustGet("userId").(string)
 	userInfo := db.GetUserInformation(userID)
 	context.JSON(http.StatusOK, userInfo)
 }
 
 func setUserPreferences(context *gin.Context) {
-	userID := context.MustGet("userId").([]byte)
+	userID := context.MustGet("userId").(string)
 	body, err := io.ReadAll(context.Request.Body)
 	if err != nil {
 		panic(err)

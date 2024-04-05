@@ -599,7 +599,7 @@ func DeleteTask(task Task) {
 //
 // Both the entry for the user and the entry for the user preferences are
 // created if they don't yet exist.
-func UpdateUserPreferences(userID []byte, userPreferences UserPreferences) {
+func UpdateUserPreferences(userID string, userPreferences UserPreferences) {
 	if len(userID) == 0 {
 		panic("called GetUserSettings with empty ID")
 	}

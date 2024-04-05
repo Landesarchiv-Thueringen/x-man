@@ -2,11 +2,20 @@ package auth
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"os"
 
 	"github.com/go-ldap/ldap/v3"
 )
+
+type ldapConfiguration struct {
+	IDAttribute          string
+	IDAttributeIsBinary  bool
+	UsernameAttribute    string
+	EmailAttribute       string
+	DisplayNameAttribute string
+}
 
 // authorizationPredicate represents the outcome of a user authorization
 type authorizationPredicate int
@@ -28,9 +37,9 @@ type permissions struct {
 // userEntry represents an LDAP user
 type userEntry struct {
 	// ID is a persistent, unique user ID to reliably identify the user by the system
-	ID []byte `ldap:"objectGUID" json:"id"`
+	ID string `json:"id"`
 	// DisplayName is a human-readable string to identify the user in a GUI
-	DisplayName string `ldap:"displayName" json:"displayName"`
+	DisplayName string `json:"displayName"`
 	// Permissions are the users extended permissions within x-man
 	Permissions *permissions `json:"permissions"`
 }
@@ -43,29 +52,20 @@ type authorizationResult struct {
 	UserEntry *userEntry
 }
 
-func GetDisplayName(userID []byte) string {
+func GetDisplayName(userID string) string {
 	if os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
 		return "Gast-Nutzer (kein LDAP)"
 	}
 	l := connectReadonly()
 	defer l.Close()
-
-	user := getLdapUserEntry(l, "objectGUID", string(userID))
-	if user == nil {
-		return ""
-	} else {
-		userEntry := userEntry{}
-		if err := user.Unmarshal(&userEntry); err != nil {
-			panic(err)
-		}
-		return userEntry.DisplayName
-	}
+	user := getLdapUserEntry(l, getIDFilter(userID))
+	return getDisplayName(user)
 }
 
-func GetMailAddress(userID []byte) string {
+func GetMailAddress(userID string) string {
 	l := connectReadonly()
 	defer l.Close()
-	user := getCompleteLdapUserEntry(l, userID)
+	user := getLdapUserEntryWithAttributes(l, getIDFilter(userID), []string{"dn", "mail"})
 	if user == nil {
 		panic("could not find user with ID " + string(userID))
 	}
@@ -89,7 +89,7 @@ func authorizeUser(username string, password string) authorizationResult {
 		return authorizationResult{
 			Predicate: GRANTED,
 			UserEntry: &userEntry{
-				ID:          []byte{},
+				ID:          username,
 				DisplayName: username + " (kein LDAP)",
 				Permissions: &permissions{
 					Admin: password == "admin",
@@ -102,7 +102,8 @@ func authorizeUser(username string, password string) authorizationResult {
 	defer l.Close()
 
 	// Search for the given username
-	user := getLdapUserEntry(l, "sAMAccountName", username)
+	filter := getUserNameFilter(username)
+	user := getLdapUserEntry(l, filter)
 	if user == nil {
 		return authorizationResult{Predicate: INVALID}
 	}
@@ -114,29 +115,28 @@ func authorizeUser(username string, password string) authorizationResult {
 	}
 
 	// Rebind as the read only user for any further queries
-	if err = l.Bind(os.Getenv("AD_USER"), os.Getenv("AD_PASS")); err != nil {
+	if err = l.Bind(os.Getenv("LDAP_USER"), os.Getenv("LDAP_PASSWORD")); err != nil {
 		panic(err)
 	}
 
 	// Check basic access rights
-	if hasAccess, err := isGroupMember(l, user.DN, os.Getenv("AD_ACCESS_GROUP")); err != nil {
-		panic(err)
-	} else if !hasAccess {
+	isAccessMember := isGroupMember(l, user.DN, os.Getenv("LDAP_ACCESS_GROUP"))
+	isAdminMember := isGroupMember(l, user.DN, os.Getenv("LDAP_ADMIN_GROUP"))
+	if !isAccessMember && !isAdminMember {
 		return authorizationResult{Predicate: DENIED}
 	}
+
 	// At this point, the user has proven basic access authorization (i.e.: Predicate: GRANTED)
-
-	userEntry := userEntry{}
-	if err := user.Unmarshal(&userEntry); err != nil {
-		panic(err)
-	}
-
+	//
 	// Check further permissions
-	permissions, err := getUserPermissions(l, user.DN)
-	if err != nil {
-		panic(err)
+	permissions := permissions{
+		Admin: isAdminMember,
 	}
-	userEntry.Permissions = &permissions
+	userEntry := userEntry{
+		ID:          getID(user),
+		DisplayName: getDisplayName(user),
+		Permissions: &permissions,
+	}
 
 	return authorizationResult{
 		Predicate: GRANTED,
@@ -146,17 +146,56 @@ func authorizeUser(username string, password string) authorizationResult {
 
 // ListUsers lists all users with basic access rights and their permissions
 func ListUsers() []userEntry {
-	if os.Getenv("AD_URL") == "" {
+	if os.Getenv("LDAP_URL") == "" {
 		return []userEntry{}
 	}
 	l := connectReadonly()
 	defer l.Close()
 
-	// Get all members of AD_ACCESS_GROUP
+	// Get relevant groups
+	accessGroupMembers := getGroupMembers(l, os.Getenv("LDAP_ACCESS_GROUP"))
+	adminGroupMembers := getGroupMembers(l, os.Getenv("LDAP_ADMIN_GROUP"))
+
+	// Get all users
+	users := getLdapUserEntries(l)
+
+	userEntries := make([]userEntry, 0)
+	for _, user := range users {
+		isAccessGroupMember := false
+		for _, userDn := range accessGroupMembers {
+			if user.DN == userDn {
+				isAccessGroupMember = true
+				break
+			}
+		}
+		isAdminGroupMember := false
+		for _, userDn := range adminGroupMembers {
+			if user.DN == userDn {
+				isAdminGroupMember = true
+				break
+			}
+		}
+		if !isAccessGroupMember && !isAdminGroupMember {
+			continue
+		}
+		permissions := permissions{
+			Admin: isAdminGroupMember,
+		}
+		userEntry := userEntry{
+			ID:          getID(user),
+			DisplayName: getDisplayName(user),
+			Permissions: &permissions,
+		}
+		userEntries = append(userEntries, userEntry)
+	}
+	return userEntries
+}
+
+func getGroupMembers(l *ldap.Conn, groupName string) []string {
 	searchRequest := ldap.NewSearchRequest(
-		os.Getenv("AD_BASE_DN"),
+		os.Getenv("LDAP_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(cn=%s)(objectClass=group))", ldap.EscapeFilter(os.Getenv("AD_ACCESS_GROUP"))),
+		fmt.Sprintf("(&(cn=%s)(objectClass=group))", ldap.EscapeFilter(groupName)),
 		[]string{"member"},
 		nil,
 	)
@@ -165,28 +204,9 @@ func ListUsers() []userEntry {
 		panic(err)
 	}
 	if len(sr.Entries) != 1 {
-		panic("ldap group not found: " + os.Getenv("AD_ACCESS_GROUP"))
+		panic("ldap group not found: " + groupName)
 	}
-	members := sr.Entries[0].GetAttributeValues("member")
-
-	userEntries := make([]userEntry, 0)
-	for _, userDn := range members {
-		user := getLdapUserEntry(l, "distinguishedName", userDn)
-		if user == nil {
-			continue
-		}
-		userEntry := userEntry{}
-		if err := user.Unmarshal(&userEntry); err != nil {
-			panic(err)
-		}
-		permissions, err := getUserPermissions(l, user.DN)
-		if err != nil {
-			panic(err)
-		}
-		userEntry.Permissions = &permissions
-		userEntries = append(userEntries, userEntry)
-	}
-	return userEntries
+	return sr.Entries[0].GetAttributeValues("member")
 }
 
 // connectReadonly connects to the LDAP server and binds with readonly
@@ -194,7 +214,7 @@ func ListUsers() []userEntry {
 //
 // Users are responsible to close the connection with `l.Close()` afterwards.
 func connectReadonly() *ldap.Conn {
-	l, err := ldap.DialURL(os.Getenv("AD_URL"))
+	l, err := ldap.DialURL(os.Getenv("LDAP_URL"))
 	if err != nil {
 		panic(err)
 	}
@@ -206,7 +226,7 @@ func connectReadonly() *ldap.Conn {
 	}
 
 	// First bind with a read only user
-	if err := l.Bind(os.Getenv("AD_USER"), os.Getenv("AD_PASS")); err != nil {
+	if err := l.Bind(os.Getenv("LDAP_USER"), os.Getenv("LDAP_PASSWORD")); err != nil {
 		l.Close()
 		panic(err)
 	}
@@ -216,9 +236,9 @@ func connectReadonly() *ldap.Conn {
 // isGroupMember returns `true` if the given user is member of the given group.
 //
 // `l` should be an open LDAP connection with readonly access.
-func isGroupMember(l *ldap.Conn, userDn string, groupCn string) (bool, error) {
+func isGroupMember(l *ldap.Conn, userDn string, groupCn string) bool {
 	searchRequest := ldap.NewSearchRequest(
-		os.Getenv("AD_BASE_DN"),
+		os.Getenv("LDAP_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
 		fmt.Sprintf("(&(member=%s)(objectClass=group)(cn=%s))", ldap.EscapeFilter(userDn), ldap.EscapeFilter(groupCn)),
 		[]string{},
@@ -226,22 +246,53 @@ func isGroupMember(l *ldap.Conn, userDn string, groupCn string) (bool, error) {
 	)
 	sr, err := l.Search(searchRequest)
 	if err != nil {
-		return false, err
+		panic(err)
 	}
-	return len(sr.Entries) == 1, nil
+	return len(sr.Entries) == 1
 }
 
-// getLdapUserEntry searches for a user with the given LDAP key and value.
+// getLdapUserEntry searches for a user with the given filter.
+//
+// It requests all attributes needed to create a userEntry object.
 //
 // `l` should be an open LDAP connection with readonly access.
 //
 // Returns nil when the user could not be found.
-func getLdapUserEntry(l *ldap.Conn, key string, value string) *ldap.Entry {
+func getLdapUserEntry(l *ldap.Conn, filter string) *ldap.Entry {
+	config := getConfiguration()
+	attributes := []string{"dn", config.IDAttribute, config.DisplayNameAttribute}
+	return getLdapUserEntryWithAttributes(l, filter, attributes)
+}
+
+func getLdapUserEntries(l *ldap.Conn) []*ldap.Entry {
+	config := getConfiguration()
+	attributes := []string{"dn", config.IDAttribute, config.DisplayNameAttribute}
 	searchRequest := ldap.NewSearchRequest(
-		os.Getenv("AD_BASE_DN"),
+		os.Getenv("LDAP_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=organizationalPerson)(%s=%s))", key, ldap.EscapeFilter(value)),
-		[]string{"dn", "displayName", "objectGUID", "mail"},
+		"(objectClass=organizationalPerson)",
+		attributes,
+		nil,
+	)
+	sr, err := l.Search(searchRequest)
+	if err != nil {
+		panic(err)
+	}
+	return sr.Entries
+}
+
+// getLdapUserEntryWithAttributes searches for a user with the given filter and
+// attributes.
+//
+// `l` should be an open LDAP connection with readonly access.
+//
+// Returns nil when the user could not be found.
+func getLdapUserEntryWithAttributes(l *ldap.Conn, filter string, attributes []string) *ldap.Entry {
+	searchRequest := ldap.NewSearchRequest(
+		os.Getenv("LDAP_BASE_DN"),
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 1, 0, false,
+		fmt.Sprintf("(&(objectClass=organizationalPerson)%s)", filter),
+		attributes,
 		nil,
 	)
 	sr, err := l.Search(searchRequest)
@@ -254,39 +305,71 @@ func getLdapUserEntry(l *ldap.Conn, key string, value string) *ldap.Entry {
 	return sr.Entries[0]
 }
 
-// getCompleteLdapUserEntry searches for a user with the given objectGUID and
-// returns their LDAP entry with all available fields.
-//
-// `l` should be an open LDAP connection with readonly access.
-//
-// Returns nil when the user could not be found.
-func getCompleteLdapUserEntry(l *ldap.Conn, objectGUID []byte) *ldap.Entry {
-	if len(objectGUID) == 0 {
-		panic("called getCompleteLdapUserEntry with empty ID")
+func getFilter(key string, value string) string {
+	if value == "" {
+		panic("called getFilter with empty value")
 	}
-	searchRequest := ldap.NewSearchRequest(
-		os.Getenv("AD_BASE_DN"),
-		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=organizationalPerson)(objectGUID=%s))", ldap.EscapeFilter(string(objectGUID))),
-		[]string{},
-		nil,
-	)
-	sr, err := l.Search(searchRequest)
-	if err != nil {
-		panic(err)
-	}
-	if len(sr.Entries) != 1 {
-		return nil
-	}
-	return sr.Entries[0]
+	return fmt.Sprintf("(%s=%s)", key, ldap.EscapeFilter(value))
 }
 
-func getUserPermissions(l *ldap.Conn, userDn string) (permissions, error) {
-	permissions := permissions{}
-	if isAdmin, err := isGroupMember(l, userDn, os.Getenv("AD_ADMIN_GROUP")); err != nil {
-		return permissions, err
-	} else if isAdmin {
-		permissions.Admin = true
+func getConfiguration() ldapConfiguration {
+	switch ldapType := os.Getenv("LDAP_CONFIG"); ldapType {
+	case "active-directory":
+		return ldapConfiguration{
+			IDAttribute:          "objectGUID",
+			IDAttributeIsBinary:  true,
+			UsernameAttribute:    "sAMAccountName",
+			EmailAttribute:       "mail",
+			DisplayNameAttribute: "displayName",
+		}
+	default:
+		return ldapConfiguration{
+			IDAttribute:          "uid",
+			IDAttributeIsBinary:  false,
+			UsernameAttribute:    "uid",
+			EmailAttribute:       "mail",
+			DisplayNameAttribute: "cn",
+		}
 	}
-	return permissions, nil
+}
+
+// getID returns a value to be used as unique ID.
+func getID(entry *ldap.Entry) string {
+	config := getConfiguration()
+	if config.IDAttributeIsBinary {
+		rawValue := entry.GetRawAttributeValue(config.IDAttribute)
+		return base64.StdEncoding.EncodeToString(rawValue)
+	} else {
+		return entry.GetAttributeValue(config.IDAttribute)
+	}
+}
+
+// getIDFilter returns a filter string to be used in an LDAP search for an
+// ID obtained with GetID.
+func getIDFilter(id string) string {
+	config := getConfiguration()
+	if config.IDAttributeIsBinary {
+		bytes, err := base64.StdEncoding.DecodeString(id)
+		if err != nil {
+			panic(err)
+		}
+		return getFilter(config.IDAttribute, string(bytes))
+	} else {
+		return getFilter(config.IDAttribute, id)
+	}
+}
+
+// getUserNameFilter returns a filter string to be used in an LDAP search
+// for a username used in a login form.
+func getUserNameFilter(username string) string {
+	config := getConfiguration()
+	return getFilter(config.UsernameAttribute, username)
+}
+
+func getDisplayName(user *ldap.Entry) string {
+	if user == nil {
+		return ""
+	}
+	config := getConfiguration()
+	return user.GetAttributeValue(config.DisplayNameAttribute)
 }

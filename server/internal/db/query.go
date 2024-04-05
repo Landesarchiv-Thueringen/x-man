@@ -29,7 +29,7 @@ func GetAgencies() []Agency {
 	return agencies
 }
 
-func GetUserInformation(userID []byte) (user User) {
+func GetUserInformation(userID string) (user User) {
 	if len(userID) == 0 {
 		panic("called GetUserInformation with empty user ID")
 	}
@@ -129,7 +129,7 @@ func GetProcesses() []Process {
 	return processes
 }
 
-func GetProcessesForUser(userID []byte) []Process {
+func GetProcessesForUser(userID string) []Process {
 	var processes []Process
 	userInfo := GetUserInformation(userID)
 	if len(userInfo.Agencies) == 0 {

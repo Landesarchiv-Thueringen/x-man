@@ -35,7 +35,7 @@ type Agency struct {
 
 type User struct {
 	// ID is the LDAP objectGUID
-	ID        []byte    `gorm:"primaryKey;type:bytea" json:"id"`
+	ID        string    `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 	// Agencies is the list of agencies that the user is responsible for.
@@ -48,7 +48,7 @@ type UserPreferences struct {
 	ID        uint      `gorm:"primaryKey" json:"-"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
-	UserID    []byte    `gorm:"type:bytea" json:"-"`
+	UserID    string    `json:"-"`
 	// MessageEmailNotifications is the user's setting to receive e-mail notifications
 	// regarding new messages from x-man.
 	MessageEmailNotifications bool `json:"messageEmailNotifications"`

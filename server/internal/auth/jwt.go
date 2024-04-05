@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +14,7 @@ import (
 var signingKey = []byte(os.Getenv("TOKEN_PRIVATE_KEY"))
 
 type validationResult struct {
-	UserID      []byte
+	UserID      string
 	Permissions *permissions
 }
 
@@ -52,13 +51,9 @@ func validateToken(tokenString string) (validationResult, error) {
 	if !ok {
 		return validationResult{}, errors.New("failed to cast token claims")
 	}
-	userIDString, ok := claims["userId"].(string)
+	userID, ok := claims["userId"].(string)
 	if !ok {
 		return validationResult{}, errors.New("failed to cast user id")
-	}
-	userID, err := base64.StdEncoding.DecodeString(userIDString)
-	if err != nil {
-		return validationResult{}, errors.New("failed to decode user id")
 	}
 	jsonString, _ := json.Marshal(claims["perms"])
 	perms := permissions{}

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, filter, map } from 'rxjs';
+import { Observable, filter, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Agency } from './agencies.service';
 import { Permissions } from './auth.service';
@@ -26,11 +26,9 @@ export interface UserPreferences {
   providedIn: 'root',
 })
 export class UsersService {
-  private readonly users = new BehaviorSubject<User[]>([]);
+  private readonly users = this.httpClient.get<User[]>(environment.endpoint + '/users').pipe(shareReplay(1));
 
-  constructor(private httpClient: HttpClient) {
-    httpClient.get<User[]>(environment.endpoint + '/users').subscribe((users) => this.users.next(users));
-  }
+  constructor(private httpClient: HttpClient) {}
 
   getUsers(): Observable<User[]> {
     return this.users.pipe(filter((a) => a.length > 0));
