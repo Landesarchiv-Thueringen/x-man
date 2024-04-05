@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable, firstValueFrom, map, startWith, switchMap, take } from 'rxjs';
 import { AgenciesService, Agency } from '../../../services/agencies.service';
+import { ConfigService } from '../../../services/config.service';
 import { User, UsersService } from '../../../services/users.service';
 import { CollectionsService } from '../collections/collections.service';
 import { TransferDirService } from './transfer-dir.service';
@@ -76,6 +78,7 @@ export class AgencyDetailsComponent {
   assignedArchivists: Observable<User[]>;
   users = this.usersService.getUsers();
   collections = this.collectionsService.getCollections();
+  config = toSignal(this.configService.config);
   /**
    * The result of testing the configuration of the transfer-directory.
    *
@@ -93,11 +96,12 @@ export class AgencyDetailsComponent {
   constructor(
     private dialogRef: MatDialogRef<AgencyDetailsComponent>,
     @Inject(MAT_DIALOG_DATA) private agency: Agency,
-    private dialog: MatDialog,
-    private usersService: UsersService,
-    private collectionsService: CollectionsService,
     private agenciesService: AgenciesService,
+    private collectionsService: CollectionsService,
+    private configService: ConfigService,
+    private dialog: MatDialog,
     private transferDirectoryService: TransferDirService,
+    private usersService: UsersService,
   ) {
     // Reset 'testResult' when the value of 'transferDir' changes
     this.form.get('transferDir')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));

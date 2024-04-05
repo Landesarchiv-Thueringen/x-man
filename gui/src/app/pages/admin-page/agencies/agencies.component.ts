@@ -9,6 +9,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AgenciesService, Agency } from '../../../services/agencies.service';
+import { ConfigService } from '../../../services/config.service';
 import { UsersService } from '../../../services/users.service';
 import { Collection, CollectionsService } from '../collections/collections.service';
 import { AgencyDetailsComponent } from './agency-details.component';
@@ -23,7 +24,7 @@ import { AgencyDetailsComponent } from './agency-details.component';
 export class AgenciesComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users', 'collectionId'];
+  displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users'];
   dataSource = new MatTableDataSource<Agency>();
   agencies = this.agenciesService.getAgencies();
   collections: Collection[] | null = null;
@@ -33,6 +34,7 @@ export class AgenciesComponent implements AfterViewInit {
     private dialog: MatDialog,
     private usersService: UsersService,
     private collectionsService: CollectionsService,
+    private configService: ConfigService,
   ) {
     this.agenciesService
       .getAgencies()
@@ -42,6 +44,11 @@ export class AgenciesComponent implements AfterViewInit {
       .observeCollections()
       .pipe(takeUntilDestroyed())
       .subscribe((collections) => (this.collections = collections));
+    this.configService.config.subscribe((config) => {
+      if (config.archiveTarget === 'dimag') {
+        this.displayedColumns.push('collectionId');
+      }
+    });
   }
 
   ngAfterViewInit() {
