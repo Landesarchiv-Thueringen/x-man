@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { AboutService } from '../../services/about.service';
+import { AboutService } from '../../../services/about.service';
 
 @Component({
   selector: 'app-about-dialog',

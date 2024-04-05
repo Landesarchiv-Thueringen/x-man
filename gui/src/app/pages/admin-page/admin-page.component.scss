@@ -8,8 +8,14 @@ mat-sidenav-container {
   flex-grow: 1;
 }
 
-mat-sidenav {
-  a {
+mat-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+  box-sizing: border-box;
+  a,
+  button {
     width: 100%;
     justify-content: flex-start;
     padding: 0 var(--mat-filled-button-horizontal-padding, 16px);
@@ -17,6 +23,9 @@ mat-sidenav {
   a.active {
     background-color: var(--mdc-filled-button-container-color);
     color: var(--mdc-filled-button-label-text-color);
+  }
+  .spacer {
+    flex-grow: 1;
   }
 }
 

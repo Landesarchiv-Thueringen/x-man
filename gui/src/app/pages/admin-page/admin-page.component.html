@@ -27,6 +27,10 @@
           Prozesse
         </a>
       </mat-list-item>
+      <div class="spacer"></div>
+      <mat-list-item>
+        <button mat-button (click)="openAboutDialog()">v{{ aboutInformation()?.version }}</button>
+      </mat-list-item>
     </mat-list>
   </mat-sidenav>
   <mat-sidenav-content><router-outlet></router-outlet></mat-sidenav-content
