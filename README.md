@@ -15,6 +15,10 @@ docker compose up --build
 docker compose -f compose.yml -f compose.prod.yml up --build
 ```
 
+## Configuration
+
+Copy `.env.example` to `.env` and adjust values as described in the file.
+
 ## Development
 
 When run with development configuration, there are some additional options to help with testing and debugging.
