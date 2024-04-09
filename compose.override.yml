@@ -40,3 +40,5 @@ services:
     image: ghcr.io/rroemhild/docker-test-openldap:master
     ulimits:
       nofile: 1024
+    volumes:
+      - ./data/ldap/ssl:/etc/ldap/ssl

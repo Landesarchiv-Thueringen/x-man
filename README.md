@@ -19,6 +19,12 @@ docker compose -f compose.yml -f compose.prod.yml up --build
 
 Copy `.env.example` to `.env` and adjust values as described in the file.
 
+## Custom TLS Certificates
+
+Copy any custom root certificates to `server/data/ca-certificates` and rerun
+`docker compose build`. This allows you to remove any `TLS_INSECURE_SKIP_VERIFY`
+options where certificates are signed by a provided root certificate.
+
 ## Development
 
 When run with development configuration, there are some additional options to help with testing and debugging.

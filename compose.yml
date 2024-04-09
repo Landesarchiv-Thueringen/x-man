@@ -51,6 +51,7 @@ services:
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
       - LDAP_CONFIG=${LDAP_CONFIG}
       - LDAP_URL=${LDAP_URL}
+      - LDAP_TLS_INSECURE_SKIP_VERIFY=${LDAP_TLS_INSECURE_SKIP_VERIFY}
       - LDAP_BASE_DN=${LDAP_BASE_DN}
       - LDAP_USER=${LDAP_USER}
       - LDAP_PASSWORD=${LDAP_PASSWORD}
@@ -70,8 +71,8 @@ services:
       - BORG_ENDPOINT=${BORG_ENDPOINT}
     volumes:
       - message_store:/xman/message_store
-      - ./transfer_dir:/xman/transfer_dir
-      - ./archive:/xman/archive
+      - ./data/transfer_dir:/xman/transfer_dir
+      - ./data/archive:/xman/archive
 
   report:
     build:

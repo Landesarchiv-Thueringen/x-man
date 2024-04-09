@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 )
@@ -130,9 +132,6 @@ func authorizeUser(username string, password string) authorizationResult {
 
 // ListUsers lists all users with basic access rights and their permissions
 func ListUsers() []userEntry {
-	if os.Getenv("LDAP_URL") == "" {
-		return []userEntry{}
-	}
 	l := connectReadonly()
 	defer l.Close()
 
@@ -198,15 +197,25 @@ func getGroupMembers(l *ldap.Conn, groupName string) []string {
 //
 // Users are responsible to close the connection with `l.Close()` afterwards.
 func connectReadonly() *ldap.Conn {
-	l, err := ldap.DialURL(os.Getenv("LDAP_URL"))
+	url := os.Getenv("LDAP_URL")
+	skipTLSVerify := os.Getenv("LDAP_TLS_INSECURE_SKIP_VERIFY") == "true"
+	l, err := ldap.DialURL(
+		url,
+		ldap.DialWithTLSConfig(&tls.Config{InsecureSkipVerify: skipTLSVerify}),
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	// Reconnect with TLS
-	if err = l.StartTLS(&tls.Config{InsecureSkipVerify: true}); err != nil {
-		l.Close()
-		panic(err)
+	if cs, ok := l.TLSConnectionState(); !ok || !cs.HandshakeComplete {
+		// Reconnect with TLS
+		serverName := strings.TrimPrefix(url, "ldap://")
+		reg := regexp.MustCompile(`:[0-9]+$`)
+		serverName = reg.ReplaceAllString(serverName, "")
+		if err = l.StartTLS(&tls.Config{InsecureSkipVerify: skipTLSVerify, ServerName: serverName}); err != nil {
+			l.Close()
+			panic(err)
+		}
 	}
 
 	// First bind with a read only user
