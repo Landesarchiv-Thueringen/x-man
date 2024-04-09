@@ -10,7 +10,6 @@ services:
     environment:
       - DEBUG_MODE=true
       - GIN_MODE=debug
-      - ACCEPT_ANY_LOGIN_CREDENTIALS=${ACCEPT_ANY_LOGIN_CREDENTIALS-false}
     ports:
       - 3000:80
   report:

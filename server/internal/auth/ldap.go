@@ -53,9 +53,6 @@ type authorizationResult struct {
 }
 
 func GetDisplayName(userID string) string {
-	if os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
-		return "Gast-Nutzer (kein LDAP)"
-	}
 	l := connectReadonly()
 	defer l.Close()
 	user := getLdapUserEntry(l, getIDFilter(userID))
@@ -85,19 +82,6 @@ func GetMailAddress(userID string) string {
 // We return a value indicating whether the provided credentials are valid, and
 // if so, what level of access should be grated to the user.
 func authorizeUser(username string, password string) authorizationResult {
-	if os.Getenv("ACCEPT_ANY_LOGIN_CREDENTIALS") == "true" {
-		return authorizationResult{
-			Predicate: GRANTED,
-			UserEntry: &userEntry{
-				ID:          username,
-				DisplayName: username + " (kein LDAP)",
-				Permissions: &permissions{
-					Admin: password == "admin",
-				},
-			},
-		}
-	}
-
 	l := connectReadonly()
 	defer l.Close()
 

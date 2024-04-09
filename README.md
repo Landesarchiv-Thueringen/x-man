@@ -31,16 +31,11 @@ cd gui
 npm start
 ```
 
-### Test without LDAP
+### LDAP
 
-You can use X-Man without LDAP configuration. In `.env`, set
+The development configuration comes with an [OpenLDAP Docker Image for testing](https://github.com/rroemhild/docker-test-openldap).
 
-```sh
-ACCEPT_ANY_LOGIN_CREDENTIALS=true
-```
-
-You can now log in with any username/password combination. Use 'admin' as
-password to log in with administration privileges.
+To login as a regular user, use for example "fry"/"fry" as username/password. To login as administrator, use for example "hermes"/"hermes".
 
 ### Debug Database with [pgweb](https://github.com/sosedoff/pgweb)
 
