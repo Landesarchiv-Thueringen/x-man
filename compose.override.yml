@@ -1,3 +1,5 @@
+# Development additions and overrides
+
 services:
   gui:
     build:
@@ -28,7 +30,6 @@ services:
 
   webdav:
     image: bytemark/webdav
-    restart: always
     environment:
       AUTH_TYPE: Digest
       USERNAME: ${WEBDAV_USERNAME}
@@ -36,9 +37,30 @@ services:
     volumes:
       - webdav:/var/lib/dav
 
+  # LDAP test server with default credentials
   ldap:
     image: ghcr.io/rroemhild/docker-test-openldap:master
     ulimits:
       nofile: 1024
     volumes:
-      - ./data/ldap/ssl:/etc/ldap/ssl
+      - ./data/tls/ldap.crt:/etc/ldap/ssl/ldap.crt:ro
+      - ./data/tls/ldap.key:/etc/ldap/ssl/ldap.key:ro
+
+  # SMTP test server with a web UI to inspect received e-mails
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 8025:8025 # web ui
+
+  # TLS wrapper for Mailhog
+  mailhog-tls:
+    image: dweomer/stunnel
+    environment:
+      - STUNNEL_SERVICE=smtps
+      - STUNNEL_ACCEPT=465
+      - STUNNEL_CONNECT=mailhog:1025
+    volumes:
+      - ./data/tls/mailhog-tls.crt:/etc/stunnel/stunnel.pem:ro
+      - ./data/tls/mailhog-tls.key:/etc/stunnel/stunnel.key:ro
+    ports:
+      - 465:465 # smtp tls

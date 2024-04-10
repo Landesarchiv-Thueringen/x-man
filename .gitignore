@@ -26,3 +26,6 @@
 # allow go workspace files
 !/go.work
 !/go.work.sum
+
+# allow scripts
+!/scripts/*

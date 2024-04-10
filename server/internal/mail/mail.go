@@ -83,10 +83,10 @@ func sendMail(to, subject, body string, attachments []Attachment) {
 	}
 	from := os.Getenv("SMTP_FROM_EMAIL")
 	content := getContent(to, from, subject, body, attachments)
-	useStartTLS := os.Getenv("SMTP_STARTTLS") != "false"
+	tlsMode := os.Getenv("SMTP_TLS_MODE")
 	username := os.Getenv("SMTP_USER")
 	password := os.Getenv("SMTP_PASSWORD")
-	err := sendMailInner(addr, from, to, content, useStartTLS, username, password)
+	err := sendMailInner(addr, from, to, content, tlsMode, username, password)
 	if err != nil {
 		log.Printf("Error sending e-mail: %v\n", err)
 	}
@@ -140,20 +140,37 @@ func encodeCRLF(input string) string {
 func sendMailInner(
 	addr, from, to string,
 	content []byte,
-	useStartTLS bool,
+	tlsMode string,
 	username, password string,
 ) error {
+	var c *smtp.Client
+	host, _, _ := net.SplitHostPort(addr)
+
 	// Connect to the remote SMTP server.
-	c, err := smtp.Dial(addr)
-	if err != nil {
-		return err
+	if tlsMode == "tls" {
+		tlsConfig := &tls.Config{
+			ServerName: host,
+		}
+		tlsConn, err := tls.Dial("tcp", addr, tlsConfig)
+		if err != nil {
+			return err
+		}
+		c, err = smtp.NewClient(tlsConn, host)
+		if err != nil {
+			return err
+		}
+	} else {
+		var err error
+		c, err = smtp.Dial(addr)
+		if err != nil {
+			return err
+		}
 	}
 
-	host, _, _ := net.SplitHostPort(addr)
-	if useStartTLS {
+	if tlsMode == "starttls" {
 		if ok, _ := c.Extension("STARTTLS"); ok {
 			config := &tls.Config{ServerName: host}
-			if err = c.StartTLS(config); err != nil {
+			if err := c.StartTLS(config); err != nil {
 				return err
 			}
 		} else {
@@ -166,7 +183,7 @@ func sendMailInner(
 		if ok, _ := c.Extension("AUTH"); !ok {
 			return errors.New("server doesn't support AUTH")
 		}
-		if err = c.Auth(auth); err != nil {
+		if err := c.Auth(auth); err != nil {
 			return err
 		}
 	}
