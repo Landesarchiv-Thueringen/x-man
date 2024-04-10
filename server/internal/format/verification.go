@@ -2,7 +2,6 @@ package format
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,9 +24,7 @@ import (
 const MAX_CONCURRENT_CALLS = 10
 
 var borgEndpoint = os.Getenv("BORG_ENDPOINT")
-var tr http.Transport = http.Transport{
-	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-}
+var tr http.Transport = http.Transport{}
 var client http.Client = http.Client{
 	Timeout:   time.Second * 60,
 	Transport: &tr,

@@ -21,9 +21,14 @@ Copy `.env.example` to `.env` and adjust values as described in the file.
 
 ## Custom TLS Certificates
 
-Copy any custom root certificates to `server/data/ca-certificates` and rerun
-`docker compose build`. This allows you to remove any `TLS_INSECURE_SKIP_VERIFY`
-options where certificates are signed by a provided root certificate.
+In case any servers you provide in `.env` cannot present certificates that are
+signed by a commonly accepted CA, you need to provide any involved root- and
+intermediate certificates to x-man.
+
+Copy certificates in PEM format with the file ending `.crt` to
+`server/data/ca-certificates` and rerun `docker compose build`. This allows you
+to remove the `TLS_INSECURE_SKIP_VERIFY` option for URLs that you provided
+certificates for.
 
 ## Development
 
