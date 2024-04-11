@@ -12,11 +12,11 @@ cd data/tls
 openssl genrsa -out Test-RootCA.key 4096
 openssl req -x509 -new -nodes -key Test-RootCA.key -sha256 -days 1826 \
     -out Test-RootCA.crt \
-    -subj '/CN=Test Root CA/C=AT/ST=Vienna/L=Vienna/O=Test Org'
+    -subj '/CN=Test Root CA/C=DE/ST=Thueringen/L=Weimar/O=Test Org'
 
 function createServerCert() {
     # Create certificate key
-    openssl req -new -nodes -out $1.csr -newkey rsa:4096 -keyout $1.key -subj "/CN=$1/C=AT/ST=Vienna/L=Vienna/O=Test Org"
+    openssl req -new -nodes -out $1.csr -newkey rsa:4096 -keyout $1.key -subj "/CN=$1/C=DE/ST=Thueringen/L=Weimar/O=Test Org"
     cat > $1.v3.ext << EOF
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
