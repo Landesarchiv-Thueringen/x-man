@@ -31,9 +31,10 @@ services:
   webdav:
     image: bytemark/webdav
     environment:
-      AUTH_TYPE: Digest
       USERNAME: ${WEBDAV_USERNAME}
       PASSWORD: ${WEBDAV_PASSWORD}
+    ports:
+      - 8082:80
     volumes:
       - webdav:/var/lib/dav
 

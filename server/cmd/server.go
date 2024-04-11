@@ -202,12 +202,13 @@ func getMessageByID(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, found := db.GetCompleteMessageByID(id)
+	message, found := db.GetMessageByID(id)
 	if !found {
 		context.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.JSON(http.StatusOK, message)
+	context.Header("Content-Type", "application/json; charset=utf-8")
+	context.String(http.StatusOK, message.MessageJSON)
 }
 
 func getFileRecordObjectByID(context *gin.Context) {

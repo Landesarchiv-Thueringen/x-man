@@ -156,6 +156,7 @@ type Message struct {
 	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
 	DocumentRecordObjects []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects"`
 	ProcessingErrors      []ProcessingError      `json:"processingErrors"`
+	MessageJSON           string                 `gorm:"type:text" json:"-"`
 }
 
 // BeforeDelete deletes associated rows of the deleted Message.

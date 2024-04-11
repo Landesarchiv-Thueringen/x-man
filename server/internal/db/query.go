@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -173,16 +174,14 @@ func GetMessageByID(id uuid.UUID) (Message, bool) {
 func GetCompleteMessageByID(id uuid.UUID) (Message, bool) {
 	var message Message
 	result := db.
-		Preload(clause.Associations).
-		Preload("MessageHead.Sender."+clause.Associations).
-		Preload("MessageHead.Sender.AgencyIdentification."+clause.Associations).
-		Preload("MessageHead.Receiver."+clause.Associations).
-		Preload("MessageHead.Receiver.AgencyIdentification."+clause.Associations).
-		Scopes(PreloadRecordObjects).
 		Limit(1).
 		Find(&message, id)
 	if result.Error != nil {
 		panic(result.Error)
+	}
+	err := json.Unmarshal([]byte(message.MessageJSON), &message)
+	if err != nil {
+		panic(err)
 	}
 	return message, result.RowsAffected > 0
 }

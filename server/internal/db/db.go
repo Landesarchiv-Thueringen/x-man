@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -344,34 +345,56 @@ func AddMessage(
 	return process, message, result.Error
 }
 
+// saveMessage saves all record objects and the message in the database.
+// The record objects are saved outside of the message because of database limitations.
 func saveMessage(message *Message) error {
-	fs := message.FileRecordObjects
-	ps := message.ProcessRecordObjects
-	ds := message.DocumentRecordObjects
+	parsedFileRecordObjects := message.FileRecordObjects
+	parsedProcessRecordObjects := message.ProcessRecordObjects
+	parsedDocumentRecordObjects := message.DocumentRecordObjects
+	// record objects can't be saved within the message
 	message.FileRecordObjects = nil
 	message.ProcessRecordObjects = nil
 	message.DocumentRecordObjects = nil
+	// create message without record objects
 	result := db.Create(&message)
-	for _, f := range fs {
+	if result.Error != nil {
+		return result.Error
+	}
+	// create record objects and add them again to the message
+	for _, f := range parsedFileRecordObjects {
 		f.ParentMessageID = &message.ID
-		db.Create(&f)
+		result = db.Create(&f)
 		if result.Error != nil {
 			return result.Error
 		}
+		message.FileRecordObjects = append(message.FileRecordObjects, f)
 	}
-	for _, p := range ps {
-		db.Create(&p)
+	for _, p := range parsedProcessRecordObjects {
+		result = db.Create(&p)
 		if result.Error != nil {
 			return result.Error
 		}
+		message.ProcessRecordObjects = append(message.ProcessRecordObjects, p)
 	}
-	for _, d := range ds {
-		db.Create(&d)
+	for _, d := range parsedDocumentRecordObjects {
+		result = db.Create(&d)
 		if result.Error != nil {
 			return result.Error
 		}
+		message.DocumentRecordObjects = append(message.DocumentRecordObjects, d)
 	}
-	return nil
+	// generate JSON from the complete message
+	bytes, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+	// save message JSON
+	message.MessageJSON = string(bytes)
+	message.FileRecordObjects = nil
+	message.ProcessRecordObjects = nil
+	message.DocumentRecordObjects = nil
+	result = db.Save(&message)
+	return result.Error
 }
 
 // setRecordObjectsMessageID sets the message ID for all record objects of the message.

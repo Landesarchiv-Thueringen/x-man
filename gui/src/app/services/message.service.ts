@@ -304,6 +304,9 @@ export class MessageService {
     if (message.messageType?.code === '0503') {
       messageNode.children!.push(this.getPrimaryDocumentsNode(message.id));
     }
+    message.fileRecordObjects ??= [];
+    message.processRecordObjects ??= [];
+    message.documentRecordObjects ??= [];
     const groupRootNodes =
       message.fileRecordObjects.length + message.processRecordObjects.length + message.documentRecordObjects.length >
       GROUP_SIZE;
