@@ -27,6 +27,7 @@ type IndexItem struct {
 	IndexID    string   `xml:"aid"`
 	Lifetime   string   `xml:"entstehungs-zeitraum"`
 	FilePath   string   `xml:"sftp-dateiname,omitempty"`
+	FileName   string   `xml:"dateiname"`
 	Title      string   `xml:"titel"`
 	ItemType   string   `xml:"typ"`
 	IndexItems []IndexItem

@@ -32,7 +32,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 		archivePackageData := ArchivePackageData{
 			IOTitle:          fileRecordObject.GetTitle(),
 			IOLifetime:       fileRecordObject.GetCombinedLifetime(),
-			REPTitle:         "originale Repräsentation einer Akte extrahiert aus einer E-Akten-Ablieferung",
+			REPTitle:         "Original",
 			PrimaryDocuments: fileRecordObject.GetPrimaryDocuments(),
 			CollectionID:     collection.DimagID,
 		}
@@ -45,7 +45,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 		archivePackageData := ArchivePackageData{
 			IOTitle:          processRecordObject.GetTitle(),
 			IOLifetime:       processRecordObject.GetCombinedLifetime(),
-			REPTitle:         "originale Repräsentation eines Vorgangs extrahiert aus einer E-Akten-Ablieferung",
+			REPTitle:         "Original",
 			PrimaryDocuments: processRecordObject.GetPrimaryDocuments(),
 			CollectionID:     collection.DimagID,
 		}
@@ -60,8 +60,9 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 		for _, documentRecordObject := range message.DocumentRecordObjects {
 			primaryDocuments = append(primaryDocuments, documentRecordObject.GetPrimaryDocuments()...)
 		}
-		ioTitle := "Nicht zugeordnete Dokumente aus der Ablieferung (" + process.Agency.Name + ")"
-		repTitle := "originale Repräsentation von nicht zugeordneten Dokumente extrahiert aus einer E-Akten-Ablieferung"
+		ioTitle := "Nicht zugeordnete Dokumente Behörde: " + process.Agency.Name +
+			" Prozess-ID: " + process.ID
+		repTitle := "Original"
 		archivePackageData := ArchivePackageData{
 			IOTitle:          ioTitle,
 			IOLifetime:       "-",

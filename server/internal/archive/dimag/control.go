@@ -66,6 +66,7 @@ func GetIndexItemForPrimaryDocument(
 		IndexID:  "",
 		ItemType: FileAbbreviation,
 		Title:    primaryDocument.GetFileName(),
+		FileName: primaryDocument.GetFileName(),
 		FilePath: primaryDocument.GetRemotePath(importDir),
 	}
 	return fileIndexItem
