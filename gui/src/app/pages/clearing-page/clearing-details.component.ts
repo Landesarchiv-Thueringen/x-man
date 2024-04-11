@@ -41,7 +41,10 @@ export class ClearingDetailsComponent {
     private clearingService: ClearingService,
     private notificationService: NotificationService,
   ) {
-    this.json = JSON.stringify(data, null, 2);
+    // Exclude the message form the displayed data since it might become
+    // extremely large.
+    const { message, ...jsonData } = this.data;
+    this.json = JSON.stringify(jsonData, null, 2);
   }
 
   sendEmail() {

@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRippleModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -33,14 +34,14 @@ import { StartArchivingDialogComponent } from './start-archiving-dialog/start-ar
 
 export interface FlatNode {
   id: string;
-  xdomeaId: string;
+  xdomeaId?: string;
   selected: boolean;
   parentID?: string;
   expandable: boolean;
   level: number;
   displayText: DisplayText;
   type: StructureNodeType;
-  routerLink: string;
+  routerLink?: string;
 }
 
 @Component({
@@ -55,6 +56,7 @@ export interface FlatNode {
     MatCheckboxModule,
     MatIconModule,
     MatMenuModule,
+    MatRippleModule,
     MatToolbarModule,
     MatTreeModule,
     RecordObjectAppraisalPipe,
@@ -222,7 +224,7 @@ export class MessageTreeComponent implements AfterViewInit {
       .subscribe(async (formResult) => {
         if (formResult) {
           await this.messagePage.setAppraisals(
-            this.selectedNodes.map((id) => this.messageService.getStructureNode(id)!.xdomeaID),
+            this.selectedNodes.map((id) => this.messageService.getStructureNode(id)!.xdomeaID).filter(notNull),
             formResult.appraisalCode,
             formResult.appraisalNote,
           );
@@ -232,8 +234,12 @@ export class MessageTreeComponent implements AfterViewInit {
       });
   }
 
-  getAppraisal(node: FlatNode): Appraisal {
-    return this.appraisals[node.xdomeaId];
+  getAppraisal(node: FlatNode): Appraisal | null {
+    if (node.xdomeaId) {
+      return this.appraisals[node.xdomeaId];
+    } else {
+      return null;
+    }
   }
 
   private registerAppraisals(): void {

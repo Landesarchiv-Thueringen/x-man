@@ -1,14 +1,13 @@
-// angular
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
-
-// utility
 import { BehaviorSubject, Observable, Subject, Subscriber, filter, shareReplay } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { environment } from '../../environments/environment';
 import { notNull } from '../utils/predicates';
 import { Process } from './process.service';
+
+const GROUP_SIZE = 100;
 
 export interface Message {
   id: string;
@@ -201,10 +200,13 @@ export interface Lifetime {
 
 export type StructureNodeType =
   | 'message'
+  | 'file-group'
   | 'file'
   | 'subfile'
+  | 'process-group'
   | 'process'
   | 'subprocess'
+  | 'document-group'
   | 'document'
   | 'attachment'
   | 'primaryDocuments';
@@ -217,11 +219,11 @@ export interface DisplayText {
 
 export interface StructureNode {
   id: string;
-  xdomeaID: string;
+  xdomeaID?: string;
   selected: boolean;
   displayText: DisplayText;
   type: StructureNodeType;
-  routerLink: string;
+  routerLink?: string;
   appraisal?: string;
   parentID?: string;
   children?: StructureNode[];
@@ -273,19 +275,6 @@ export class MessageService {
   }
 
   processMessage(process: Process, message: Message): StructureNode {
-    const children: StructureNode[] = [];
-    if (message.messageType?.code === '0503') {
-      children.push(this.getPrimaryDocumentsNode(message.id));
-    }
-    for (let fileRecordObject of message.fileRecordObjects) {
-      children.push(this.getFileStructureNode(fileRecordObject, false, message.id));
-    }
-    for (let processRecordObject of message.processRecordObjects) {
-      children.push(this.getProcessStructureNode(processRecordObject, false, message.id));
-    }
-    for (let documentRecordObject of message.documentRecordObjects) {
-      children.push(this.getDocumentStructureNode(documentRecordObject, false, message.id));
-    }
     let displayText: DisplayText;
     switch (message.messageType.code) {
       case '0501':
@@ -306,13 +295,71 @@ export class MessageService {
     const routerLink: string = 'details';
     const messageNode: StructureNode = {
       id: message.id,
-      xdomeaID: '',
       selected: true,
       displayText: displayText,
       type: 'message',
       routerLink: routerLink,
-      children: children,
+      children: [],
     };
+    if (message.messageType?.code === '0503') {
+      messageNode.children!.push(this.getPrimaryDocumentsNode(message.id));
+    }
+    const groupRootNodes =
+      message.fileRecordObjects.length + message.processRecordObjects.length + message.documentRecordObjects.length >
+      GROUP_SIZE;
+    let currentGroup = messageNode;
+    for (const [index, fileRecordObject] of message.fileRecordObjects.entries()) {
+      if (groupRootNodes && index % GROUP_SIZE == 0) {
+        currentGroup = {
+          id: uuidv4(),
+          selected: false,
+          displayText: {
+            title: `Akten ${index + 1}...${Math.min(index + GROUP_SIZE, message.fileRecordObjects.length)}`,
+          },
+          type: 'file-group',
+          parentID: message.id,
+          children: [],
+        };
+        messageNode.children?.push(currentGroup);
+        this.structureNodes.set(currentGroup.id, currentGroup);
+      }
+      currentGroup.children!.push(this.getFileStructureNode(fileRecordObject, false, currentGroup.id));
+    }
+    for (const [index, processRecordObject] of message.processRecordObjects.entries()) {
+      if (groupRootNodes && index % GROUP_SIZE == 0) {
+        currentGroup = {
+          id: uuidv4(),
+          selected: false,
+          displayText: {
+            title: `Vorgänge ${index + 1}...${Math.min(index + GROUP_SIZE, message.processRecordObjects.length)}`,
+          },
+          type: 'process-group',
+          parentID: message.id,
+          children: [],
+        };
+        messageNode.children?.push(currentGroup);
+        this.structureNodes.set(currentGroup.id, currentGroup);
+      }
+      currentGroup.children!.push(this.getProcessStructureNode(processRecordObject, false, currentGroup.id));
+    }
+    for (const [index, documentRecordObject] of message.documentRecordObjects.entries()) {
+      if (groupRootNodes && index % GROUP_SIZE == 0) {
+        currentGroup = {
+          id: uuidv4(),
+          selected: false,
+          displayText: {
+            title: `Dokumente ${index + 1}...${Math.min(index + GROUP_SIZE, message.documentRecordObjects.length)}`,
+          },
+          type: 'document-group',
+          parentID: message.id,
+          children: [],
+        };
+        messageNode.children?.push(currentGroup);
+        this.structureNodes.set(currentGroup.id, currentGroup);
+      }
+      currentGroup.children!.push(this.getDocumentStructureNode(documentRecordObject, false, currentGroup.id));
+    }
+
     this.structureNodes.set(messageNode.id, messageNode);
     this.nodesSubject.next(this.getRootStructureNodes());
     return messageNode;
@@ -326,7 +373,6 @@ export class MessageService {
     const routerLink: string = 'formatverifikation';
     const primaryDocumentsNode: StructureNode = {
       id: uuidv4(),
-      xdomeaID: '',
       selected: false,
       displayText: displayText,
       type: 'primaryDocuments',
