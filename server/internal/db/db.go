@@ -294,10 +294,10 @@ func AddMessage(
 	// must be done before saving the message in database
 	message.ID = uuid.New()
 	setRecordObjectsMessageID(&message)
-	result := db.Create(&message)
+	err := saveMessage(&message)
 	// The Database failed to create the message.
-	if result.Error != nil {
-		return process, message, result.Error
+	if err != nil {
+		return process, message, err
 	}
 	process, found := GetProcess(processID)
 	// The process was not found. Create a new process.
@@ -340,8 +340,38 @@ func AddMessage(
 	default:
 		panic("unhandled message type: " + message.MessageType.Code)
 	}
-	result = db.Save(&process)
+	result := db.Save(&process)
 	return process, message, result.Error
+}
+
+func saveMessage(message *Message) error {
+	fs := message.FileRecordObjects
+	ps := message.ProcessRecordObjects
+	ds := message.DocumentRecordObjects
+	message.FileRecordObjects = nil
+	message.ProcessRecordObjects = nil
+	message.DocumentRecordObjects = nil
+	result := db.Create(&message)
+	for _, f := range fs {
+		f.ParentMessageID = &message.ID
+		db.Create(&f)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+	for _, p := range ps {
+		db.Create(&p)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+	for _, d := range ds {
+		db.Create(&d)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+	return nil
 }
 
 // setRecordObjectsMessageID sets the message ID for all record objects of the message.
