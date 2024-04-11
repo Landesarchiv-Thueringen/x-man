@@ -63,11 +63,11 @@
           <!-- use a disabled button to provide padding for tree leaf -->
           <button *ngIf="node.type === 'message'" mat-icon-button disabled></button>
           <mat-icon *ngIf="node.type === 'message'" class="message-icon">assignment</mat-icon>
-          <mat-icon *ngIf="node.type === 'file-group'" class="file-icon">folder</mat-icon>
+          <mat-icon *ngIf="node.type === 'file-group'" class="file-icon" svgIcon="folders"></mat-icon>
           <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon">folder</mat-icon>
-          <mat-icon *ngIf="node.type === 'process-group'" class="process-icon">folder</mat-icon>
+          <mat-icon *ngIf="node.type === 'process-group'" class="process-icon" svgIcon="folders"></mat-icon>
           <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon">folder</mat-icon>
-          <mat-icon *ngIf="node.type === 'document-group'" class="document-icon">article</mat-icon>
+          <mat-icon *ngIf="node.type === 'document-group'" class="document-icon" svgIcon="articles"></mat-icon>
           <mat-icon *ngIf="node.type === 'document'" class="document-icon">article</mat-icon>
           <mat-icon *ngIf="node.type === 'attachment'" class="attachment-icon">attach_file</mat-icon>
 
