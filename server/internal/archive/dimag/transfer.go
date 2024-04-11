@@ -1,11 +1,13 @@
 package dimag
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
 	"log"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -47,9 +49,23 @@ func InitConnection() error {
 		auths = append(auths, ssh.Password(sftpPassword))
 	}
 	config := ssh.ClientConfig{
-		User:            sftpUser,
-		Auth:            auths,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		User: sftpUser,
+		Auth: auths,
+		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			hostKeyString := os.Getenv("DIMAG_SFTP_HOST_KEY")
+			splitHostKey := strings.Split(hostKeyString, " ")
+			if len(splitHostKey) == 2 &&
+				splitHostKey[0] == key.Type() &&
+				splitHostKey[1] == base64.StdEncoding.EncodeToString(key.Marshal()) {
+				return nil
+			}
+			return fmt.Errorf("failed to verify host key.\n\n"+
+				"If you have connected to %s in the past, this could mean that someone is messing with your connection and tries to steal secrets!\n\n"+
+				"If you are trying to connect to %s for the first time or changed the server's SSH keys, add the following line to your .env file and run the action again:\n\n"+
+				"DIMAG_SFTP_HOST_KEY=\"%s %s\"",
+				hostname, hostname,
+				key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
+		},
 	}
 	addr := fmt.Sprintf("%s:%d", url.Host, PortSFTP)
 	sshClient, err = ssh.Dial("tcp", addr, &config)
