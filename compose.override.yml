@@ -43,8 +43,8 @@ services:
     ulimits:
       nofile: 1024
     volumes:
-      - ./data/tls/ldap.crt:/etc/ldap/ssl/ldap.crt:ro
-      - ./data/tls/ldap.key:/etc/ldap/ssl/ldap.key:ro
+      - ./data/tls/ldap.crt:/etc/ldap/ssl/ldap.crt
+      - ./data/tls/ldap.key:/etc/ldap/ssl/ldap.key
 
   # SMTP test server with a web UI to inspect received e-mails
   mailhog:
