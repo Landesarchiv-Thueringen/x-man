@@ -209,12 +209,11 @@ func GetProcessForMessage(message Message) Process {
 
 // IsMessageAlreadyProcessed checks if a message exists, which was already processed,
 // determined by the path in the transfer directory.
-func IsMessageAlreadyProcessed(path string) bool {
-	result := db.Where(&Message{TransferDirPath: path}).Limit(1).Find(&Message{})
-	if result.RowsAffected > 0 {
-		return true
-	}
-	result = db.Where(&ProcessingError{TransferPath: &path, Resolved: false}).Limit(1).Find(&ProcessingError{})
+func IsMessageAlreadyProcessed(agency Agency, transferDirPath string) bool {
+	result := db.Where("agency_id = ?", agency.ID).
+		Where("transfer_dir_path = ?", transferDirPath).
+		Limit(1).
+		Find(&ProcessedTransferDirFile{})
 	return result.RowsAffected > 0
 }
 

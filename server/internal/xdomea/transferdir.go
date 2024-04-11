@@ -105,7 +105,8 @@ func readMessagesFromLocalFilesystem(agency db.Agency, transferDirURL *url.URL) 
 		panic(err)
 	}
 	for _, file := range files {
-		if !db.IsMessageAlreadyProcessed(file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+		if !db.IsMessageAlreadyProcessed(agency, file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+			db.MarkFileAsProcessed(agency, file.Name())
 			log.Println("Processing new message " + file.Name())
 			go ProcessNewMessage(agency, file.Name())
 		}
@@ -124,7 +125,8 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
 		panic(err)
 	}
 	for _, file := range files {
-		if !db.IsMessageAlreadyProcessed(file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+		if !db.IsMessageAlreadyProcessed(agency, file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+			db.MarkFileAsProcessed(agency, file.Name())
 			log.Println("Processing new message " + file.Name())
 			go ProcessNewMessage(agency, file.Name())
 		}

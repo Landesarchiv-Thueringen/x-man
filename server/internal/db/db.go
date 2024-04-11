@@ -66,6 +66,7 @@ func Migrate() {
 	// Migrate the complete schema.
 	err := db.AutoMigrate(
 		&Agency{},
+		&ProcessedTransferDirFile{},
 		&Appraisal{},
 		&XdomeaVersion{},
 		&Process{},
@@ -664,5 +665,18 @@ func UpdateUserPreferences(userID string, userPreferences UserPreferences) {
 	})
 	if err != nil {
 		panic(err)
+	}
+}
+
+// MarkFileAsProcessed marks a file in a transfer directory as already processed.
+// This File will not be processed again until the entry for the file is removed.
+func MarkFileAsProcessed(agency Agency, path string) {
+	processedFile := ProcessedTransferDirFile{
+		AgencyID:        agency.ID,
+		TransferDirPath: path,
+	}
+	result := db.Save(&processedFile)
+	if result.Error != nil {
+		panic(result.Error)
 	}
 }

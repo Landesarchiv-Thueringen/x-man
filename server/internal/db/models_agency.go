@@ -31,6 +31,16 @@ type Agency struct {
 	Users        []User      `gorm:"many2many:agency_users" json:"users"`
 	CollectionID *uint       `json:"collectionId"`
 	Collection   *Collection `json:"collection"`
+	// ProcessedMessages marks the files in the transfer directory which the system already knowns.
+	ProcessedTransferDirFiles []ProcessedTransferDirFile `json:"processedTransferDirFiles"`
+}
+
+type ProcessedTransferDirFile struct {
+	ID              uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt       time.Time `json:"-"`
+	UpdatedAt       time.Time `json:"-"`
+	AgencyID        uint      `json:"agencyID"`
+	TransferDirPath string    `json:"transferDirPath"`
 }
 
 type User struct {
