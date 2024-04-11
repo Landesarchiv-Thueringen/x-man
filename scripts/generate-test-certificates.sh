@@ -5,8 +5,8 @@ set -e
 # Go to repository root dir
 cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.."
 
-mkdir -p data/tls
 cd data/tls
+rm -rf ./*
 
 # Generate root key and certificate
 openssl genrsa -out Test-RootCA.key 4096

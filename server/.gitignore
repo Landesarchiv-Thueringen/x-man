@@ -16,6 +16,3 @@
 
 # allow server dockerfile
 !Dockerfile
-
-# allow gitkeep files
-!**/.gitkeep

@@ -23,3 +23,5 @@
 # allow build files
 !/build/**/*
 
+# ignore even globally allowed files in node_modules
+node_modules

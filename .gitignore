@@ -29,3 +29,6 @@
 
 # allow scripts
 !/scripts/*
+
+# allow gitkeep files
+!**/.gitkeep
