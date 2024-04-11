@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, TemplateRef, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogContent, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,6 +47,7 @@ import { TransferDirService } from './transfer-dir.service';
 export class AgencyDetailsComponent {
   @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
   @ViewChild('transferDirPanel') transferDirPanel!: MatExpansionPanel;
+  @ViewChild(MatDialogContent, { read: ElementRef }) dialogContent!: ElementRef<HTMLDivElement>;
 
   readonly oldName = this.agency.name;
   form = new FormGroup({
@@ -142,6 +143,7 @@ export class AgencyDetailsComponent {
       } finally {
         this.loadingTestResult = false;
       }
+      this.scrollToBottom();
     }
   }
 
@@ -302,5 +304,13 @@ export class AgencyDetailsComponent {
         console.warn('Failed to parse transfer-dir URI', this.agency.transferDirURL, e);
       }
     }
+  }
+
+  private scrollToBottom(): void {
+    const scrollParent = this.dialogContent.nativeElement;
+    function scroll() {
+      scrollParent.scroll({ top: 1000000, behavior: 'smooth' });
+    }
+    window.requestAnimationFrame(scroll);
   }
 }
