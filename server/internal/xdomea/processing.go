@@ -78,8 +78,9 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		// send the confirmation message that the 0501 message was received
 		if messageType.Code == "0501" {
 			messagePath := Send0504Message(agency, message)
-			process.Message0504Path = &messagePath
-			db.UpdateProcess(process)
+			db.UpdateProcess(process.ID, db.Process{
+				Message0504Path: &messagePath,
+			})
 		}
 		// send e-mail notification to users
 		for _, user := range agency.Users {

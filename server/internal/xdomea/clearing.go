@@ -51,14 +51,10 @@ func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorRe
 	default:
 		panic(fmt.Sprintf("unknown resolution: %s", resolution))
 	}
-	processingError, found := db.GetProcessingError(processingError.ID)
-	if found {
-		processingError.Resolved = true
-		processingError.Resolution = resolution
-		db.UpdateProcessingError(processingError)
-	} else {
-		// The processing error has already been deleted.
-	}
+	db.UpdateProcessingError(processingError.ID, db.ProcessingError{
+		Resolved:   true,
+		Resolution: resolution,
+	})
 }
 
 func sendEmailNotifications(e db.ProcessingError) {

@@ -16,21 +16,23 @@ func Start(taskType db.TaskType, process db.Process, itemCount uint) db.Task {
 		Type:          taskType,
 		State:         db.TaskStateRunning,
 		ProcessID:     process.ID,
-		Process:       &process,
 		ProcessStepID: processStep.ID,
-		ProcessStep:   &processStep,
 		ItemCount:     itemCount,
 	})
+	task.Process = &process
+	task.ProcessStep = &processStep
 	// Update process step
-	task.ProcessStep.Complete = false
-	task.ProcessStep.CompletionTime = nil
-	db.UpdateProcessStep(*task.ProcessStep)
+	db.UpdateProcessStep(*&task.ProcessStep.ID, db.ProcessStep{
+		Complete: false,
+	})
 	return task
 }
 
 func MarkItemComplete(task *db.Task) {
 	task.ItemCompletedCount = task.ItemCompletedCount + 1
-	db.UpdateTask(*task)
+	db.UpdateTask(task.ID, db.Task{
+		ItemCompletedCount: task.ItemCompletedCount,
+	})
 }
 
 // MarkFailed marks the task and its process step failed.
@@ -40,7 +42,10 @@ func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 	// Update task
 	task.State = db.TaskStateFailed
 	task.ErrorMessage = errorMessage
-	db.UpdateTask(*task)
+	db.UpdateTask(task.ID, db.Task{
+		State:        task.State,
+		ErrorMessage: task.ErrorMessage,
+	})
 	// The process step is marked failed by the processing error
 
 	// Create processing error
@@ -69,15 +74,16 @@ func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 func MarkDone(task *db.Task, completedBy *string) {
 	// Update task
 	task.State = db.TaskStateSucceeded
-	db.UpdateTask(*task)
+	db.UpdateTask(task.ID, db.Task{
+		State: task.State,
+	})
 	// Update process step
-	task.ProcessStep.Complete = true
 	completionTime := time.Now()
-	task.ProcessStep.CompletionTime = &completionTime
-	if completedBy != nil {
-		task.ProcessStep.CompletedBy = completedBy
-	}
-	db.UpdateProcessStep(*task.ProcessStep)
+	db.UpdateProcessStep(task.ProcessStep.ID, db.ProcessStep{
+		Complete:       true,
+		CompletionTime: &completionTime,
+		CompletedBy:    completedBy,
+	})
 }
 
 // getProcessStep returns the process step to which the task belongs.

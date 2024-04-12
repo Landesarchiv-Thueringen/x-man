@@ -62,9 +62,10 @@ func SetAppraisalDecisionRecursive(
 	for _, subObject := range recordObject.GetAppraisableChildren() {
 		a := db.GetAppraisal(processID, subObject.GetID())
 		if a.Decision == "" || a.Decision == previousAppraisal.Decision {
-			a.Decision = decision
-			a.InternalNote = ""
-			db.UpdateAppraisal(a)
+			db.UpdateAppraisal(a.ID, db.Appraisal{
+				Decision:     decision,
+				InternalNote: "",
+			})
 		}
 	}
 	return nil
@@ -165,9 +166,10 @@ func markAncestorsToBeArchived(processID string, recordObject db.AppraisableReco
 	for parent := recordObject.GetAppraisableParent(); parent != nil; parent = parent.GetAppraisableParent() {
 		a := db.GetAppraisal(processID, parent.GetID())
 		if a.Decision != db.AppraisalDecisionA {
-			a.Decision = db.AppraisalDecisionA
-			a.InternalNote = ""
-			db.UpdateAppraisal(a)
+			db.UpdateAppraisal(a.ID, db.Appraisal{
+				Decision:     db.AppraisalDecisionA,
+				InternalNote: "",
+			})
 		}
 	}
 }
@@ -178,12 +180,12 @@ func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message
 	if !found {
 		panic(fmt.Sprintf("process not found: %v", message.MessageHead.ProcessID))
 	}
-	appraisalStep := process.ProcessState.Appraisal
-	appraisalStep.Complete = true
 	completionTime := time.Now()
-	appraisalStep.CompletionTime = &completionTime
-	appraisalStep.CompletedBy = &completedBy
-	db.UpdateProcessStep(appraisalStep)
+	db.UpdateProcessStep(process.ProcessState.Appraisal.ID, db.ProcessStep{
+		Complete:       true,
+		CompletionTime: &completionTime,
+		CompletedBy:    &completedBy,
+	})
 	return message
 }
 

@@ -115,8 +115,7 @@ func verifyDocument(storeDir string, primaryDocument db.PrimaryDocument) error {
 		return err
 	}
 	prepareForDatabase(&parsedResponse)
-	primaryDocument.FormatVerification = &parsedResponse
-	db.UpdatePrimaryDocument(primaryDocument)
+	db.CreateFormatVerification(primaryDocument.ID, parsedResponse)
 	return nil
 }
 

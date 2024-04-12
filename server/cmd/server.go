@@ -378,8 +378,9 @@ func finalizeMessageAppraisal(context *gin.Context) {
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
 	messagePath := xdomea.Send0502Message(process.Agency, message)
-	process.Message0502Path = &messagePath
-	db.UpdateProcess(process)
+	db.UpdateProcess(process.ID, db.Process{
+		Message0502Path: &messagePath,
+	})
 }
 
 func AreAllRecordObjectsAppraised(context *gin.Context) {
@@ -580,7 +581,7 @@ func setUserPreferences(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	db.UpdateUserPreferences(userID, userPreferences)
+	db.SaveUserPreferences(userID, userPreferences)
 }
 
 func getAgencies(context *gin.Context) {

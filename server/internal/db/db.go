@@ -23,7 +23,9 @@ func Init() {
 		sslmode=disable 
 		TimeZone=Europe/Berlin`
 
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to database: %v", err))
 	}
@@ -164,7 +166,7 @@ func AddProcess(
 		Institution:  institution,
 		ProcessState: processState,
 	}
-	result := db.Save(&process)
+	result := db.Create(&process)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -204,17 +206,19 @@ func DeleteMessage(message Message) {
 		process.Message0501ID = nil
 		process.ProcessState.Receive0501.CompletionTime = nil
 		process.ProcessState.Receive0501.Complete = false
-		UpdateProcessStep(process.ProcessState.Receive0501)
+		UpdateProcessStep(process.ProcessState.Receive0501.ID, ProcessStep{
+			Complete: false,
+		})
 	} else if process.Message0503ID != nil && *process.Message0503ID == message.ID {
 		process.Message0503ID = nil
-		process.ProcessState.Receive0503.CompletionTime = nil
-		process.ProcessState.Receive0503.Complete = false
-		UpdateProcessStep(process.ProcessState.Receive0503)
+		UpdateProcessStep(process.ProcessState.Receive0503.ID, ProcessStep{
+			Complete: false,
+		})
 	} else if process.Message0505ID != nil && *process.Message0505ID == message.ID {
 		process.Message0505ID = nil
-		process.ProcessState.Receive0505.CompletionTime = nil
-		process.ProcessState.Receive0505.Complete = false
-		UpdateProcessStep(process.ProcessState.Receive0505)
+		UpdateProcessStep(process.ProcessState.Receive0505.ID, ProcessStep{
+			Complete: false,
+		})
 	} else {
 		panic(fmt.Errorf("could not find message reference of message %v in process %v",
 			message.ID, process.ID))
@@ -232,7 +236,7 @@ func SetProcessNote(
 	note string,
 ) {
 	process.Note = &note
-	result := db.Save(&process)
+	result := db.Updates(&process)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -278,7 +282,7 @@ func AddProcessState() ProcessState {
 		FormatVerification: FormatVerification,
 		Archiving:          Archiving,
 	}
-	result = db.Save(&processState)
+	result = db.Create(&processState)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -320,29 +324,29 @@ func AddMessage(
 	switch message.MessageType.Code {
 	case "0501":
 		process.Message0501 = &message
-		processStep := process.ProcessState.Receive0501
-		processStep.Complete = true
 		completionTime := time.Now()
-		processStep.CompletionTime = &completionTime
-		UpdateProcessStep(processStep)
+		UpdateProcessStep(process.ProcessState.Receive0501.ID, ProcessStep{
+			Complete:       true,
+			CompletionTime: &completionTime,
+		})
 	case "0503":
 		process.Message0503 = &message
-		processStep := process.ProcessState.Receive0503
-		processStep.Complete = true
 		completionTime := time.Now()
-		processStep.CompletionTime = &completionTime
-		UpdateProcessStep(processStep)
+		UpdateProcessStep(process.ProcessState.Receive0503.ID, ProcessStep{
+			Complete:       true,
+			CompletionTime: &completionTime,
+		})
 	case "0505":
 		process.Message0505 = &message
-		processStep := process.ProcessState.Receive0505
-		processStep.Complete = true
 		completionTime := time.Now()
-		processStep.CompletionTime = &completionTime
-		UpdateProcessStep(processStep)
+		UpdateProcessStep(process.ProcessState.Receive0505.ID, ProcessStep{
+			Complete:       true,
+			CompletionTime: &completionTime,
+		})
 	default:
 		panic("unhandled message type: " + message.MessageType.Code)
 	}
-	result := db.Save(&process)
+	result := db.Updates(&process)
 	return process, message, result.Error
 }
 
@@ -409,29 +413,28 @@ func setRecordObjectsMessageID(message *Message) {
 	}
 }
 
-func UpdateProcess(process Process) {
-	result := db.Save(&process)
+func UpdateProcess(id string, updateValues Process) {
+	result := db.Model(Process{ID: id}).Updates(updateValues)
 	if result.Error != nil {
 		panic(result.Error)
 	}
 }
 
-func UpdateMessage(message Message) {
-	result := db.Save(&message)
+func CreateFormatVerification(primaryDocumentID uint, formatVerification FormatVerification) {
+	result := db.Create(&formatVerification)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	result = db.
+		Model(PrimaryDocument{ID: primaryDocumentID}).
+		Updates(PrimaryDocument{FormatVerificationID: &formatVerification.ID})
 	if result.Error != nil {
 		panic(result.Error)
 	}
 }
 
-func UpdatePrimaryDocument(primaryDocument PrimaryDocument) {
-	result := db.Save(&primaryDocument)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-}
-
-func UpdateProcessStep(processStep ProcessStep) {
-	result := db.Save(&processStep)
+func UpdateProcessStep(id uint, updateValues ProcessStep) {
+	result := db.Model(ProcessStep{ID: id}).Updates(updateValues)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -521,13 +524,12 @@ func patchAppraisal(processID string, recordObjectID uuid.UUID, decision *Apprai
 	}
 }
 
-func UpdateAppraisal(a Appraisal) {
-	if a.ProcessID == "" {
-		panic("called SetAppraisal with empty processID")
-	} else if a.RecordObjectID == uuid.Nil {
-		panic("called SetAppraisal with nil recordObjectID")
-	}
-	result := db.Save(&a)
+// UpdateAppraisal updates the appraisals decision and internal note.
+func UpdateAppraisal(id uint, appraisal Appraisal) {
+	result := db.
+		Model(&Appraisal{ID: id}).
+		Select("Decision", "InternalNote").
+		Updates(appraisal)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -555,11 +557,10 @@ func GetProcessingError(id uint) (ProcessingError, bool) {
 	return processingError, result.RowsAffected > 0
 }
 
-func UpdateProcessingError(processingError ProcessingError) {
-	if processingError.ID == 0 {
-		panic("called UpdateProcessingError with ID 0")
-	}
-	result := db.Save(&processingError)
+// UpdateProcessingError updates non-null values of the processing error with
+// the given ID if it exists.
+func UpdateProcessingError(id uint, updateValues ProcessingError) {
+	result := db.Model(ProcessingError{ID: id}).Updates(updateValues)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -626,11 +627,11 @@ func CreateTask(task Task) Task {
 	return task
 }
 
-func UpdateTask(task Task) {
-	if task.ID == 0 {
+func UpdateTask(id uint, updateValues Task) {
+	if id == 0 {
 		panic("called UpdateTask with ID 0")
 	}
-	result := db.Save(&task)
+	result := db.Model(Task{ID: id}).Updates(&updateValues)
 	if result.Error != nil {
 		panic(result.Error)
 	}
@@ -648,12 +649,12 @@ func DeleteTask(task Task) {
 	}
 }
 
-// UpdateUserPreferences saves the preferences for the given user to the
+// SaveUserPreferences saves the preferences for the given user to the
 // database.
 //
 // Both the entry for the user and the entry for the user preferences are
 // created if they don't yet exist.
-func UpdateUserPreferences(userID string, userPreferences UserPreferences) {
+func SaveUserPreferences(userID string, userPreferences UserPreferences) {
 	if len(userID) == 0 {
 		panic("called GetUserSettings with empty ID")
 	}
@@ -675,7 +676,7 @@ func MarkFileAsProcessed(agency Agency, path string) {
 		AgencyID:        agency.ID,
 		TransferDirPath: path,
 	}
-	result := db.Save(&processedFile)
+	result := db.Create(&processedFile)
 	if result.Error != nil {
 		panic(result.Error)
 	}
