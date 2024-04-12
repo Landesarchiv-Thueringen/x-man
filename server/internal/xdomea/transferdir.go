@@ -2,6 +2,7 @@ package xdomea
 
 import (
 	"io"
+	"io/fs"
 	"lath/xman/internal/db"
 	"log"
 	"net/url"
@@ -105,11 +106,31 @@ func readMessagesFromLocalFilesystem(agency db.Agency, transferDirURL *url.URL) 
 		panic(err)
 	}
 	for _, file := range files {
-		if !db.IsMessageAlreadyProcessed(agency, file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
+		if !file.IsDir() && IsMessage(file.Name()) && !db.IsMessageAlreadyProcessed(agency, file.Name()) {
 			db.MarkFileAsProcessed(agency, file.Name())
-			log.Println("Processing new message " + file.Name())
-			go ProcessNewMessage(agency, file.Name())
+			go func() {
+				waitUntilStable(file)
+				log.Println("Processing new message " + file.Name())
+				ProcessNewMessage(agency, file.Name())
+			}()
 		}
+	}
+}
+
+// waitUntilStable regularly inspects the given file's stats for changes and
+// returns as soon as the file stops changing on disk.
+func waitUntilStable(file fs.DirEntry) {
+	var modTime time.Time
+	for {
+		info, err := file.Info()
+		if err != nil {
+			panic(err)
+		}
+		if modTime == info.ModTime() {
+			return
+		}
+		modTime = info.ModTime()
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -127,9 +148,28 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
 	for _, file := range files {
 		if !db.IsMessageAlreadyProcessed(agency, file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
 			db.MarkFileAsProcessed(agency, file.Name())
-			log.Println("Processing new message " + file.Name())
-			go ProcessNewMessage(agency, file.Name())
+			go func() {
+				waitUntilStableWebDav(client, file)
+				log.Println("Processing new message " + file.Name())
+				go ProcessNewMessage(agency, file.Name())
+			}()
 		}
+	}
+}
+
+// waitUntilStableWebDav regularly inspects the given file's stats for changes
+// and returns as soon as the file has a non-null size, which indicates that its
+// upload is complete.
+func waitUntilStableWebDav(client *gowebdav.Client, file fs.FileInfo) {
+	for {
+		info, err := client.Stat(file.Name())
+		if err != nil {
+			panic(err)
+		}
+		if info.Size() > 0 {
+			return
+		}
+		time.Sleep(1 * time.Second)
 	}
 }
 
