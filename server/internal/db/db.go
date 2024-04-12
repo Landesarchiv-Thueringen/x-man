@@ -680,3 +680,16 @@ func MarkFileAsProcessed(agency Agency, path string) {
 		panic(result.Error)
 	}
 }
+
+func DeleteProcessedTransferDirEntry(agency Agency, path string) {
+	result := db.Where(ProcessedTransferDirFile{
+		AgencyID:        agency.ID,
+		TransferDirPath: path,
+	}).Delete(&ProcessedTransferDirFile{})
+	if result.Error != nil {
+		panic(result.Error)
+	} else if result.RowsAffected != 1 {
+		panic(fmt.Sprintf("failed to delete processed-transfer-dir entry %v, %s: rows affected: %d",
+			agency, path, result.RowsAffected))
+	}
+}

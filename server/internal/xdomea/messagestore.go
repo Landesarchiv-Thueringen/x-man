@@ -83,6 +83,12 @@ func DeleteProcess(processID string) bool {
 	for _, path := range transferFiles {
 		RemoveFileFromTransferDir(process.Agency, path)
 	}
+	if process.Message0501 != nil {
+		db.DeleteProcessedTransferDirEntry(process.Agency, process.Message0501.TransferDirPath)
+	}
+	if process.Message0503 != nil {
+		db.DeleteProcessedTransferDirEntry(process.Agency, process.Message0503.TransferDirPath)
+	}
 	return true
 }
 
@@ -109,6 +115,12 @@ func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
 			panic(err)
 		}
 		cleanupEmptyProcess(message.MessageHead.ProcessID)
+	}
+	process, found := db.GetProcess(message.MessageHead.ProcessID)
+	if found {
+		// If the process cannot be found, the processed-transfer-dir entry was
+		// already deleted with the process.
+		db.DeleteProcessedTransferDirEntry(process.Agency, message.TransferDirPath)
 	}
 }
 
