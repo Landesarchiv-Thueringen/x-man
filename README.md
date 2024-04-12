@@ -97,6 +97,8 @@ Copy certificates in PEM format with the file ending `.crt` to
 to remove the `TLS_INSECURE_SKIP_VERIFY` option for URLs that you provided
 certificates for.
 
+Remember to remove the generated `Test-RootCA.crt` for production use.
+
 ## Development
 
 When run with development configuration, there are some additional options to help with testing and debugging.
