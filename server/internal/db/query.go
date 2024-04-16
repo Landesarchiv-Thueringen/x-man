@@ -315,18 +315,20 @@ func GetAllPrimaryDocuments(messageID uuid.UUID) []PrimaryDocument {
 	result := db.
 		Preload("Versions.Formats.PrimaryDocument").
 		Where("message_id = ?", messageID.String()).
-		Find(&documents)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-	for _, document := range documents {
-		if document.Versions != nil {
-			for _, version := range document.Versions {
-				for _, format := range version.Formats {
-					primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
+		FindInBatches(&documents, 1000, func(tx *gorm.DB, batch int) error {
+			for _, document := range documents {
+				if document.Versions != nil {
+					for _, version := range document.Versions {
+						for _, format := range version.Formats {
+							primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
+						}
+					}
 				}
 			}
-		}
+			return nil
+		})
+	if result.Error != nil {
+		panic(result.Error)
 	}
 	return primaryDocuments
 }
@@ -339,19 +341,26 @@ func GetAllPrimaryDocumentsWithFormatVerification(messageID uuid.UUID) []Primary
 		Preload("Versions.Formats.PrimaryDocument.FormatVerification.FileIdentificationResults.Features").
 		Preload("Versions.Formats.PrimaryDocument.FormatVerification.FileValidationResults.Features").
 		Where("message_id = ?", messageID.String()).
-		Find(&documents)
+		FindInBatches(&documents, 1000, func(tx *gorm.DB, batch int) error {
+			for _, document := range documents {
+				if document.Versions != nil {
+					for _, version := range document.Versions {
+						for _, format := range version.Formats {
+							primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
+						}
+					}
+				}
+			}
+			return nil
+		})
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	for _, document := range documents {
-		if document.Versions != nil {
-			for _, version := range document.Versions {
-				for _, format := range version.Formats {
-					primaryDocuments = append(primaryDocuments, format.PrimaryDocument)
-				}
-			}
-		}
-	}
+	return convertFormatVerificationData(primaryDocuments)
+}
+
+// convertFormatVerificationData converts the format verification data from arrays to maps.
+func convertFormatVerificationData(primaryDocuments []PrimaryDocument) []PrimaryDocument {
 	for primaryDocumentIndex, primaryDocument := range primaryDocuments {
 		if primaryDocument.FormatVerification == nil {
 			continue
