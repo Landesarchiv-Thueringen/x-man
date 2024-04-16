@@ -524,12 +524,13 @@ func patchAppraisal(processID string, recordObjectID uuid.UUID, decision *Apprai
 	}
 }
 
-// UpdateAppraisal updates the appraisals decision and internal note.
-func UpdateAppraisal(id uint, appraisal Appraisal) {
-	result := db.
-		Model(&Appraisal{ID: id}).
-		Select("Decision", "InternalNote").
-		Updates(appraisal)
+func UpdateAppraisal(a Appraisal) {
+	if a.ProcessID == "" {
+		panic("called SetAppraisal with empty processID")
+	} else if a.RecordObjectID == uuid.Nil {
+		panic("called SetAppraisal with nil recordObjectID")
+	}
+	result := db.Save(&a)
 	if result.Error != nil {
 		panic(result.Error)
 	}

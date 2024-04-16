@@ -62,10 +62,9 @@ func SetAppraisalDecisionRecursive(
 	for _, subObject := range recordObject.GetAppraisableChildren() {
 		a := db.GetAppraisal(processID, subObject.GetID())
 		if a.Decision == "" || a.Decision == previousAppraisal.Decision {
-			db.UpdateAppraisal(a.ID, db.Appraisal{
-				Decision:     decision,
-				InternalNote: "",
-			})
+			a.Decision = decision
+			a.InternalNote = ""
+			db.UpdateAppraisal(a)
 		}
 	}
 	return nil
@@ -166,10 +165,9 @@ func markAncestorsToBeArchived(processID string, recordObject db.AppraisableReco
 	for parent := recordObject.GetAppraisableParent(); parent != nil; parent = parent.GetAppraisableParent() {
 		a := db.GetAppraisal(processID, parent.GetID())
 		if a.Decision != db.AppraisalDecisionA {
-			db.UpdateAppraisal(a.ID, db.Appraisal{
-				Decision:     db.AppraisalDecisionA,
-				InternalNote: "",
-			})
+			a.Decision = db.AppraisalDecisionA
+			a.InternalNote = ""
+			db.UpdateAppraisal(a)
 		}
 	}
 }
