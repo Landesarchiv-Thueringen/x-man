@@ -10,7 +10,12 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { combineLatest, switchMap } from 'rxjs';
 import { debounceTime, shareReplay, skip } from 'rxjs/operators';
 import { Appraisal, AppraisalDecision } from '../../../../services/appraisal.service';
-import { AppraisalCode, MessageService, ProcessRecordObject } from '../../../../services/message.service';
+import {
+  AppraisalCode,
+  MessageService,
+  ProcessRecordObject,
+  StructureNode,
+} from '../../../../services/message.service';
 import { MessagePageService } from '../../message-page.service';
 
 @Component({
@@ -27,6 +32,7 @@ export class ProcessMetadataComponent {
   appraisalCodes: AppraisalCode[] = [];
   appraisalComplete?: boolean;
   form: FormGroup;
+  canBeAppraised = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -51,19 +57,23 @@ export class ProcessMetadataComponent {
       switchMap((params: Params) => this.messageService.getProcessRecordObject(params['id'])),
       shareReplay(1),
     );
+    const structureNode = recordObject.pipe(
+      switchMap((recordObject) => this.messageService.getStructureNodeWhenReady(recordObject.id)),
+    );
     const appraisal = recordObject.pipe(
       switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.xdomeaID)),
     );
     // Update the form and local properties on changes.
     combineLatest([
       recordObject,
+      structureNode,
       appraisal,
       this.messageService.getAppraisalCodelist(),
       this.messagePage.observeAppraisalComplete(),
     ])
       .pipe(takeUntilDestroyed())
-      .subscribe(([recordObject, appraisal, appraisalCodes, appraisalComplete]) =>
-        this.setMetadata(recordObject, appraisal, appraisalCodes, appraisalComplete),
+      .subscribe(([recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete]) =>
+        this.setMetadata(recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete),
       );
     // Send the appraisal note to the backend when the value of the form field changes.
     this.registerAppraisalNoteChanges();
@@ -79,11 +89,13 @@ export class ProcessMetadataComponent {
 
   setMetadata(
     recordObject: ProcessRecordObject,
+    structureNode: StructureNode,
     appraisal: Appraisal | null,
     appraisalCodes: AppraisalCode[],
     appraisalComplete: boolean,
   ): void {
     this.recordObject = recordObject;
+    this.canBeAppraised = this.messageService.canBeAppraised(structureNode);
     this.appraisal = appraisal;
     this.appraisalCodes = appraisalCodes;
     this.appraisalComplete = appraisalComplete;

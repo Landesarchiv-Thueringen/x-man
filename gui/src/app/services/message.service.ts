@@ -1,10 +1,22 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, Subscriber, filter, shareReplay } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  Subscriber,
+  filter,
+  first,
+  firstValueFrom,
+  map,
+  shareReplay,
+} from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { environment } from '../../environments/environment';
 import { notNull } from '../utils/predicates';
+import { ConfigService } from './config.service';
 import { Process } from './process.service';
 
 const GROUP_SIZE = 100;
@@ -247,7 +259,10 @@ export class MessageService {
   private cachedMessageId?: string;
   private cachedMessage?: Observable<Message>;
 
+  private config = toSignal(this.configService.config);
+
   constructor(
+    private configService: ConfigService,
     private datePipe: DatePipe,
     private httpClient: HttpClient,
   ) {
@@ -509,6 +524,15 @@ export class MessageService {
     return this.structureNodes.get(id);
   }
 
+  async getStructureNodeWhenReady(id: string): Promise<StructureNode> {
+    return firstValueFrom(
+      this.watchStructureNodes().pipe(
+        map(() => this.getStructureNode(id)),
+        first(notNull),
+      ),
+    );
+  }
+
   propagateNodeChangeToParents(node: StructureNode): void {
     if (!node.parentID) {
       throw new Error('no parent for node change propagation existing');
@@ -725,6 +749,37 @@ export class MessageService {
       }
     }
     return null;
+  }
+
+  canBeAppraised(node: StructureNode): boolean {
+    if (node.type === 'message') {
+      return false;
+    }
+    switch (this.config()?.appraisalLevel) {
+      case 'root':
+        let parentID = node.parentID;
+        while (parentID) {
+          let parent = this.getStructureNode(parentID)!;
+          if (parent.type === 'message' || parent.type === 'file-group' || parent.type === 'process-group') {
+            parentID = parent.parentID;
+          } else {
+            return false;
+          }
+        }
+        return true;
+      case 'all':
+        return (
+          node.type === 'file-group' ||
+          node.type === 'file' ||
+          node.type === 'subfile' ||
+          node.type === 'process-group' ||
+          node.type === 'process' ||
+          node.type === 'subprocess'
+        );
+      default:
+        console.error('called canBeAppraised when config was not ready');
+        return false;
+    }
   }
 
   /**

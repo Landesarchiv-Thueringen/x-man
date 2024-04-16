@@ -128,11 +128,22 @@ func getAbout(context *gin.Context) {
 }
 
 func getConfig(context *gin.Context) {
-	deleteArchivedProcessesAfterDays, _ := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
+	deleteArchivedProcessesAfterDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
+	if err != nil {
+		log.Fatal("failed to read environment variable: DELETE_ARCHIVED_PROCESSES_AFTER_DAYS")
+	}
+	appraisalLevel := os.Getenv("APPRAISAL_LEVEL")
+	if appraisalLevel == "" {
+		log.Fatal("missing environment variable: APPRAISAL_LEVEL")
+	}
 	supportsEmailNotifications := os.Getenv("SMTP_SERVER") != ""
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
+	if archiveTarget == "" {
+		log.Fatal("missing environment variable: ARCHIVE_TARGET")
+	}
 	context.JSON(http.StatusOK, gin.H{
 		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
+		"appraisalLevel":                   appraisalLevel,
 		"supportsEmailNotifications":       supportsEmailNotifications,
 		"archiveTarget":                    archiveTarget,
 	})

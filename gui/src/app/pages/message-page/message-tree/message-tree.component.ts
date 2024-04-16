@@ -42,6 +42,7 @@ export interface FlatNode {
   displayText: DisplayText;
   type: StructureNodeType;
   routerLink?: string;
+  canBeAppraised: boolean;
 }
 
 @Component({
@@ -77,6 +78,7 @@ export class MessageTreeComponent implements AfterViewInit {
       displayText: node.displayText,
       type: node.type,
       routerLink: node.routerLink,
+      canBeAppraised: this.messageService.canBeAppraised(node),
     };
   };
 
@@ -103,12 +105,12 @@ export class MessageTreeComponent implements AfterViewInit {
     @Inject(DOCUMENT) private document: Document,
     private clipboard: Clipboard,
     private dialog: MatDialog,
+    private messagePage: MessagePageService,
     private messageService: MessageService,
     private notificationService: NotificationService,
     private processService: ProcessService,
     private route: ActivatedRoute,
     private router: Router,
-    private messagePage: MessagePageService,
   ) {
     this.registerAppraisals();
     const processReady = new Subject<void>();

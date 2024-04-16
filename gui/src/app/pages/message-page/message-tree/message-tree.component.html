@@ -12,25 +12,10 @@
         <div class="node-info">
           <!-- use a disabled button to provide padding for tree leaf -->
           <button mat-icon-button disabled></button>
-          <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon"> folder </mat-icon>
-          <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon">
-            folder
-          </mat-icon>
-          <mat-icon *ngIf="node.type === 'document'" class="document-icon"> article </mat-icon>
-          <mat-icon *ngIf="node.type === 'attachment'" class="attachment-icon"> attach_file </mat-icon>
-          <mat-icon *ngIf="node.type === 'primaryDocuments'" class="primary-documents-icon"> fact_check </mat-icon>
-          <div class="node-title">
-            <div class="node-title-line">
-              {{ node.displayText.title }}
-            </div>
-            <div class="node-subtitle-line">{{ node.displayText.subtitle }}</div>
-          </div>
+          <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
+          <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
         </div>
-
-        <div *ngIf="showAppraisal" class="node-appraisal">
-          <span class="spacer"></span>
-          <span *ngIf="node.appraisal === 'A' || node.appraisal === 'V'">{{ node.appraisal }}</span>
-        </div>
+        <ng-container *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"></ng-container>
       </div>
     </mat-tree-node>
 
@@ -62,21 +47,8 @@
 
           <!-- use a disabled button to provide padding for tree leaf -->
           <button *ngIf="node.type === 'message'" mat-icon-button disabled></button>
-          <mat-icon *ngIf="node.type === 'message'" class="message-icon">assignment</mat-icon>
-          <mat-icon *ngIf="node.type === 'file-group'" class="file-icon" svgIcon="folders"></mat-icon>
-          <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon">folder</mat-icon>
-          <mat-icon *ngIf="node.type === 'process-group'" class="process-icon" svgIcon="folders"></mat-icon>
-          <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon">folder</mat-icon>
-          <mat-icon *ngIf="node.type === 'document-group'" class="document-icon" svgIcon="articles"></mat-icon>
-          <mat-icon *ngIf="node.type === 'document'" class="document-icon">article</mat-icon>
-          <mat-icon *ngIf="node.type === 'attachment'" class="attachment-icon">attach_file</mat-icon>
-
-          <div class="node-title">
-            <div class="node-title-line">
-              {{ node.displayText.title }}
-            </div>
-            <div *ngIf="node.displayText.subtitle" class="node-subtitle-line">{{ node.displayText.subtitle }}</div>
-          </div>
+          <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
+          <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
         </div>
 
         @if (node.type === "message") {
@@ -111,18 +83,7 @@
             }
           </mat-menu>
         }
-        <div *ngIf="showAppraisal && node.type !== 'message'" class="node-appraisal">
-          <span class="spacer"></span>
-          <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
-            appraisal.decision | recordObjectAppraisal
-          }}</span>
-          <mat-checkbox
-            *ngIf="showSelection"
-            [(ngModel)]="node.selected"
-            (click)="$event.stopPropagation()"
-            (ngModelChange)="selectItem($event, node.id)"
-          ></mat-checkbox>
-        </div>
+        <ng-container *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"></ng-container>
       </div>
     </mat-tree-node>
   </mat-tree>
@@ -185,3 +146,38 @@
     </button>
   </div>
 </div>
+
+<ng-template #nodeIcon let-node>
+  <mat-icon *ngIf="node.type === 'message'" class="message-icon">assignment</mat-icon>
+  <mat-icon *ngIf="node.type === 'file-group'" class="file-icon" svgIcon="folders"></mat-icon>
+  <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon">folder</mat-icon>
+  <mat-icon *ngIf="node.type === 'process-group'" class="process-icon" svgIcon="folders"></mat-icon>
+  <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon">folder</mat-icon>
+  <mat-icon *ngIf="node.type === 'document-group'" class="document-icon" svgIcon="articles"></mat-icon>
+  <mat-icon *ngIf="node.type === 'document'" class="document-icon">article</mat-icon>
+  <mat-icon *ngIf="node.type === 'attachment'" class="attachment-icon">attach_file</mat-icon>
+</ng-template>
+
+<ng-template #nodeTitle let-node>
+  <div class="node-title">
+    <div class="node-title-line">
+      {{ node.displayText.title }}
+    </div>
+    <div *ngIf="node.displayText.subtitle" class="node-subtitle-line">{{ node.displayText.subtitle }}</div>
+  </div>
+</ng-template>
+
+<ng-template #nodeAppraisal let-node>
+  <div *ngIf="showAppraisal && node.canBeAppraised" class="node-appraisal">
+    <span class="spacer"></span>
+    <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
+      appraisal.decision | recordObjectAppraisal
+    }}</span>
+    <mat-checkbox
+      *ngIf="showSelection"
+      [(ngModel)]="node.selected"
+      (click)="$event.stopPropagation()"
+      (ngModelChange)="selectItem($event, node.id)"
+    ></mat-checkbox>
+  </div>
+</ng-template>

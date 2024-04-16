@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 
 export interface Config {
   deleteArchivedProcessesAfterDays: number;
+  appraisalLevel: 'root' | 'all';
   supportsEmailNotifications: boolean;
   archiveTarget: 'dimag' | 'filesystem';
 }

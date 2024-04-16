@@ -52,7 +52,7 @@
         </div>
       </mat-expansion-panel>
 
-      <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel *ngIf="canBeAppraised" [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title> Bewertung </mat-panel-title>
         </mat-expansion-panel-header>
