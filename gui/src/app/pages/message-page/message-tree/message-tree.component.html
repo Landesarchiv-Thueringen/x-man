@@ -211,9 +211,9 @@
 <ng-template #nodeTitle let-node>
   <div class="node-title">
     <div class="node-title-line">
-      {{ node.displayText.title }}
+      {{ node.title }}
     </div>
-    <div *ngIf="node.displayText.subtitle" class="node-subtitle-line">{{ node.displayText.subtitle }}</div>
+    <div *ngIf="node.subtitle" class="node-subtitle-line">{{ node.subtitle }}</div>
   </div>
 </ng-template>
 

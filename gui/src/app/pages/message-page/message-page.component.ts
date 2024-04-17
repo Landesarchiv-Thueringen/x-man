@@ -7,6 +7,7 @@ import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { distinctUntilChanged, filter, map, switchMap } from 'rxjs';
 import { MessagePageService } from './message-page.service';
+import { MessageProcessorService } from './message-processor.service';
 import { MessageTreeComponent } from './message-tree/message-tree.component';
 
 @Component({
@@ -15,7 +16,7 @@ import { MessageTreeComponent } from './message-tree/message-tree.component';
   imports: [RouterModule, MatSidenavModule, MatIconModule, MatButtonModule, MessageTreeComponent],
   templateUrl: './message-page.component.html',
   styleUrl: './message-page.component.scss',
-  providers: [MessagePageService],
+  providers: [MessagePageService, MessageProcessorService],
 })
 export class MessagePageComponent {
   @ViewChild(MatSidenav) sidenav?: MatSidenav;

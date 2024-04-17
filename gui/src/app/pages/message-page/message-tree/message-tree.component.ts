@@ -12,39 +12,22 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatTree, MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
+import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReplaySubject, Subject, concat, filter, firstValueFrom, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
-import {
-  DisplayText,
-  Message,
-  MessageService,
-  StructureNode,
-  StructureNodeType,
-} from '../../../services/message.service';
+import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
 import { Process, ProcessService, ProcessStep } from '../../../services/process.service';
 import { Task } from '../../../services/tasks.service';
 import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
+import { MessageProcessorService, StructureNode } from '../message-processor.service';
 import { RecordObjectAppraisalPipe } from '../metadata/record-object-appraisal-pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from './finalize-appraisal-dialog/finalize-appraisal-dialog.component';
+import { FlatNode, MessageTreeDataSource } from './message-tree-data-source';
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
-
-export interface FlatNode {
-  id: string;
-  xdomeaId?: string;
-  selected: boolean;
-  parentID?: string;
-  expandable: boolean;
-  level: number;
-  displayText: DisplayText;
-  type: StructureNodeType;
-  routerLink?: string;
-  canBeAppraised: boolean;
-}
 
 interface Filter {
   type: 'not-appraised' | 'record-plan-id';
@@ -76,21 +59,6 @@ export class MessageTreeComponent implements AfterViewInit {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
   @ViewChildren(MatChipRow) matChipRow?: QueryList<MatChipRow>;
 
-  private _transformer = (node: StructureNode, level: number): FlatNode => {
-    return {
-      id: node.id,
-      xdomeaId: node.xdomeaID,
-      selected: node.selected,
-      parentID: node.parentID,
-      expandable: !!node.children && node.children.length > 0,
-      level: level,
-      displayText: node.displayText,
-      type: node.type,
-      routerLink: node.routerLink,
-      canBeAppraised: this.messageService.canBeAppraised(node),
-    };
-  };
-
   process?: Process;
   message?: Message;
   showAppraisal = false;
@@ -100,13 +68,8 @@ export class MessageTreeComponent implements AfterViewInit {
     (node) => node.level,
     (node) => node.expandable,
   );
-  treeFlattener = new MatTreeFlattener(
-    this._transformer,
-    (node) => node.level,
-    (node) => node.expandable,
-    (node) => node.children,
-  );
-  dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+
+  dataSource = new MessageTreeDataSource(this.treeControl);
   viewInitialized = new ReplaySubject<void>(1);
   appraisals: { [xdomeaId: string]: Appraisal } = {};
   activeFilters: Filter[] = [];
@@ -122,6 +85,7 @@ export class MessageTreeComponent implements AfterViewInit {
     private processService: ProcessService,
     private route: ActivatedRoute,
     private router: Router,
+    private messageProcessor: MessageProcessorService,
   ) {
     this.registerAppraisals();
     const processReady = new Subject<void>();
@@ -133,7 +97,7 @@ export class MessageTreeComponent implements AfterViewInit {
       .pipe(filter(notNull))
       .subscribe(async (message) => {
         this.message = message;
-        this.initTree();
+        await this.initTree();
         await firstValueFrom(this.viewInitialized);
         const params = await firstValueFrom(this.route.firstChild!.params);
         if (params['id']) {
@@ -191,27 +155,13 @@ export class MessageTreeComponent implements AfterViewInit {
     this.activeFilters = this.activeFilters.filter((f) => f != filter);
   }
 
-  initTree(): void {
+  async initTree(): Promise<void> {
     if (this.message && this.process) {
       this.showAppraisal = this.message.messageType.code === '0501';
-      const treeData: StructureNode[] = [];
-      const messageNode = this.messageService.processMessage(this.process, this.message);
-      treeData.push(messageNode);
-      this.dataSource.data = treeData;
-      this.expandNode(messageNode.id);
-      this.messageService.watchNodeChanges().subscribe((changedNode: StructureNode) => {
-        // TODO: find better solution than manipulating the flat nodes directly
-        this.updateFlatNodeInTreeControl(changedNode);
-      });
+      const rootNode = await this.messageProcessor.processMessage(this.process, this.message);
+      this.dataSource.data = rootNode;
+      this.expandNode(rootNode.id);
     }
-  }
-
-  updateFlatNodeInTreeControl(changedNode: StructureNode): void {
-    const flatNode: FlatNode = this.treeControl.dataNodes.find((n: FlatNode) => n.id === changedNode.id)!;
-    flatNode.selected = changedNode.selected;
-    flatNode.displayText = changedNode.displayText;
-    flatNode.routerLink = changedNode.routerLink;
-    flatNode.type = changedNode.type;
   }
 
   expandNode(id: string): void {
@@ -229,13 +179,6 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   disableSelection(): void {
-    this.selectedNodes.forEach((nodeID: string) => {
-      const node: StructureNode | undefined = this.messageService.getStructureNode(nodeID);
-      if (node) {
-        node.selected = false;
-        this.messageService.updateStructureNode(node);
-      }
-    });
     this.selectedNodes = [];
     this.showSelection = false;
   }
@@ -246,9 +189,8 @@ export class MessageTreeComponent implements AfterViewInit {
     } else {
       this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== id);
     }
-    const node: StructureNode | undefined = this.messageService.getStructureNode(id);
+    const node = this.messageProcessor.getNode(id);
     if (node) {
-      node.selected = selected;
       node.children?.forEach((nodeChild: StructureNode) => {
         if (
           nodeChild.type === 'file' ||
@@ -259,7 +201,6 @@ export class MessageTreeComponent implements AfterViewInit {
           this.selectItem(selected, nodeChild.id);
         }
       });
-      this.messageService.updateStructureNode(node);
     }
   }
 
@@ -275,7 +216,7 @@ export class MessageTreeComponent implements AfterViewInit {
       .subscribe(async (formResult) => {
         if (formResult) {
           await this.messagePage.setAppraisals(
-            this.selectedNodes.map((id) => this.messageService.getStructureNode(id)!.xdomeaID).filter(notNull),
+            this.selectedNodes.map((id) => this.messageProcessor.getNode(id)!.xdomeaID).filter(notNull),
             formResult.appraisalCode,
             formResult.appraisalNote,
           );
@@ -286,8 +227,8 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   getAppraisal(node: FlatNode): Appraisal | null {
-    if (node.xdomeaId) {
-      return this.appraisals[node.xdomeaId];
+    if (node.xdomeaID) {
+      return this.appraisals[node.xdomeaID];
     } else {
       return null;
     }

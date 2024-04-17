@@ -10,8 +10,9 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { combineLatest, switchMap } from 'rxjs';
 import { debounceTime, shareReplay, skip } from 'rxjs/operators';
 import { Appraisal, AppraisalDecision } from '../../../../services/appraisal.service';
-import { AppraisalCode, FileRecordObject, MessageService, StructureNode } from '../../../../services/message.service';
+import { AppraisalCode, FileRecordObject, MessageService } from '../../../../services/message.service';
 import { MessagePageService } from '../../message-page.service';
+import { MessageProcessorService, StructureNode } from '../../message-processor.service';
 
 @Component({
   selector: 'app-file-metadata',
@@ -34,6 +35,7 @@ export class FileMetadataComponent {
     private formBuilder: FormBuilder,
     private messagePage: MessagePageService,
     private messageService: MessageService,
+    private messageProcessor: MessageProcessorService,
     private route: ActivatedRoute,
   ) {
     this.form = this.formBuilder.group({
@@ -54,7 +56,7 @@ export class FileMetadataComponent {
       shareReplay(1),
     );
     const structureNode = recordObject.pipe(
-      switchMap((recordObject) => this.messageService.getStructureNodeWhenReady(recordObject.id)),
+      switchMap((recordObject) => this.messageProcessor.getNodeWhenReady(recordObject.id)),
     );
     const appraisal = recordObject.pipe(
       switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.xdomeaID)),
@@ -90,7 +92,7 @@ export class FileMetadataComponent {
     appraisalComplete: boolean,
   ): void {
     this.recordObject = recordObject;
-    this.canBeAppraised = this.messageService.canBeAppraised(structureNode);
+    this.canBeAppraised = structureNode.canBeAppraised;
     this.appraisal = appraisal;
     this.appraisalCodes = appraisalCodes;
     this.appraisalComplete = appraisalComplete;

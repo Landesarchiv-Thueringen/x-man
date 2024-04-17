@@ -1,25 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  BehaviorSubject,
-  Observable,
-  Subject,
-  Subscriber,
-  filter,
-  first,
-  firstValueFrom,
-  map,
-  shareReplay,
-} from 'rxjs';
-import { v4 as uuidv4 } from 'uuid';
+import { BehaviorSubject, Observable, Subscriber, filter, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { notNull } from '../utils/predicates';
-import { ConfigService } from './config.service';
-import { Process } from './process.service';
-
-const GROUP_SIZE = 100;
 
 export interface Message {
   id: string;
@@ -31,9 +15,9 @@ export interface Message {
   formatVerificationComplete: boolean;
   primaryDocumentCount: number;
   verificationCompleteCount: number;
-  fileRecordObjects: FileRecordObject[];
-  processRecordObjects: ProcessRecordObject[];
-  documentRecordObjects: DocumentRecordObject[];
+  fileRecordObjects?: FileRecordObject[];
+  processRecordObjects?: ProcessRecordObject[];
+  documentRecordObjects?: DocumentRecordObject[];
 }
 
 export interface MessageType {
@@ -210,36 +194,7 @@ export interface Lifetime {
   end?: string;
 }
 
-export type StructureNodeType =
-  | 'message'
-  | 'file-group'
-  | 'file'
-  | 'subfile'
-  | 'process-group'
-  | 'process'
-  | 'subprocess'
-  | 'document-group'
-  | 'document'
-  | 'attachment'
-  | 'primaryDocuments';
 export type RecordObjectType = 'file' | 'process' | 'document';
-
-export interface DisplayText {
-  title: string;
-  subtitle?: string;
-}
-
-export interface StructureNode {
-  id: string;
-  xdomeaID?: string;
-  selected: boolean;
-  displayText: DisplayText;
-  type: StructureNodeType;
-  routerLink?: string;
-  appraisal?: string;
-  parentID?: string;
-  children?: StructureNode[];
-}
 
 @Injectable({
   providedIn: 'root',
@@ -249,27 +204,17 @@ export class MessageService {
   private appraisalCodes = new BehaviorSubject<AppraisalCode[] | null>(null);
   private confidentialityLevelCodelist?: ConfidentialityLevel[];
 
-  private structureNodes: Map<string, StructureNode>;
-  private nodesSubject: BehaviorSubject<StructureNode[]>;
-  private changedNodeSubject: Subject<StructureNode>;
-
   private featureOrder: Map<string, number>;
   private overviewFeatures: string[];
 
   private cachedMessageId?: string;
   private cachedMessage?: Observable<Message>;
 
-  private config = toSignal(this.configService.config);
-
   constructor(
-    private configService: ConfigService,
     private datePipe: DatePipe,
     private httpClient: HttpClient,
   ) {
     this.apiEndpoint = environment.endpoint;
-    this.structureNodes = new Map<string, StructureNode>();
-    this.nodesSubject = new BehaviorSubject<StructureNode[]>(this.getRootStructureNodes());
-    this.changedNodeSubject = new Subject<StructureNode>();
     this.fetchAppraisalCodelist().subscribe((codes) => this.appraisalCodes.next(codes));
     this.getConfidentialityLevelCodelist().subscribe((confidentialityLevelCodelist: ConfidentialityLevel[]) => {
       this.confidentialityLevelCodelist = confidentialityLevelCodelist;
@@ -287,269 +232,6 @@ export class MessageService {
       ['wellFormed', 1001],
       ['valid', 1002],
     ]);
-  }
-
-  processMessage(process: Process, message: Message): StructureNode {
-    let displayText: DisplayText;
-    switch (message.messageType.code) {
-      case '0501':
-        displayText = {
-          title: 'Anbietung',
-          subtitle: process.agency.name,
-        };
-        break;
-      case '0503':
-        displayText = {
-          title: 'Abgabe',
-          subtitle: process.agency.name,
-        };
-        break;
-      default:
-        throw new Error('unhandled message type');
-    }
-    const routerLink: string = 'details';
-    const messageNode: StructureNode = {
-      id: message.id,
-      selected: true,
-      displayText: displayText,
-      type: 'message',
-      routerLink: routerLink,
-      children: [],
-    };
-    if (message.messageType?.code === '0503') {
-      messageNode.children!.push(this.getPrimaryDocumentsNode(message.id));
-    }
-    message.fileRecordObjects ??= [];
-    message.processRecordObjects ??= [];
-    message.documentRecordObjects ??= [];
-    const groupRootNodes =
-      message.fileRecordObjects.length + message.processRecordObjects.length + message.documentRecordObjects.length >
-      GROUP_SIZE;
-    let currentGroup = messageNode;
-    for (const [index, fileRecordObject] of message.fileRecordObjects.entries()) {
-      if (groupRootNodes && index % GROUP_SIZE == 0) {
-        currentGroup = {
-          id: uuidv4(),
-          selected: false,
-          displayText: {
-            title: `Akten ${index + 1}...${Math.min(index + GROUP_SIZE, message.fileRecordObjects.length)}`,
-          },
-          type: 'file-group',
-          parentID: message.id,
-          children: [],
-        };
-        messageNode.children?.push(currentGroup);
-        this.structureNodes.set(currentGroup.id, currentGroup);
-      }
-      currentGroup.children!.push(this.getFileStructureNode(fileRecordObject, false, currentGroup.id));
-    }
-    for (const [index, processRecordObject] of message.processRecordObjects.entries()) {
-      if (groupRootNodes && index % GROUP_SIZE == 0) {
-        currentGroup = {
-          id: uuidv4(),
-          selected: false,
-          displayText: {
-            title: `Vorgänge ${index + 1}...${Math.min(index + GROUP_SIZE, message.processRecordObjects.length)}`,
-          },
-          type: 'process-group',
-          parentID: message.id,
-          children: [],
-        };
-        messageNode.children?.push(currentGroup);
-        this.structureNodes.set(currentGroup.id, currentGroup);
-      }
-      currentGroup.children!.push(this.getProcessStructureNode(processRecordObject, false, currentGroup.id));
-    }
-    for (const [index, documentRecordObject] of message.documentRecordObjects.entries()) {
-      if (groupRootNodes && index % GROUP_SIZE == 0) {
-        currentGroup = {
-          id: uuidv4(),
-          selected: false,
-          displayText: {
-            title: `Dokumente ${index + 1}...${Math.min(index + GROUP_SIZE, message.documentRecordObjects.length)}`,
-          },
-          type: 'document-group',
-          parentID: message.id,
-          children: [],
-        };
-        messageNode.children?.push(currentGroup);
-        this.structureNodes.set(currentGroup.id, currentGroup);
-      }
-      currentGroup.children!.push(this.getDocumentStructureNode(documentRecordObject, false, currentGroup.id));
-    }
-
-    this.structureNodes.set(messageNode.id, messageNode);
-    this.nodesSubject.next(this.getRootStructureNodes());
-    return messageNode;
-  }
-
-  getPrimaryDocumentsNode(messageID: string): StructureNode {
-    const displayText: DisplayText = {
-      title: 'Formatverifikation',
-      subtitle: 'Primärdateien',
-    };
-    const routerLink: string = 'formatverifikation';
-    const primaryDocumentsNode: StructureNode = {
-      id: uuidv4(),
-      selected: false,
-      displayText: displayText,
-      type: 'primaryDocuments',
-      routerLink: routerLink,
-      parentID: messageID,
-    };
-    return primaryDocumentsNode;
-  }
-
-  getFileStructureNode(fileRecordObject: FileRecordObject, subfile: boolean, parentID?: string): StructureNode {
-    const children: StructureNode[] = [];
-    // generate child nodes for all subfiles (de: Teilakten)
-    if (fileRecordObject.subfiles) {
-      for (let subfile of fileRecordObject.subfiles) {
-        children.push(this.getFileStructureNode(subfile, true, fileRecordObject.id));
-      }
-    }
-    // generate child nodes for all processes (de: Vorgänge)
-    if (fileRecordObject.processes) {
-      for (let process of fileRecordObject.processes) {
-        children.push(this.getProcessStructureNode(process, false, fileRecordObject.id));
-      }
-    }
-    const nodeName = subfile ? 'Teilakte' : 'Akte';
-    const displayText: DisplayText = {
-      title: nodeName + ': ' + fileRecordObject.generalMetadata?.xdomeaID,
-      subtitle: fileRecordObject.generalMetadata?.subject,
-    };
-    const routerLink: string = 'akte/' + fileRecordObject.id;
-    const type = subfile ? 'subfile' : 'file';
-    const fileNode: StructureNode = {
-      id: fileRecordObject.id,
-      xdomeaID: fileRecordObject.xdomeaID,
-      selected: false,
-      displayText: displayText,
-      type: type,
-      routerLink: routerLink,
-      appraisal: fileRecordObject.archiveMetadata?.appraisalCode,
-      parentID: parentID,
-      children: children,
-    };
-    this.addStructureNode(fileNode);
-    return fileNode;
-  }
-
-  getProcessStructureNode(
-    processRecordObject: ProcessRecordObject,
-    subprocess: boolean,
-    parentID?: string,
-  ): StructureNode {
-    const children: StructureNode[] = [];
-    // generate child nodes for all subprocesses (de: Teilvorgänge)
-    if (processRecordObject.subprocesses) {
-      for (let subprocess of processRecordObject.subprocesses) {
-        children.push(this.getProcessStructureNode(subprocess, true, processRecordObject.id));
-      }
-    }
-    // generate child nodes for all documents (de: Dokumente)
-    if (processRecordObject.documents) {
-      for (let document of processRecordObject.documents) {
-        children.push(this.getDocumentStructureNode(document, false, processRecordObject.id));
-      }
-    }
-    const nodeName = subprocess ? 'Teilvorgang' : 'Vorgang';
-    const displayText: DisplayText = {
-      title: nodeName + ': ' + processRecordObject.generalMetadata?.xdomeaID,
-      subtitle: processRecordObject.generalMetadata?.subject,
-    };
-    const routerLink: string = 'vorgang/' + processRecordObject.id;
-    const type = subprocess ? 'subprocess' : 'process';
-    const processNode: StructureNode = {
-      id: processRecordObject.id,
-      xdomeaID: processRecordObject.xdomeaID,
-      selected: false,
-      displayText: displayText,
-      type: type,
-      routerLink: routerLink,
-      appraisal: processRecordObject.archiveMetadata?.appraisalCode,
-      parentID: parentID,
-      children: children,
-    };
-    this.addStructureNode(processNode);
-    return processNode;
-  }
-
-  getDocumentStructureNode(
-    documentRecordObject: DocumentRecordObject,
-    attachment: boolean,
-    parentID?: string,
-  ): StructureNode {
-    const children: StructureNode[] = [];
-    const nodeName = attachment ? 'Anlage' : 'Dokument';
-    const displayText: DisplayText = {
-      title: nodeName + ': ' + documentRecordObject.generalMetadata?.xdomeaID,
-      subtitle: documentRecordObject.generalMetadata?.subject,
-    };
-    if (documentRecordObject.attachments) {
-      for (let document of documentRecordObject.attachments) {
-        children.push(this.getDocumentStructureNode(document, true, documentRecordObject.id));
-      }
-    }
-    const routerLink: string = 'dokument/' + documentRecordObject.id;
-    const type = attachment ? 'attachment' : 'document';
-    const documentNode: StructureNode = {
-      id: documentRecordObject.id,
-      xdomeaID: documentRecordObject.xdomeaID,
-      selected: false,
-      displayText: displayText,
-      type: type,
-      routerLink: routerLink,
-      parentID: parentID,
-      children: children,
-    };
-    this.addStructureNode(documentNode);
-    return documentNode;
-  }
-
-  watchStructureNodes(): Observable<StructureNode[]> {
-    return this.nodesSubject.asObservable();
-  }
-
-  watchNodeChanges(): Observable<StructureNode> {
-    return this.changedNodeSubject.asObservable();
-  }
-
-  addStructureNode(node: StructureNode): void {
-    this.structureNodes.set(node.id, node);
-  }
-
-  getStructureNode(id: string): StructureNode | undefined {
-    return this.structureNodes.get(id);
-  }
-
-  async getStructureNodeWhenReady(id: string): Promise<StructureNode> {
-    return firstValueFrom(
-      this.watchStructureNodes().pipe(
-        map(() => this.getStructureNode(id)),
-        first(notNull),
-      ),
-    );
-  }
-
-  propagateNodeChangeToParents(node: StructureNode): void {
-    if (!node.parentID) {
-      throw new Error('no parent for node change propagation existing');
-    }
-    const parent: StructureNode | undefined = this.structureNodes.get(node.parentID);
-    if (!parent) {
-      throw new Error('parent node does not exist, ID: ' + node.parentID);
-    }
-    if (!parent.children) {
-      throw new Error('parent and children are not connected');
-    }
-    const nodeIndex: number = parent.children.findIndex((child: StructureNode) => child.id === node.id);
-    if (nodeIndex === -1) {
-      throw new Error('parent and child are not connected');
-    }
-    // replace old node with updated version
-    parent.children[nodeIndex] = node;
   }
 
   getMessage(id: string): Observable<Message> {
@@ -638,53 +320,6 @@ export class MessageService {
     }
   }
 
-  updateStructureNodeForRecordObject(
-    recordObject: FileRecordObject | ProcessRecordObject | DocumentRecordObject,
-  ): void {
-    const node: StructureNode | undefined = this.structureNodes.get(recordObject.id);
-    if (node) {
-      let changedNode: StructureNode;
-      switch (recordObject.recordObjectType) {
-        case 'file': {
-          const isSubfile = node.type === 'subfile';
-          changedNode = this.getFileStructureNode(recordObject as FileRecordObject, isSubfile, node.parentID);
-          // updated record object doesn't contain child information
-          // no need to process the children again
-          changedNode.children = node.children;
-          break;
-        }
-        case 'process': {
-          const isSubprocess = node.type === 'subprocess';
-          changedNode = this.getProcessStructureNode(recordObject as ProcessRecordObject, isSubprocess, node.parentID);
-          changedNode.children = node.children;
-          break;
-        }
-        case 'document': {
-          const isAttachment = node.type === 'attachment';
-          changedNode = this.getDocumentStructureNode(
-            recordObject as DocumentRecordObject,
-            isAttachment,
-            node.parentID,
-          );
-          changedNode.children = node.children;
-          break;
-        }
-      }
-      this.propagateNodeChangeToParents(changedNode);
-      this.nodesSubject.next(this.getRootStructureNodes());
-      this.changedNodeSubject.next(changedNode);
-    } else {
-      console.error('no structure node for record object with ID: ' + recordObject.id);
-    }
-  }
-
-  updateStructureNode(changedNode: StructureNode) {
-    this.structureNodes.set(changedNode.id, changedNode);
-    this.propagateNodeChangeToParents(changedNode);
-    this.nodesSubject.next(this.getRootStructureNodes());
-    this.changedNodeSubject.next(changedNode);
-  }
-
   getRecordObjectAppraisalByCode(code: string | undefined, appraisals: AppraisalCode[]): AppraisalCode | null {
     if (!code) {
       return null;
@@ -749,48 +384,5 @@ export class MessageService {
       }
     }
     return null;
-  }
-
-  canBeAppraised(node: StructureNode): boolean {
-    if (node.type === 'message') {
-      return false;
-    }
-    switch (this.config()?.appraisalLevel) {
-      case 'root':
-        let parentID = node.parentID;
-        while (parentID) {
-          let parent = this.getStructureNode(parentID)!;
-          if (parent.type === 'message' || parent.type === 'file-group' || parent.type === 'process-group') {
-            parentID = parent.parentID;
-          } else {
-            return false;
-          }
-        }
-        return true;
-      case 'all':
-        return (
-          node.type === 'file-group' ||
-          node.type === 'file' ||
-          node.type === 'subfile' ||
-          node.type === 'process-group' ||
-          node.type === 'process' ||
-          node.type === 'subprocess'
-        );
-      default:
-        console.error('called canBeAppraised when config was not ready');
-        return false;
-    }
-  }
-
-  /**
-   * The message tree has only one root node which is the message node.
-   */
-  private getRootStructureNodes(): StructureNode[] {
-    for (let node of this.structureNodes.values()) {
-      if (!node.parentID) {
-        return [node];
-      }
-    }
-    return [];
   }
 }
