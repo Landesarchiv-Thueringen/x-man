@@ -28,6 +28,7 @@ html {
   --mat-primary-30: #{mat.get-theme-color($light-theme, primary, 30)};
   --mat-primary-90: #{mat.get-theme-color($light-theme, primary, 90)};
   --mat-primary-95: #{mat.get-theme-color($light-theme, primary, 95)};
+  --mat-secondary: #{mat.get-theme-color($light-theme, secondary)};
 }
 
 .dark-theme,

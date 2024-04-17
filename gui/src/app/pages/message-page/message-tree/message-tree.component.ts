@@ -1,11 +1,12 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipEditedEvent, MatChipRow, MatChipsModule } from '@angular/material/chips';
 import { MatRippleModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -45,6 +46,12 @@ export interface FlatNode {
   canBeAppraised: boolean;
 }
 
+interface Filter {
+  type: 'not-appraised' | 'record-plan-id';
+  label: string;
+  value?: string;
+}
+
 @Component({
   selector: 'app-message-tree',
   templateUrl: './message-tree.component.html',
@@ -55,6 +62,7 @@ export interface FlatNode {
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatChipsModule,
     MatIconModule,
     MatMenuModule,
     MatRippleModule,
@@ -66,6 +74,7 @@ export interface FlatNode {
 })
 export class MessageTreeComponent implements AfterViewInit {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
+  @ViewChildren(MatChipRow) matChipRow?: QueryList<MatChipRow>;
 
   private _transformer = (node: StructureNode, level: number): FlatNode => {
     return {
@@ -100,6 +109,8 @@ export class MessageTreeComponent implements AfterViewInit {
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   viewInitialized = new ReplaySubject<void>(1);
   appraisals: { [xdomeaId: string]: Appraisal } = {};
+  activeFilters: Filter[] = [];
+  filtersHint: string | null = null;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -140,6 +151,44 @@ export class MessageTreeComponent implements AfterViewInit {
 
   trackTree(index: number, element: FlatNode): string {
     return element.id;
+  }
+
+  addValueFilter(filter: Filter): void {
+    this.activeFilters.push({ ...filter, value: '' });
+    // Start editing the chip value.
+    setTimeout(() => {
+      const chipRow = this.matChipRow!.last;
+      chipRow['_startEditing']({ target: null });
+      // Force a space after the colon.
+      setTimeout(() => {
+        const editInput = chipRow.defaultEditInput!;
+        editInput.getNativeElement().innerHTML = `${filter.label}:&nbsp;`;
+        editInput['_moveCursorToEndOfInput']();
+      });
+    });
+    this.filtersHint = `Geben Sie einen Wert ein, um nach ${filter.label} zu filtern, und bestätigen Sie Ihre Eingabe mit Enter.`;
+  }
+
+  onFilterEdited(event: MatChipEditedEvent, filter: Filter): void {
+    const value = event.value.replace(new RegExp(filter.label + ':?'), '').trim();
+    if (value) {
+      filter.value = value;
+    } else {
+      this.removeFilter(filter);
+    }
+    this.filtersHint = null;
+  }
+
+  filterHasValue(filter: Filter): boolean {
+    return typeof filter.value === 'string';
+  }
+
+  hasFilter(type: Filter['type']): boolean {
+    return this.activeFilters.some((f) => f.type === type);
+  }
+
+  removeFilter(filter: Filter): void {
+    this.activeFilters = this.activeFilters.filter((f) => f != filter);
   }
 
   initTree(): void {

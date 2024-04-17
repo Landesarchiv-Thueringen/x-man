@@ -20,68 +20,81 @@
   overflow: auto;
   margin-top: 2em;
   margin-left: 2em;
+}
 
-  .root-node {
-    position: sticky;
-    top: 0px;
-    z-index: 2;
+mat-tree-node {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 0.2em;
+  margin-right: 2em;
+}
+
+.root-node {
+  position: sticky;
+  top: 0px;
+  z-index: 2;
+  background-color: var(--mat-app-background-color);
+}
+
+.filters-hint {
+  margin-top: 0.5em;
+  color: var(--mat-secondary);
+}
+
+.node {
+  display: flex;
+  border-radius: 30px;
+  padding: 4px;
+  margin-bottom: 0.6em;
+
+  cursor: pointer;
+
+  &.active {
+    background-color: var(--mat-primary-90);
   }
 
-  .node {
-    display: flex;
-    width: 100%;
-    border-radius: 30px;
-    padding: 4px;
-    margin-bottom: 0.8em;
-    margin-right: 2em;
-    cursor: pointer;
-
-    &.active {
-      background-color: var(--mat-primary-90);
-    }
-
-    &:hover {
-      background-color: var(--mat-primary-95);
-    }
-
-    .node-info {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-
-      .mat-icon {
-        // important icons shrink when overflow occurs
-        flex-shrink: 0;
-      }
-
-      .node-title {
-        display: flex;
-        flex-direction: column;
-        word-break: break-word;
-        padding-right: 4em;
-
-        .node-subtitle-line {
-          font-weight: 500;
-        }
-      }
-    }
-
-    .node-appraisal {
-      display: flex;
-      align-items: center;
-      flex-grow: 1;
-      font-weight: bold;
-
-      .appraisal-symbol {
-        width: 48px; // icon width for alignment
-        text-align: center;
-      }
-    }
-
-    .spacer {
-      flex: 1 1 auto;
-    }
+  &:hover {
+    background-color: var(--mat-primary-95);
   }
+}
+
+.node-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .mat-icon {
+    // important icons shrink when overflow occurs
+    flex-shrink: 0;
+  }
+}
+
+.node-title {
+  display: flex;
+  flex-direction: column;
+  word-break: break-word;
+  padding-right: 4em;
+
+  .node-subtitle-line {
+    font-weight: 500;
+  }
+}
+
+.node-appraisal {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  font-weight: bold;
+
+  .appraisal-symbol {
+    width: 48px; // icon width for alignment
+    text-align: center;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
 }
 
 .message-icon {
