@@ -77,7 +77,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   /** All institutions for which there are processes. Used for institutions filter field. */
   institutions: string[] = [];
   isAdmin = this.authService.isAdmin();
-  allUsersControl = new FormControl(window.localStorage.getItem('show-all-user-processes') === 'true', {
+  allUsersControl = new FormControl(this.isAdmin && window.localStorage.getItem('show-all-user-processes') === 'true', {
     nonNullable: true,
   });
   showFilters = window.localStorage.getItem('show-process-filters') === 'true';
