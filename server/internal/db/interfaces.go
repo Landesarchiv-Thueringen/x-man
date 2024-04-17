@@ -54,6 +54,29 @@ func (f *FileRecordObject) SetMessageID(messageID uuid.UUID) {
 	f.MessageID = messageID
 }
 
+// GetMaxChildDepth returns the maximal depth of all tree branches from this node.
+// If the file record object has only documents as child the maximal child depth is 2.
+// If the file record object has subfiles with processes and documents the maximal child depth is 4.
+// If the file record object has subfiles with subprocessess ...
+// Document attachments are not counted.
+func (f *FileRecordObject) GetMaxChildDepth() uint {
+	var depth uint = 1
+	if len(f.DocumentRecordObjects) > 0 {
+		depth = 2
+	}
+	if len(f.ProcessRecordObjects) > 0 {
+		for _, process := range f.ProcessRecordObjects {
+			depth = max(depth, process.GetMaxChildDepth()+1)
+		}
+	}
+	if len(f.SubFileRecordObjects) > 0 {
+		for _, subfiles := range f.SubFileRecordObjects {
+			depth = max(depth, subfiles.GetMaxChildDepth()+1)
+		}
+	}
+	return depth
+}
+
 // GetChildren returns all list of all record objects contained in the process record object.
 // The original child objects are returned instead of duplicates, allowing for persistent attribute changes.
 func (p *ProcessRecordObject) GetChildren() []RecordObject {
@@ -81,6 +104,24 @@ func (p *ProcessRecordObject) GetPrimaryDocuments() []PrimaryDocument {
 
 func (p *ProcessRecordObject) SetMessageID(messageID uuid.UUID) {
 	p.MessageID = messageID
+}
+
+// GetMaxChildDepth returns the maximal depth of all tree branches from this node.
+// If the process record object has only documents as child the maximal child depth is 1.
+// If the process record object has subprocesses with documents the maximal child depth is 2.
+// If the process record object has subprocesses with subprocessess ...
+// Document attachments are not counted.
+func (p *ProcessRecordObject) GetMaxChildDepth() uint {
+	var depth uint = 1
+	if len(p.DocumentRecordObjects) > 0 {
+		depth = 2
+	}
+	if len(p.SubProcessRecordObjects) > 0 {
+		for _, subprocess := range p.SubProcessRecordObjects {
+			depth = max(depth, subprocess.GetMaxChildDepth()+1)
+		}
+	}
+	return depth
 }
 
 // GetChildren returns all list of all attachments contained in the document record object.
@@ -127,6 +168,25 @@ func (m *Message) GetRecordObjects() []RecordObject {
 		recordObjects = append(recordObjects, &m.DocumentRecordObjects[index])
 	}
 	return recordObjects
+}
+
+// GetMaxChildDepth returns the maximal depth of all tree branches from this node.
+func (m *Message) GetMaxChildDepth() uint {
+	var depth uint = 0
+	if len(m.FileRecordObjects) > 0 {
+		for _, fileRecordObject := range m.FileRecordObjects {
+			depth = max(depth, fileRecordObject.GetMaxChildDepth())
+		}
+	}
+	if len(m.ProcessRecordObjects) > 0 {
+		for _, processRecordObject := range m.ProcessRecordObjects {
+			depth = max(depth, processRecordObject.GetMaxChildDepth())
+		}
+	}
+	if len(m.DocumentRecordObjects) > 0 {
+		depth = max(depth, 1)
+	}
+	return depth
 }
 
 type AppraisableRecordObject interface {

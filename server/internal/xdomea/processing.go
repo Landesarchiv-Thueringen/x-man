@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -57,6 +58,10 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		HandleError(err)
 	}
 	err = compareAgencyFields(agency, message, process)
+	if err != nil {
+		HandleError(err)
+	}
+	err = checkMaxRecordObjectDepth(agency, process, message)
 	if err != nil {
 		HandleError(err)
 	}
@@ -127,6 +132,8 @@ func AddMessage(
 	if err != nil {
 		return process, message, err
 	}
+	// count the maximal record object depth within the message
+	message.MaxRecordObjectDepth = message.GetMaxChildDepth()
 	// Store message in database with parsed message metadata.
 	return db.AddMessage(agency, processID, processStoreDir, message)
 }
@@ -345,6 +352,32 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 			Type:           db.ProcessingErrorAgencyMismatch,
 			Description:    "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
 			AdditionalInfo: info,
+		}
+	}
+	return nil
+}
+
+// checkMaxRecordObjectDepth checks if the configured maximal depth of record objects in the message
+// comply with the configuration. The xdomea specification allows a maximal depth of 5.
+func checkMaxRecordObjectDepth(agency db.Agency, process db.Process, message db.Message) error {
+	maxDepthConfig := os.Getenv("XDOMEA_MAX_RECORD_OBJECT_DEPTH")
+	// This configuration does not need to be set.
+	if maxDepthConfig != "" {
+		maxDepth, err := strconv.Atoi(maxDepthConfig)
+		// This function is not the correct place to check configuration validity.
+		if err == nil {
+			if maxDepth < int(message.MaxRecordObjectDepth) {
+				additionalInfo := "konfigurierte maximale Stufigkeit: " +
+					maxDepthConfig +
+					"\nmaximale Stufigkeit in der Nachricht: " +
+					strconv.FormatUint(uint64(message.MaxRecordObjectDepth), 10)
+				return db.ProcessingError{
+					Process:        &process,
+					Message:        &message,
+					Description:    "Stufigkeit zu hoch",
+					AdditionalInfo: additionalInfo,
+				}
+			}
 		}
 	}
 	return nil

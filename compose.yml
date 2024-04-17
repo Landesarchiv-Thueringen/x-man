@@ -71,6 +71,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - BORG_ENDPOINT=${BORG_ENDPOINT}
+      - XDOMEA_MAX_RECORD_OBJECT_DEPTH=${XDOMEA_MAX_RECORD_OBJECT_DEPTH}
     volumes:
       - message_store:/xman/message_store
       - ./data/transfer_dir:/xman/transfer_dir

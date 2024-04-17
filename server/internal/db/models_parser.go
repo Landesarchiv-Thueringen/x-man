@@ -152,6 +152,7 @@ type Message struct {
 	MessageTypeID         *uint                  `json:"-"`
 	MessageType           MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
 	SchemaValidation      bool                   `gorm:"default:true" json:"schemaValidation"`
+	MaxRecordObjectDepth  uint                   `json:"maxRecordObjectDepth"`
 	FileRecordObjects     []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects"`
 	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
 	DocumentRecordObjects []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects"`
