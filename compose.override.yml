@@ -26,7 +26,7 @@ services:
     environment:
       - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/${POSTGRES_DB}?sslmode=disable
     ports:
-      - 8081:8081
+      - 8082:8081
 
   webdav:
     image: bytemark/webdav
@@ -34,7 +34,7 @@ services:
       USERNAME: ${WEBDAV_USERNAME}
       PASSWORD: ${WEBDAV_PASSWORD}
     ports:
-      - 8082:80
+      - 8083:80
     volumes:
       - webdav:/var/lib/dav
 

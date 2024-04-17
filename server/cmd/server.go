@@ -34,6 +34,7 @@ var defaultResponse = fmt.Sprintf("x-man server %s is running", XMAN_VERSION)
 
 func main() {
 	initServer()
+	defer clearUp()
 	routines.Init()
 	router := gin.Default()
 	router.ForwardedByClientIP = true
@@ -96,7 +97,13 @@ func initServer() {
 	db.Init()
 	// It's important to the migrate after the database initialization.
 	MigrateData()
+	db.InitMongo()
 	xdomea.MonitorTransferDirs()
+}
+
+// clearUp is called to clean after the server is ended.
+func clearUp() {
+	db.DisconnectMongo()
 }
 
 func MigrateData() {

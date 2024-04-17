@@ -140,9 +140,9 @@ type ProcessStep struct {
 }
 
 type Message struct {
-	ID                    uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CreatedAt             time.Time              `json:"-"`
-	UpdatedAt             time.Time              `json:"-"`
+	ID                    uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id" bson:"-"`
+	CreatedAt             time.Time              `json:"-" bson:"-"`
+	UpdatedAt             time.Time              `json:"-" bson:"-"`
 	TransferDirPath       string                 `json:"-"`
 	StoreDir              string                 `json:"-"`
 	MessagePath           string                 `json:"-"`
@@ -152,9 +152,9 @@ type Message struct {
 	MessageTypeID         *uint                  `json:"-"`
 	MessageType           MessageType            `gorm:"foreignKey:MessageTypeID;references:ID" json:"messageType"`
 	SchemaValidation      bool                   `gorm:"default:true" json:"schemaValidation"`
-	FileRecordObjects     []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects"`
-	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects"`
-	DocumentRecordObjects []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects"`
+	FileRecordObjects     []FileRecordObject     `gorm:"foreignKey:ParentMessageID" json:"fileRecordObjects" bson:"-"`
+	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentMessageID" json:"processRecordObjects" bson:"-"`
+	DocumentRecordObjects []DocumentRecordObject `gorm:"foreignKey:ParentMessageID" json:"documentRecordObjects" bson:"-"`
 	ProcessingErrors      []ProcessingError      `json:"processingErrors"`
 	MessageJSON           string                 `gorm:"type:text" json:"-"`
 }
@@ -216,15 +216,15 @@ type MessageBody0505 struct {
 }
 
 type MessageHead struct {
-	XMLName      xml.Name  `gorm:"-" xml:"Kopf" json:"-"`
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt    time.Time `json:"-"`
-	UpdatedAt    time.Time `json:"-"`
+	XMLName      xml.Name  `gorm:"-" xml:"Kopf" json:"-" bson:"-"`
+	ID           uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt    time.Time `json:"-" bson:"-"`
+	UpdatedAt    time.Time `json:"-" bson:"-"`
 	ProcessID    string    `xml:"ProzessID" json:"processID"`
 	CreationTime string    `xml:"Erstellungszeitpunkt" json:"creationTime"`
-	SenderID     *uint     `json:"-"`
+	SenderID     *uint     `json:"-" bson:"-"`
 	Sender       Contact   `gorm:"foreignKey:SenderID;references:ID;constraint:OnDelete:SET NULL" xml:"Absender" json:"sender"`
-	ReceiverID   *uint     `json:"-"`
+	ReceiverID   *uint     `json:"-" bson:"-"`
 	Receiver     Contact   `gorm:"foreignKey:ReceiverID;references:ID;constraint:OnDelete:SET NULL" xml:"Empfaenger" json:"receiver"`
 }
 
@@ -241,12 +241,12 @@ func (m *MessageHead) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type Contact struct {
-	ID                     uint                  `gorm:"primaryKey" json:"id"`
-	CreatedAt              time.Time             `json:"-"`
-	UpdatedAt              time.Time             `json:"-"`
-	AgencyIdentificationID *uint                 `json:"-"`
+	ID                     uint                  `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt              time.Time             `json:"-" bson:"-"`
+	UpdatedAt              time.Time             `json:"-" bson:"-"`
+	AgencyIdentificationID *uint                 `json:"-" bson:"-"`
 	AgencyIdentification   *AgencyIdentification `gorm:"constraint:OnDelete:SET NULL" xml:"Behoerdenkennung" json:"agencyIdentification"`
-	InstitutionID          *uint                 `json:"-"`
+	InstitutionID          *uint                 `json:"-" bson:"-"`
 	Institution            *Institution          `gorm:"constraint:OnDelete:SET NULL" xml:"Institution" json:"institution"`
 }
 
@@ -263,9 +263,9 @@ func (c *Contact) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type AgencyIdentification struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt time.Time `json:"-" bson:"-"`
+	UpdatedAt time.Time `json:"-" bson:"-"`
 	Code      *string   `xml:"Behoerdenschluessel>code" json:"code"`
 	Prefix    *string   `xml:"Praefix>code" json:"prefix"`
 }
@@ -293,30 +293,30 @@ func (agencyIdentification *AgencyIdentification) UnmarshalXML(d *xml.Decoder, s
 }
 
 type Institution struct {
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt    time.Time `json:"-"`
-	UpdatedAt    time.Time `json:"-"`
+	ID           uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt    time.Time `json:"-" bson:"-"`
+	UpdatedAt    time.Time `json:"-" bson:"-"`
 	Name         *string   `xml:"Name"  json:"name"`
 	Abbreviation *string   `xml:"Kurzbezeichnung" json:"abbreviation"`
 }
 
 type FileRecordObject struct {
-	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id" bson:"-"`
 	XdomeaID  uuid.UUID `json:"xdomeaID"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	CreatedAt time.Time `json:"-" bson:"-"`
+	UpdatedAt time.Time `json:"-" bson:"-"`
 	// MessageID is the message the FileRecordObject belongs to, either as the
 	// Message's direct child or further down the tree.
 	MessageID uuid.UUID `json:"messageID"`
 	// FileRecordObject has either a Message or a FileRecordObject as parent.
-	ParentMessageID       *uuid.UUID             `json:"-"`
-	ParentFileRecordID    *uuid.UUID             `json:"-"`
-	RecordObjectType      string                 `gorm:"default:file" json:"recordObjectType"`
-	GeneralMetadataID     *uint                  `json:"-"`
+	ParentMessageID       *uuid.UUID             `json:"-" bson:"-"`
+	ParentFileRecordID    *uuid.UUID             `json:"-" bson:"-"`
+	RecordObjectType      string                 `gorm:"default:file" json:"recordObjectType" bson:"-"`
+	GeneralMetadataID     *uint                  `json:"-" bson:"-"`
 	GeneralMetadata       *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID;constraint:OnDelete:SET NULL" json:"generalMetadata"`
-	ArchiveMetadataID     *uint                  `json:"-"`
+	ArchiveMetadataID     *uint                  `json:"-" bson:"-"`
 	ArchiveMetadata       *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID;constraint:OnDelete:SET NULL" json:"archiveMetadata"`
-	LifetimeID            *uint                  `json:"-"`
+	LifetimeID            *uint                  `json:"-" bson:"-"`
 	Lifetime              *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
 	Type                  *string                `json:"type"`
 	ProcessRecordObjects  []ProcessRecordObject  `gorm:"foreignKey:ParentFileRecordID" json:"processes"`
@@ -387,20 +387,20 @@ func (fileRecordObject *FileRecordObject) UnmarshalXML(d *xml.Decoder, start xml
 }
 
 type ProcessRecordObject struct {
-	ID                      uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	ID                      uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id" bson:"-"`
 	XdomeaID                uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
-	CreatedAt               time.Time              `json:"-"`
-	UpdatedAt               time.Time              `json:"-"`
+	CreatedAt               time.Time              `json:"-" bson:"-"`
+	UpdatedAt               time.Time              `json:"-" bson:"-"`
 	MessageID               uuid.UUID              `json:"messageID"`
-	ParentMessageID         *uuid.UUID             `json:"-"`
-	ParentFileRecordID      *uuid.UUID             `json:"-"`
-	ParentProcessRecordID   *uuid.UUID             `json:"-"`
+	ParentMessageID         *uuid.UUID             `json:"-" bson:"-"`
+	ParentFileRecordID      *uuid.UUID             `json:"-" bson:"-"`
+	ParentProcessRecordID   *uuid.UUID             `json:"-" bson:"-"`
 	RecordObjectType        string                 `gorm:"default:process" json:"recordObjectType"`
-	GeneralMetadataID       *uint                  `json:"-"`
+	GeneralMetadataID       *uint                  `json:"-" bson:"-"`
 	GeneralMetadata         *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID;constraint:OnDelete:SET NULL" xml:"AllgemeineMetadaten" json:"generalMetadata"`
-	ArchiveMetadataID       *uint                  `json:"-"`
+	ArchiveMetadataID       *uint                  `json:"-" bson:"-"`
 	ArchiveMetadata         *ArchiveMetadata       `gorm:"foreignKey:ArchiveMetadataID;references:ID;constraint:OnDelete:SET NULL" xml:"ArchivspezifischeMetadaten" json:"archiveMetadata"`
-	LifetimeID              *uint                  `json:"-"`
+	LifetimeID              *uint                  `json:"-" bson:"-"`
 	Lifetime                *Lifetime              `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
 	Type                    *string                `json:"type" xml:"Typ"`
 	SubProcessRecordObjects []ProcessRecordObject  `gorm:"foreignKey:ParentProcessRecordID" xml:"Teilvorgang" json:"subprocesses"`
@@ -433,18 +433,18 @@ func (f *ProcessRecordObject) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type DocumentRecordObject struct {
-	XMLName                xml.Name               `gorm:"-" json:"-"`
-	ID                     uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	XMLName                xml.Name               `gorm:"-" json:"-" bson:"-"`
+	ID                     uuid.UUID              `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id" bson:"-"`
 	XdomeaID               uuid.UUID              `xml:"Identifikation>ID" json:"xdomeaID"`
-	CreatedAt              time.Time              `json:"-"`
-	UpdatedAt              time.Time              `json:"-"`
+	CreatedAt              time.Time              `json:"-" bson:"-"`
+	UpdatedAt              time.Time              `json:"-" bson:"-"`
 	MessageID              uuid.UUID              `json:"messageID"`
-	ParentMessageID        *uuid.UUID             `json:"-"`
-	ParentFileRecordID     *uuid.UUID             `json:"-"`
-	ParentProcessRecordID  *uuid.UUID             `json:"-"`
-	ParentDocumentRecordID *uuid.UUID             `json:"-"`
+	ParentMessageID        *uuid.UUID             `json:"-" bson:"-"`
+	ParentFileRecordID     *uuid.UUID             `json:"-" bson:"-"`
+	ParentProcessRecordID  *uuid.UUID             `json:"-" bson:"-"`
+	ParentDocumentRecordID *uuid.UUID             `json:"-" bson:"-"`
 	RecordObjectType       string                 `gorm:"default:document" json:"recordObjectType"`
-	GeneralMetadataID      *uint                  `json:"-"`
+	GeneralMetadataID      *uint                  `json:"-" bson:"-"`
 	GeneralMetadata        *GeneralMetadata       `gorm:"foreignKey:GeneralMetadataID;references:ID;constraint:OnDelete:SET NULL" xml:"AllgemeineMetadaten" json:"generalMetadata"`
 	Type                   *string                `json:"type" xml:"Typ"`
 	IncomingDate           *string                `xml:"Posteingangsdatum" json:"incomingDate"`
@@ -474,10 +474,10 @@ func (d *DocumentRecordObject) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type Version struct {
-	ID                     uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt              time.Time `json:"-"`
-	UpdatedAt              time.Time `json:"-"`
-	DocumentRecordObjectID uuid.UUID `json:"-"`
+	ID                     uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt              time.Time `json:"-" bson:"-"`
+	UpdatedAt              time.Time `json:"-" bson:"-"`
+	DocumentRecordObjectID uuid.UUID `json:"-" bson:"-"`
 	VersionID              string    `xml:"Nummer" json:"versionID"`
 	Formats                []Format  `xml:"Format" json:"formats"`
 }
@@ -496,14 +496,14 @@ func (v *Version) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type Format struct {
-	ID                uint            `gorm:"primaryKey" json:"id"`
-	CreatedAt         time.Time       `json:"-"`
-	UpdatedAt         time.Time       `json:"-"`
-	VersionID         uint            `json:"-"`
+	ID                uint            `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt         time.Time       `json:"-" bson:"-"`
+	UpdatedAt         time.Time       `json:"-" bson:"-"`
+	VersionID         uint            `json:"-" bson:"-"`
 	Code              string          `xml:"Name>code" json:"code"`
 	OtherName         *string         `xml:"SonstigerName" json:"otherName"`
 	Version           string          `xml:"Version" json:"version"`
-	PrimaryDocumentID uint            `json:"-"`
+	PrimaryDocumentID uint            `json:"-" bson:"-"`
 	PrimaryDocument   PrimaryDocument `gorm:"foreignKey:PrimaryDocumentID;references:ID;constraint:OnDelete:SET NULL" xml:"Primaerdokument" json:"primaryDocument"`
 }
 
@@ -519,14 +519,14 @@ func (v *Format) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type PrimaryDocument struct {
-	ID                   uint                `gorm:"primaryKey" json:"id"`
-	CreatedAt            time.Time           `json:"-"`
-	UpdatedAt            time.Time           `json:"-"`
+	ID                   uint                `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt            time.Time           `json:"-" bson:"-"`
+	UpdatedAt            time.Time           `json:"-" bson:"-"`
 	FileName             string              `xml:"Dateiname" json:"fileName"`
 	FileNameOriginal     *string             `xml:"DateinameOriginal" json:"fileNameOriginal"`
 	CreatorName          *string             `xml:"Ersteller" json:"creatorName"`
 	CreationTime         *string             `xml:"DatumUhrzeit" json:"creationTime"`
-	FormatVerificationID *uint               `json:"-"`
+	FormatVerificationID *uint               `json:"-" bson:"-"`
 	FormatVerification   *FormatVerification `gorm:"foreignKey:FormatVerificationID;references:ID;constraint:OnDelete:SET NULL" json:"formatVerification"`
 }
 
@@ -544,17 +544,17 @@ func (p *PrimaryDocument) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type GeneralMetadata struct {
-	XMLName              xml.Name              `gorm:"-" xml:"AllgemeineMetadaten" json:"-"`
-	ID                   uint                  `gorm:"primaryKey" json:"id"`
-	CreatedAt            time.Time             `json:"-"`
-	UpdatedAt            time.Time             `json:"-"`
+	XMLName              xml.Name              `gorm:"-" xml:"AllgemeineMetadaten" json:"-" bson:"-"`
+	ID                   uint                  `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt            time.Time             `json:"-" bson:"-"`
+	UpdatedAt            time.Time             `json:"-" bson:"-"`
 	Subject              *string               `xml:"Betreff" json:"subject"`
 	XdomeaID             *string               `xml:"Kennzeichen" json:"xdomeaID"`
-	FilePlanID           *uint                 `json:"-"`
+	FilePlanID           *uint                 `json:"-" bson:"-"`
 	FilePlan             *FilePlan             `gorm:"foreignKey:FilePlanID;references:ID;constraint:OnDelete:SET NULL" xml:"Aktenplaneinheit" json:"filePlan"`
-	ConfidentialityID    *string               `xml:"Vertraulichkeitsstufe>code" json:"-"`
+	ConfidentialityID    *string               `xml:"Vertraulichkeitsstufe>code" json:"-" bson:"-"`
 	ConfidentialityLevel *ConfidentialityLevel `gorm:"foreignKey:ConfidentialityID;references:ID" xml:"-" json:"confidentialityLevel"`
-	MediumID             *string               `xml:"Medium>code" json:"-"`
+	MediumID             *string               `xml:"Medium>code" json:"-" bson:"-"`
 	Medium               *Medium               `gorm:"foreignKey:MediumID;references:ID" xml:"-" json:"medium"`
 }
 
@@ -572,27 +572,27 @@ func (g *GeneralMetadata) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type FilePlan struct {
-	XMLName   xml.Name  `gorm:"-" xml:"Aktenplaneinheit" json:"-"`
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	XMLName   xml.Name  `gorm:"-" xml:"Aktenplaneinheit" json:"-" bson:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt time.Time `json:"-" bson:"-"`
+	UpdatedAt time.Time `json:"-" bson:"-"`
 	XdomeaID  *string   `xml:"Kennzeichen" json:"xdomeaID"`
 }
 
 type Lifetime struct {
-	XMLName   xml.Name  `gorm:"-" xml:"Laufzeit" json:"-"`
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	XMLName   xml.Name  `gorm:"-" xml:"Laufzeit" json:"-" bson:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt time.Time `json:"-" bson:"-"`
+	UpdatedAt time.Time `json:"-" bson:"-"`
 	Start     *string   `xml:"Beginn" json:"start"`
 	End       *string   `xml:"Ende" json:"end"`
 }
 
 type ArchiveMetadata struct {
-	XMLName             xml.Name  `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-"`
-	ID                  uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt           time.Time `json:"-"`
-	UpdatedAt           time.Time `json:"-"`
+	XMLName             xml.Name  `gorm:"-" xml:"ArchivspezifischeMetadaten" json:"-" bson:"-"`
+	ID                  uint      `gorm:"primaryKey" json:"id" bson:"-"`
+	CreatedAt           time.Time `json:"-" bson:"-"`
+	UpdatedAt           time.Time `json:"-" bson:"-"`
 	AppraisalCode       *string   `xml:"Aussonderungsart>Aussonderungsart>code" json:"appraisalCode"`
 	AppraisalRecommCode *string   `xml:"Bewertungsvorschlag>code" json:"appraisalRecommCode"`
 }

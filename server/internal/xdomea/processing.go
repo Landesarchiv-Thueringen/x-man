@@ -127,6 +127,7 @@ func AddMessage(
 	if err != nil {
 		return process, message, err
 	}
+	db.AddMessageMongo(message)
 	// Store message in database with parsed message metadata.
 	return db.AddMessage(agency, processID, processStoreDir, message)
 }
