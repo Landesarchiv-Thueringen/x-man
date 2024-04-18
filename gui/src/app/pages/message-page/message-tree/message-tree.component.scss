@@ -48,6 +48,7 @@ mat-tree-node {
 
 .node {
   display: flex;
+  align-items: center;
   border-radius: 30px;
   padding: 4px;
   margin-bottom: 0.4em;
@@ -85,16 +86,10 @@ mat-tree-node {
   }
 }
 
-.node-appraisal {
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
+.appraisal-symbol {
   font-weight: bold;
-
-  .appraisal-symbol {
-    width: 48px; // icon width for alignment
-    text-align: center;
-  }
+  width: 48px; // icon width for alignment
+  text-align: center;
 }
 
 .spacer {

@@ -24,6 +24,14 @@ export interface StructureNode {
   parentID?: string;
   xdomeaID?: string;
   routerLink?: string;
+  /**
+   * Whether the node can be appraised by the user with the UI.
+   *
+   * Note that this is different from whether there is an appraisal field for
+   * the node in xdomea and from whether we should include the node when sending
+   * appraisal requests to the backend. Both is true if and only if the node's
+   * type is one of 'file' | 'subfile' | 'process' | 'subprocess'.
+   */
   canBeAppraised: boolean;
   children?: StructureNode[];
 }

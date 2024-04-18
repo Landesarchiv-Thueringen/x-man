@@ -12,6 +12,8 @@ export type GroupedStructureNodeType = StructureNodeType | 'file-group' | 'proce
 interface GroupedStructureNode extends Omit<StructureNode, 'type' | 'children'> {
   type: GroupedStructureNodeType;
   children?: GroupedStructureNode[];
+  /** Whether to show a checkbox for the item when selection is active. */
+  selectable: boolean;
 }
 
 export interface FlatNode extends Omit<GroupedStructureNode, 'children'> {
@@ -91,15 +93,16 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
 
   private groupNodes(data: StructureNode): GroupedStructureNode {
     const { children, ...node } = data;
+    const selectable = node.canBeAppraised || node.type === 'message';
     const shouldGroupChildren = (children?.length ?? 0) > GROUP_SIZE;
     if (shouldGroupChildren) {
       let groupedChildren: GroupedStructureNode[] = [];
       for (const type of ['file', 'subfile', 'process', 'subprocess', 'document', 'attachment'] as const) {
         groupedChildren = [...groupedChildren, ...this.getGroups(children!, type)];
       }
-      return { ...node, children: groupedChildren };
+      return { ...node, selectable, children: groupedChildren };
     } else {
-      return { ...node, children: children?.map((child) => this.groupNodes(child)) };
+      return { ...node, selectable, children: children?.map((child) => this.groupNodes(child)) };
     }
   }
 
@@ -145,13 +148,15 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
           type: groupType,
           parentID: node.parentID,
           children: [],
-          canBeAppraised: relevantNodes.some((n) => n.canBeAppraised),
+          canBeAppraised: false,
+          selectable: relevantNodes.some((n) => n.canBeAppraised),
         };
         result.push(currentGroup);
       }
       currentGroup!.children!.push({
         ...node,
         parentID: currentGroup!.id,
+        selectable: node.canBeAppraised,
         children: node.children?.map((child) => this.groupNodes(child)),
       });
     }

@@ -52,8 +52,8 @@
           <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
         </div>
 
-        @if (node.type === "message") {
-          <div class="spacer"></div>
+        <div class="spacer"></div>
+        @if (node.type === "message" && !showSelection) {
           <button
             mat-icon-button
             [matMenuTriggerFor]="filterMenu"
@@ -214,17 +214,19 @@
 </ng-template>
 
 <ng-template #nodeAppraisal let-node>
-  <div *ngIf="showAppraisal && node.canBeAppraised" class="node-appraisal">
-    <span class="spacer"></span>
-    <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
-      appraisal.decision | recordObjectAppraisal
-    }}</span>
-    <mat-checkbox
-      *ngIf="showSelection"
-      [ngModel]="selectedNodes.has(node.id)"
-      [indeterminate]="intermediateNodes.has(node.id)"
-      (click)="$event.stopPropagation()"
-      (ngModelChange)="selectItem($event, node.id)"
-    ></mat-checkbox>
-  </div>
+  @if (showAppraisal) {
+    @if (node.canBeAppraised) {
+      <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
+        appraisal.decision | recordObjectAppraisal
+      }}</span>
+    }
+    @if (showSelection && node.selectable) {
+      <mat-checkbox
+        [ngModel]="selectedNodes.has(node.id)"
+        [indeterminate]="intermediateNodes.has(node.id)"
+        (click)="$event.stopPropagation()"
+        (ngModelChange)="selectItem($event, node.id)"
+      ></mat-checkbox>
+    }
+  }
 </ng-template>

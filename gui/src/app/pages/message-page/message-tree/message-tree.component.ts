@@ -199,9 +199,14 @@ export class MessageTreeComponent implements AfterViewInit {
     // not already the result of a selection of one of its children.
     if (node.children && propagating !== 'up') {
       for (const child of node.children) {
+        // Note that we set the selection state even for nodes that we don't
+        // allow to be appraised directly in the UI in order to send a complete
+        // list to the backend for the multi-appraisal request.
         if (
+          child.type === 'file-group' ||
           child.type === 'file' ||
           child.type === 'subfile' ||
+          child.type === 'process-group' ||
           child.type === 'process' ||
           child.type === 'subprocess'
         ) {
@@ -213,23 +218,24 @@ export class MessageTreeComponent implements AfterViewInit {
     // already the result of the selection of its parent.
     if (node.parentID && propagating !== 'down') {
       const parent = this.dataSource.getNode(node.parentID);
-      if (parent.type !== 'message') {
-        // If all of the parent's child nodes have the same selection state, let
-        // the parent assume the same selection state.
-        if (parent.children!.every((n) => this.selectedNodes.has(n.id) === selected)) {
-          this.selectItem(selected, parent.id, 'up');
-          this.intermediateNodes.delete(parent.id);
-        } else {
-          // If not, mark the parent deselected and give it an intermediate
-          // selection appearance.
-          //
-          // When sending a request to the backend for multi appraisal, the
-          // backend will automatically change the appraisal decision of parent
-          // nodes if necessary, so we can safely omit the now deselected parent
-          // from the request.
-          this.selectItem(false, parent.id, 'up');
-          this.intermediateNodes.add(parent.id);
-        }
+      // If all of the parent's child nodes have the same selection state, let
+      // the parent assume the same selection state.
+      if (
+        parent.children!.every((n) => this.selectedNodes.has(n.id) === selected) &&
+        !parent.children!.some((n) => this.intermediateNodes.has(n.id))
+      ) {
+        this.intermediateNodes.delete(parent.id);
+        this.selectItem(selected, parent.id, 'up');
+      } else {
+        // If not, mark the parent deselected and give it an intermediate
+        // selection appearance.
+        //
+        // When sending a request to the backend for multi appraisal, the
+        // backend will automatically change the appraisal decision of parent
+        // nodes if necessary, so we can safely omit the now deselected parent
+        // from the request.
+        this.intermediateNodes.add(parent.id);
+        this.selectItem(false, parent.id, 'up');
       }
     }
   }
@@ -246,7 +252,16 @@ export class MessageTreeComponent implements AfterViewInit {
       .subscribe(async (formResult) => {
         if (formResult) {
           await this.messagePage.setAppraisals(
-            [...this.selectedNodes].map((id) => this.messageProcessor.getNode(id)!.xdomeaID).filter(notNull),
+            [...this.selectedNodes]
+              .map((id) => this.dataSource.getNode(id))
+              .filter(
+                (node) =>
+                  node.type === 'file' ||
+                  node.type === 'subfile' ||
+                  node.type === 'process' ||
+                  node.type === 'subprocess',
+              )
+              .map((node) => node.xdomeaID!),
             formResult.appraisalCode,
             formResult.appraisalNote,
           );
