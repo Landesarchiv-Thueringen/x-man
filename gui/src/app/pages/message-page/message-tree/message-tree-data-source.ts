@@ -37,6 +37,7 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
   );
 
   private readonly flatTreeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+  private nodesMap = new Map<string, GroupedStructureNode>();
 
   private _data?: StructureNode;
   /** The original tree as obtained from MessageProcessorService. */
@@ -58,6 +59,14 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     return this.flatTreeDataSource.disconnect();
   }
 
+  getNode(id: string): GroupedStructureNode {
+    const node = this.nodesMap.get(id);
+    if (node == null) {
+      throw new Error('node not found: ' + id);
+    }
+    return node;
+  }
+
   /**
    * Updates the structure nodes, that are the base for this data source's data.
    *
@@ -67,6 +76,17 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
    */
   private updateFlatTreeData(data: GroupedStructureNode): void {
     this.flatTreeDataSource.data = [data];
+    this.nodesMap.clear();
+    this.addToNodesMap(data);
+  }
+
+  private addToNodesMap(node: GroupedStructureNode): void {
+    this.nodesMap.set(node.id, node);
+    if (node.children) {
+      for (const child of node.children) {
+        this.addToNodesMap(child);
+      }
+    }
   }
 
   private groupNodes(data: StructureNode): GroupedStructureNode {

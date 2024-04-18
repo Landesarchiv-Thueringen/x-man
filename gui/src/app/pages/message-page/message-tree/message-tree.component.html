@@ -186,11 +186,7 @@
 
   <div *ngIf="process && message && showSelection" class="actions appraisal-actions">
     <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
-    <button
-      mat-flat-button
-      (click)="setAppraisalForMultipleRecordObjects()"
-      [disabled]="this.selectedNodes.length === 0"
-    >
+    <button mat-flat-button (click)="setAppraisalForMultipleRecordObjects()" [disabled]="this.selectedNodes.size === 0">
       <mat-icon>checklist</mat-icon>
       Bewerten
     </button>
@@ -225,7 +221,8 @@
     }}</span>
     <mat-checkbox
       *ngIf="showSelection"
-      [(ngModel)]="node.selected"
+      [ngModel]="selectedNodes.has(node.id)"
+      [indeterminate]="intermediateNodes.has(node.id)"
       (click)="$event.stopPropagation()"
       (ngModelChange)="selectItem($event, node.id)"
     ></mat-checkbox>

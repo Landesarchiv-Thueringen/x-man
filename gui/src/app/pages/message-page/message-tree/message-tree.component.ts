@@ -63,7 +63,8 @@ export class MessageTreeComponent implements AfterViewInit {
   message?: Message;
   showAppraisal = false;
   showSelection = false;
-  selectedNodes: string[] = [];
+  selectedNodes = new Set<string>();
+  intermediateNodes = new Set<string>();
   treeControl = new FlatTreeControl<FlatNode>(
     (node) => node.level,
     (node) => node.expandable,
@@ -179,28 +180,57 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   disableSelection(): void {
-    this.selectedNodes = [];
+    this.selectedNodes.clear();
+    this.intermediateNodes.clear();
     this.showSelection = false;
   }
 
-  selectItem(selected: boolean, id: string): void {
-    if (selected) {
-      this.selectedNodes.push(id);
-    } else {
-      this.selectedNodes = this.selectedNodes.filter((nodeID) => nodeID !== id);
+  selectItem(selected: boolean, id: string, propagating: 'down' | 'up' | null = null): void {
+    if (!propagating) {
+      this.intermediateNodes.delete(id);
     }
-    const node = this.messageProcessor.getNode(id);
-    if (node) {
-      node.children?.forEach((nodeChild: StructureNode) => {
+    if (selected) {
+      this.selectedNodes.add(id);
+    } else {
+      this.selectedNodes.delete(id);
+    }
+    const node = this.dataSource.getNode(id);
+    // Propagate the selection down to the node's children if the selection is
+    // not already the result of a selection of one of its children.
+    if (node.children && propagating !== 'up') {
+      for (const child of node.children) {
         if (
-          nodeChild.type === 'file' ||
-          nodeChild.type === 'subfile' ||
-          nodeChild.type === 'process' ||
-          nodeChild.type === 'subprocess'
+          child.type === 'file' ||
+          child.type === 'subfile' ||
+          child.type === 'process' ||
+          child.type === 'subprocess'
         ) {
-          this.selectItem(selected, nodeChild.id);
+          this.selectItem(selected, child.id, 'down');
         }
-      });
+      }
+    }
+    // Propagate the selection up to the node's parent if the selection is not
+    // already the result of the selection of its parent.
+    if (node.parentID && propagating !== 'down') {
+      const parent = this.dataSource.getNode(node.parentID);
+      if (parent.type !== 'message') {
+        // If all of the parent's child nodes have the same selection state, let
+        // the parent assume the same selection state.
+        if (parent.children!.every((n) => this.selectedNodes.has(n.id) === selected)) {
+          this.selectItem(selected, parent.id, 'up');
+          this.intermediateNodes.delete(parent.id);
+        } else {
+          // If not, mark the parent deselected and give it an intermediate
+          // selection appearance.
+          //
+          // When sending a request to the backend for multi appraisal, the
+          // backend will automatically change the appraisal decision of parent
+          // nodes if necessary, so we can safely omit the now deselected parent
+          // from the request.
+          this.selectItem(false, parent.id, 'up');
+          this.intermediateNodes.add(parent.id);
+        }
+      }
     }
   }
 
@@ -216,7 +246,7 @@ export class MessageTreeComponent implements AfterViewInit {
       .subscribe(async (formResult) => {
         if (formResult) {
           await this.messagePage.setAppraisals(
-            this.selectedNodes.map((id) => this.messageProcessor.getNode(id)!.xdomeaID).filter(notNull),
+            [...this.selectedNodes].map((id) => this.messageProcessor.getNode(id)!.xdomeaID).filter(notNull),
             formResult.appraisalCode,
             formResult.appraisalNote,
           );
