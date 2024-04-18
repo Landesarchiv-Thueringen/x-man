@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -44,6 +44,8 @@ export class MessagePageService {
    * Appraisals can be updated by the user at any time.
    */
   private appraisals = new BehaviorSubject<Appraisal[] | null>(null);
+
+  readonly showSelection = signal(false);
 
   constructor(
     private route: ActivatedRoute,

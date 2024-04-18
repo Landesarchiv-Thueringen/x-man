@@ -63,7 +63,7 @@ export class MessageTreeComponent implements AfterViewInit {
   process?: Process;
   message?: Message;
   showAppraisal = false;
-  showSelection = false;
+  showSelection = this.messagePage.showSelection;
   selectedNodes = new Set<string>();
   intermediateNodes = new Set<string>();
   treeControl = new FlatTreeControl<FlatNode>(
@@ -233,13 +233,13 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   enableSelection(): void {
-    this.showSelection = true;
+    this.showSelection.set(true);
   }
 
   disableSelection(): void {
     this.selectedNodes.clear();
     this.intermediateNodes.clear();
-    this.showSelection = false;
+    this.showSelection.set(false);
   }
 
   selectItem(selected: boolean, id: string, propagating: 'down' | 'up' | null = null): void {

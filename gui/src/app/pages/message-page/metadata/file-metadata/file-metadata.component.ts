@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Query } from '@angular/core';
+import { Component, Query, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -74,6 +74,16 @@ export class FileMetadataComponent {
         this.setMetadata(recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete),
       );
     this.registerAppraisalNoteChanges();
+    // Disable individual appraisal controls while selection is active.
+    effect(() => {
+      if (this.messagePage.showSelection()) {
+        this.form.get('appraisal')?.disable();
+        this.form.get('appraisalNote')?.disable();
+      } else {
+        this.form.get('appraisal')?.enable();
+        this.form.get('appraisalNote')?.enable();
+      }
+    });
   }
 
   registerAppraisalNoteChanges(): void {

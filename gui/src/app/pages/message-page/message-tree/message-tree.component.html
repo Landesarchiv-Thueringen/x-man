@@ -53,7 +53,7 @@
         </div>
 
         <div class="spacer"></div>
-        @if (node.type === "message" && !showSelection) {
+        @if (node.type === "message" && !showSelection()) {
           <button
             mat-icon-button
             [matMenuTriggerFor]="filterMenu"
@@ -129,7 +129,7 @@
     </mat-tree-node>
   </mat-tree>
 
-  <div *ngIf="process && message && !showSelection" class="actions message-actions">
+  <div *ngIf="process && message && !showSelection()" class="actions message-actions">
     <button mat-flat-button (click)="copyMessageUrl()">
       <mat-icon>content_copy</mat-icon>
       <span>Objekt-Link kopieren</span>
@@ -175,7 +175,7 @@
     </button>
   </div>
 
-  <div *ngIf="process && message && showSelection" class="actions appraisal-actions">
+  <div *ngIf="process && message && showSelection()" class="actions appraisal-actions">
     <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
     <button mat-flat-button (click)="setAppraisalForMultipleRecordObjects()" [disabled]="this.selectedNodes.size === 0">
       <mat-icon>checklist</mat-icon>
@@ -211,7 +211,7 @@
         appraisal.decision | recordObjectAppraisal
       }}</span>
     }
-    @if (showSelection && node.selectable) {
+    @if (showSelection() && node.selectable) {
       <mat-checkbox
         [ngModel]="selectedNodes.has(node.id)"
         [indeterminate]="intermediateNodes.has(node.id)"
