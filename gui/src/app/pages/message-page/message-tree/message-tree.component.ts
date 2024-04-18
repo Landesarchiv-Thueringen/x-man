@@ -13,8 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ReplaySubject, Subject, concat, filter, firstValueFrom, switchMap } from 'rxjs';
+import { ActivatedRoute, ChildActivationEnd, Router, RouterModule } from '@angular/router';
+import { ReplaySubject, Subject, concat, delay, filter, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -26,13 +26,14 @@ import { MessageProcessorService, StructureNode } from '../message-processor.ser
 import { RecordObjectAppraisalPipe } from '../metadata/record-object-appraisal-pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from './finalize-appraisal-dialog/finalize-appraisal-dialog.component';
-import { FlatNode, MessageTreeDataSource } from './message-tree-data-source';
+import { FilterResult, FlatNode, MessageTreeDataSource } from './message-tree-data-source';
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
 
-interface Filter {
+export interface Filter {
   type: 'not-appraised' | 'record-plan-id';
   label: string;
   value?: string;
+  predicate: (node: StructureNode, value?: string) => FilterResult;
 }
 
 @Component({
@@ -73,8 +74,33 @@ export class MessageTreeComponent implements AfterViewInit {
   dataSource = new MessageTreeDataSource(this.treeControl);
   viewInitialized = new ReplaySubject<void>(1);
   appraisals: { [xdomeaId: string]: Appraisal } = {};
+  readonly availableFilters: Filter[] = [
+    {
+      type: 'not-appraised',
+      label: 'Noch nicht bewertet',
+      predicate: (node) => {
+        if (!node.canBeAppraised) {
+          return 'propagate-recursive';
+        } else if (!this.appraisals[node.xdomeaID!]?.decision || this.appraisals[node.xdomeaID!].decision === 'B') {
+          return 'show';
+        } else if (this.appraisals[node.xdomeaID!].decision === 'V') {
+          return 'hide-recursive';
+        } else {
+          return 'hide';
+        }
+      },
+    },
+    {
+      type: 'record-plan-id',
+      label: 'Aktenplanschlüssel',
+      value: '',
+      predicate: (node, value) =>
+        node.generalMetadata?.filePlan?.xdomeaID?.toString() === value ? 'show-recursive' : 'hide-recursive',
+    },
+  ];
   activeFilters: Filter[] = [];
   filtersHint: string | null = null;
+  currentObjectRecordId?: string;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -94,16 +120,34 @@ export class MessageTreeComponent implements AfterViewInit {
       this.process = process;
       processReady.complete();
     });
+    // Update currentElementId with the object-record ID in the URL.
+    this.router.events
+      .pipe(
+        takeUntilDestroyed(),
+        filter((e) => e instanceof ChildActivationEnd),
+        switchMap(() => this.route.firstChild!.params),
+      )
+      .subscribe((params) => {
+        this.currentObjectRecordId = params['id'];
+      });
+    // Update the tree when `message` changes.
     concat(processReady, this.messagePage.observeMessage())
       .pipe(filter(notNull))
       .subscribe(async (message) => {
         this.message = message;
         await this.initTree();
-        await firstValueFrom(this.viewInitialized);
-        const params = await firstValueFrom(this.route.firstChild!.params);
-        if (params['id']) {
-          this.expandNode(params['id']);
-          this.document.getElementById(params['id'])?.scrollIntoView({ block: 'center' });
+      });
+    // Expand the current node when display data is updated.
+    this.dataSource
+      .observeDisplayData()
+      .pipe(filter(notNull), delay(0))
+      .subscribe(() => {
+        // Expand message node.
+        this.treeControl.expand(this.treeControl.dataNodes?.[0]);
+        // Expand current node, if any and visible.
+        if (this.currentObjectRecordId) {
+          this.expandNode(this.currentObjectRecordId);
+          this.document.getElementById(this.currentObjectRecordId)?.scrollIntoView({ block: 'center' });
         }
       });
   }
@@ -118,26 +162,35 @@ export class MessageTreeComponent implements AfterViewInit {
     return element.id;
   }
 
-  addValueFilter(filter: Filter): void {
-    this.activeFilters.push({ ...filter, value: '' });
-    // Start editing the chip value.
-    setTimeout(() => {
-      const chipRow = this.matChipRow!.last;
-      chipRow['_startEditing']({ target: null });
-      // Force a space after the colon.
+  addFilter(filter: Filter): void {
+    if (filter.value == null) {
+      this.activeFilters.push(filter);
+      this.applyFilters();
+    } else {
+      // If the filter has a value, insert the chip in editing mode.
+      this.activeFilters.push({ ...filter, value: '' });
+      // Start editing the chip value.
       setTimeout(() => {
-        const editInput = chipRow.defaultEditInput!;
-        editInput.getNativeElement().innerHTML = `${filter.label}:&nbsp;`;
-        editInput['_moveCursorToEndOfInput']();
+        const chipRow = this.matChipRow!.last;
+        chipRow['_startEditing']({ target: null });
+        // Force a space after the colon.
+        setTimeout(() => {
+          const editInput = chipRow.defaultEditInput!;
+          editInput.getNativeElement().innerHTML = `${filter.label}:&nbsp;`;
+          editInput['_moveCursorToEndOfInput']();
+        });
       });
-    });
-    this.filtersHint = `Geben Sie einen Wert ein, um nach ${filter.label} zu filtern, und bestätigen Sie Ihre Eingabe mit Enter.`;
+      this.filtersHint = `Geben Sie einen Wert ein, um nach ${filter.label} zu filtern, und bestätigen Sie Ihre Eingabe mit Enter.`;
+    }
   }
 
   onFilterEdited(event: MatChipEditedEvent, filter: Filter): void {
     const value = event.value.replace(new RegExp(filter.label + ':?'), '').trim();
     if (value) {
       filter.value = value;
+      setTimeout(() => {
+        this.applyFilters();
+      });
     } else {
       this.removeFilter(filter);
     }
@@ -148,12 +201,17 @@ export class MessageTreeComponent implements AfterViewInit {
     return typeof filter.value === 'string';
   }
 
-  hasFilter(type: Filter['type']): boolean {
-    return this.activeFilters.some((f) => f.type === type);
+  hasFilter(filter: Filter): boolean {
+    return this.activeFilters.some((f) => f.type === filter.type);
   }
 
   removeFilter(filter: Filter): void {
     this.activeFilters = this.activeFilters.filter((f) => f != filter);
+    this.applyFilters();
+  }
+
+  private applyFilters(): void {
+    this.dataSource.filters = this.activeFilters.map((filter) => (node) => filter.predicate(node, filter.value));
   }
 
   async initTree(): Promise<void> {
@@ -161,12 +219,11 @@ export class MessageTreeComponent implements AfterViewInit {
       this.showAppraisal = this.message.messageType.code === '0501';
       const rootNode = await this.messageProcessor.processMessage(this.process, this.message);
       this.dataSource.data = rootNode;
-      this.expandNode(rootNode.id);
     }
   }
 
   expandNode(id: string): void {
-    const node: FlatNode | undefined = this.treeControl.dataNodes.find((n: FlatNode) => n.id === id);
+    const node = this.treeControl.dataNodes.find((n: FlatNode) => n.id === id);
     if (node) {
       this.treeControl.expand(node);
       if (node.parentID) {

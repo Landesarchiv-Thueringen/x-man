@@ -63,20 +63,11 @@
             <mat-icon [class.material-icons-outlined]="activeFilters.length === 0">filter_alt</mat-icon>
           </button>
           <mat-menu #filterMenu="matMenu">
-            <button
-              mat-menu-item
-              [disabled]="hasFilter('not-appraised')"
-              (click)="activeFilters.push({ type: 'not-appraised', label: 'Noch nicht bewertet' })"
-            >
-              Noch nicht bewertet
-            </button>
-            <button
-              mat-menu-item
-              [disabled]="hasFilter('record-plan-id')"
-              (click)="addValueFilter({ type: 'record-plan-id', label: 'Aktenplanschlüssel' })"
-            >
-              Aktenplanschlüssel
-            </button>
+            @for (filter of availableFilters; track filter) {
+              <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
+                {{ filter.label }}
+              </button>
+            }
           </mat-menu>
           <button
             *ngIf="process?.message0501 && process?.message0503"

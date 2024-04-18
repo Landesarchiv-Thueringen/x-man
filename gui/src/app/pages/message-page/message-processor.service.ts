@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { Subject, first, firstValueFrom, map, startWith } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Config, ConfigService } from '../../services/config.service';
-import { DocumentRecordObject, FileRecordObject, Message, ProcessRecordObject } from '../../services/message.service';
+import {
+  DocumentRecordObject,
+  FileRecordObject,
+  GeneralMetadata,
+  Message,
+  ProcessRecordObject,
+} from '../../services/message.service';
 import { Process } from '../../services/process.service';
 import { notNull } from '../../utils/predicates';
 
@@ -24,6 +30,7 @@ export interface StructureNode {
   parentID?: string;
   xdomeaID?: string;
   routerLink?: string;
+  generalMetadata?: GeneralMetadata;
   /**
    * Whether the node can be appraised by the user with the UI.
    *
@@ -175,6 +182,7 @@ export class MessageProcessorService {
       type,
       routerLink,
       parentID: parent.id,
+      generalMetadata: fileRecordObject.generalMetadata,
       children,
       canBeAppraised: this.canBeAppraised(type, parent),
     };
@@ -208,6 +216,7 @@ export class MessageProcessorService {
       type: type,
       routerLink: routerLink,
       parentID: parent.id,
+      generalMetadata: processRecordObject.generalMetadata,
       canBeAppraised: this.canBeAppraised(type, parent),
       children: children,
     };
@@ -241,6 +250,7 @@ export class MessageProcessorService {
       type: type,
       routerLink: routerLink,
       parentID: parent.id,
+      generalMetadata: documentRecordObject.generalMetadata,
       canBeAppraised: false,
       children: children,
     };
