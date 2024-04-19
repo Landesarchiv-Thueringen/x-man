@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -543,6 +544,12 @@ func archive0503Message(context *gin.Context) {
 			tasks.MarkDone(&task, &userName)
 			preferences := db.GetUserInformation(userID).Preferences
 			if preferences.ReportByEmail {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("panic when generating report for e-mail: %v\n", r)
+						debug.PrintStack()
+					}
+				}()
 				process, _ = db.GetProcess(message.MessageHead.ProcessID)
 				_, contentType, reader := report.GetReport(process)
 				body, err := io.ReadAll(reader)
