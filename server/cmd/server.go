@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +35,8 @@ var defaultResponse = fmt.Sprintf("x-man server %s is running", XMAN_VERSION)
 func main() {
 	initServer()
 	routines.Init()
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Logger(), gin.CustomRecovery(handleRecovery))
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{})
 	router.GET("api", getDefaultResponse)
@@ -544,12 +544,7 @@ func archive0503Message(context *gin.Context) {
 			tasks.MarkDone(&task, &userName)
 			preferences := db.GetUserInformation(userID).Preferences
 			if preferences.ReportByEmail {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Printf("panic when generating report for e-mail: %v\n", r)
-						debug.PrintStack()
-					}
-				}()
+				defer xdomea.HandlePanic("generate report for e-mail")
 				process, _ = db.GetProcess(message.MessageHead.ProcessID)
 				_, contentType, reader := report.GetReport(process)
 				body, err := io.ReadAll(reader)
@@ -761,4 +756,24 @@ func getTasks(context *gin.Context) {
 func getCollectionDimagIDs(context *gin.Context) {
 	ids := dimag.GetCollectionIDs()
 	context.JSON(http.StatusOK, ids)
+}
+
+func handleRecovery(c *gin.Context, err any) {
+	if os.Getenv("GIN_MODE") == "debug" {
+		c.AbortWithStatusJSON(
+			http.StatusInternalServerError,
+			gin.H{"error": err},
+		)
+	} else {
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
+	info := map[string]any{
+		"Fehler": err,
+		"URL":    c.Request.URL,
+	}
+	userID := c.GetString("userId")
+	if userID != "" {
+		info["Nutzer"] = auth.GetDisplayName(userID)
+	}
+	xdomea.CreateProcessingErrorPanic(info)
 }

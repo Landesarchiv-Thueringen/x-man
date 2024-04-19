@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -33,14 +32,6 @@ var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 
 func VerifyFileFormats(process db.Process, message db.Message) error {
 	log.Printf("Starting VerifyFileFormats for message %v...\n", message.ID)
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("Error: VerifyFileFormats for message %v panicked: %v\n", message.ID, r)
-			debug.PrintStack()
-		} else {
-			log.Printf("VerifyFileFormats for message %v done\n", message.ID)
-		}
-	}()
 	primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
 	task := tasks.Start(db.TaskTypeFormatVerification, process, uint(len(primaryDocuments)))
 	var wg sync.WaitGroup
@@ -71,6 +62,7 @@ func VerifyFileFormats(process db.Process, message db.Message) error {
 	} else {
 		return tasks.MarkFailed(&task, strings.Join(errorMessages, "\n\n"))
 	}
+	log.Printf("VerifyFileFormats for message %v done\n", message.ID)
 	return nil
 }
 

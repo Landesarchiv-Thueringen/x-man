@@ -21,6 +21,7 @@ import (
 
 // ProcessNewMessage
 func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
+	defer HandlePanic(fmt.Sprintf("ProcessNewMessage %s", transferDirMessagePath))
 	// extract process ID from message filename
 	processID := GetMessageID(transferDirMessagePath)
 	// extract message type from message filename

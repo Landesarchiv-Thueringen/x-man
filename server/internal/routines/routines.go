@@ -9,7 +9,6 @@ import (
 	"lath/xman/internal/xdomea"
 	"log"
 	"os"
-	"runtime/debug"
 	"strconv"
 	"time"
 )
@@ -33,12 +32,7 @@ func Init() {
 // tryRestartRunningTasks searches for tasks that are marked 'running' and tries
 // to restart them.
 func tryRestartRunningTasks() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Error: tryRestartRunningTasks panicked:", r)
-			debug.PrintStack()
-		}
-	}()
+	defer xdomea.HandlePanic("tryRestartRunningTasks")
 	ts := db.GetTasks()
 	for _, t := range ts {
 		if t.State == db.TaskStateRunning {
@@ -60,6 +54,7 @@ func tryRestart(task *db.Task) {
 		process, found := db.GetProcess(task.ProcessID)
 		if found && process.Message0503 != nil {
 			go func() {
+				defer xdomea.HandlePanic(fmt.Sprintf("tryRestart FormatVerification"))
 				err := format.VerifyFileFormats(process, *process.Message0503)
 				xdomea.HandleError(err)
 			}()
@@ -78,8 +73,8 @@ func tryRestart(task *db.Task) {
 // The time after which processes are deleted can be configured via the
 // environment variable `DELETE_ARCHIVED_PROCESSES_AFTER_DAYS`.
 func cleanupArchivedProcesses() {
+	defer xdomea.HandlePanic("cleanupArchivedProcesses")
 	log.Println("Starting cleanupArchivedProcesses...")
-	defer logDoneOrRecover("cleanupArchivedProcesses")
 	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
 	if err != nil {
 		panic(err)
@@ -92,6 +87,7 @@ func cleanupArchivedProcesses() {
 			deleteProcess(process)
 		}
 	}
+	log.Println("cleanupArchivedProcesses done")
 }
 
 // deleteProcess deletes the given process and all associated data from the
@@ -100,16 +96,5 @@ func deleteProcess(process db.Process) {
 	found := xdomea.DeleteProcess(process.ID)
 	if !found {
 		panic(fmt.Sprintf("failed to delete process %v: not found", process.ID))
-	}
-}
-
-// logDoneOrRecover prints a short log message when no error occurred or
-// recovers from a panic.
-func logDoneOrRecover(name string) {
-	if r := recover(); r != nil {
-		log.Println("Error:", name, "panicked:", r)
-		debug.PrintStack()
-	} else {
-		log.Println(name, "done")
 	}
 }

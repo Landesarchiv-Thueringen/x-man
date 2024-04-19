@@ -14,7 +14,35 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/mail"
 	"log"
+	"runtime/debug"
+	"strings"
 )
+
+func CreateProcessingErrorPanic(info map[string]any) {
+	var b strings.Builder
+	for key, value := range info {
+		fmt.Fprintf(&b, "%s: %v\n", key, value)
+	}
+	fmt.Fprintf(&b, "\n%s\n", debug.Stack())
+
+	HandleError(db.ProcessingError{
+		Type:           db.ProcessingErrorPanic,
+		Description:    fmt.Sprintf("Anwendungsfehler"),
+		AdditionalInfo: b.String(),
+	})
+}
+
+func HandlePanic(taskDescription string) {
+	if r := recover(); r != nil {
+		log.Printf("panic: %v\n", r)
+		debug.PrintStack()
+		info := map[string]any{
+			"Fehler":  r,
+			"Aufgabe": taskDescription,
+		}
+		CreateProcessingErrorPanic(info)
+	}
+}
 
 // HandleError handles an error object.
 //

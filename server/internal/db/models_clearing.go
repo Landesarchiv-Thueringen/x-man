@@ -10,6 +10,7 @@ import (
 type ProcessingErrorType string
 
 const (
+	ProcessingErrorPanic                    ProcessingErrorType = "panic"
 	ProcessingErrorAgencyMismatch           ProcessingErrorType = "agency-mismatch"
 	ProcessingErrorFormatVerificationFailed ProcessingErrorType = "format-verification-failed"
 	ProcessingErrorArchivingFailed          ProcessingErrorType = "format-archiving-failed"
