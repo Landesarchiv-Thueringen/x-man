@@ -141,6 +141,11 @@ export class MessageProcessorService {
       default:
         throw new Error('unhandled message type');
     }
+    const numberElements =
+      (message.fileRecordObjects?.length ?? 0) +
+      (message.documentRecordObjects?.length ?? 0) +
+      (message.processRecordObjects?.length ?? 0);
+    title = `${title} (${numberElements} ${numberElements === 1 ? 'Element' : 'Elemente'})`;
     const messageNode: StructureNode = {
       id: message.id,
       title,

@@ -75,9 +75,12 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
 
   private _data?: StructureNode;
   /** The original tree as obtained from MessageProcessorService. */
-  set data(data: StructureNode) {
+  set data(data: StructureNode | undefined) {
     this._data = data;
     this.updateDisplayData();
+  }
+  get data() {
+    return this._data;
   }
 
   private _filters?: FilterPredicate[];
