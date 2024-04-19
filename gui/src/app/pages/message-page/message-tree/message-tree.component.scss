@@ -52,15 +52,21 @@ mat-tree-node {
   border-radius: 30px;
   padding: 4px;
   margin-bottom: 0.4em;
+  user-select: none;
 
-  cursor: pointer;
+  &.filtered-node {
+    color: var(--mat-secondary);
+  }
+
+  &:not(.filtered-node) {
+    cursor: pointer;
+    &:hover {
+      background-color: var(--mat-primary-95);
+    }
+  }
 
   &.active {
     background-color: var(--mat-primary-90);
-  }
-
-  &:hover {
-    background-color: var(--mat-primary-95);
   }
 }
 

@@ -58,6 +58,8 @@ func SetAppraisalDecisionRecursive(
 	db.SetAppraisalDecision(processID, recordObject.GetID(), decision)
 	if decision == db.AppraisalDecisionA {
 		markAncestorsToBeArchived(processID, recordObject)
+	} else {
+		matchParentForEqualSiblings(processID, recordObject, decision)
 	}
 	for _, subObject := range recordObject.GetAppraisableChildren() {
 		a := db.GetAppraisal(processID, subObject.GetID())
@@ -155,10 +157,37 @@ func SetAppraisals(
 			db.SetAppraisal(processID, recordObject.GetID(), decision, internalNote)
 			if decision == db.AppraisalDecisionA {
 				markAncestorsToBeArchived(processID, recordObject)
+			} else {
+				matchParentForEqualSiblings(processID, recordObject, decision)
 			}
 		}
 	}
 	return nil
+}
+
+// matchParentForEqualSiblings checks if all siblings of the given recordObject
+// have the same appraisal decision and if so, set the same decision for its
+// parent. If the parent has been modified, the process is repeated for the
+// parent.
+func matchParentForEqualSiblings(
+	processID string,
+	recordObject db.AppraisableRecordObject,
+	decision db.AppraisalDecisionOption,
+) {
+	parent := recordObject.GetAppraisableParent()
+	if parent != nil {
+		parentAppraisal := db.GetAppraisal(processID, parent.GetID())
+		if parentAppraisal.Decision != decision {
+			for _, sibling := range parent.GetAppraisableChildren() {
+				a := db.GetAppraisal(processID, sibling.GetID())
+				if a.Decision != decision {
+					return
+				}
+			}
+			db.SetAppraisal(processID, parent.GetID(), decision, "")
+			matchParentForEqualSiblings(processID, parent, decision)
+		}
+	}
 }
 
 func markAncestorsToBeArchived(processID string, recordObject db.AppraisableRecordObject) {

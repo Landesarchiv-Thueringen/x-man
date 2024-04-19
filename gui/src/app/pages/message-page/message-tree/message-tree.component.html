@@ -8,7 +8,7 @@
   >
     <!-- This is the tree node template for leaf nodes -->
     <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding>
-      <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']">
+      <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']" [ngClass]="node.type + '-node'">
         <div class="node-info">
           <!-- use a disabled button to provide padding for tree leaf -->
           <button mat-icon-button disabled></button>

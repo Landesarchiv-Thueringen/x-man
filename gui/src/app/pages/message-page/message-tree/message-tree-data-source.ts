@@ -8,7 +8,12 @@ import { StructureNode, StructureNodeType } from '../message-processor.service';
 
 const GROUP_SIZE = 100;
 
-export type GroupedStructureNodeType = StructureNodeType | 'file-group' | 'process-group' | 'document-group';
+export type GroupedStructureNodeType =
+  | StructureNodeType
+  | 'filtered'
+  | 'file-group'
+  | 'process-group'
+  | 'document-group';
 
 interface GroupedStructureNode extends Omit<StructureNode, 'type' | 'children'> {
   type: GroupedStructureNodeType;
@@ -133,9 +138,7 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     if (!this._filters?.length) {
       return rootNode;
     } else {
-      const children = rootNode
-        .children!.map((child) => this.filterNode(child, Array(this._filters!.length).fill('show')))
-        .filter(notNull);
+      const children = this.getFilteredChildren(rootNode, Array(this._filters!.length).fill('show'));
       return { ...rootNode, children };
     }
   }
@@ -149,13 +152,38 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     } else if (filterResults.some((r) => r === 'hide') && !node.children) {
       return null;
     } else {
-      const children = node.children?.map((child) => this.filterNode(child, filterResults)).filter(notNull);
+      const children = this.getFilteredChildren(node, filterResults);
       if (children?.length || filterResults.every((r) => r === 'show')) {
         return { ...node, children };
       } else {
         return null;
       }
     }
+  }
+
+  private getFilteredChildren(node: StructureNode, filterResults: FilterResult[]): StructureNode[] | undefined {
+    const children = node.children?.map((child) => this.filterNode(child, filterResults));
+    const filteredChildren = children?.filter(notNull);
+    const numberFiltered = children?.filter((child) => child == null).length ?? 0;
+    if (numberFiltered > 0) {
+      if (numberFiltered < node.children!.length) {
+        filteredChildren!.push({
+          id: uuidv4(),
+          title: `${numberFiltered} ${numberFiltered > 1 ? 'Elemente' : 'Element'} gefiltert`,
+          canBeAppraised: false,
+          // Not a valid type for StructureNode, but will be valid for GroupedStructureNode
+          type: 'filtered' as StructureNodeType,
+        });
+      } else if (node.type === 'message') {
+        filteredChildren!.push({
+          id: uuidv4(),
+          title: 'Keine übereinstimmenden Elemente',
+          canBeAppraised: false,
+          type: 'filtered' as StructureNodeType,
+        });
+      }
+    }
+    return filteredChildren;
   }
 
   private getFilterResultsForNode(node: StructureNode, parentResults: FilterResult[]): FilterResult[] {

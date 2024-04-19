@@ -83,8 +83,6 @@ export class MessageTreeComponent implements AfterViewInit {
           return 'propagate-recursive';
         } else if (!this.appraisals[node.xdomeaID!]?.decision || this.appraisals[node.xdomeaID!].decision === 'B') {
           return 'show';
-        } else if (this.appraisals[node.xdomeaID!].decision === 'V') {
-          return 'hide-recursive';
         } else {
           return 'hide';
         }
@@ -243,7 +241,7 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   selectItem(selected: boolean, id: string, propagating: 'down' | 'up' | null = null): void {
-    if (!propagating) {
+    if (propagating !== 'up') {
       this.intermediateNodes.delete(id);
     }
     if (selected) {
@@ -268,6 +266,12 @@ export class MessageTreeComponent implements AfterViewInit {
           child.type === 'subprocess'
         ) {
           this.selectItem(selected, child.id, 'down');
+        } else if (selected && child.type === 'filtered') {
+          // If the current node has filtered child nodes, we cannot select it.
+          // The filtered child nodes might have conflicting appraisals to what
+          // the user is going to choose for selected nodes.
+          this.selectedNodes.delete(id);
+          this.intermediateNodes.add(id);
         }
       }
     }
