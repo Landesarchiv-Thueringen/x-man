@@ -1,8 +1,3 @@
-:host {
-  display: block;
-  padding: 2em;
-}
-
 mat-expansion-panel {
   &.archiving-complete {
     background-color: rgba(0, 128, 0, 0.2);
@@ -13,9 +8,7 @@ mat-expansion-panel {
 }
 
 .metadata-section {
-  min-width: 60em;
-  max-width: 80em;
-
+  padding: 2em;
   .metadata-row {
     display: flex;
     flex-direction: row;

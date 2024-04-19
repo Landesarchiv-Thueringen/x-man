@@ -1,60 +1,53 @@
-:host {
+.metadata-section {
   padding: 2em;
-  display: block;
+  .metadata {
+    display: flex;
+    flex-direction: column;
 
-  .metadata-section {
-    min-width: 60em;
-    max-width: 80em;
-
-    .metadata {
+    .metadata-row {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      column-gap: 1.5em;
+    }
 
-      .metadata-row {
-        display: flex;
-        flex-direction: row;
-        column-gap: 1.5em;
-      }
+    .subject-input {
+      flex-grow: 1;
+    }
 
-      .subject-input {
-        flex-grow: 1;
-      }
+    .appraisal-input {
+      width: 10em;
+    }
 
-      .appraisal-input {
-        width: 10em;
-      }
+    .record-plan-id-input {
+      width: 15em;
+    }
 
-      .record-plan-id-input {
-        width: 15em;
-      }
+    .document-id-input {
+      flex-grow: 1;
+    }
 
-      .document-id-input {
-        flex-grow: 1;
-      }
+    .document-type-input {
+      flex-grow: 1;
+    }
 
-      .document-type-input {
-        flex-grow: 1;
-      }
+    .medium-input {
+      flex-grow: 1;
+    }
 
-      .medium-input {
-        flex-grow: 1;
-      }
+    .confidentiality-input {
+      flex-grow: 1;
+    }
 
-      .confidentiality-input {
-        flex-grow: 1;
-      }
+    .incoming-date-input {
+      flex-grow: 1;
+    }
 
-      .incoming-date-input {
-        flex-grow: 1;
-      }
+    .outgoing-date-input {
+      flex-grow: 1;
+    }
 
-      .outgoing-date-input {
-        flex-grow: 1;
-      }
-
-      .document-date-input {
-        flex-grow: 1;
-      }
+    .document-date-input {
+      flex-grow: 1;
     }
   }
 }

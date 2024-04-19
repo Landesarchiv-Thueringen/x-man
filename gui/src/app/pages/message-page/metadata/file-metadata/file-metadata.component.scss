@@ -1,68 +1,61 @@
-:host {
+.metadata-section {
   padding: 2em;
-  display: block;
+  .metadata {
+    display: flex;
+    flex-direction: column;
 
-  .metadata-section {
-    min-width: 60em;
-    max-width: 80em;
-
-    .metadata {
+    .metadata-row {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      column-gap: 1.5em;
+    }
 
-      .metadata-row {
-        display: flex;
-        flex-direction: row;
-        column-gap: 1.5em;
-      }
+    .subject-input {
+      flex-grow: 1;
+    }
 
-      .subject-input {
-        flex-grow: 1;
-      }
+    .appraisal-input {
+      width: 10em;
+    }
 
-      .appraisal-input {
-        width: 10em;
-      }
+    .record-plan-id-input {
+      width: 15em;
+    }
 
-      .record-plan-id-input {
-        width: 15em;
-      }
+    .file-id-input {
+      flex-grow: 1;
+    }
 
-      .file-id-input {
-        flex-grow: 1;
-      }
+    .file-type-input {
+      flex-grow: 1;
+    }
 
-      .file-type-input {
-        flex-grow: 1;
-      }
+    .medium-input {
+      flex-grow: 1;
+    }
 
-      .medium-input {
-        flex-grow: 1;
-      }
+    .confidentiality-input {
+      flex-grow: 1;
+    }
 
-      .confidentiality-input {
-        flex-grow: 1;
-      }
+    .life-start-input {
+      flex-grow: 1;
+    }
 
-      .life-start-input {
-        flex-grow: 1;
-      }
+    .life-end-input {
+      flex-grow: 1;
+    }
 
-      .life-end-input {
-        flex-grow: 1;
-      }
+    .appraisal-input {
+      flex-grow: 1;
+    }
 
-      .appraisal-input {
-        flex-grow: 1;
-      }
+    .appraisal-recomm-input {
+      flex-grow: 1;
+    }
 
-      .appraisal-recomm-input {
-        flex-grow: 1;
-      }
-
-      .internal-appraisal-note {
-        width: 100%;
-      }
+    .internal-appraisal-note {
+      width: 100%;
     }
   }
 }
