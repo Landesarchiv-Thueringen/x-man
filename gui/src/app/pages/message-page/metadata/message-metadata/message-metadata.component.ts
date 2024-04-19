@@ -170,6 +170,13 @@ export class MessageMetadataComponent {
     }
     if (state.appraisal.complete) {
       items.push({ title: 'Bewertung abgeschlossen', icon: 'check', date: state.appraisal.completionTime! });
+    } else if (state.appraisal.message) {
+      items.push({
+        title: 'Bewertung',
+        icon: 'edit_note',
+        message: state.appraisal.message,
+        date: state.appraisal.updateTime!,
+      });
     }
     if (state.receive0505.complete) {
       items.push({ title: 'Bewertung in VIS importiert', icon: 'check', date: state.receive0505.completionTime! });

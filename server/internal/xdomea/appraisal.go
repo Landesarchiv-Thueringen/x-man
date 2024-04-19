@@ -69,6 +69,7 @@ func SetAppraisalDecisionRecursive(
 			db.UpdateAppraisal(a)
 		}
 	}
+	updateAppraisalProcessStep(processID)
 	return nil
 }
 
@@ -162,6 +163,7 @@ func SetAppraisals(
 			}
 		}
 	}
+	updateAppraisalProcessStep(processID)
 	return nil
 }
 
@@ -223,4 +225,33 @@ func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
 			db.SetAppraisalDecision(message.MessageHead.ProcessID, appraisableObject.GetID(), "V")
 		}
 	}
+}
+
+func updateAppraisalProcessStep(processID string) {
+	process, found := db.GetProcess(processID)
+	if !found {
+		panic(fmt.Errorf("process not found: %s", processID))
+	}
+	message, found := db.GetCompleteMessageByID(*process.Message0501ID)
+	if !found {
+		panic(fmt.Errorf("message not found: %s", *process.Message0501ID))
+	}
+	var appraisableRootObjects []db.AppraisableRecordObject
+	for _, f := range message.FileRecordObjects {
+		appraisableRootObjects = append(appraisableRootObjects, &f)
+	}
+	for _, p := range message.ProcessRecordObjects {
+		appraisableRootObjects = append(appraisableRootObjects, &p)
+	}
+	var numberAppraisalComplete = 0
+	for _, r := range appraisableRootObjects {
+		a := db.GetAppraisal(message.MessageHead.ProcessID, r.GetID())
+		if a.Decision == db.AppraisalDecisionA || a.Decision == db.AppraisalDecisionV {
+			numberAppraisalComplete++
+		}
+	}
+	processStepMessage := fmt.Sprintf("%d / %d", numberAppraisalComplete, len(appraisableRootObjects))
+	db.UpdateProcessStep(process.ProcessState.Appraisal.ID, db.ProcessStep{
+		Message: &processStepMessage,
+	})
 }

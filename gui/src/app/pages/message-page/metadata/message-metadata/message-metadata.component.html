@@ -30,6 +30,8 @@
                 Bewertung in VIS importiert
               } @else if (process.processState.appraisal.complete) {
                 Bewertung abgeschlossen
+              } @else if (process.processState.appraisal.message) {
+                Bewertung ({{ process.processState.appraisal.message }})
               } @else if (process.processState.receive0501.complete) {
                 Anbietung erhalten
               }

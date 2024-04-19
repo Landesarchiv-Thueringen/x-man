@@ -114,6 +114,10 @@
                 {{ process.processState.appraisal.completionTime | date: "short" }}
               </span>
             </div>
+          } @else {
+            <div class="task-cell">
+              <span>{{ process.processState.appraisal.message }}</span>
+            </div>
           }
         </mat-cell>
       </ng-container>

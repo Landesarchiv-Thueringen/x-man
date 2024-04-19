@@ -34,6 +34,8 @@ export interface ProcessState {
 export interface ProcessStep {
   complete: boolean;
   completionTime?: string;
+  updateTime: string;
+  message?: string;
   tasks: Task[];
   processingErrors: ProcessingError[];
 }

@@ -115,13 +115,16 @@ func (s *ProcessState) BeforeDelete(tx *gorm.DB) (err error) {
 type ProcessStep struct {
 	ID        uint      `gorm:"primaryKey" json:"-"`
 	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"updateTime"`
 	// Complete is true if the step completed successfully.
 	Complete bool `gorm:"default:false" json:"complete"`
 	// CompletionTime is the time at which Complete was set to true.
 	CompletionTime *time.Time `json:"completionTime"`
 	// CompletedBy is the name of the user who performed the process step.
 	CompletedBy *string `json:"completedBy"`
+	// Message is a short notice that indicates the state of a not yet completed
+	// process step.
+	Message *string `json:"message"`
 	// Tasks are all tasks associated with the process step.
 	//
 	// A task of the state "running" indicates that the process step is
