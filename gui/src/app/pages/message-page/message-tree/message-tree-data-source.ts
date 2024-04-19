@@ -31,9 +31,14 @@ export type FilterPredicate = (node: StructureNode) => FilterResult;
 
 /**
  * Values have the following meaning:
- * - true: The node and all its children are to be included.
- * - false: The node and all its children are to be omitted.
- * - undefined: The node is to be included if any of its children is included.
+ * - 'show': The node will be included. Its children will be tested separately.
+ * - 'show-recursive': The node and all its children will be included.
+ * - 'hide': The node will be omitted by default, but its children will be
+ *   tested separately and if any child is included, the node will also be
+ *   included.
+ * - 'hide-recursive': The node and all its children will be omitted.
+ * - 'propagate-recursive': The node will assume the filter result of its parent
+ *   and apply it to all of its children.
  */
 export type FilterResult = 'show' | 'show-recursive' | 'hide' | 'hide-recursive' | 'propagate-recursive';
 

@@ -30,9 +30,15 @@ import { FilterResult, FlatNode, MessageTreeDataSource } from './message-tree-da
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
 
 export interface Filter {
-  type: 'not-appraised' | 'record-plan-id';
+  /** A unique string to identify the filter. */
+  type: string;
+  /** A label shown to the user. */
   label: string;
+  /** An optional filter value to be entered by the user and passed to the predicate. */
   value?: string;
+  /** An optional condition for when to show the filter in the menu. */
+  showIf?: () => boolean;
+  /** The filter predicate that decides whether to include a node in results. */
   predicate: (node: StructureNode, value?: string) => FilterResult;
 }
 
@@ -78,6 +84,7 @@ export class MessageTreeComponent implements AfterViewInit {
     {
       type: 'not-appraised',
       label: 'Noch nicht bewertet',
+      showIf: () => !this.process?.processState.appraisal.complete && !this.process?.processState.receive0503.complete,
       predicate: (node) => {
         if (!node.canBeAppraised) {
           return 'propagate-recursive';

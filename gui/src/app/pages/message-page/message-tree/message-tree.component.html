@@ -64,9 +64,11 @@
           </button>
           <mat-menu #filterMenu="matMenu">
             @for (filter of availableFilters; track filter) {
-              <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
-                {{ filter.label }}
-              </button>
+              @if (filter.showIf?.() ?? true) {
+                <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
+                  {{ filter.label }}
+                </button>
+              }
             }
           </mat-menu>
           <button
