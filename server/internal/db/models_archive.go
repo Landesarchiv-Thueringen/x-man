@@ -26,4 +26,6 @@ type ArchivePackage struct {
 	DocumentRecordObjects []DocumentRecordObject `gorm:"many2many:aip_document_record_objects;constraint:OnDelete:CASCADE"`
 	// all primary documents that are contained in the archive package
 	PrimaryDocuments []PrimaryDocument `gorm:"many2many:aip_primary_documents;constraint:OnDelete:CASCADE"`
+	// PackageID is the ID assigned by DIMAG when importing the package.
+	PackageID string
 }

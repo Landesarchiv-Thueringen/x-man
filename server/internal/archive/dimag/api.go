@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -38,7 +39,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			Collection:         &collection,
 			FileRecordObjects:  []db.FileRecordObject{fileRecordObject},
 		}
-		err = importArchivePackage(message, archivePackageData)
+		err = importArchivePackage(message, &archivePackageData)
 		if err != nil {
 			return err
 		}
@@ -54,7 +55,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			Collection:           &collection,
 			ProcessRecordObjects: []db.ProcessRecordObject{processRecordObject},
 		}
-		err = importArchivePackage(message, archivePackageData)
+		err = importArchivePackage(message, &archivePackageData)
 		if err != nil {
 			return err
 		}
@@ -78,7 +79,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			Collection:            &collection,
 			DocumentRecordObjects: message.DocumentRecordObjects,
 		}
-		err = importArchivePackage(message, archivePackageData)
+		err = importArchivePackage(message, &archivePackageData)
 		if err != nil {
 			return err
 		}
@@ -88,8 +89,8 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 }
 
 // importArchivePackage archives a file record object in DIMAG.
-func importArchivePackage(message db.Message, archivePackageData db.ArchivePackage) error {
-	importDir, err := uploadFileRecordObjectFiles(sftpClient, message, archivePackageData)
+func importArchivePackage(message db.Message, archivePackageData *db.ArchivePackage) error {
+	importDir, err := uploadFileRecordObjectFiles(sftpClient, message, *archivePackageData)
 	if err != nil {
 		return err
 	}
@@ -126,10 +127,10 @@ func importArchivePackage(message db.Message, archivePackageData db.ArchivePacka
 		return err
 	}
 	defer response.Body.Close()
-	return processImportResponse(response)
+	return processImportResponse(response, archivePackageData)
 }
 
-func processImportResponse(response *http.Response) error {
+func processImportResponse(response *http.Response, archivePackageData *db.ArchivePackage) error {
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("DIMAG ingest error: status code %d", response.StatusCode)
 	}
@@ -146,6 +147,13 @@ func processImportResponse(response *http.Response) error {
 		log.Println(parsedResponse.Body.ImportDocResponse.Message)
 		return fmt.Errorf("DIMAG ingest error: %s", parsedResponse.Body.ImportDocResponse.Message)
 	}
+	// Extract package ID from response message.
+	re := regexp.MustCompile(`ok: Informationsobjekt (\S+) \[\] : .+ inserted<br\/>`)
+	match := re.FindStringSubmatch(parsedResponse.Body.ImportDocResponse.Message)
+	if len(match) != 2 {
+		return fmt.Errorf("unexpected DIMAG response message: %s", parsedResponse.Body.ImportDocResponse.Message)
+	}
+	archivePackageData.PackageID = match[1]
 	return nil
 }
 

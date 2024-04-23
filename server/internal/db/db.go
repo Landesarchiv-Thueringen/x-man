@@ -718,3 +718,12 @@ func GetArchivePackages(processID string) []ArchivePackage {
 	}
 	return aips
 }
+
+func GetArchivePackagesWithAssociations(processID string) []ArchivePackage {
+	var aips []ArchivePackage
+	result := db.Preload(clause.Associations).Where(&ArchivePackage{ProcessID: processID}).Find(&aips)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return aips
+}

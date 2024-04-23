@@ -49,13 +49,6 @@
   [#formatFloat(v, 2) #suffix]
 }
 
-#let formatRecordObjectType(type) = (
-  file: "Akte",
-  subFile: "Teilakte",
-  process: "Vorgang",
-  subProcess: "Teilvorgang",
-).at(type)
-
 #let formatContentStatsElement(type, number) = {
   if number == 1 {
     "1 " + (
@@ -89,11 +82,11 @@
     return [-]
   }
   let keys = lifetime.keys()
-  if (keys.contains("start") and keys.contains("end")) {
-    [#formatDate(lifetime.start) -- #formatDate(lifetime.end)]
-  } else if (keys.contains("start")) {
+  if (lifetime.Start != "" and lifetime.End != "") {
+    [#formatDate(lifetime.Start) -- #formatDate(lifetime.End)]
+  } else if (lifetime.Start != "") {
     [ab #formatDate(lifetime.start)]
-  } else if (keys.contains("end")) {
+  } else if (lifetime.End != "") {
     [bis #formatDate(lifetime.end)]
   } else {
     [-]
@@ -241,46 +234,30 @@
   )
 ]
 
-#let contentList(elements, level) = [
+#let archivePackages(elements) = [
+  = Archivierte Pakete
   #for el in elements [
-    #if el.archiveMetadata.appraisalCode != "A" { continue }
-    #heading(
-      level: level,
-    )[
-      #formatRecordObjectType(el.recordObjectType): #el.generalMetadata.xdomeaID \
-      #el.generalMetadata.subject
-    ]
+    == #el.Title
 
     #table(
       columns: (auto, 1fr, auto, 1fr),
       stroke: none,
       [Laufzeit:],
-      formatLifetime(el.lifetime),
+      formatLifetime(el.Lifetime),
       [],
       [],
       [Speicher-?volumen:],
-      [TODO],
+      formatFilesize(el.TotalFileSize),
       [Paket-ID:],
-      [TODO],
+      fallback(el.PackageID),
     )
     #table(
       columns: 2,
       stroke: none,
       [Bewertungs-?notiz:],
-      [#fallback(el.appraisal.internalNote)],
+      [#fallback(el.AppraisalNote)],
     )
-    // #if el.children != none [
-    //   #block(inset: (left: 2.4em))[
-    //     #contentList(el.children, level + 1)
-    //   ]
-    // ]
   ]
-]
-
-#let contents(elements) = [
-  = Archivierte Pakete
-  #let rootLevel = 2
-  #contentList(elements, rootLevel)
 ]
 
 #let report(data) = [
@@ -303,7 +280,7 @@
   #topMatter(data)
   #overview(data)
   #pagebreak()
-  #contents(data.Content)
+  #archivePackages(data.ArchivePackages)
   // #pagebreak()
   // #fileStats(data.FileStats)
 ]

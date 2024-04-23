@@ -13,13 +13,10 @@ import (
 
 type ReportData struct {
 	Process          db.Process
-	Content          []ContentObject
-	Message0501Stats *ContentStats
+	ArchivePackages  []ArchivePackageData
 	Message0503Stats *ContentStats
 	AppraisalStats   *AppraisalStats
 	FileStats        FileStats
-	Message0501      *db.Message
-	Message0503      db.Message
 }
 
 // GetReport sends process data to the report service and returns the generated PDF.
@@ -56,20 +53,16 @@ func getReportData(process db.Process) (reportData ReportData, err error) {
 		if !found {
 			panic(fmt.Sprintf("message not found: %v", *process.Message0501ID))
 		}
-		messageStats := getMessageContentStats(message0501)
-		reportData.Message0501Stats = &messageStats
 		appraisalStats := getAppraisalStats(message0501)
 		reportData.AppraisalStats = &appraisalStats
-		reportData.Message0501 = &message0501
 	}
 	message0503, found := db.GetCompleteMessageByID(*process.Message0503ID)
 	if !found {
 		panic(fmt.Sprintf("message not found: %v", *process.Message0503ID))
 	}
-	reportData.Content = getContentObjects(message0503)
+	reportData.ArchivePackages = getArchivePackages(process)
 	messageStats := getMessageContentStats(message0503)
 	reportData.Message0503Stats = &messageStats
-	reportData.Message0503 = message0503
 	reportData.FileStats = getFileStats(process)
 	if os.Getenv("DEBUG_MODE") == "true" {
 		writeToFile(reportData, "/debug-data/data.json")
