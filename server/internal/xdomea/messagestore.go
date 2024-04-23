@@ -93,8 +93,8 @@ func DeleteProcess(processID string) bool {
 }
 
 func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
-	message, found := db.GetCompleteMessageByID(id)
-	if !found {
+	message, messageFound := db.GetCompleteMessageByID(id)
+	if !messageFound {
 		panic("message not found " + id.String())
 	}
 	storeDir := message.StoreDir
@@ -109,15 +109,16 @@ func DeleteMessage(id uuid.UUID, keepTransferFile bool) {
 	if err := os.RemoveAll(storeDir); err != nil {
 		panic(err)
 	}
+	process, processFound := db.GetProcess(message.MessageHead.ProcessID)
+	if !processFound {
+		panic("process not found " + message.MessageHead.ProcessID)
+	}
 	// Delete transfer file
 	if !keepTransferFile {
-		if err := os.Remove(transferFile); err != nil {
-			panic(err)
-		}
+		RemoveFileFromTransferDir(process.Agency, transferFile)
 		cleanupEmptyProcess(message.MessageHead.ProcessID)
 	}
-	process, found := db.GetProcess(message.MessageHead.ProcessID)
-	if found {
+	if processFound {
 		// If the process cannot be found, the processed-transfer-dir entry was
 		// already deleted with the process.
 		db.DeleteProcessedTransferDirEntry(process.Agency, message.TransferDirPath)
