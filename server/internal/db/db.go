@@ -420,17 +420,23 @@ func UpdateProcess(id string, updateValues Process) {
 	}
 }
 
+func UpdatePrimaryDocument(id uint, updateValues PrimaryDocument) {
+	result := db.
+		Model(PrimaryDocument{ID: id}).
+		Updates(updateValues)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+}
+
 func CreateFormatVerification(primaryDocumentID uint, formatVerification FormatVerification) {
 	result := db.Create(&formatVerification)
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	result = db.
-		Model(PrimaryDocument{ID: primaryDocumentID}).
-		Updates(PrimaryDocument{FormatVerificationID: &formatVerification.ID})
-	if result.Error != nil {
-		panic(result.Error)
-	}
+	UpdatePrimaryDocument(primaryDocumentID, PrimaryDocument{
+		FormatVerificationID: &formatVerification.ID,
+	})
 }
 
 func UpdateProcessStep(id uint, updateValues ProcessStep) {

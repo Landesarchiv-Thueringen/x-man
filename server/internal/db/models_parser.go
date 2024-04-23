@@ -523,11 +523,13 @@ func (v *Format) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 type PrimaryDocument struct {
-	ID                   uint                `gorm:"primaryKey" json:"id"`
-	CreatedAt            time.Time           `json:"-"`
-	UpdatedAt            time.Time           `json:"-"`
-	FileName             string              `xml:"Dateiname" json:"fileName"`
-	FileNameOriginal     *string             `xml:"DateinameOriginal" json:"fileNameOriginal"`
+	ID               uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt        time.Time `json:"-"`
+	UpdatedAt        time.Time `json:"-"`
+	FileName         string    `xml:"Dateiname" json:"fileName"`
+	FileNameOriginal *string   `xml:"DateinameOriginal" json:"fileNameOriginal"`
+	// FileSize is the file's size on disk in bytes.
+	FileSize             uint64              `json:"fileSize"`
 	CreatorName          *string             `xml:"Ersteller" json:"creatorName"`
 	CreationTime         *string             `xml:"DatumUhrzeit" json:"creationTime"`
 	FormatVerificationID *uint               `json:"-"`

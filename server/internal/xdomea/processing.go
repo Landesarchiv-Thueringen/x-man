@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -73,6 +74,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		if err != nil {
 			HandleError(err)
 		}
+		recordFileSizes(message, primaryDocuments)
 		// start format verification
 		err = format.VerifyFileFormats(process, message)
 		if err != nil {
@@ -209,6 +211,22 @@ func checkMessage0503Integrity(
 		}
 	} else {
 		return checkRecordObjectsOfMessage0503(process, message0501, message0503)
+	}
+}
+
+// recordFileSizes reads the primary documents' file sizes on disk and saves the
+// numbers to the database record.
+func recordFileSizes(message db.Message, documents []db.PrimaryDocument) {
+	for _, d := range documents {
+		filePath := filepath.Join(message.StoreDir, d.FileName)
+		s, err := os.Stat(filePath)
+		if err != nil {
+			panic(err)
+		}
+		size := s.Size()
+		db.UpdatePrimaryDocument(d.ID, db.PrimaryDocument{
+			FileSize: uint64(size),
+		})
 	}
 }
 
