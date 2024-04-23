@@ -32,6 +32,23 @@ func CreateProcessingErrorPanic(info map[string]any) {
 	})
 }
 
+// HandlePanic checks for a panic in the current go routine and recovers from
+// it.
+//
+// It should be called as `defer HandlePanic()` at the start of a go routine or
+// at the point from which one out you want to recover from panics.
+//
+// If there is a panic, it prints the stack trace to the console and creates a
+// processing error that will be shown on the clearing page to administrators.
+//
+// For functions invoked by API requests you usually don't need HandlePanic
+// since panics are handled by GIN middleware. HandlePanic is useful when API
+// requests start go routines or when go routines are started by the server
+// without an API request, e.g., as reaction on a newly found message file or
+// timed invocation of a routine. In these situations, it should be used when
+// there is a chance of panics caused by runtime conditions like a broken
+// network connection or a failure of an external service. For panics indicating
+// fatal misconfiguration, handling is not required.
 func HandlePanic(taskDescription string) {
 	if r := recover(); r != nil {
 		log.Printf("panic: %v\n", r)

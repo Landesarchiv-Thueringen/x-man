@@ -22,6 +22,7 @@ type ReportData struct {
 	Message0503      db.Message
 }
 
+// GetReport sends process data to the report service and returns the generated PDF.
 func GetReport(process db.Process) (contentLength int64, contentType string, body io.Reader) {
 	values, err := getReportData(process)
 	if err != nil {
@@ -42,6 +43,7 @@ func GetReport(process db.Process) (contentLength int64, contentType string, bod
 	return
 }
 
+// getReportData accumulates process data for use by the report service.
 func getReportData(process db.Process) (reportData ReportData, err error) {
 	if process.Message0503ID == nil {
 		return reportData, errors.New("tried to get report of process with Message0503ID == nil")
@@ -75,6 +77,8 @@ func getReportData(process db.Process) (reportData ReportData, err error) {
 	return
 }
 
+// writeToFile writes accumulated report data to a json file for use for
+// development of the report service.
 func writeToFile(reportData ReportData, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
