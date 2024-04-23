@@ -142,11 +142,13 @@ func getConfig(context *gin.Context) {
 	if archiveTarget == "" {
 		log.Fatal("missing environment variable: ARCHIVE_TARGET")
 	}
+	borgSupport := os.Getenv("BORG_ENDPOINT") != ""
 	context.JSON(http.StatusOK, gin.H{
 		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
 		"appraisalLevel":                   appraisalLevel,
 		"supportsEmailNotifications":       supportsEmailNotifications,
 		"archiveTarget":                    archiveTarget,
+		"borgSupport":                      borgSupport,
 	})
 }
 

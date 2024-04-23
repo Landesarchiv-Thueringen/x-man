@@ -190,6 +190,8 @@
               {{ getRunningTask(process.processState.formatVerification)!.itemCount }}
               <mat-spinner diameter="24"></mat-spinner>
             </div>
+          } @else if (config()!.borgSupport === false) {
+            <div class="task-cell"><em>nicht verfügbar</em></div>
           }
         </mat-cell>
       </ng-container>

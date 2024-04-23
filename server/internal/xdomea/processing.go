@@ -76,9 +76,11 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		}
 		recordFileSizes(message, primaryDocuments)
 		// start format verification
-		err = format.VerifyFileFormats(process, message)
-		if err != nil {
-			HandleError(err)
+		if os.Getenv("BORG_ENDPOINT") != "" {
+			err = format.VerifyFileFormats(process, message)
+			if err != nil {
+				HandleError(err)
+			}
 		}
 	}
 	// if no error occurred while processing the message

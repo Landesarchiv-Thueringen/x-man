@@ -10,6 +10,7 @@ export interface Config {
   appraisalLevel: 'root' | 'all';
   supportsEmailNotifications: boolean;
   archiveTarget: 'dimag' | 'filesystem';
+  borgSupport: boolean;
 }
 
 /**

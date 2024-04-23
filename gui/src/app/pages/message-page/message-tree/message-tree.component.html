@@ -167,7 +167,7 @@
       class="tertiary-button"
       *ngIf="
         message.messageType.code === '0503' &&
-        process.processState.formatVerification.complete &&
+        (config()?.borgSupport === false || process.processState.formatVerification.complete) &&
         canStartStep(process.processState.archiving)
       "
       (click)="archive0503Message()"

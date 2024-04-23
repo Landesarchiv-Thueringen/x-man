@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -11,7 +12,11 @@ import (
 
 func (process *Process) IsArchivable() bool {
 	state := process.ProcessState
-	return state.FormatVerification.Complete && !state.Archiving.Complete
+	if os.Getenv("BORG_ENDPOINT") != "" {
+		return state.FormatVerification.Complete && !state.Archiving.Complete
+	} else {
+		return state.Receive0503.Complete && !state.Archiving.Complete
+	}
 }
 func (message *Message) GetMessageFileName() string {
 	return filepath.Base(message.MessagePath)

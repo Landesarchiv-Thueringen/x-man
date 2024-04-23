@@ -1,6 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DatePipe } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,6 +18,7 @@ import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { ProcessingError } from '../../services/clearing.service';
+import { ConfigService } from '../../services/config.service';
 import { Process, ProcessService, ProcessStep } from '../../services/process.service';
 import { Task } from '../../services/tasks.service';
 
@@ -81,14 +83,16 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     nonNullable: true,
   });
   showFilters = window.localStorage.getItem('show-process-filters') === 'true';
+  config = toSignal(this.configService.config);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
-    private processService: ProcessService,
-    private formBuilder: FormBuilder,
     private authService: AuthService,
+    private configService: ConfigService,
+    private formBuilder: FormBuilder,
+    private processService: ProcessService,
   ) {
     this.dataSource.sortingDataAccessor = ((
       process: Process,

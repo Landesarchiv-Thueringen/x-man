@@ -2,7 +2,7 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { AfterViewInit, Component, Inject, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -16,6 +16,7 @@ import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, ChildActivationEnd, Router, RouterModule } from '@angular/router';
 import { ReplaySubject, Subject, concat, delay, filter, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
+import { ConfigService } from '../../../services/config.service';
 import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
 import { Process, ProcessService, ProcessStep } from '../../../services/process.service';
@@ -106,18 +107,20 @@ export class MessageTreeComponent implements AfterViewInit {
   activeFilters: Filter[] = [];
   filtersHint: string | null = null;
   currentObjectRecordId?: string;
+  config = toSignal(this.configService.config);
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private clipboard: Clipboard,
+    private configService: ConfigService,
     private dialog: MatDialog,
     private messagePage: MessagePageService,
+    private messageProcessor: MessageProcessorService,
     private messageService: MessageService,
     private notificationService: NotificationService,
     private processService: ProcessService,
     private route: ActivatedRoute,
     private router: Router,
-    private messageProcessor: MessageProcessorService,
   ) {
     this.registerAppraisals();
     const processReady = new Subject<void>();
