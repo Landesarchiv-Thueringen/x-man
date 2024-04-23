@@ -371,9 +371,7 @@ export class MessageTreeComponent implements AfterViewInit {
         .afterClosed()
         .pipe(
           filter((formResult) => !!formResult),
-          switchMap(() => {
-            return this.messageService.finalizeMessageAppraisal(this.message!.id);
-          }),
+          switchMap(() => this.messagePage.finalizeAppraisals()),
         )
         .subscribe({
           error: (error: any) => {
@@ -383,8 +381,6 @@ export class MessageTreeComponent implements AfterViewInit {
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
             this.notificationService.show('Bewertungsnachricht wurde erfolgreich versandt');
-            // TODO: trigger process update or
-            this.process!.processState.appraisal.complete = true;
           },
         });
     }

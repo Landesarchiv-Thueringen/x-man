@@ -155,4 +155,17 @@ export class MessagePageService {
     );
     this.appraisals.next(appraisals);
   }
+
+  async finalizeAppraisals(): Promise<void> {
+    await firstValueFrom(this.messageService.finalizeMessageAppraisal(this.message.value!.id));
+    this.updateAppraisals();
+    // FIXME: We should rather do a genuine update of the process object.
+    this.process.value!.processState.appraisal.complete = true;
+  }
+
+  private async updateAppraisals(): Promise<void> {
+    const process = await firstValueFrom(this.getProcess());
+    const appraisals = await firstValueFrom(this.appraisalService.getAppraisals(process.id));
+    this.appraisals.next(appraisals);
+  }
 }
