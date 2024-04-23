@@ -13,7 +13,7 @@ const FileAbbreviation string = "F"
 
 func GenerateControlFile(
 	message db.Message,
-	archivePackageData ArchivePackageData,
+	archivePackageData db.ArchivePackage,
 	importDir string,
 ) string {
 	primaryDocuments := archivePackageData.PrimaryDocuments
@@ -40,14 +40,14 @@ func GenerateControlFile(
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
-		Lifetime:   archivePackageData.IOLifetime,
+		Lifetime:   archivePackageData.IOLifetimeCombined,
 		ItemType:   InformationObjectAbbreviation,
 		Title:      archivePackageData.IOTitle,
 		IndexItems: repItems,
 	}
 	ioItems := []IndexItem{ioIndexItem}
 	dimagControl := DimagControl{
-		RootID:     archivePackageData.CollectionID,
+		RootID:     archivePackageData.Collection.DimagID,
 		IndexItems: ioItems,
 	}
 	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")

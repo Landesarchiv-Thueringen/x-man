@@ -29,30 +29,36 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 	}
 	defer CloseConnection()
 	for _, fileRecordObject := range message.FileRecordObjects {
-		archivePackageData := ArchivePackageData{
-			IOTitle:          fileRecordObject.GetTitle(),
-			IOLifetime:       fileRecordObject.GetCombinedLifetime(),
-			REPTitle:         "Original",
-			PrimaryDocuments: fileRecordObject.GetPrimaryDocuments(),
-			CollectionID:     collection.DimagID,
+		archivePackageData := db.ArchivePackage{
+			ProcessID:          process.ID,
+			IOTitle:            fileRecordObject.GetTitle(),
+			IOLifetimeCombined: fileRecordObject.GetCombinedLifetime(),
+			REPTitle:           "Original",
+			PrimaryDocuments:   fileRecordObject.GetPrimaryDocuments(),
+			Collection:         &collection,
+			FileRecordObjects:  []db.FileRecordObject{fileRecordObject},
 		}
 		err = importArchivePackage(message, archivePackageData)
 		if err != nil {
 			return err
 		}
+		db.AddArchivePackage(archivePackageData)
 	}
 	for _, processRecordObject := range message.ProcessRecordObjects {
-		archivePackageData := ArchivePackageData{
-			IOTitle:          processRecordObject.GetTitle(),
-			IOLifetime:       processRecordObject.GetCombinedLifetime(),
-			REPTitle:         "Original",
-			PrimaryDocuments: processRecordObject.GetPrimaryDocuments(),
-			CollectionID:     collection.DimagID,
+		archivePackageData := db.ArchivePackage{
+			ProcessID:            process.ID,
+			IOTitle:              processRecordObject.GetTitle(),
+			IOLifetimeCombined:   processRecordObject.GetCombinedLifetime(),
+			REPTitle:             "Original",
+			PrimaryDocuments:     processRecordObject.GetPrimaryDocuments(),
+			Collection:           &collection,
+			ProcessRecordObjects: []db.ProcessRecordObject{processRecordObject},
 		}
 		err = importArchivePackage(message, archivePackageData)
 		if err != nil {
 			return err
 		}
+		db.AddArchivePackage(archivePackageData)
 	}
 	// combine documents which don't belong to a file or process in one archive package
 	if len(message.DocumentRecordObjects) > 0 {
@@ -63,23 +69,26 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 		ioTitle := "Nicht zugeordnete Dokumente Behörde: " + process.Agency.Name +
 			" Prozess-ID: " + process.ID
 		repTitle := "Original"
-		archivePackageData := ArchivePackageData{
-			IOTitle:          ioTitle,
-			IOLifetime:       "-",
-			REPTitle:         repTitle,
-			PrimaryDocuments: primaryDocuments,
-			CollectionID:     collection.DimagID,
+		archivePackageData := db.ArchivePackage{
+			ProcessID:             process.ID,
+			IOTitle:               ioTitle,
+			IOLifetimeCombined:    "-",
+			REPTitle:              repTitle,
+			PrimaryDocuments:      primaryDocuments,
+			Collection:            &collection,
+			DocumentRecordObjects: message.DocumentRecordObjects,
 		}
 		err = importArchivePackage(message, archivePackageData)
 		if err != nil {
 			return err
 		}
+		db.AddArchivePackage(archivePackageData)
 	}
 	return nil
 }
 
 // importArchivePackage archives a file record object in DIMAG.
-func importArchivePackage(message db.Message, archivePackageData ArchivePackageData) error {
+func importArchivePackage(message db.Message, archivePackageData db.ArchivePackage) error {
 	importDir, err := uploadFileRecordObjectFiles(sftpClient, message, archivePackageData)
 	if err != nil {
 		return err

@@ -15,14 +15,14 @@ const temporaryArchivePath = "/xman/archive"
 // ArchiveMessage creates on distinct folder for every archive package on a local filesystem
 func ArchiveMessage(process db.Process, message db.Message) error {
 	for _, fileRecordObject := range message.FileRecordObjects {
-		archivePackage := createAipFromFileRecordObject(fileRecordObject)
+		archivePackage := createAipFromFileRecordObject(process, fileRecordObject)
 		err := StoreArchivePackage(process, message, archivePackage)
 		if err != nil {
 			return err
 		}
 	}
 	for _, processRecordObject := range message.ProcessRecordObjects {
-		archivePackage := createAipFromProcessRecordObject(processRecordObject)
+		archivePackage := createAipFromProcessRecordObject(process, processRecordObject)
 		err := StoreArchivePackage(process, message, archivePackage)
 		if err != nil {
 			return err
@@ -40,53 +40,56 @@ func ArchiveMessage(process db.Process, message db.Message) error {
 }
 
 // createAipFromFileRecordObject creates the archive package metadata from a file record object.
-func createAipFromFileRecordObject(fileRecordObject db.FileRecordObject) ArchivePackage {
-	representation := Representation{
-		Title:            fileRecordObject.GetTitle(),
-		PrimaryDocuments: fileRecordObject.GetPrimaryDocuments(),
+func createAipFromFileRecordObject(process db.Process, fileRecordObject db.FileRecordObject) db.ArchivePackage {
+	archivePackageData := db.ArchivePackage{
+		ProcessID:          process.ID,
+		IOTitle:            fileRecordObject.GetTitle(),
+		IOLifetimeCombined: fileRecordObject.GetCombinedLifetime(),
+		REPTitle:           "Original",
+		PrimaryDocuments:   fileRecordObject.GetPrimaryDocuments(),
+		FileRecordObjects:  []db.FileRecordObject{fileRecordObject},
 	}
-	archivePackage := ArchivePackage{
-		Title:          "originale Repräsentation einer Akte extrahiert aus einer E-Akten-Ablieferung",
-		Representation: representation,
-	}
-	return archivePackage
+	return archivePackageData
 }
 
 // createAipFromProcessRecordObject creates the archive package metadata from a process record object.
-func createAipFromProcessRecordObject(processRecordObject db.ProcessRecordObject) ArchivePackage {
-	representation := Representation{
-		Title:            processRecordObject.GetTitle(),
-		PrimaryDocuments: processRecordObject.GetPrimaryDocuments(),
+func createAipFromProcessRecordObject(process db.Process, processRecordObject db.ProcessRecordObject) db.ArchivePackage {
+	archivePackageData := db.ArchivePackage{
+		ProcessID:            process.ID,
+		IOTitle:              processRecordObject.GetTitle(),
+		IOLifetimeCombined:   processRecordObject.GetCombinedLifetime(),
+		REPTitle:             "Original",
+		PrimaryDocuments:     processRecordObject.GetPrimaryDocuments(),
+		ProcessRecordObjects: []db.ProcessRecordObject{processRecordObject},
 	}
-	archivePackage := ArchivePackage{
-		Title:          "originale Repräsentation einer Akte extrahiert aus einer E-Akten-Ablieferung",
-		Representation: representation,
-	}
-	return archivePackage
+	return archivePackageData
 }
 
 // createAipFromDocumentRecordObjects creates the metadata for a shared archive package of multiple documents.
 func createAipFromDocumentRecordObjects(
 	process db.Process,
 	documentRecordObjects []db.DocumentRecordObject,
-) ArchivePackage {
+) db.ArchivePackage {
 	var primaryDocuments []db.PrimaryDocument
 	for _, documentRecordObject := range documentRecordObjects {
 		primaryDocuments = append(primaryDocuments, documentRecordObject.GetPrimaryDocuments()...)
 	}
-	representation := Representation{
-		Title:            "Nicht zugeordnete Dokumente aus der Ablieferung (" + process.Agency.Name + ")",
-		PrimaryDocuments: primaryDocuments,
+	ioTitle := "Nicht zugeordnete Dokumente Behörde: " + process.Agency.Name +
+		" Prozess-ID: " + process.ID
+	repTitle := "Original"
+	archivePackageData := db.ArchivePackage{
+		ProcessID:             process.ID,
+		IOTitle:               ioTitle,
+		IOLifetimeCombined:    "-",
+		REPTitle:              repTitle,
+		PrimaryDocuments:      primaryDocuments,
+		DocumentRecordObjects: documentRecordObjects,
 	}
-	archivePackage := ArchivePackage{
-		Title:          "originale Repräsentation von nicht zugeordneten Dokumente extrahiert aus einer E-Akten-Ablieferung",
-		Representation: representation,
-	}
-	return archivePackage
+	return archivePackageData
 }
 
 // StoreArchivePackage creates a folder on the file system for the archive package and copies all primary files in this folder.
-func StoreArchivePackage(process db.Process, message db.Message, archivePackage ArchivePackage) error {
+func StoreArchivePackage(process db.Process, message db.Message, archivePackage db.ArchivePackage) error {
 	id := uuid.New().String()
 	archivePackagePath := filepath.Join(temporaryArchivePath, id)
 	err := os.Mkdir(archivePackagePath, 0744)
@@ -94,7 +97,7 @@ func StoreArchivePackage(process db.Process, message db.Message, archivePackage 
 		return err
 	}
 	// copy all primary documents in archive package
-	for _, primaryDocument := range archivePackage.Representation.PrimaryDocuments {
+	for _, primaryDocument := range archivePackage.PrimaryDocuments {
 		err := copyFileIntoArchivePackage(message.StoreDir, archivePackagePath, primaryDocument.FileName)
 		if err != nil {
 			return err

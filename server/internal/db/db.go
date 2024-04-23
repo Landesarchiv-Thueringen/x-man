@@ -103,6 +103,7 @@ func Migrate() {
 		&Task{},
 		&User{},
 		&UserPreferences{},
+		&ArchivePackage{},
 	)
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate database: %v", err))
@@ -700,4 +701,20 @@ func DeleteProcessedTransferDirEntry(agency Agency, path string) {
 		panic(fmt.Sprintf("failed to delete processed-transfer-dir entry %v, %s: rows affected: %d",
 			agency, path, result.RowsAffected))
 	}
+}
+
+func AddArchivePackage(aip ArchivePackage) {
+	result := db.Create(&aip)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+}
+
+func GetArchivePackages(processID string) []ArchivePackage {
+	var aips []ArchivePackage
+	result := db.Where(&ArchivePackage{ProcessID: processID}).Find(&aips)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return aips
 }

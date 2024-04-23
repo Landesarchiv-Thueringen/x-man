@@ -2,19 +2,10 @@ package dimag
 
 import (
 	"encoding/xml"
-	"lath/xman/internal/db"
 )
 
 const SoapNs string = "http://schemas.xmlsoap.org/soap/envelope/"
 const DimagNs string = "http://dimag.la-bw.de/WebService.wsdl"
-
-type ArchivePackageData struct {
-	IOTitle          string
-	IOLifetime       string
-	REPTitle         string
-	PrimaryDocuments []db.PrimaryDocument
-	CollectionID     string
-}
 
 type DimagControl struct {
 	XMLName    xml.Name `xml:"verzeichnungseinheit"`

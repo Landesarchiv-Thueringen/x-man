@@ -63,6 +63,10 @@ func (p *Process) BeforeDelete(tx *gorm.DB) (err error) {
 		tx.Delete(&process.Message0501)
 	}
 	if process.Message0503 != nil {
+		aips := GetArchivePackages(p.ID)
+		for _, aip := range aips {
+			tx.Delete(&aip)
+		}
 		tx.Delete(&process.Message0503)
 	}
 	if process.Message0505 != nil {

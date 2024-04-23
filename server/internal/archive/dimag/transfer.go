@@ -89,7 +89,7 @@ func CloseConnection() {
 func uploadFileRecordObjectFiles(
 	sftpClient *sftp.Client,
 	message db.Message,
-	archivePackageData ArchivePackageData,
+	archivePackageData db.ArchivePackage,
 ) (string, error) {
 	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
 	importDir := "xman_import_" + uuid.NewString()
@@ -131,7 +131,7 @@ func uploadXdomeaMessageFile(
 func uploadControlFile(
 	sftpClient *sftp.Client,
 	message db.Message,
-	archivePackageData ArchivePackageData,
+	archivePackageData db.ArchivePackage,
 	importPath string,
 	importDir string,
 ) error {
