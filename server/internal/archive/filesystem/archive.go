@@ -20,6 +20,7 @@ func ArchiveMessage(process db.Process, message db.Message) error {
 		if err != nil {
 			return err
 		}
+		db.AddArchivePackage(archivePackage)
 	}
 	for _, processRecordObject := range message.ProcessRecordObjects {
 		archivePackage := createAipFromProcessRecordObject(process, processRecordObject)
@@ -27,6 +28,7 @@ func ArchiveMessage(process db.Process, message db.Message) error {
 		if err != nil {
 			return err
 		}
+		db.AddArchivePackage(archivePackage)
 	}
 	// combine documents which don't belong to a file or process in one archive package
 	if len(message.DocumentRecordObjects) > 0 {
@@ -35,6 +37,7 @@ func ArchiveMessage(process db.Process, message db.Message) error {
 		if err != nil {
 			return err
 		}
+		db.AddArchivePackage(archivePackage)
 	}
 	return nil
 }
