@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
+	"lath/xman/internal/xdomea"
 	"log"
 	"net"
 	"net/url"
@@ -89,7 +90,7 @@ func CloseConnection() {
 func uploadFileRecordObjectFiles(
 	sftpClient *sftp.Client,
 	message db.Message,
-	archivePackageData db.ArchivePackage,
+	archivePackage db.ArchivePackage,
 ) (string, error) {
 	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
 	importDir := "xman_import_" + uuid.NewString()
@@ -99,11 +100,11 @@ func uploadFileRecordObjectFiles(
 		log.Println(err)
 		return importDir, err
 	}
-	err = uploadXdomeaMessageFile(sftpClient, message, importPath)
+	err = uploadXdomeaMessageFile(sftpClient, message, importPath, archivePackage)
 	if err != nil {
 		return importDir, err
 	}
-	for _, primaryDocument := range archivePackageData.PrimaryDocuments {
+	for _, primaryDocument := range archivePackage.PrimaryDocuments {
 		filePath := filepath.Join(message.StoreDir, primaryDocument.FileName)
 		_, err := os.Stat(filePath)
 		if err != nil {
@@ -116,16 +117,21 @@ func uploadFileRecordObjectFiles(
 			return importDir, err
 		}
 	}
-	return importDir, uploadControlFile(sftpClient, message, archivePackageData, importPath, importDir)
+	return importDir, uploadControlFile(sftpClient, message, archivePackage, importPath, importDir)
 }
 
 func uploadXdomeaMessageFile(
 	sftpClient *sftp.Client,
 	message db.Message,
 	importPath string,
+	archivePackage db.ArchivePackage,
 ) error {
 	remotePath := message.GetRemoteXmlPath(importPath)
-	return uploadFile(sftpClient, message.MessagePath, remotePath)
+	prunnedMessage, err := xdomea.PruneMessage(message, archivePackage)
+	if err != nil {
+		return err
+	}
+	return createRemoteTextFile(sftpClient, prunnedMessage, remotePath)
 }
 
 func uploadControlFile(

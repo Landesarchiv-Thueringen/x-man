@@ -27,7 +27,7 @@ func GenerateControlFile(
 	xmlIndexItem := IndexItem{
 		IndexID:  "",
 		ItemType: FileAbbreviation,
-		Title:    "xdomea XML-Datei",
+		Title:    message.GetMessageFileName(),
 		FilePath: message.GetRemoteXmlPath(importDir),
 	}
 	fileIndexItems = append(fileIndexItems, xmlIndexItem)

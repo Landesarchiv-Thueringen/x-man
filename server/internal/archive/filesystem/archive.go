@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"lath/xman/internal/db"
+	"lath/xman/internal/xdomea"
 	"os"
 	"path/filepath"
 
@@ -106,8 +107,12 @@ func StoreArchivePackage(process db.Process, message db.Message, archivePackage 
 			return err
 		}
 	}
+	prunnedMessage, err := xdomea.PruneMessage(message, archivePackage)
+	if err != nil {
+		return err
+	}
 	messageFileName := filepath.Base(message.MessagePath)
-	err = copyFileIntoArchivePackage(message.StoreDir, archivePackagePath, messageFileName)
+	err = writeTextFile(archivePackagePath, messageFileName, prunnedMessage)
 	if err != nil {
 		return err
 	}
@@ -139,7 +144,7 @@ func copyFileIntoArchivePackage(storePath string, archivePackagePath string, fil
 	return nil
 }
 
-// writeObjectToTextfile
+// writeObjectToTextfile writes an object to a textfile in the archive package.
 func writeObjectToTextfile(obj any, archivePackagePath string, filename string) error {
 	bytes, err := json.MarshalIndent(obj, "", " ")
 	if err != nil {
@@ -147,4 +152,9 @@ func writeObjectToTextfile(obj any, archivePackagePath string, filename string) 
 	}
 	err = os.WriteFile(filepath.Join(archivePackagePath, filename), bytes, 0644)
 	return err
+}
+
+// writeTextFile writes a textfile in the archive package.
+func writeTextFile(aipPath string, filename string, content string) error {
+	return os.WriteFile(filepath.Join(aipPath, filename), []byte(content), 0644)
 }

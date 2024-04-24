@@ -29,3 +29,18 @@ type ArchivePackage struct {
 	// PackageID is the ID assigned by DIMAG when importing the package.
 	PackageID string
 }
+
+// GetRootIDs returns an array containing all IDs of root records in the archive package.
+func (aip *ArchivePackage) GetRootIDs() []string {
+	var rootIDs []string
+	for _, fileRecord := range aip.FileRecordObjects {
+		rootIDs = append(rootIDs, fileRecord.XdomeaID.String())
+	}
+	for _, processRecord := range aip.ProcessRecordObjects {
+		rootIDs = append(rootIDs, processRecord.XdomeaID.String())
+	}
+	for _, documentRecord := range aip.DocumentRecordObjects {
+		rootIDs = append(rootIDs, documentRecord.XdomeaID.String())
+	}
+	return rootIDs
+}
