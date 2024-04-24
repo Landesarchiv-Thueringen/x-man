@@ -111,12 +111,7 @@ func GetProcesses() []Process {
 	var processes []Process
 	result := db.
 		Preload("Agency").
-		Preload("Message0501.MessageHead").
-		Preload("Message0501.MessageType").
-		Preload("Message0503.MessageHead").
-		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
-		Preload("ProcessingErrors.Agency").
 		Preload("ProcessState.Receive0501." + clause.Associations).
 		Preload("ProcessState.Appraisal." + clause.Associations).
 		Preload("ProcessState.Receive0505." + clause.Associations).
@@ -143,12 +138,7 @@ func GetProcessesForUser(userID string) []Process {
 	result := db.
 		Where("agency_id IN ?", agencyIDs).
 		Preload("Agency").
-		Preload("Message0501.MessageHead").
-		Preload("Message0501.MessageType").
-		Preload("Message0503.MessageHead").
-		Preload("Message0503.MessageType").
 		Preload("ProcessingErrors").
-		Preload("ProcessingErrors.Agency").
 		Preload("ProcessState.Receive0501." + clause.Associations).
 		Preload("ProcessState.Appraisal." + clause.Associations).
 		Preload("ProcessState.Receive0505." + clause.Associations).
