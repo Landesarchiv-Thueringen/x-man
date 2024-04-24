@@ -46,6 +46,7 @@ type Process struct {
 	Message0504Path  *string           `json:"-"`
 	Message0505ID    *uuid.UUID        `json:"message0505Id"`
 	Message0505      *Message          `gorm:"foreignKey:Message0505ID;references:ID;constraint:OnDelete:SET NULL;" json:"message0505"`
+	Message0506Path  *string           `json:"-"`
 	ProcessingErrors []ProcessingError `json:"processingErrors"`
 	ProcessStateID   uint              `json:"-"`
 	ProcessState     ProcessState      `gorm:"foreignKey:ProcessStateID;references:ID;constraint:OnDelete:SET NULL;" json:"processState"`

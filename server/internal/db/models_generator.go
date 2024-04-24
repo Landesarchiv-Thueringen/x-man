@@ -15,10 +15,19 @@ type GeneratorMessage0502 struct {
 }
 
 type GeneratorMessage0504 struct {
-	XMLName     xml.Name                 `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
-	MessageHead GeneratorMessageHead0504 `xml:"xdomea:Kopf" json:"messageHead"`
-	XdomeaXmlNs string                   `xml:"xmlns:xdomea,attr"`
-	XsiXmlNs    string                   `xml:"xmlns:xsi,attr"`
+	XMLName     xml.Name             `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
+	MessageHead GeneratorMessageHead `xml:"xdomea:Kopf" json:"messageHead"`
+	XdomeaXmlNs string               `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs    string               `xml:"xmlns:xsi,attr"`
+}
+
+type GeneratorMessage0506 struct {
+	XMLName             xml.Name                      `gorm:"-" xml:"xdomea:Aussonderung.AussonderungImportBestaetigen.0506" json:"-"`
+	MessageHead         GeneratorMessageHead          `xml:"xdomea:Kopf" json:"messageHead"`
+	XdomeaXmlNs         string                        `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs            string                        `xml:"xmlns:xsi,attr"`
+	ArchivingInfoPre300 *GeneratorArchivingInfoPre300 `xml:"xdomea:ErfolgOderMisserfolg"`
+	ArchivedRecordInfo  []GeneratorArchivedRecordInfo `xml:"xdomea:AusgesondertesSGO"`
 }
 
 type GeneratorAppraisedObject struct {
@@ -43,7 +52,7 @@ type GeneratorMessageHead0502 struct {
 	ReceiptRequested bool                   `xml:"xdomea:Empfangsbestaetigung"`
 }
 
-type GeneratorMessageHead0504 struct {
+type GeneratorMessageHead struct {
 	ProcessID     string                 `xml:"xdomea:ProzessID"`
 	MessageType   GeneratorCode          `xml:"xdomea:Nachrichtentyp"`
 	CreationTime  string                 `xml:"xdomea:Erstellungszeitpunkt"`
@@ -75,4 +84,20 @@ type GeneratorInstitution struct {
 
 type GeneratorCode struct {
 	Code string `xml:"code"`
+}
+
+type GeneratorArchivingInfoPre300 struct {
+	Success              bool                            `xml:"xdomea:Erfolgreich"`
+	RecordArchiveMapping []GeneratorRecordArchiveMapping `xml:"xdomea:Rueckgabeparameter"`
+}
+
+type GeneratorRecordArchiveMapping struct {
+	RecordID  string `xml:"xdomea:ID"`
+	ArchiveID string `xml:"xdomea:Archivkennung"`
+}
+
+type GeneratorArchivedRecordInfo struct {
+	RecordID  string  `xml:"xdomea:IDSGO"`
+	Success   bool    `xml:"xdomea:Erfolgreich"`
+	ArchiveID *string `xml:"xdomea:Archivkennung"`
 }

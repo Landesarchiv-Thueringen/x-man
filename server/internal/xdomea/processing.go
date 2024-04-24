@@ -424,6 +424,20 @@ func Send0504Message(agency db.Agency, message db.Message) string {
 	)
 }
 
+func Send0506Message(process db.Process, message db.Message) {
+	archivePackages := db.GetArchivePackagesWithAssociations(process.ID)
+	messageXml := Generate0506Message(message, archivePackages)
+	messagePath := sendMessage(
+		process.Agency,
+		message.MessageHead.ProcessID,
+		messageXml,
+		Message0506MessageSuffix,
+	)
+	db.UpdateProcess(process.ID, db.Process{Message0506Path: &messagePath})
+}
+
+// sendMessage creates a xdomea message and copies it into the transfer directory.
+// Returns the location of the message in the transfer directory.
 func sendMessage(
 	agency db.Agency,
 	processID string,

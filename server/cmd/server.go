@@ -543,6 +543,7 @@ func archive0503Message(context *gin.Context) {
 			processingError := tasks.MarkFailed(&task, err.Error())
 			xdomea.HandleError(processingError)
 		} else {
+			xdomea.Send0506Message(process, message)
 			tasks.MarkDone(&task, &userName)
 			preferences := db.GetUserInformation(userID).Preferences
 			if preferences.ReportByEmail {

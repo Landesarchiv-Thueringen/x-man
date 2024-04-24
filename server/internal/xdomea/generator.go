@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lath/xman/internal/db"
 	"log"
+	"os"
 	"time"
 
 	"github.com/lestrrat-go/libxml2/xsd"
@@ -87,7 +88,7 @@ func Generate0504Message(message db.Message) string {
 	if err != nil {
 		panic(err)
 	}
-	messageHead := GenerateMessageHead0504(message.MessageHead.ProcessID, message.MessageHead.Sender)
+	messageHead := GenerateMessageHead(message.MessageHead.ProcessID, message.MessageHead.Sender, "0504")
 	message0504 := db.GeneratorMessage0504{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
@@ -132,14 +133,14 @@ func GenerateMessageHead0502(processID string, sender db.Contact) db.GeneratorMe
 	return messageHead
 }
 
-func GenerateMessageHead0504(processID string, sender db.Contact) db.GeneratorMessageHead0504 {
+func GenerateMessageHead(processID string, sender db.Contact, messageCode string) db.GeneratorMessageHead {
 	messageType := db.GeneratorCode{
-		Code: "0504",
+		Code: messageCode,
 	}
 	timeStamp := time.Now()
 	lathContact := GetLAThContact()
 	sendingSystem := GetSendingSystem()
-	messageHead := db.GeneratorMessageHead0504{
+	messageHead := db.GeneratorMessageHead{
 		ProcessID:     processID,
 		MessageType:   messageType,
 		CreationTime:  timeStamp.Format("2006-01-02T15:04:05"),
@@ -148,6 +149,106 @@ func GenerateMessageHead0504(processID string, sender db.Contact) db.GeneratorMe
 		SendingSystem: sendingSystem,
 	}
 	return messageHead
+}
+
+func Generate0506Message(message db.Message, archivePackages []db.ArchivePackage) string {
+	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
+	if err != nil {
+		panic(err)
+	}
+	messageHead := GenerateMessageHead(message.MessageHead.ProcessID, message.MessageHead.Sender, "0506")
+	message0506 := db.GeneratorMessage0506{
+		XdomeaXmlNs: xdomeaVersion.URI,
+		XsiXmlNs:    XsiXmlNs,
+		MessageHead: messageHead,
+	}
+	if xdomeaVersion.IsVersionPriorTo300() {
+		info := GetArchivingInfoPre300(archivePackages)
+		message0506.ArchivingInfoPre300 = &info
+	} else {
+		message0506.ArchivedRecordInfo = GetArchivedRecordInfo(archivePackages)
+	}
+	xmlBytes, err := xml.MarshalIndent(message0506, " ", " ")
+	messageXml := XmlHeader + string(xmlBytes)
+	if err != nil {
+		panic("0506 message couldn't be created")
+	}
+	valid, err := ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	if err != nil {
+		validationError, ok := err.(xsd.SchemaValidationError)
+		if ok {
+			for _, e := range validationError.Errors() {
+				log.Printf("XML schema error: %s", e.Error())
+			}
+		}
+		if !valid {
+			panic("generated 0506 message is invalid")
+		}
+	}
+	return messageXml
+}
+
+func GetArchivingInfoPre300(archivePackages []db.ArchivePackage) db.GeneratorArchivingInfoPre300 {
+	info := db.GeneratorArchivingInfoPre300{
+		Success: true,
+	}
+	archiveTarget := os.Getenv("ARCHIVE_TARGET")
+	if archiveTarget == "dimag" {
+		var recordArchiveMapping []db.GeneratorRecordArchiveMapping
+		for _, aip := range archivePackages {
+			for _, fileRecord := range aip.FileRecordObjects {
+				idMapping := db.GeneratorRecordArchiveMapping{
+					RecordID:  fileRecord.XdomeaID.String(),
+					ArchiveID: aip.PackageID,
+				}
+				recordArchiveMapping = append(recordArchiveMapping, idMapping)
+			}
+			for _, processRecord := range aip.ProcessRecordObjects {
+				idMapping := db.GeneratorRecordArchiveMapping{
+					RecordID:  processRecord.XdomeaID.String(),
+					ArchiveID: aip.PackageID,
+				}
+				recordArchiveMapping = append(recordArchiveMapping, idMapping)
+			}
+			for _, documentRecord := range aip.DocumentRecordObjects {
+				idMapping := db.GeneratorRecordArchiveMapping{
+					RecordID:  documentRecord.XdomeaID.String(),
+					ArchiveID: aip.PackageID,
+				}
+				recordArchiveMapping = append(recordArchiveMapping, idMapping)
+			}
+		}
+		info.RecordArchiveMapping = recordArchiveMapping
+	}
+	return info
+}
+
+func GetArchivedRecordInfo(archivePackages []db.ArchivePackage) []db.GeneratorArchivedRecordInfo {
+	var info []db.GeneratorArchivedRecordInfo
+	for _, aip := range archivePackages {
+		for _, fileRecord := range aip.FileRecordObjects {
+			info = append(info, GetArchivedRecordIDMapping(fileRecord.XdomeaID.String(), aip))
+		}
+		for _, processRecord := range aip.ProcessRecordObjects {
+			info = append(info, GetArchivedRecordIDMapping(processRecord.XdomeaID.String(), aip))
+		}
+		for _, documentRecord := range aip.DocumentRecordObjects {
+			info = append(info, GetArchivedRecordIDMapping(documentRecord.XdomeaID.String(), aip))
+		}
+	}
+	return info
+}
+
+func GetArchivedRecordIDMapping(recordID string, aip db.ArchivePackage) db.GeneratorArchivedRecordInfo {
+	archiveTarget := os.Getenv("ARCHIVE_TARGET")
+	idMapping := db.GeneratorArchivedRecordInfo{
+		RecordID: recordID,
+		Success:  true,
+	}
+	if archiveTarget == "dimag" {
+		idMapping.ArchiveID = &aip.PackageID
+	}
+	return idMapping
 }
 
 func GetLAThContact() db.GeneratorContact {

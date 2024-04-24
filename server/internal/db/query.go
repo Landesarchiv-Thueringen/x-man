@@ -447,6 +447,9 @@ func GetAllTransferFilesOfProcess(process Process) []string {
 	if p.Message0505 != nil {
 		messages = append(messages, p.Message0505.TransferDirPath)
 	}
+	if p.Message0506Path != nil {
+		messages = append(messages, *p.Message0506Path)
+	}
 	return messages
 }
 
