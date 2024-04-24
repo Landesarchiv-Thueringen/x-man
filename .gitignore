@@ -13,8 +13,11 @@
 # allow gitginore files
 !.gitignore
 
-# allow project readme
+# allow docs
 !/README.md
+!/LICENSE
+!/doc/*.md
+!/doc/img/*.png
 
 # allow environment file
 !/.env.example
