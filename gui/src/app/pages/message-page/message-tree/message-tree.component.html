@@ -8,7 +8,7 @@
   >
     <!-- This is the tree node template for leaf nodes -->
     <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding>
-      <div class="node" [routerLink]="node.routerLink" [routerLinkActive]="['active']" [ngClass]="node.type + '-node'">
+      <div class="node" [class.secondary]="node.type === 'filtered'">
         <div class="node-info">
           <!-- use a disabled button to provide padding for tree leaf -->
           <button mat-icon-button disabled></button>
@@ -26,16 +26,10 @@
       [ngClass]="node.type === 'message' ? 'root-node' : ''"
       matTreeNodePadding
     >
-      <div
-        class="node"
-        matRipple
-        [routerLink]="node.routerLink"
-        [routerLinkActive]="['active']"
-        [routerLinkActiveOptions]="{ exact: true }"
-        (click)="node.routerLink == null && treeControl.toggle(node)"
-      >
+      <div class="node">
         <div class="node-info">
           <button
+            class="expand-button"
             *ngIf="node.type !== 'message'"
             mat-icon-button
             matTreeNodeToggle
@@ -202,6 +196,15 @@
   <div class="node-title">
     <div class="node-title-line">
       {{ node.title }}
+      @if (node.type !== "filtered" && !node.type.endsWith("group")) {
+        <button
+          class="overlay-button"
+          mat-button
+          [routerLink]="node.routerLink"
+          [routerLinkActive]="['active']"
+          [routerLinkActiveOptions]="{ exact: true }"
+        ></button>
+      }
     </div>
     <div *ngIf="node.subtitle" class="node-subtitle-line">{{ node.subtitle }}</div>
   </div>

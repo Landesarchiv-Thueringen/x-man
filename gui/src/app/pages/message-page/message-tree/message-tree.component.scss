@@ -1,5 +1,6 @@
 @use "sass:map";
 @use "@angular/material" as mat;
+@import "../../../../styles/mixins";
 
 .messsage-view {
   display: flex;
@@ -47,25 +48,33 @@ mat-tree-node {
 }
 
 .node {
+  // z-index is needed for the background of .overlay-button.active to be
+  // visible
+  z-index: 0;
+  position: relative;
   display: flex;
   align-items: center;
   border-radius: 30px;
   padding: 4px;
   margin-bottom: 0.4em;
-  user-select: none;
 
-  &.filtered-node {
+  &.secondary {
     color: var(--mat-secondary);
   }
+}
 
-  &:not(.filtered-node) {
-    cursor: pointer;
-    &:hover {
-      background-color: var(--mat-primary-95);
-    }
-  }
+.expand-button {
+  // Draw above overlay-button
+  z-index: 1;
+}
 
+.overlay-button {
+  @include overlayButton;
   &.active {
+    // Prevent hover effects that only trigger on the node's padding area
+    pointer-events: none;
+    // Draw a background behind the node
+    z-index: -1;
     background-color: var(--mat-primary-90);
   }
 }

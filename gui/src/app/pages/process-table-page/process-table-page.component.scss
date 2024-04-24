@@ -64,24 +64,9 @@
 .mat-mdc-row {
   position: relative;
 }
-
 .open-details-button {
-  position: absolute;
+  @include overlayButton;
   border-radius: 0;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  &:hover::before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: currentColor;
-    opacity: 0.04;
-  }
 }
 
 .mat-mdc-header-cell,
