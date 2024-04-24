@@ -71,6 +71,9 @@ export class AuthService {
     await firstValueFrom(observable);
   }
 
+  /**
+   * Removes saved login information and navigates to the login page.
+   */
   logout(): void {
     this.loginInformation.next(null);
     localStorage.removeItem('loginInformation');

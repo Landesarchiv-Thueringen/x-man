@@ -39,9 +39,12 @@ export class AuthInterceptor implements HttpInterceptor {
         error: (event) => {
           if (event instanceof HttpErrorResponse) {
             if (event.status === 401) {
+              // On the login page, 401 means invalid credentials.
               if (this.router.url !== '/login') {
+                // On any other page, it means our token is invalid. We delete
+                // it and let the user log back in again.
                 this.login.afterLoginUrl = this.router.url;
-                this.router.navigate(['login']);
+                this.auth.logout();
               }
             } else {
               this.router.navigate(['fehler', event.status], { skipLocationChange: true });
