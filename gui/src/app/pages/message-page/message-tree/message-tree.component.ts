@@ -71,6 +71,7 @@ export class MessageTreeComponent implements AfterViewInit {
   message?: Message;
   showAppraisal = false;
   showSelection = this.messagePage.showSelection;
+  hasUnresolvedError = this.messagePage.hasUnresolvedError;
   selectedNodes = new Set<string>();
   intermediateNodes = new Set<string>();
   treeControl = new FlatTreeControl<FlatNode>(

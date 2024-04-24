@@ -76,7 +76,7 @@ export class ProcessMetadataComponent {
     this.registerAppraisalNoteChanges();
     // Disable individual appraisal controls while selection is active.
     effect(() => {
-      if (this.messagePage.showSelection()) {
+      if (this.messagePage.showSelection() || this.messagePage.hasUnresolvedError()) {
         this.form.get('appraisal')?.disable();
         this.form.get('appraisalNote')?.disable();
       } else {

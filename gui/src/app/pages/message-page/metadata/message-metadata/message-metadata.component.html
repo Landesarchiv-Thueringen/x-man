@@ -14,7 +14,7 @@
                 @if (numberOfUnresolvedErrors() === 1) {
                   1 ungelöstes Problem
                 } @else {
-                  {{ numberOfUnresolvedErrors() }} ungelöste Probleme
+                  {{ hasUnresolvedError() }} ungelöste Probleme
                 }
               } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
@@ -72,6 +72,12 @@
             </mat-list-item>
           }
         </mat-list>
+        @if (hasUnresolvedError() && !isAdmin) {
+          <p>
+            Die Bearbeitung der Aussonderung ist deaktiviert. Bitte warten Sie, bis das Problem durch die
+            Steuerungsstelle behoben wurde. Es ist kein Zutun Ihrerseits nötig.
+          </p>
+        }
       </mat-expansion-panel>
 
       <mat-expansion-panel [expanded]="true">

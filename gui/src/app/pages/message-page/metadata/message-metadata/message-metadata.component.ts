@@ -62,6 +62,7 @@ export class MessageMetadataComponent {
   stateItems: StateItem[] = [];
   processDeleteTime: Date | null = null;
   isAdmin = this.auth.isAdmin();
+  hasUnresolvedError = this.messagePage.hasUnresolvedError;
 
   constructor(
     private auth: AuthService,
@@ -138,10 +139,6 @@ export class MessageMetadataComponent {
 
   numberOfUnresolvedErrors(): number {
     return this.process?.processingErrors.filter((processingError) => !processingError.resolved).length ?? 0;
-  }
-
-  hasUnresolvedError(): boolean {
-    return this.numberOfUnresolvedErrors() > 0;
   }
 
   isStepRunning(processStep: ProcessStep): boolean {

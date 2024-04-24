@@ -46,6 +46,7 @@ export class MessagePageService {
   private appraisals = new BehaviorSubject<Appraisal[] | null>(null);
 
   readonly showSelection = signal(false);
+  readonly hasUnresolvedError = signal(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -67,8 +68,18 @@ export class MessagePageService {
       this.processService
         .observeProcess(processId)
         .pipe(takeUntilDestroyed())
-        .subscribe((process) => this.process.next(process));
+        .subscribe((process) => {
+          this.process.next(process);
+          this.updateHasUnresolvedError(process);
+        });
     });
+  }
+
+  private updateHasUnresolvedError(process: Process) {
+    const hasUnresolvedError = process.processingErrors.some((error) => !error.resolved) ?? false;
+    if (this.hasUnresolvedError() != hasUnresolvedError) {
+      this.hasUnresolvedError.set(hasUnresolvedError);
+    }
   }
 
   /**

@@ -138,7 +138,7 @@
     </button>
     <button
       mat-flat-button
-      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete"
+      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete && !hasUnresolvedError()"
       (click)="enableSelection()"
     >
       <mat-icon> check_box </mat-icon>
@@ -156,7 +156,7 @@
     <button
       mat-flat-button
       class="tertiary-button"
-      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete"
+      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete && !hasUnresolvedError()"
       (click)="sendAppraisalMessage()"
     >
       <mat-icon>forward_to_inbox</mat-icon>
@@ -168,7 +168,8 @@
       *ngIf="
         message.messageType.code === '0503' &&
         (config()?.borgSupport === false || process.processState.formatVerification.complete) &&
-        canStartStep(process.processState.archiving)
+        canStartStep(process.processState.archiving) &&
+        !hasUnresolvedError()
       "
       (click)="archive0503Message()"
     >
