@@ -1,7 +1,7 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, Inject, QueryList, ViewChild, ViewChildren, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +16,7 @@ import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, ChildActivationEnd, Router, RouterModule } from '@angular/router';
 import { ReplaySubject, Subject, concat, delay, filter, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
+import { AuthService } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
 import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -72,6 +73,7 @@ export class MessageTreeComponent implements AfterViewInit {
   showAppraisal = false;
   showSelection = this.messagePage.showSelection;
   hasUnresolvedError = this.messagePage.hasUnresolvedError;
+  isDisabled = computed(() => this.hasUnresolvedError() && !this.authService.isAdmin());
   selectedNodes = new Set<string>();
   intermediateNodes = new Set<string>();
   treeControl = new FlatTreeControl<FlatNode>(
@@ -122,6 +124,7 @@ export class MessageTreeComponent implements AfterViewInit {
     private processService: ProcessService,
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
   ) {
     this.registerAppraisals();
     const processReady = new Subject<void>();

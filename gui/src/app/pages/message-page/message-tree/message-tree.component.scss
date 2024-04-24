@@ -57,10 +57,10 @@ mat-tree-node {
   border-radius: 30px;
   padding: 4px;
   margin-bottom: 0.4em;
+}
 
-  &.secondary {
-    color: var(--mat-secondary);
-  }
+.secondary-text {
+  color: var(--mat-secondary);
 }
 
 .expand-button {
