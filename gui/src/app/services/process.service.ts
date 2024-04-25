@@ -12,7 +12,6 @@ export interface Process {
   agency: Agency;
   id: string;
   receivedAt: string;
-  institution: string;
   note: string;
   message0501Id: string;
   message0501: Message;

@@ -156,7 +156,6 @@ func AddProcess(
 	agency Agency,
 	processID string,
 	processStoreDir string,
-	institution *string,
 ) Process {
 	var process Process
 	processState := AddProcessState()
@@ -164,7 +163,6 @@ func AddProcess(
 		Agency:       agency,
 		ID:           processID,
 		StoreDir:     processStoreDir,
-		Institution:  institution,
 		ProcessState: processState,
 	}
 	result := db.Create(&process)
@@ -309,12 +307,7 @@ func AddMessage(
 	process, found := GetProcess(processID)
 	// The process was not found. Create a new process.
 	if !found {
-		var institution *string
-		// set institution if possible
-		if message.MessageHead.Sender.Institution != nil {
-			institution = message.MessageHead.Sender.Institution.Name
-		}
-		process = AddProcess(agency, processID, processStoreDir, institution)
+		process = AddProcess(agency, processID, processStoreDir)
 	} else {
 		// Check if the process has already a message with the type of the given message.
 		_, found := GetMessageOfProcessByCode(process, message.MessageType.Code)

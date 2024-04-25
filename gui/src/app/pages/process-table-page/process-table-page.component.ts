@@ -16,6 +16,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Agency } from '../../services/agencies.service';
 import { AuthService } from '../../services/auth.service';
 import { ProcessingError } from '../../services/clearing.service';
 import { ConfigService } from '../../services/config.service';
@@ -53,7 +54,7 @@ import { Task } from '../../services/tasks.service';
 export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   readonly dataSource: MatTableDataSource<Process> = new MatTableDataSource<Process>();
   readonly displayedColumns = [
-    'institution',
+    'agency',
     'note',
     'message0501',
     'appraisalComplete',
@@ -73,11 +74,11 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   ] as const;
   readonly filter = this.formBuilder.group({
     string: new FormControl(''),
-    institution: new FormControl(''),
+    agency: new FormControl<number | null>(null),
     state: new FormControl('' as ProcessTablePageComponent['stateValues'][number]['value']),
   });
-  /** All institutions for which there are processes. Used for institutions filter field. */
-  institutions: string[] = [];
+  /** All agencies for which there are processes. Used for agencies filter field. */
+  agencies: Agency[] = [];
   isAdmin = this.authService.isAdmin();
   allUsersControl = new FormControl(this.isAdmin && window.localStorage.getItem('show-all-user-processes') === 'true', {
     nonNullable: true,
@@ -111,6 +112,8 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
           return process.processState.formatVerification.completionTime ?? '';
         case 'archivingComplete':
           return process.processState.archiving.completionTime ?? '';
+        case 'agency':
+
         default:
           return process[property] ?? '';
       }
@@ -137,7 +140,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
         },
         next: (processes: Process[]) => {
           this.dataSource.data = processes;
-          this.populateInstitutions(processes);
+          this.populateAgencies(processes);
         },
       });
   }
@@ -156,7 +159,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     this.showFilters = !this.showFilters;
     window.localStorage.setItem('show-process-filters', this.showFilters.toString());
     if (!this.showFilters) {
-      this.filter.setValue({ institution: null, state: null, string: null });
+      this.filter.setValue({ agency: null, state: null, string: null });
     }
   }
 
@@ -173,8 +176,13 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     window.localStorage.setItem('main-table-page-size', event.pageSize.toString());
   }
 
-  private populateInstitutions(processes: Process[]): void {
-    this.institutions = [...new Set(processes.map((p) => p.institution))];
+  private populateAgencies(processes: Process[]): void {
+    this.agencies = [];
+    for (const { agency } of processes) {
+      if (!this.agencies.some((a) => a.id === agency.id)) {
+        this.agencies.push(agency);
+      }
+    }
   }
 
   /** The default filter predicate of MatTableDataSource that provides string matching on all data properties. */
@@ -190,10 +198,10 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     return (
       // Match string field
       this.textFilterPredicate(process, filter.string ?? '') &&
-      // Match institution field
+      // Match agency field
       (() => {
-        if (filter.institution) {
-          return process.institution === filter.institution;
+        if (filter.agency) {
+          return process.agency.id === filter.agency;
         } else {
           return true;
         }
@@ -237,15 +245,15 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Returns the number of processes that match the given institution.
+   * Returns the number of processes that match the given agency.
    *
    * Other filters are applied as normal.
    */
-  getElementsForInstitution(institution: string): number {
+  getElementsForAgency(agency: number | null): number {
     return this.dataSource.data.filter((process) =>
       this.filterPredicate(process, {
         ...(this.dataSource.filter as ProcessTablePageComponent['filter']['value']),
-        institution,
+        agency,
       }),
     ).length;
   }

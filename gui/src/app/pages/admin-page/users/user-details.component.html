@@ -13,10 +13,10 @@
       </mat-expansion-panel-header>
       @if (data.agencies && data.agencies.length > 0) {
         <mat-list role="list">
-          @for (institution of data.agencies; track institution) {
+          @for (agency of data.agencies; track agency) {
             <mat-list-item>
               <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
-              <div matListItemTitle>{{ institution.name }}</div>
+              <div matListItemTitle>{{ agency.name }}</div>
             </mat-list-item>
           }
         </mat-list>

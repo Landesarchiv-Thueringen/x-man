@@ -37,7 +37,7 @@ export class CollectionsService {
     return this.getCollections().pipe(map((collections) => collections.find((c) => c.id === id) ?? null));
   }
 
-  getInstitutionsForCollection(collectionId: number): Observable<Agency[]> {
+  getAgenciesForCollection(collectionId: number): Observable<Agency[]> {
     return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', { params: { collectionId } });
   }
 

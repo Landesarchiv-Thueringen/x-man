@@ -49,7 +49,7 @@ export class CollectionDetailsComponent {
     }),
   });
   readonly dimagIds = this.collectionsService.getDimagIds();
-  readonly institutions?: Observable<Agency[]>;
+  readonly agencies?: Observable<Agency[]>;
 
   constructor(
     private dialogRef: MatDialogRef<CollectionDetailsComponent>,
@@ -58,7 +58,7 @@ export class CollectionDetailsComponent {
     private collectionsService: CollectionsService,
   ) {
     if (collection) {
-      this.institutions = this.collectionsService.getInstitutionsForCollection(this.collection.id);
+      this.agencies = this.collectionsService.getAgenciesForCollection(this.collection.id);
     }
   }
 
