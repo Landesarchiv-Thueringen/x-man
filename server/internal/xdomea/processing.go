@@ -2,7 +2,6 @@ package xdomea
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"lath/xman/internal/auth"
@@ -198,7 +197,7 @@ func checkMessage0503Integrity(
 		}
 	}
 	// check if 0501 message exists
-	message0501, found := db.GetMessageOfProcessByCode(process, "0501")
+	_, found := db.GetMessageOfProcessByCode(process, "0501")
 	// 0501 Message doesn't exist. No further message validation necessary.
 	if !found {
 		return nil
@@ -212,7 +211,7 @@ func checkMessage0503Integrity(
 			Message:     &message0503,
 		}
 	} else {
-		return checkRecordObjectsOfMessage0503(process, message0501, message0503)
+		return checkRecordObjectsOfMessage0503(process, message0503)
 	}
 }
 
@@ -232,31 +231,41 @@ func recordFileSizes(message db.Message, documents []db.PrimaryDocument) {
 	}
 }
 
+// checkRecordObjectsOfMessage0503 compares a 0503 message with the appraisal of
+// a 0501 message and returns an error if there are record objects missing in
+// the 0503 message that were marked as to be archived in the appraisal or if
+// there are any surplus objects included in the 0503 message.
 func checkRecordObjectsOfMessage0503(
 	process db.Process,
-	message0501 db.Message,
 	message0503 db.Message,
 ) error {
-	message0503Incomplete := false
-	additionalInfo := ""
-	err := checkFileRecordObjectsOfMessage0503(
-		message0501.ID,
-		message0503.ID,
-		&additionalInfo,
-	)
-	if err != nil {
-		message0503Incomplete = true
+	// Gather data
+	appraisals := make(map[uuid.UUID]db.Appraisal)
+	for _, a := range db.GetAppraisalsForProcess(process.ID) {
+		appraisals[a.RecordObjectID] = a
 	}
-	err = checkProcessRecordObjectsOfMessage0503(
-		message0501.ID,
-		message0503.ID,
-		&additionalInfo,
-	)
-	if err != nil {
-		message0503Incomplete = true
+
+	includedRecordObjects := make(map[uuid.UUID]db.AppraisableRecordObject)
+	for _, f := range db.GetAllFileRecordObjects(message0503.ID) {
+		includedRecordObjects[f.XdomeaID] = &f
 	}
-	if message0503Incomplete {
+	for _, p := range db.GetAllProcessRecordObjects(message0503.ID) {
+		includedRecordObjects[p.XdomeaID] = &p
+	}
+
+	// Check for objects missing from the 0503 message
+	var missingRecordObjects []string
+	for id, a := range appraisals {
+		if a.Decision == db.AppraisalDecisionA && includedRecordObjects[id] == nil {
+			missingRecordObjects = append(missingRecordObjects, id.String())
+		}
+	}
+	if len(missingRecordObjects) > 0 {
 		errorMessage := "Die Abgabe ist nicht vollständig"
+		additionalInfo := fmt.Sprintf(
+			"In der Abgabe fehlen %d Schriftgutobjekte:\n    %v",
+			len(missingRecordObjects),
+			strings.Join(missingRecordObjects, "\n    "))
 		return db.ProcessingError{
 			Process:        &process,
 			Description:    errorMessage,
@@ -264,74 +273,33 @@ func checkRecordObjectsOfMessage0503(
 			Message:        &message0503,
 		}
 	}
-	return nil
-}
 
-func checkFileRecordObjectsOfMessage0503(
-	message0501ID uuid.UUID,
-	message0503ID uuid.UUID,
-	additionalInfo *string,
-) error {
-	message0503Incomplete := false
-	fileIndex0501, err := db.GetAllFileRecordObjects(message0501ID)
-	if err != nil {
-		panic(err)
-	}
-	fileIndex0503, err := db.GetAllFileRecordObjects(message0503ID)
-	if err != nil {
-		panic(err)
-	}
-	for id0501, file0501 := range fileIndex0501 {
-		// missing appraisal metadata for 0501 message, should not happen
-		if file0501.ArchiveMetadata == nil || file0501.ArchiveMetadata.AppraisalCode == nil {
-			continue
-		}
-		_, file0503Exists := fileIndex0503[id0501]
-		if *file0501.ArchiveMetadata.AppraisalCode == "A" && !file0503Exists {
-			errorMessage :=
-				"0503 integrity check failed: missing file record object [" + file0501.ID.String() + "]"
-			*additionalInfo += "Akte [" + file0501.ID.String() + "] fehlt in Abgabe"
-			log.Println(errorMessage)
-			message0503Incomplete = true
+	// Check for surplus objects in the 0503 message
+	var surplusRecordObjects []string
+	for id, o := range includedRecordObjects {
+		a := appraisals[id]
+		if a.Decision != db.AppraisalDecisionA {
+			if _, isFile := o.(*db.FileRecordObject); isFile {
+				surplusRecordObjects = append(surplusRecordObjects, fmt.Sprintf("Akte [%s]", id.String()))
+			} else {
+				surplusRecordObjects = append(surplusRecordObjects, fmt.Sprintf("Vorgang [%s]", id.String()))
+			}
 		}
 	}
-	if message0503Incomplete {
-		return errors.New("0503 message incomplete: file record objects missing")
+	if len(surplusRecordObjects) > 0 {
+		errorMessage := "Die Abgabe enthält zusätzliche Schriftgutobjekte"
+		additionalInfo := fmt.Sprintf(
+			"Die Abgabe enthält %d Schriftgutobjekte, die nicht als zu archivieren bewertet wurden:\n    %v",
+			len(surplusRecordObjects),
+			strings.Join(surplusRecordObjects, "\n    "))
+		return db.ProcessingError{
+			Process:        &process,
+			Description:    errorMessage,
+			AdditionalInfo: additionalInfo,
+			Message:        &message0503,
+		}
 	}
-	return nil
-}
 
-func checkProcessRecordObjectsOfMessage0503(
-	message0501ID uuid.UUID,
-	message0503ID uuid.UUID,
-	additionalInfo *string,
-) error {
-	message0503Incomplete := false
-	processIndex0501, err := db.GetAllProcessRecordObjects(message0501ID)
-	if err != nil {
-		panic(err)
-	}
-	processIndex0503, err := db.GetAllProcessRecordObjects(message0503ID)
-	if err != nil {
-		panic(err)
-	}
-	for id0501, process0501 := range processIndex0501 {
-		// missing appraisal metadata for 0501 message, should not happen
-		if process0501.ArchiveMetadata == nil || process0501.ArchiveMetadata.AppraisalCode == nil {
-			continue
-		}
-		_, process0503Exists := processIndex0503[id0501]
-		if *process0501.ArchiveMetadata.AppraisalCode == "A" && !process0503Exists {
-			errorMessage := "0503 integrity check failed: missing process record object [" +
-				process0501.ID.String() + "]"
-			*additionalInfo += "Vorgang [" + process0501.ID.String() + "] fehlt in Abgabe"
-			log.Println(errorMessage)
-			message0503Incomplete = true
-		}
-	}
-	if message0503Incomplete {
-		return errors.New("0503 message incomplete: process record objects missing")
-	}
 	return nil
 }
 

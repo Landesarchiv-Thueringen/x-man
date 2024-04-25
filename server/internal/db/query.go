@@ -257,46 +257,26 @@ func GetDocumentRecordObjectByID(id uuid.UUID) (document DocumentRecordObject, f
 	return
 }
 
-func GetAllFileRecordObjects(messageID uuid.UUID) (map[uuid.UUID]FileRecordObject, error) {
+func GetAllFileRecordObjects(messageID uuid.UUID) []FileRecordObject {
 	var fileRecordObjects []FileRecordObject
 	result := db.
-		Scopes(PreloadFileRecordObject("", 0, 0)).
-		Where("message_id = ?", messageID.String()).
+		Where(FileRecordObject{MessageID: messageID}).
 		Find(&fileRecordObjects)
-	fileIndex := make(map[uuid.UUID]FileRecordObject)
-	for _, f := range fileRecordObjects {
-		fileIndex[f.XdomeaID] = f
-	}
-	return fileIndex, result.Error
-}
-
-func GetAllProcessRecordObjects(messageID uuid.UUID) (map[uuid.UUID]ProcessRecordObject, error) {
-	var processRecordObjects []ProcessRecordObject
-	result := db.
-		Scopes(PreloadProcessRecordObject("", 0, 0)).
-		Where("message_id = ?", messageID.String()).
-		Find(&processRecordObjects)
-	processIndex := make(map[uuid.UUID]ProcessRecordObject)
-	for _, p := range processRecordObjects {
-		processIndex[p.XdomeaID] = p
-	}
-	return processIndex, result.Error
-}
-
-func GetAllDocumentRecordObjects(messageID uuid.UUID) map[uuid.UUID]DocumentRecordObject {
-	var documentRecordObjects []DocumentRecordObject
-	result := db.
-		Scopes(PreloadDocumentRecordObject("")).
-		Where("message_id = ?", messageID.String()).
-		Find(&documentRecordObjects)
-	documentIndex := make(map[uuid.UUID]DocumentRecordObject)
-	for _, d := range documentRecordObjects {
-		documentIndex[d.XdomeaID] = d
-	}
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	return documentIndex
+	return fileRecordObjects
+}
+
+func GetAllProcessRecordObjects(messageID uuid.UUID) []ProcessRecordObject {
+	var processRecordObjects []ProcessRecordObject
+	result := db.
+		Where(ProcessRecordObject{MessageID: messageID}).
+		Find(&processRecordObjects)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return processRecordObjects
 }
 
 func GetAllPrimaryDocuments(messageID uuid.UUID) []PrimaryDocument {
