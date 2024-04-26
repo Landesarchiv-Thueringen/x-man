@@ -102,7 +102,7 @@
     columns: 2,
     stroke: none,
     [Abgegebene Stelle:],
-    data.Process.institution,
+    data.Process.agency.name,
     [Objektart:],
     [E-Akte],
     [Prozess-ID:],
