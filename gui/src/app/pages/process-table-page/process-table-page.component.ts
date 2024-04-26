@@ -113,7 +113,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
         case 'archivingComplete':
           return process.processState.archiving.completionTime ?? '';
         case 'agency':
-
+          return process.agency.name;
         default:
           return process[property] ?? '';
       }

@@ -29,7 +29,7 @@
 
   <!-- Process Column -->
   <ng-container matColumnDef="process">
-    <mat-header-cell *matHeaderCellDef>Aussonderung</mat-header-cell>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Aussonderung</mat-header-cell>
     <mat-cell *matCellDef="let element">
       <a mat-button target="_blank" [routerLink]="['/nachricht', element.process.id]">
         <mat-icon>open_in_new</mat-icon>

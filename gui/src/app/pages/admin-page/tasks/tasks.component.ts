@@ -30,13 +30,22 @@ export class TasksComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   dataSource = new MatTableDataSource<Task>();
-  displayedColumns = ['state', 'type', 'process', 'createdAt', 'updatedAt', 'errorMessage'];
+  displayedColumns = ['state', 'type', 'process', 'createdAt', 'updatedAt', 'errorMessage'] as const;
 
   constructor(private tasksService: TasksService) {
     this.tasksService
       .observeTasks()
       .pipe(takeUntilDestroyed())
       .subscribe((tasks) => (this.dataSource.data = tasks));
+
+    this.dataSource.sortingDataAccessor = ((task: Task, property: TasksComponent['displayedColumns'][number]) => {
+      switch (property) {
+        case 'process':
+          return task.process.id;
+        default:
+          return task[property] ?? '';
+      }
+    }) as (data: Task, sortHeaderId: string) => string;
   }
 
   ngAfterViewInit(): void {

@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -17,7 +17,15 @@ import { ClearingDetailsComponent } from './clearing-details.component';
   templateUrl: './clearing-page.component.html',
   styleUrls: ['./clearing-page.component.scss'],
   standalone: true,
-  imports: [MatSlideToggleModule, MatTableModule, ReactiveFormsModule, MatButtonModule, MatPaginatorModule, DatePipe],
+  imports: [
+    DatePipe,
+    MatButtonModule,
+    MatPaginatorModule,
+    MatSlideToggleModule,
+    MatSortModule,
+    MatTableModule,
+    ReactiveFormsModule,
+  ],
 })
 export class ClearingPageComponent implements AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<ProcessingError>;
@@ -42,8 +50,8 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
     this.dataSource.paginator = this.paginator;
     this.paginator.pageSize = this.getPageSize();
     this.dataSource.sort = this.sort;
-    // refetch errors every `updateInterval` milliseconds
 
+    // refetch errors every `updateInterval` milliseconds
     this.errorsSubscription = this.showResolvedControl.valueChanges
       .pipe(
         tap((showResolved) => window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString())),
