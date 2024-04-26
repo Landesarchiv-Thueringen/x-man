@@ -7,8 +7,7 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { Subscription, startWith, switchMap, tap } from 'rxjs';
 import { ClearingService, ProcessingError } from '../../services/clearing.service';
 import { ClearingDetailsComponent } from './clearing-details.component';
 
@@ -44,6 +43,7 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
   ) {
     this.displayedColumns = ['detectedAt', 'agency', 'description'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
+    this.clearingService.markAllSeen();
   }
 
   ngAfterViewInit(): void {
@@ -51,17 +51,11 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
     this.paginator.pageSize = this.getPageSize();
     this.dataSource.sort = this.sort;
 
-    // refetch errors every `updateInterval` milliseconds
     this.errorsSubscription = this.showResolvedControl.valueChanges
       .pipe(
         tap((showResolved) => window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString())),
         startWith(this.showResolvedControl.value),
-        switchMap(() =>
-          interval(environment.updateInterval).pipe(
-            startWith(void 0), // initial fetch
-          ),
-        ),
-        switchMap(() => this.clearingService.getProcessingErrors()),
+        switchMap(() => this.clearingService.observeProcessingErrors()),
       )
       .subscribe({
         error: (error: any) => {
