@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
 	"lath/xman/internal/xdomea"
 	"log"
@@ -87,8 +88,9 @@ func CloseConnection() {
 	sftpClient.Close()
 }
 
-func uploadFileRecordObjectFiles(
+func uploadArchivePackage(
 	sftpClient *sftp.Client,
+	process db.Process,
 	message db.Message,
 	archivePackage db.ArchivePackage,
 ) (string, error) {
@@ -101,6 +103,10 @@ func uploadFileRecordObjectFiles(
 		return importDir, err
 	}
 	err = uploadXdomeaMessageFile(sftpClient, message, importPath, archivePackage)
+	if err != nil {
+		return importDir, err
+	}
+	err = uploadProtocol(sftpClient, process, importPath)
 	if err != nil {
 		return importDir, err
 	}
@@ -132,6 +138,12 @@ func uploadXdomeaMessageFile(
 		return err
 	}
 	return createRemoteTextFile(sftpClient, prunnedMessage, remotePath)
+}
+
+func uploadProtocol(sftpClient *sftp.Client, process db.Process, importPath string) error {
+	remotePath := filepath.Join(importPath, archive.ProtocolFilename)
+	protocol := archive.GenerateProtocol(process)
+	return createRemoteTextFile(sftpClient, protocol, remotePath)
 }
 
 func uploadControlFile(

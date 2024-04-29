@@ -39,7 +39,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			Collection:         &collection,
 			FileRecordObjects:  []db.FileRecordObject{fileRecordObject},
 		}
-		err = importArchivePackage(message, &archivePackageData)
+		err = importArchivePackage(process, message, &archivePackageData)
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			Collection:           &collection,
 			ProcessRecordObjects: []db.ProcessRecordObject{processRecordObject},
 		}
-		err = importArchivePackage(message, &archivePackageData)
+		err = importArchivePackage(process, message, &archivePackageData)
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 			Collection:            &collection,
 			DocumentRecordObjects: message.DocumentRecordObjects,
 		}
-		err = importArchivePackage(message, &archivePackageData)
+		err = importArchivePackage(process, message, &archivePackageData)
 		if err != nil {
 			return err
 		}
@@ -89,8 +89,8 @@ func ImportMessageSync(process db.Process, message db.Message, collection db.Col
 }
 
 // importArchivePackage archives a file record object in DIMAG.
-func importArchivePackage(message db.Message, archivePackageData *db.ArchivePackage) error {
-	importDir, err := uploadFileRecordObjectFiles(sftpClient, message, *archivePackageData)
+func importArchivePackage(process db.Process, message db.Message, archivePackageData *db.ArchivePackage) error {
+	importDir, err := uploadArchivePackage(sftpClient, process, message, *archivePackageData)
 	if err != nil {
 		return err
 	}

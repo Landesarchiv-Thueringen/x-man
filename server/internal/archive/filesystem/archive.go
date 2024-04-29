@@ -3,6 +3,7 @@ package filesystem
 import (
 	"encoding/json"
 	"io"
+	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
 	"lath/xman/internal/xdomea"
 	"os"
@@ -116,7 +117,7 @@ func StoreArchivePackage(process db.Process, message db.Message, archivePackage 
 	if err != nil {
 		return err
 	}
-	err = writeObjectToTextfile(process.ProcessState, archivePackagePath, "protocol.json")
+	err = writeTextFile(archivePackagePath, archive.ProtocolFilename, archive.GenerateProtocol(process))
 	if err != nil {
 		return err
 	}

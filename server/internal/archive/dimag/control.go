@@ -2,7 +2,9 @@ package dimag
 
 import (
 	"encoding/xml"
+	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
+	"path/filepath"
 )
 
 const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
@@ -30,7 +32,8 @@ func GenerateControlFile(
 		Title:    message.GetMessageFileName(),
 		FilePath: message.GetRemoteXmlPath(importDir),
 	}
-	fileIndexItems = append(fileIndexItems, xmlIndexItem)
+	protocolIndexItem := GetIndexItemForProtocol(importDir)
+	fileIndexItems = append(fileIndexItems, xmlIndexItem, protocolIndexItem)
 	repIndexItem := IndexItem{
 		IndexID:    "",
 		ItemType:   RepresentationAbbreviation,
@@ -68,6 +71,19 @@ func GetIndexItemForPrimaryDocument(
 		Title:    primaryDocument.GetFileName(),
 		FileName: primaryDocument.GetFileName(),
 		FilePath: primaryDocument.GetRemotePath(importDir),
+	}
+	return fileIndexItem
+}
+
+func GetIndexItemForProtocol(
+	importDir string,
+) IndexItem {
+	fileIndexItem := IndexItem{
+		IndexID:  "",
+		ItemType: FileAbbreviation,
+		Title:    archive.ProtocolFilename,
+		FileName: archive.ProtocolFilename,
+		FilePath: filepath.Join(importDir, archive.ProtocolFilename),
 	}
 	return fileIndexItem
 }
