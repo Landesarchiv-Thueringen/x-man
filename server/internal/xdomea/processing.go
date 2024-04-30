@@ -56,7 +56,9 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		transferDirMessagePath,
 	)
 	if err != nil {
+		// error while parsing message, can't be further processed
 		HandleError(err)
+		return
 	}
 	err = compareAgencyFields(agency, message, process)
 	if err != nil {
