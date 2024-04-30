@@ -4,7 +4,7 @@ Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](..
 
 **Die Anwendung.** Der xdomea-Aussonderungsmanager (kurz x-man) wird als Webanwendung bereitgestellt. Die Bedienung erfolgt vollständig über die Web-Oberfläche, so dass Sie Dateien nur in Ausnahmefällen oder zur manuellen Überprüfung herunterladen müssen. Die Web-Oberfläche aktualisiert sich selbstständig bei eingehenden Nachrichten und abgeschlossenen Prozessen.
 
-**Kommunikation mit dem xdomea-Protokoll.** Die Kommunikation zwischen x-man und abgebenden Stellen geschieht mittels Nachrichten gemäß dem xdomea-Standard. x-man empfängt, verarbeitet, erstellt und versendet selbstständig Nachrichten von und an abgebende Stellen.
+**Kommunikation mit der abgebenden Stelle.** Die Kommunikation zwischen x-man und abgebenden Stellen geschieht mittels Nachrichten gemäß dem xdomea-Standard. Die Nachrichten werden über Transferverzeichnis ausgetauscht. x-man empfängt, verarbeitet, erstellt und versendet selbstständig Nachrichten von und an abgebende Stellen.
 
 **Langzeitarchivierung in ein digitales Magazin.** x-man ist an ein digitales Magazin zur Langzeitarchivierung angebunden. Der Archivierungsprozess wird nach dem Starten durch die Archivarin automatisiert durchgeführt.
 
@@ -90,3 +90,18 @@ Bei Aussonderungen, in denen beide Nachrichten vorliegen, kann über ein Menü, 
 **Übernahmebericht.** Nach erfolgreicher Archivierung kann ein Übernahmebericht heruntergeladen werden. Klicken sie dazu auf die Schaltfläche "Übernahmebericht herunterladen" am unteren Rand der Baum-Ansicht. Bei aktivierten E-Mail-Benachrichtigungen wird Ihnen der Übernahmebericht zusätzlich automatisch per Mail geschickt.
 
 ![Übernahmebericht](./img/report.png)
+
+## Archivierung
+
+### Digitales Archiv
+
+x-man unterstützt die Archivierung nach DIMAG und in ein lokales Verzeichnis.
+
+### Bildung der Archivpakete
+
+Die Archivpakete werden für Schriftgutobjekte auf der Wurzelebene der Abgabenachricht gebildet. Für jede Akte bzw. für jeden Vorgang auf Wurzelebene wird ein Archivpaket erstellt. Falls es in der Abgabe Dokumente gibt, die keiner Akte oder keinem Vorgang zugeordnet sind, wird für alle diese Dokumente ein gemeinsames Archivpaket erstellt.  
+Ein Archivpaket enthält alle Primärdateien, der zugehörigen Schriftgutobjekte, eine Protokolldatei und die gekürzte Abgabenachricht. Alle Schriftgutobjekte die nicht zum Archivpaket gehören werden automatisch aus der Abgabenachricht entfernt. Der Titel und die Laufzeit der Archivpakete werden aus den Metadaten der zugehörigen Schriftgutobjekte gebildet.
+
+### Protokollierung
+
+Die wichtigsten Ereignisse und Fehler werden dem Archivpaket in einer Textdatei beigelegt. In DIMAG wird die Protokolldatei als Primärdatei angelegt. Eine Übernahme als Protokoll nach DIMAG wird zurzeit nicht unterstützt.

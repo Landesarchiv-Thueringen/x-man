@@ -40,7 +40,8 @@ Siehe [Development (en)](./doc/Development.md).
 ## Roadmap
 
 - AFIS-Schnittstelle
-- DIMAG-Bagit
+- DIMAG-Import als Bagit um die Integrität der Primärdateien abzusichern und Protokolleinträge im DIMAG-Format zu erstellen
+- konfigurierbare Paketierung für die Erstellung der Achivpakete
 
 ## Lizenz
 

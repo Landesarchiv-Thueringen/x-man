@@ -71,7 +71,7 @@ Im Fall von negativen Ergebnissen wird für die Abgabe ein Fehler in der Steueru
 
 ## Administration
 
-Nutzer, die der Gruppe für Administratoren angehören (siehe [Nutzerverwaltung mit LDAP](#nutzerverwaltung-mit-ldap)), können über x-mans Weboberfläche auf das Administrations-Panel zugreifen. Hier stehen verschiedene Ansichten für die Anpassung von Laufzeit-Konfiguration und die Einsicht in den laufende Prozesse der Anwendung zur Verfügung. Konfiguration, die mit Umgebungsvariablen gesteuert wird, kann hier jedoch nicht angepasst werden.
+Nutzer, die der Gruppe für Administratoren angehören (siehe [Nutzerverwaltung mit LDAP](#nutzerverwaltung-mit-ldap)), können über die Weboberfläche von x-man auf das Administrations-Panel zugreifen. Hier stehen verschiedene Ansichten für die Anpassung von Laufzeit-Konfiguration und die Einsicht in den laufende Prozesse der Anwendung zur Verfügung. Konfiguration, die mit Umgebungsvariablen gesteuert wird, kann hier jedoch nicht angepasst werden.
 
 ### Abgebende Stellen
 
