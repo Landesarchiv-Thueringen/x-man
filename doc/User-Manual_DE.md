@@ -1,10 +1,10 @@
-# Benutzerhandbuch für Archivarinnen
+# Benutzerhandbuch
 
 Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](../README.md).
 
-**Die Anwendung.** Der xdomea-Aussonderungsmanager (kurz x-man) wird vom Archiv als Webanwendung bereitgestellt. Die Bedienung erfolgt vollständig über die Web-Oberfläche, so dass Sie Dateien nur in Ausnahmefällen oder zur manuellen Überprüfung herunterladen müssen. Die Web-Oberfläche aktualisiert sich selbstständig bei eingehenden Nachrichten und abgeschlossenen Prozessen.
+**Die Anwendung.** Der xdomea-Aussonderungsmanager (kurz x-man) wird als Webanwendung bereitgestellt. Die Bedienung erfolgt vollständig über die Web-Oberfläche, so dass Sie Dateien nur in Ausnahmefällen oder zur manuellen Überprüfung herunterladen müssen. Die Web-Oberfläche aktualisiert sich selbstständig bei eingehenden Nachrichten und abgeschlossenen Prozessen.
 
-**Kommunikation mit dem xdomea-Protokoll.** Die Kommunikation zwischen x-man und abgebenden Stellen geschieht mittels Nachrichten nach dem xdomea-Standard. x-man empfängt, verarbeitet, erstellt und versendet selbstständig Nachrichten von und an abgebende Stellen.
+**Kommunikation mit dem xdomea-Protokoll.** Die Kommunikation zwischen x-man und abgebenden Stellen geschieht mittels Nachrichten gemäß dem xdomea-Standard. x-man empfängt, verarbeitet, erstellt und versendet selbstständig Nachrichten von und an abgebende Stellen.
 
 **Langzeitarchivierung in ein digitales Magazin.** x-man ist an ein digitales Magazin zur Langzeitarchivierung angebunden. Der Archivierungsprozess wird nach dem Starten durch die Archivarin automatisiert durchgeführt.
 
@@ -45,7 +45,7 @@ Durch Klicken auf eine Zeile in der Aussonderungs-Liste gelangen Sie zur Nachric
 
 ### Nachrichten in xdomea
 
-Die Nachrichten-Ansicht zeigt den Inhalt einer Nachricht nach dem xdomea-Protokoll. Im Rahmen einer Aussonderungen werden verschiedene xdomea-Nachrichten zwischen der abgebenden Stelle und dem Archiv ausgetauscht. Einige dieser Nachrichten erstellt oder verarbeitet x-man ohne weiteres Zutun des Nutzers. Zwei Typen von Nachrichten werden jedoch in der Nachrichten-Ansicht angezeigt:
+Die Nachrichten-Ansicht zeigt den Inhalt einer Nachricht nach dem xdomea-Standard. Im Rahmen einer Aussonderungen werden verschiedene xdomea-Nachrichten zwischen der abgebenden Stelle und dem Archiv ausgetauscht. Einige dieser Nachrichten erstellt oder verarbeitet x-man ohne weiteres Zutun des Nutzers. Zwei Typen von Nachrichten werden jedoch in der Nachrichten-Ansicht angezeigt:
 
 **Anbietung.** Die Anbietung ist eine Liste von angebotenen Schriftgutobjekten, die von der abgebenden Stelle zusammengestellt wird. Die enthält keine Primärdaten. In der Nachrichten-Ansicht können Sie die Metadaten der Schriftgutobjekte betrachten. Schließlich bewerten Sie die angebotenen Schriftgutobjekte und übermittelt die Bewertung an die abgebende Stelle.
 
