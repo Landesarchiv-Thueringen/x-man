@@ -1,7 +1,9 @@
 {
-    "recommendations": [
-        "esbenp.prettier-vscode",
-        "angular.ng-template",
-        "golang.go"
-    ]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "angular.ng-template",
+    "golang.go",
+    "ms-playwright.playwright",
+    "streetsidesoftware.code-spell-checker-german"
+  ]
 }

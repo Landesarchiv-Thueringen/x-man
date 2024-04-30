@@ -1,0 +1,19 @@
+# Allow core files
+!/README.md
+!/package.json
+!/package-lock.json
+!/.editorconfig
+
+# Allow playwright config
+!/playwright.config.ts
+!/tsconfig.json
+
+# Allow test files
+!/tests/**/*.spec.ts
+
+# Default gitignore by playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
