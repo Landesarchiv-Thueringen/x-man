@@ -1,6 +1,7 @@
 package xdomea
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
 	"lath/xman/internal/db"
@@ -136,6 +137,7 @@ func waitUntilStable(file fs.DirEntry) {
 
 // readMessagesFromWebDAV checks if new messages exist for a webDAV.
 func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
+	defer HandlePanic(fmt.Sprintf("readMessagesFromWebDAV \"%s\" %s", agency.Name, transferDirURL))
 	client, err := getWebDAVClient(transferDirURL)
 	if err != nil {
 		panic(err)

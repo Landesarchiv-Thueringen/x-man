@@ -12,6 +12,8 @@ services:
     environment:
       - DEBUG_MODE=true
       - GIN_MODE=debug
+      - WEBDAV_USERNAME=${WEBDAV_USERNAME}
+      - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
     ports:
       - 3000:80
   report:

@@ -1,6 +1,10 @@
 package xdomea
 
-import "lath/xman/internal/db"
+import (
+	"fmt"
+	"lath/xman/internal/db"
+	"os"
+)
 
 func InitMessageTypes() {
 	messageTypes := []*db.MessageType{
@@ -81,12 +85,12 @@ func InitAgencies() {
 			TransferDirURL: "file:///xman/transfer_dir",
 			Code:           "TMIK",
 		},
-		// {
-		// 	Name:           "Thüringer Staatskanzlei",
-		// 	Abbreviation:   "TSK",
-		// 	TransferDirURL: "dav://xman/transfer_dir",
-		// 	Code:           "TMIK",
-		// },
+		{
+			Name:           "Thüringer Staatskanzlei",
+			Abbreviation:   "TSK",
+			TransferDirURL: fmt.Sprintf("dav://%s:%s@webdav/", os.Getenv("WEBDAV_USERNAME"), os.Getenv("WEBDAV_PASSWORD")),
+			Code:           "TMIK",
+		},
 	}
 	db.InitAgencies(agencies)
 }
