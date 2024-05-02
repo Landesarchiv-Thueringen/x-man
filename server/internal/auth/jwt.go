@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var signingKey = []byte(os.Getenv("TOKEN_PRIVATE_KEY"))
+var signingKey = []byte(os.Getenv("TOKEN_SECRET"))
 
 type validationResult struct {
 	UserID      string
