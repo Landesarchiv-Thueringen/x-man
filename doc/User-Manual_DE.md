@@ -6,10 +6,10 @@ Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](..
 
 **Kommunikation mit der abgebenden Stelle.** Die Kommunikation zwischen x-man und abgebenden Stellen geschieht mittels Nachrichten gemäß dem xdomea-Standard. Die Nachrichten werden über Transferverzeichnis ausgetauscht. x-man empfängt, verarbeitet, erstellt und versendet selbstständig Nachrichten von und an abgebende Stellen.
 
-**Langzeitarchivierung in einem digitalen Magazin.** x-man ist an ein digitales Magazin zur Langzeitarchivierung angebunden. Der Archivierungsprozess wird nach dem Starten durch die Archivarin automatisiert durchgeführt. x-man unterstützt die Archivierung in DIMAG und in ein lokales Verzeichnis.
+**Langzeitarchivierung in einem digitalen Magazin.** x-man ist an ein digitales Magazin zur Langzeitarchivierung angebunden. Der Archivierungsprozess wird nach dem Starten durch die Archivarin automatisiert durchgeführt. x-man unterstützt die Archivierung in DIMAG und in einem lokalen Verzeichnis.
 
 **Bildung der Archivpakete.** Die Archivpakete werden für Schriftgutobjekte auf der Wurzelebene der Abgabenachricht gebildet. Für jede Akte bzw. für jeden Vorgang auf Wurzelebene wird ein Archivpaket erstellt. Falls es in der Abgabe Dokumente gibt, die keiner Akte oder keinem Vorgang zugeordnet sind, wird für alle diese Dokumente ein gemeinsames Archivpaket erstellt.  
-Ein Archivpaket enthält alle Primärdateien, der zugehörigen Schriftgutobjekte, eine Protokolldatei und die gekürzte Abgabenachricht. Alle Schriftgutobjekte die nicht zum Archivpaket gehören werden automatisch aus der Abgabenachricht entfernt. Der Titel und die Laufzeit der Archivpakete werden aus den Metadaten der zugehörigen Schriftgutobjekte gebildet.
+Ein Archivpaket enthält alle Primärdateien, der zugehörigen Schriftgutobjekte, eine Protokolldatei und die gekürzte Abgabenachricht. Alle Schriftgutobjekte die nicht zum Archivpaket gehören werden automatisch aus der Abgabenachricht entfernt. Die Metadaten der Archivpakete werden aus den Metadaten der zugehörigen Schriftgutobjekte gebildet.
 
 **Protokollierung von Ereignissen und Fehlern.** Die wichtigsten Ereignisse und Fehler werden dem Archivpaket in einer Textdatei beigelegt. In DIMAG wird die Protokolldatei als Primärdatei angelegt. Eine Übernahme als Protokoll nach DIMAG wird zurzeit nicht unterstützt.
 

@@ -39,9 +39,9 @@ Siehe [Development (en)](./doc/Development.md).
 
 ## Roadmap
 
-- AFIS-Schnittstelle
+- AFIS-Schnittstelle für die automatische Bildung von Verzeichnungseinheiten bei der Archivierung
 - DIMAG-Import als Bagit um die Integrität der Primärdateien abzusichern und Protokolleinträge im DIMAG-Format zu erstellen
-- konfigurierbare Paketierung für die Erstellung der Achivpakete
+- konfigurierbare Paketierungsebene für die Erstellung der Achivpakete
 
 ## Lizenz
 
