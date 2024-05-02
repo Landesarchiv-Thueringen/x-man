@@ -72,6 +72,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - BORG_ENDPOINT=${BORG_ENDPOINT}
       - XDOMEA_MAX_RECORD_OBJECT_DEPTH=${XDOMEA_MAX_RECORD_OBJECT_DEPTH}
+      - INSTITUTION_NAME=${INSTITUTION_NAME}
+      - INSTITUTION_ABBREVIATION=${INSTITUTION_ABBREVIATION}
     volumes:
       - message_store:/xman/message_store
       - ./data/transfer_dir:/xman/transfer_dir

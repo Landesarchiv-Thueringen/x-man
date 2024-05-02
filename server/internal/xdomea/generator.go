@@ -119,7 +119,7 @@ func GenerateMessageHead0502(processID string, sender db.Contact) db.GeneratorMe
 		Code: "0502",
 	}
 	timeStamp := time.Now()
-	lathContact := GetLAThContact()
+	lathContact := GetSenderContact()
 	sendingSystem := GetSendingSystem()
 	messageHead := db.GeneratorMessageHead0502{
 		ProcessID:        processID,
@@ -138,7 +138,7 @@ func GenerateMessageHead(processID string, sender db.Contact, messageCode string
 		Code: messageCode,
 	}
 	timeStamp := time.Now()
-	lathContact := GetLAThContact()
+	lathContact := GetSenderContact()
 	sendingSystem := GetSendingSystem()
 	messageHead := db.GeneratorMessageHead{
 		ProcessID:     processID,
@@ -251,9 +251,9 @@ func GetArchivedRecordIDMapping(recordID string, aip db.ArchivePackage) db.Gener
 	return idMapping
 }
 
-func GetLAThContact() db.GeneratorContact {
-	institutionName := "Landesarchiv Thüringen"
-	institutionAbbreviation := "LATh"
+func GetSenderContact() db.GeneratorContact {
+	institutionName := os.Getenv("INSTITUTION_NAME")
+	institutionAbbreviation := os.Getenv("INSTITUTION_ABBREVIATION")
 	institution := db.GeneratorInstitution{
 		Name:         &institutionName,
 		Abbreviation: &institutionAbbreviation,
