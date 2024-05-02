@@ -67,7 +67,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   readonly stateValues = [
     { value: 'message0501', viewValue: 'Anbietung erhalten' },
     { value: 'appraisalComplete', viewValue: 'Bewertung abgeschlossen' },
-    { value: 'message0505', viewValue: 'Bewertung in VIS importiert' },
+    { value: 'message0505', viewValue: 'Bewertung in DMS importiert' },
     { value: 'message0503', viewValue: 'Abgabe erhalten' },
     { value: 'formatVerification', viewValue: 'Formatverifikation abgeschlossen' },
     { value: 'archivingComplete', viewValue: 'Abgabe archiviert' },

@@ -176,7 +176,7 @@ export class MessageMetadataComponent {
       });
     }
     if (state.receive0505.complete) {
-      items.push({ title: 'Bewertung in VIS importiert', icon: 'check', date: state.receive0505.completionTime! });
+      items.push({ title: 'Bewertung in DMS importiert', icon: 'check', date: state.receive0505.completionTime! });
     }
     if (state.receive0503.complete) {
       items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completionTime! });
