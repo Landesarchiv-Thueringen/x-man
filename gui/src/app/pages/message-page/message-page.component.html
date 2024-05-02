@@ -5,7 +5,12 @@
 
   <mat-sidenav-content [class.mode-over]="sidenavMode === 'over'">
     @if (sidenavMode === "over") {
-      <button mat-raised-button class="open-sidenav-button" (click)="sidenav.open()">
+      <button
+        mat-raised-button
+        class="open-sidenav-button"
+        (click)="sidenav.open()"
+        aria-label="Nachrichten-Baum ausklappen"
+      >
         <mat-icon>chevron_right</mat-icon>
       </button>
     }

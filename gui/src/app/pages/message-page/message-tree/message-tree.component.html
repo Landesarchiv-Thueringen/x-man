@@ -228,6 +228,7 @@
         [indeterminate]="intermediateNodes.has(node.id)"
         (click)="$event.stopPropagation()"
         (ngModelChange)="selectItem($event, node.id)"
+        [aria-label]="node.title"
       ></mat-checkbox>
     }
   }
