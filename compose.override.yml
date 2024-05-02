@@ -12,6 +12,7 @@ services:
     environment:
       - DEBUG_MODE=true
       - GIN_MODE=debug
+      - INIT_TEST_SETUP=true
       - WEBDAV_USERNAME=${WEBDAV_USERNAME}
       - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
     ports:

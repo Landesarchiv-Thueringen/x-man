@@ -105,12 +105,10 @@ func MigrateData() {
 	if major == 0 {
 		log.Printf("Migrating database from X-Man version %d.%d.%d to %s... ", major, minor, patch, XMAN_VERSION)
 		db.Migrate()
-		xdomea.InitMessageTypes()
-		xdomea.InitXdomeaVersions()
-		xdomea.InitRecordObjectAppraisals()
-		xdomea.InitConfidentialityLevelCodelist()
-		xdomea.InitMediumCodelist()
-		xdomea.InitAgencies()
+		xdomea.InitCodeLists()
+		if os.Getenv("INIT_TEST_SETUP") == "true" {
+			xdomea.InitTestSetup()
+		}
 		db.SetXManVersion(XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION)
 		log.Println("done")
 	} else {

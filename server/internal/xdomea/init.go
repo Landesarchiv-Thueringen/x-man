@@ -6,7 +6,19 @@ import (
 	"os"
 )
 
-func InitMessageTypes() {
+func InitCodeLists() {
+	initMessageTypes()
+	initXdomeaVersions()
+	initRecordObjectAppraisals()
+	initConfidentialityLevelCodelist()
+	initMediumCodelist()
+}
+
+func InitTestSetup() {
+	initAgencies()
+}
+
+func initMessageTypes() {
 	messageTypes := []*db.MessageType{
 		{Code: "0000"}, // unknown message type
 		{Code: "0501"},
@@ -20,7 +32,7 @@ func InitMessageTypes() {
 	db.InitMessageTypes(messageTypes)
 }
 
-func InitXdomeaVersions() {
+func initXdomeaVersions() {
 	versions := []*db.XdomeaVersion{
 		{
 			Code:    "2.3.0",
@@ -46,7 +58,7 @@ func InitXdomeaVersions() {
 	db.InitXdomeaVersions(versions)
 }
 
-func InitRecordObjectAppraisals() {
+func initRecordObjectAppraisals() {
 	appraisals := []*db.RecordObjectAppraisal{
 		{Code: "A", ShortDesc: "Archivieren", Desc: "Das Schriftgutobjekt ist archivwürdig."},
 		{Code: "B", ShortDesc: "Durchsicht", Desc: "Das Schriftgutobjekt ist zum Bewerten markiert."},
@@ -55,7 +67,7 @@ func InitRecordObjectAppraisals() {
 	db.InitRecordObjectAppraisals(appraisals)
 }
 
-func InitConfidentialityLevelCodelist() {
+func initConfidentialityLevelCodelist() {
 	confidentialityLevelCodelist := []*db.ConfidentialityLevel{
 		{ID: "001", ShortDesc: "Geheim", Desc: "Geheim: Das Schriftgutobjekt ist als geheim eingestuft."},
 		{ID: "002", ShortDesc: "NfD", Desc: "NfD: Das Schriftgutobjekt ist als \"nur für den Dienstgebrauch (nfD)\" eingestuft."},
@@ -66,7 +78,7 @@ func InitConfidentialityLevelCodelist() {
 	db.InitConfidentialityLevelCodelist(confidentialityLevelCodelist)
 }
 
-func InitMediumCodelist() {
+func initMediumCodelist() {
 	mediumCodelist := []*db.Medium{
 		{ID: "001", ShortDesc: "Elektronisch", Desc: "Elektronisch: Das Schriftgutobjekt liegt ausschließlich in elektronischer Form vor."},
 		{ID: "002", ShortDesc: "Hybrid", Desc: "Hybrid: Das Schriftgutobjekt liegt teilweise in elektronischer Form und teilweise als Papier vor."},
@@ -75,21 +87,17 @@ func InitMediumCodelist() {
 	db.InitMediumCodelist(mediumCodelist)
 }
 
-// Only for testing purpose.
-// TODO: Should be removed before publication of production.
-func InitAgencies() {
+func initAgencies() {
 	agencies := []db.Agency{
 		{
 			Name:           "Thüringer Ministerium für Inneres und Kommunales",
 			Abbreviation:   "TMIK",
 			TransferDirURL: "file:///xman/transfer_dir",
-			Code:           "TMIK",
 		},
 		{
 			Name:           "Thüringer Staatskanzlei",
 			Abbreviation:   "TSK",
 			TransferDirURL: fmt.Sprintf("dav://%s:%s@webdav/", os.Getenv("WEBDAV_USERNAME"), os.Getenv("WEBDAV_PASSWORD")),
-			Code:           "TMIK",
 		},
 	}
 	db.InitAgencies(agencies)
