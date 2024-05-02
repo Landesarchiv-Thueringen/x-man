@@ -36,7 +36,7 @@ services:
     ports:
       - 8082:80
     volumes:
-      - webdav:/var/lib/dav
+      - ./data/webdav:/var/lib/dav
 
   # LDAP test server with default credentials
   ldap:
