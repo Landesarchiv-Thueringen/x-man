@@ -11,8 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var signingKey = []byte(os.Getenv("TOKEN_SECRET"))
-
 type validationResult struct {
 	UserID      string
 	Permissions *permissions
@@ -29,7 +27,7 @@ func createToken(user userEntry) string {
 		"exp":    time.Now().Add(time.Hour * 24 * time.Duration(token_lifespan)).Unix(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(signingKey)
+	tokenString, err := token.SignedString(getTokenSecret())
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +40,7 @@ func validateToken(tokenString string) (validationResult, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return signingKey, nil
+		return getTokenSecret(), nil
 	})
 	if err != nil {
 		return validationResult{}, err
@@ -63,4 +61,12 @@ func validateToken(tokenString string) (validationResult, error) {
 		UserID:      userID,
 		Permissions: &perms,
 	}, nil
+}
+
+func getTokenSecret() []byte {
+	signingKey := []byte(os.Getenv("TOKEN_SECRET"))
+	if len(signingKey) == 0 {
+		panic("missing env variable: TOKEN_SECRET")
+	}
+	return signingKey
 }
