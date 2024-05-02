@@ -9,7 +9,8 @@
 !/tsconfig.json
 
 # Allow test files
-!/tests/**/*.spec.ts
+!/tests/**/*.ts
+!/test-data/**/*
 
 # Default gitignore by playwright
 node_modules/
