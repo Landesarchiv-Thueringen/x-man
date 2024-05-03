@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/studio-b12/gowebdav"
@@ -60,7 +61,16 @@ func testWebDAV(transferDirURL *url.URL) bool {
 
 // MonitorTransferDirs starts the watch loop to process the contents of the transfer directories.
 func MonitorTransferDirs() {
-	ticker = *time.NewTicker(time.Second * 5)
+	interval := time.Minute
+	intervalString := os.Getenv("TRANSFER_DIR_SCAN_INTERVAL_SECONDS")
+	if intervalString != "" {
+		intervalSeconds, err := strconv.Atoi(intervalString)
+		if err != nil {
+			panic(err)
+		}
+		interval = time.Second * time.Duration(intervalSeconds)
+	}
+	ticker = *time.NewTicker(interval)
 	stop = make(chan bool)
 	go watchLoop(ticker, stop)
 }

@@ -15,6 +15,7 @@ services:
       - INIT_TEST_SETUP=true
       - WEBDAV_USERNAME=${WEBDAV_USERNAME}
       - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
+      - TRANSFER_DIR_SCAN_INTERVAL_SECONDS=1
     ports:
       - 3000:80
   report:
