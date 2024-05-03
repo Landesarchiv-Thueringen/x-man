@@ -89,6 +89,9 @@ func DeleteProcess(processID string) bool {
 	if process.Message0503 != nil {
 		db.DeleteProcessedTransferDirEntry(process.Agency, process.Message0503.TransferDirPath)
 	}
+	if process.Message0505 != nil {
+		db.DeleteProcessedTransferDirEntry(process.Agency, process.Message0505.TransferDirPath)
+	}
 	return true
 }
 

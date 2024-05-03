@@ -490,6 +490,7 @@ func GetProcess(processID string) (Process, bool) {
 		Preload("Message0501.MessageType").
 		Preload("Message0503.MessageHead").
 		Preload("Message0503.MessageType").
+		Preload("Message0505").
 		Preload("ProcessingErrors").
 		Preload("ProcessState.Receive0501." + clause.Associations).
 		Preload("ProcessState.Appraisal." + clause.Associations).
