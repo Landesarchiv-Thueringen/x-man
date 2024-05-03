@@ -15,6 +15,7 @@
 
 # allow docs
 !/README.md
+!/CHANGELOG.md
 !/LICENSE
 !/doc/*.md
 !/doc/img/*.png

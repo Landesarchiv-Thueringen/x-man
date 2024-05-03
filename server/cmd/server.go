@@ -102,7 +102,7 @@ func initServer() {
 
 func MigrateData() {
 	major, minor, patch := db.GetXManVersion()
-	if major == 0 {
+	if major == 0 && minor == 0 && patch == 0 {
 		log.Printf("Migrating database from X-Man version %d.%d.%d to %s... ", major, minor, patch, XMAN_VERSION)
 		db.Migrate()
 		xdomea.InitCodeLists()
