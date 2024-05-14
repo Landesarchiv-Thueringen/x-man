@@ -16,11 +16,16 @@
 
   // Spell checking
   "cSpell.words": [
+    "aips",
+    "Aktenplaneinheit",
     "Aktenplanschlüssel",
     "Anbietung",
     "Anbietungen",
     "Archivable",
+    "Archivspezifische",
+    "archivwürdig",
     "Bemerkungsnotiz",
+    "bson",
     "dimag",
     "DIMAG",
     "Discardable",
@@ -38,12 +43,21 @@
     "typst",
     "unappraised",
     "Unappraised",
+    "upsert",
+    "Upsert",
     "uuid",
     "Validitätsprüfung",
     "Verschachtlungstiefe",
+    "webdav",
+    "webdavs",
     "xdomea",
     "Xdomea",
     "xman"
   ],
-  "typescript.preferences.importModuleSpecifier": "project-relative"
+  "typescript.preferences.importModuleSpecifier": "project-relative",
+  "gopls": {
+    "analyses": {
+      "composites": false // allow query syntax for mongodb driver
+    }
+  }
 }

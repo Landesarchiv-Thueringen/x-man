@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"lath/xman/internal/db"
 	"regexp"
 )
@@ -21,19 +22,19 @@ type ArchivePackageData struct {
 		End   string
 	}
 	AppraisalNote string
-	TotalFileSize uint64
+	TotalFileSize int64
 	PackageID     string
 }
 
-func getArchivePackages(process db.Process) (result []ArchivePackageData) {
-	aips := db.GetArchivePackagesWithAssociations(process.ID)
+func getArchivePackages(ctx context.Context, process db.SubmissionProcess) (result []ArchivePackageData) {
+	aips := db.FindArchivePackagesForProcess(ctx, process.ProcessID)
 	result = make([]ArchivePackageData, len(aips))
 	for i, a := range aips {
 		result[i] = ArchivePackageData{
 			Title:         a.IOTitle,
 			Lifetime:      getLifetime(a),
 			AppraisalNote: getAppraisalNote(a),
-			TotalFileSize: getTotalFileSize(a),
+			TotalFileSize: getTotalFileSize(ctx, a),
 			PackageID:     a.PackageID,
 		}
 	}
@@ -52,7 +53,7 @@ func getLifetime(a db.ArchivePackage) struct {
 	End   string
 } {
 	re := regexp.MustCompile(`^(?:(\d{4}-\d{2}-\d{2})\s+)?-?(?:\s+(\d{4}-\d{2}-\d{2}))?$`)
-	match := re.FindStringSubmatch(a.IOLifetimeCombined)
+	match := re.FindStringSubmatch(a.IOLifetime)
 	return struct {
 		Start string
 		End   string
@@ -62,23 +63,19 @@ func getLifetime(a db.ArchivePackage) struct {
 // getAppraisalNote returns the appraisal note of the first record object that
 // belongs to the archive package.
 func getAppraisalNote(aip db.ArchivePackage) string {
-	if len(aip.FileRecordObjects) > 0 {
-		a := db.GetAppraisal(aip.Process.ID, aip.FileRecordObjects[0].XdomeaID)
-		return a.InternalNote
-	}
-	if len(aip.ProcessRecordObjects) > 0 {
-		a := db.GetAppraisal(aip.Process.ID, aip.ProcessRecordObjects[0].XdomeaID)
-		return a.InternalNote
+	if len(aip.RootRecordIDs) > 0 {
+		a, _ := db.FindAppraisal(aip.ProcessID, aip.RootRecordIDs[0])
+		return a.Note
 	}
 	return ""
 }
 
 // getTotalFileSize returns the total file size in bytes of all files that
 // belong to the given archive package.
-func getTotalFileSize(a db.ArchivePackage) uint64 {
-	var totalFileSize uint64
-	for _, d := range a.PrimaryDocuments {
-		totalFileSize += d.FileSize
+func getTotalFileSize(ctx context.Context, a db.ArchivePackage) int64 {
+	var filenames []string
+	for _, p := range a.PrimaryDocuments {
+		filenames = append(filenames, p.Filename)
 	}
-	return totalFileSize
+	return db.CalculateTotalFileSize(ctx, a.ProcessID, filenames)
 }

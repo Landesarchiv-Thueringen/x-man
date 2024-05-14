@@ -10,7 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { switchMap } from 'rxjs';
-import { Feature, MessageService, PrimaryDocument } from '../../../../services/message.service';
+import { Feature, MessageService, PrimaryDocumentData } from '../../../../services/message.service';
+import { PrimaryDocument } from '../../../../services/records.service';
 import { BreakOpportunitiesPipe } from '../../../../shared/break-opportunities.pipe';
 import { MessagePageService } from '../../message-page.service';
 import { FileOverviewComponent } from '../primary-document/primary-document-metadata.component';
@@ -80,7 +81,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
       .observeMessage()
       .pipe(
         takeUntilDestroyed(),
-        switchMap((message) => this.messageService.getPrimaryDocuments(message.id)),
+        switchMap((message) => this.messageService.getPrimaryDocumentsData(message.messageHead.processID)),
       )
       .subscribe((primaryDocuments) => this.processFileInformation(primaryDocuments));
   }
@@ -90,7 +91,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
     this.paginator.pageSize = this.getPageSize();
   }
 
-  processFileInformation(primaryDocuments: PrimaryDocument[]): void {
+  processFileInformation(primaryDocuments: PrimaryDocumentData[]): void {
     const featureKeys: string[] = ['fileName'];
     const data: FileOverview[] = [];
     for (let primaryDocument of primaryDocuments) {
@@ -103,7 +104,7 @@ export class PrimaryDocumentsTableComponent implements AfterViewInit {
         id: { value: primaryDocumentID },
         icons: this.statusIcons.getIcons(primaryDocument),
       };
-      fileOverview['fileName'] = { value: primaryDocument.fileName };
+      fileOverview['fileName'] = { value: primaryDocument.filename };
       for (let featureKey in primaryDocument.formatVerification.summary) {
         if (isOverviewFeature(featureKey) && featureKey !== 'valid') {
           featureKeys.push(featureKey);

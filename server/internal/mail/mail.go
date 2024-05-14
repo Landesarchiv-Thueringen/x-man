@@ -15,6 +15,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type Attachment struct {
@@ -25,7 +27,7 @@ type Attachment struct {
 
 func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	var messageType string
-	switch message.MessageType.Code {
+	switch message.MessageType {
 	case "0501":
 		messageType = "Anbietung"
 	case "0503":
@@ -33,12 +35,12 @@ func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	case "0505":
 		messageType = "Bewertungsbestätigung"
 	default:
-		panic("unhandled message type: " + message.MessageType.Code)
+		panic("unhandled message type: " + message.MessageType)
 	}
 	body := "<p>Es ist eine neue " + messageType + " von \"" + agencyName + "\" eingegangen.</p>\n"
 	origin := os.Getenv("ORIGIN")
-	if message.MessageType.Code == "0501" || message.MessageType.Code == "0503" {
-		url := origin + "/nachricht/" + message.MessageHead.ProcessID + "/" + message.MessageType.Code
+	if message.MessageType == "0501" || message.MessageType == "0503" {
+		url := origin + "/nachricht/" + message.MessageHead.ProcessID.String() + "/" + string(message.MessageType)
 		body += fmt.Sprintf("<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
 	body += "<p>Sie bekommen diese E-Mail, weil Sie der abgebenden Stelle als zuständige(r) Archivar(in) zugeordnet sind.<br>\n" +
@@ -46,7 +48,7 @@ func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	sendMail(to, "Neue "+messageType+" von "+agencyName, body, []Attachment{})
 }
 
-func SendMailReport(to string, process db.Process, report Attachment) {
+func SendMailReport(to string, process db.SubmissionProcess, report Attachment) {
 	agencyName := process.Agency.Name
 	body := "<p>Die Abgabe von " + agencyName + " wurde erfolgreich archiviert.</p>"
 	origin := os.Getenv("ORIGIN")
@@ -59,8 +61,8 @@ func SendMailProcessingError(to string, e db.ProcessingError) {
 	origin := os.Getenv("ORIGIN")
 	message := "<p>Ein Fehler wurde in der Steuerungsstelle eingetragen.</p>\n"
 	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Description)
-	if e.ProcessID != nil {
-		url := origin + "/nachricht/" + *e.ProcessID
+	if e.ProcessID != uuid.Nil {
+		url := origin + "/nachricht/" + e.ProcessID.String()
 		message += fmt.Sprintf("<p>Nachricht: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
 	if e.AdditionalInfo != "" {

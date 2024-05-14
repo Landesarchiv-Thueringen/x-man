@@ -14,24 +14,24 @@
                 @if (numberOfUnresolvedErrors() === 1) {
                   1 ungelöstes Problem
                 } @else {
-                  {{ hasUnresolvedError() }} ungelöste Probleme
+                  {{ numberOfUnresolvedErrors() }} ungelöste Probleme
                 }
               } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
-              } @else if (isStepRunning(process.processState.archiving)) {
+              } @else if (process.processState.archiving.running) {
                 Archivierung läuft...
               } @else if (process.processState.formatVerification.complete) {
                 Formatverifikation abgeschlossen
-              } @else if (isStepRunning(process.processState.formatVerification)) {
-                Formatverifikation läuft...
+              } @else if (process.processState.formatVerification.running) {
+                Formatverifikation läuft... ({{ process.processState.formatVerification.progress }})
               } @else if (process.processState.receive0503.complete) {
                 Abgabe erhalten
               } @else if (process.processState.receive0505.complete) {
                 Bewertung in DMS importiert
               } @else if (process.processState.appraisal.complete) {
                 Bewertung abgeschlossen
-              } @else if (process.processState.appraisal.message) {
-                Bewertung ({{ process.processState.appraisal.message }})
+              } @else if (process.processState.appraisal.progress) {
+                Bewertung ({{ process.processState.appraisal.progress }})
               } @else if (process.processState.receive0501.complete) {
                 Anbietung erhalten
               }

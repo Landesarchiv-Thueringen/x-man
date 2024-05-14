@@ -31,9 +31,9 @@
   <ng-container matColumnDef="process">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Aussonderung</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <a mat-button target="_blank" [routerLink]="['/nachricht', element.process.id]">
+      <a mat-button target="_blank" [routerLink]="['/nachricht', element.processId]">
         <mat-icon>open_in_new</mat-icon>
-        {{ element.process.id }}</a
+        {{ element.processId }}</a
       >
     </mat-cell>
   </ng-container>

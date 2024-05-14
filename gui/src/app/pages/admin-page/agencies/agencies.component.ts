@@ -11,7 +11,7 @@ import { map } from 'rxjs/operators';
 import { AgenciesService, Agency } from '../../../services/agencies.service';
 import { ConfigService } from '../../../services/config.service';
 import { UsersService } from '../../../services/users.service';
-import { Collection, CollectionsService } from '../collections/collections.service';
+import { ArchiveCollection, CollectionsService } from '../collections/collections.service';
 import { AgencyDetailsComponent } from './agency-details.component';
 
 @Component({
@@ -26,8 +26,8 @@ export class AgenciesComponent implements AfterViewInit {
 
   displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users'];
   dataSource = new MatTableDataSource<Agency>();
-  agencies = this.agenciesService.getAgencies();
-  collections: Collection[] | null = null;
+  agencies = this.agenciesService.observeAgencies();
+  collections: ArchiveCollection[] | null = null;
 
   constructor(
     private agenciesService: AgenciesService,
@@ -37,7 +37,7 @@ export class AgenciesComponent implements AfterViewInit {
     private configService: ConfigService,
   ) {
     this.agenciesService
-      .getAgencies()
+      .observeAgencies()
       .pipe(takeUntilDestroyed())
       .subscribe((agencies) => (this.dataSource.data = agencies));
     this.collectionsService
@@ -64,7 +64,7 @@ export class AgenciesComponent implements AfterViewInit {
 
   getUserNames(agency: Agency): Observable<string> {
     return this.usersService
-      .getUsersByIds(agency.users.map((user) => user.id))
+      .getUsersByIds(agency.users ?? [])
       .pipe(map((user) => user.map((u) => u.displayName).join('; ')));
   }
 

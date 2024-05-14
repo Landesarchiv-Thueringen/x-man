@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"lath/xman/internal/db"
 	"os"
 	"path"
@@ -28,7 +29,7 @@ type DocumentsEntry struct {
 }
 
 // processDocument adds the given document to the FileStats' PUIDEntries array.
-func (f *FileStats) processDocument(document db.PrimaryDocument) {
+func (f *FileStats) processDocument(document db.PrimaryDocumentData) {
 	PUID := getFeature(document, "puid")
 	idx := slices.IndexFunc(f.PUIDEntries, func(e PUIDEntry) bool { return e.PUID == PUID })
 	if idx == -1 {
@@ -51,7 +52,7 @@ func (f *FileStats) sort() {
 }
 
 // processDocument adds the given document to the PUIDEntry's Entries array.
-func (p *PUIDEntry) processDocument(document db.PrimaryDocument) {
+func (p *PUIDEntry) processDocument(document db.PrimaryDocumentData) {
 	mimeType := getFeature(document, "mimeType")
 	formatVersion := getFeature(document, "formatVersion")
 	valid := getFeature(document, "valid")
@@ -89,13 +90,14 @@ func (p *PUIDEntry) sort() {
 	})
 }
 
-func getFileStats(process db.Process) (fileStats FileStats) {
-	documents := db.GetAllPrimaryDocumentsWithFormatVerification(*process.Message0503ID)
+func getFileStats(ctx context.Context, process db.SubmissionProcess) (fileStats FileStats) {
+	documents := db.FindPrimaryDocumentsDataForProcess(ctx, process.ProcessID)
+	message0503, _ := db.FindMessage(ctx, process.ProcessID, db.MessageType0503)
 	fileStats.PUIDEntries = make([]PUIDEntry, 0)
 	for _, document := range documents {
 		fileStats.processDocument(document)
 		fileStats.TotalFiles += 1
-		fileSize := getFileSize(path.Join(process.Message0503.StoreDir, document.FileName))
+		fileSize := getFileSize(path.Join(message0503.StoreDir, document.Filename))
 		fileStats.TotalBytes += fileSize
 	}
 	fileStats.sort()
@@ -110,14 +112,12 @@ func getFileSize(path string) uint64 {
 	return uint64(fi.Size())
 }
 
-func getFeature(document db.PrimaryDocument, featureKey string) string {
+func getFeature(document db.PrimaryDocumentData, featureKey string) string {
 	if document.FormatVerification == nil {
 		return ""
 	}
-	for _, feature := range document.FormatVerification.Features {
-		if feature.Key == featureKey {
-			return feature.Values[0].Value
-		}
+	if f, ok := document.FormatVerification.Summary[featureKey]; ok {
+		return f.Values[0].Value
 	}
 	return ""
 }

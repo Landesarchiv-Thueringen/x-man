@@ -16,6 +16,6 @@ npm start
 
 ## Debug the Database
 
-The development configuration starts an instance of [pgweb](https://github.com/sosedoff/pgweb) and connects it to the application database.
+The development configuration starts an instance of [mongo-express](https://github.com/mongo-express/mongo-express) and connects it to the application database.
 
 Its web UI is available on http://localhost:8081.

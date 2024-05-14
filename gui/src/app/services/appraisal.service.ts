@@ -3,13 +3,24 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type AppraisalDecision = 'A' | 'V' | 'B' | '';
+export type AppraisalCode = 'A' | 'V' | 'B' | '';
 
 export interface Appraisal {
-  recordObjectID: string;
-  decision: AppraisalDecision;
-  internalNote: string;
+  recordId: string;
+  decision: AppraisalCode;
+  note: string;
 }
+
+export interface AppraisalDescription {
+  shortDesc: string;
+  desc: string;
+}
+
+export const appraisalDescriptions = {
+  A: { shortDesc: 'Archivieren', desc: 'Das Schriftgutobjekt ist archivwürdig.' },
+  B: { shortDesc: 'Durchsicht', desc: 'Das Schriftgutobjekt ist zum Bewerten markiert.' },
+  V: { shortDesc: 'Vernichten', desc: 'Das Schriftgutobjekt ist zum Vernichten markiert.' },
+} as const;
 
 /**
  * Provides API functions for fetching and updating appraisals.
@@ -24,26 +35,33 @@ export interface Appraisal {
 export class AppraisalService {
   constructor(private httpClient: HttpClient) {}
 
+  getAppraisalDescription(code?: AppraisalCode): AppraisalDescription | undefined {
+    if (!code) {
+      return undefined;
+    }
+    return appraisalDescriptions[code];
+  }
+
   getAppraisals(processId: string): Observable<Appraisal[]> {
     return this.httpClient.get<Appraisal[]>(environment.endpoint + '/appraisals/' + processId);
   }
 
-  setDecision(processId: string, recordObjectId: string, decision: AppraisalDecision): Observable<Appraisal[]> {
+  setDecision(processId: string, recordId: string, decision: AppraisalCode): Observable<Appraisal[]> {
     return this.httpClient.post<Appraisal[]>(environment.endpoint + '/appraisal-decision', decision, {
-      params: { processId, recordObjectId },
+      params: { processId, recordId },
     });
   }
 
-  setInternalNote(processId: string, recordObjectId: string, internalNote: string): Observable<Appraisal[]> {
+  setInternalNote(processId: string, recordId: string, internalNote: string): Observable<Appraisal[]> {
     return this.httpClient.post<Appraisal[]>(environment.endpoint + '/appraisal-note', internalNote, {
-      params: { processId, recordObjectId },
+      params: { processId, recordId },
     });
   }
 
   setAppraisals(
     processId: string,
     recordObjectIds: string[],
-    decision: AppraisalDecision,
+    decision: AppraisalCode,
     internalNote: string,
   ): Observable<Appraisal[]> {
     return this.httpClient.post<Appraisal[]>(environment.endpoint + '/appraisals', {

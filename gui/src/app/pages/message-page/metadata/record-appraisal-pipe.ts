@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({ name: 'recordObjectAppraisal', standalone: true })
-export class RecordObjectAppraisalPipe implements PipeTransform {
+@Pipe({ name: 'recordAppraisal', standalone: true })
+export class RecordAppraisalPipe implements PipeTransform {
   transform(value: string): string {
     if (value === 'B') {
       // de: Durchsicht

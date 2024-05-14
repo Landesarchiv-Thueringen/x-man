@@ -1,6 +1,7 @@
 package xdomea
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"lath/xman/internal/db"
@@ -8,27 +9,123 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
 const XmlHeader = "<?xml version='1.0' encoding='UTF-8'?>\n"
 const XsiXmlNs = "http://www.w3.org/2001/XMLSchema-instance"
 
+type generatorMessage0502 struct {
+	XMLName          xml.Name                   `xml:"xdomea:Aussonderung.Bewertungsverzeichnis.0502"`
+	MessageHead      generatorMessageHead0502   `xml:"xdomea:Kopf"`
+	AppraisedObjects []generatorAppraisedObject `xml:"xdomea:BewertetesObjekt"`
+	XdomeaXmlNs      string                     `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs         string                     `xml:"xmlns:xsi,attr"`
+}
+
+type generatorMessage0504 struct {
+	XMLName     xml.Name             `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
+	MessageHead generatorMessageHead `xml:"xdomea:Kopf" json:"messageHead"`
+	XdomeaXmlNs string               `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs    string               `xml:"xmlns:xsi,attr"`
+}
+
+type generatorMessage0506 struct {
+	XMLName             xml.Name                      `gorm:"-" xml:"xdomea:Aussonderung.AussonderungImportBestaetigen.0506" json:"-"`
+	MessageHead         generatorMessageHead          `xml:"xdomea:Kopf" json:"messageHead"`
+	XdomeaXmlNs         string                        `xml:"xmlns:xdomea,attr"`
+	XsiXmlNs            string                        `xml:"xmlns:xsi,attr"`
+	ArchivingInfoPre300 *generatorArchivingInfoPre300 `xml:"xdomea:ErfolgOderMisserfolg"`
+	ArchivedRecordInfo  []generatorArchivedRecordInfo `xml:"xdomea:AusgesondertesSGO"`
+}
+
+type generatorAppraisedObject struct {
+	XMLName         xml.Name                 `xml:"xdomea:BewertetesObjekt"`
+	RecordID        uuid.UUID                `xml:"xdomea:ID"`
+	ObjectAppraisal generatorObjectAppraisal `xml:"xdomea:Aussonderungsart"`
+}
+
+type generatorObjectAppraisal struct {
+	XMLName             xml.Name       `xml:"xdomea:Aussonderungsart"`
+	AppraisalCode       *generatorCode `xml:"xdomea:Aussonderungsart"`
+	AppraisalCodePre300 *string        `xml:"code"`
+}
+
+type generatorMessageHead0502 struct {
+	ProcessID        uuid.UUID              `xml:"xdomea:ProzessID"`
+	MessageType      generatorCode          `xml:"xdomea:Nachrichtentyp"`
+	CreationTime     string                 `xml:"xdomea:Erstellungszeitpunkt"`
+	Sender           generatorContact       `xml:"xdomea:Absender"`
+	Receiver         generatorContact       `xml:"xdomea:Empfaenger"`
+	SendingSystem    generatorSendingSystem `xml:"xdomea:SendendesSystem"`
+	ReceiptRequested bool                   `xml:"xdomea:Empfangsbestaetigung"`
+}
+
+type generatorMessageHead struct {
+	ProcessID     uuid.UUID              `xml:"xdomea:ProzessID"`
+	MessageType   generatorCode          `xml:"xdomea:Nachrichtentyp"`
+	CreationTime  string                 `xml:"xdomea:Erstellungszeitpunkt"`
+	Sender        generatorContact       `xml:"xdomea:Absender"`
+	Receiver      generatorContact       `xml:"xdomea:Empfaenger"`
+	SendingSystem generatorSendingSystem `xml:"xdomea:SendendesSystem"`
+}
+
+type generatorSendingSystem struct {
+	XMLName        xml.Name `xml:"xdomea:SendendesSystem"`
+	ProductName    *string  `xml:"xdomea:Produktname"`
+	ProductVersion *string  `xml:"xdomea:Version"`
+}
+
+type generatorContact struct {
+	AgencyIdentification *generatorAgencyIdentification `xml:"xdomea:Behoerdenkennung"`
+	Institution          *generatorInstitution          `xml:"xdomea:Institution"`
+}
+
+type generatorAgencyIdentification struct {
+	Code   *generatorCode `xml:"xdomea:Behoerdenschluessel"`
+	Prefix *generatorCode `xml:"xdomea:Praefix"`
+}
+
+type generatorInstitution struct {
+	Name         *string `xml:"xdomea:Name"`
+	Abbreviation *string `xml:"xdomea:Kurzbezeichnung"`
+}
+
+type generatorCode struct {
+	Code string `xml:"code"`
+}
+
+type generatorArchivingInfoPre300 struct {
+	Success              bool                            `xml:"xdomea:Erfolgreich"`
+	RecordArchiveMapping []generatorRecordArchiveMapping `xml:"xdomea:Rueckgabeparameter"`
+}
+
+type generatorRecordArchiveMapping struct {
+	RecordID  string `xml:"xdomea:ID"`
+	ArchiveID string `xml:"xdomea:Archivkennung"`
+}
+
+type generatorArchivedRecordInfo struct {
+	RecordID  string  `xml:"xdomea:IDSGO"`
+	Success   bool    `xml:"xdomea:Erfolgreich"`
+	ArchiveID *string `xml:"xdomea:Archivkennung"`
+}
+
 // Generate0502Message creates the XML code for the appraisal message (code: 0502).
 // The generated message has the same xdomea version as the
 func Generate0502Message(message db.Message) string {
-	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
-	if err != nil {
-		panic(err)
-	}
+	xdomeaVersion := XdomeaVersions[message.XdomeaVersion]
 	messageHead := GenerateMessageHead0502(message.MessageHead.ProcessID, message.MessageHead.Sender)
-	message0502 := db.GeneratorMessage0502{
+	message0502 := generatorMessage0502{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
 	}
-	for _, o := range message.GetAppraisableObjects() {
-		appraisedObject := GenerateAppraisedObject(messageHead.ProcessID, o, xdomeaVersion)
+	rootRecords := db.FindRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
+	m := appraisableRecords(&rootRecords)
+	for id, _ := range m {
+		appraisedObject := GenerateAppraisedObject(messageHead.ProcessID, id, xdomeaVersion)
 		message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 	}
 	xmlBytes, err := xml.MarshalIndent(message0502, " ", " ")
@@ -36,7 +133,7 @@ func Generate0502Message(message db.Message) string {
 		panic("0502 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
-	valid, err := ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
 	if err != nil {
 		validationError, ok := err.(xsd.SchemaValidationError)
 		if ok {
@@ -44,52 +141,47 @@ func Generate0502Message(message db.Message) string {
 				log.Printf("XML schema error: %s", e.Error())
 			}
 		}
-		if !valid {
-			panic("generated 0502 message is invalid")
-		}
+		panic("generated 0502 message is invalid")
 	}
 	return messageXml
 }
 
 // GenerateAppraisedObject returns xdomea version dependent appraised object.
 func GenerateAppraisedObject(
-	processID string,
-	o db.AppraisableRecordObject,
-	xdomeaVersion db.XdomeaVersion,
-) db.GeneratorAppraisedObject {
-	var appraisedObject db.GeneratorAppraisedObject
-	appraisal := db.GetAppraisal(processID, o.GetID())
-	if appraisal.Decision != "A" && appraisal.Decision != "V" {
-		panic(fmt.Sprintf("called GenerateAppraisedObject with appraisal \"%s\": %v", appraisal.Decision, o.GetID()))
+	processID uuid.UUID,
+	recordID uuid.UUID,
+	xdomeaVersion XdomeaVersion,
+) generatorAppraisedObject {
+	var appraisedObject generatorAppraisedObject
+	a, _ := db.FindAppraisal(processID, recordID)
+	if a.Decision != "A" && a.Decision != "V" {
+		panic(fmt.Sprintf("called GenerateAppraisedObject with appraisal \"%s\": %v", a.Decision, recordID))
 	}
 
-	var objectAppraisal db.GeneratorObjectAppraisal
-	if xdomeaVersion.IsVersionPriorTo300() {
-		objectAppraisal = db.GeneratorObjectAppraisal{
-			AppraisalCodePre300: (*string)(&appraisal.Decision),
+	var objectAppraisal generatorObjectAppraisal
+	if isVersionPriorTo300(xdomeaVersion.Code) {
+		objectAppraisal = generatorObjectAppraisal{
+			AppraisalCodePre300: (*string)(&a.Decision),
 		}
 	} else {
-		appraisalCode := db.GeneratorCode{
-			Code: string(appraisal.Decision),
+		appraisalCode := generatorCode{
+			Code: string(a.Decision),
 		}
-		objectAppraisal = db.GeneratorObjectAppraisal{
+		objectAppraisal = generatorObjectAppraisal{
 			AppraisalCode: &appraisalCode,
 		}
 	}
-	appraisedObject = db.GeneratorAppraisedObject{
-		XdomeaID:        o.GetID(),
+	appraisedObject = generatorAppraisedObject{
+		RecordID:        recordID,
 		ObjectAppraisal: objectAppraisal,
 	}
 	return appraisedObject
 }
 
 func Generate0504Message(message db.Message) string {
-	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
-	if err != nil {
-		panic(err)
-	}
+	xdomeaVersion := XdomeaVersions[message.XdomeaVersion]
 	messageHead := GenerateMessageHead(message.MessageHead.ProcessID, message.MessageHead.Sender, "0504")
-	message0504 := db.GeneratorMessage0504{
+	message0504 := generatorMessage0504{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
@@ -99,7 +191,7 @@ func Generate0504Message(message db.Message) string {
 		panic("0504 message couldn't be created")
 	}
 	messageXml := XmlHeader + string(xmlBytes)
-	valid, err := ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
 	if err != nil {
 		validationError, ok := err.(xsd.SchemaValidationError)
 		if ok {
@@ -107,21 +199,19 @@ func Generate0504Message(message db.Message) string {
 				log.Printf("XML schema error: %s", e.Error())
 			}
 		}
-		if !valid {
-			panic("generated 0504 message is invalid")
-		}
+		panic("generated 0504 message is invalid")
 	}
 	return messageXml
 }
 
-func GenerateMessageHead0502(processID string, sender db.Contact) db.GeneratorMessageHead0502 {
-	messageType := db.GeneratorCode{
+func GenerateMessageHead0502(processID uuid.UUID, sender db.Contact) generatorMessageHead0502 {
+	messageType := generatorCode{
 		Code: "0502",
 	}
 	timeStamp := time.Now()
 	lathContact := GetSenderContact()
 	sendingSystem := GetSendingSystem()
-	messageHead := db.GeneratorMessageHead0502{
+	messageHead := generatorMessageHead0502{
 		ProcessID:        processID,
 		MessageType:      messageType,
 		CreationTime:     timeStamp.Format("2006-01-02T15:04:05"),
@@ -133,14 +223,14 @@ func GenerateMessageHead0502(processID string, sender db.Contact) db.GeneratorMe
 	return messageHead
 }
 
-func GenerateMessageHead(processID string, sender db.Contact, messageCode string) db.GeneratorMessageHead {
-	messageType := db.GeneratorCode{
+func GenerateMessageHead(processID uuid.UUID, sender db.Contact, messageCode string) generatorMessageHead {
+	messageType := generatorCode{
 		Code: messageCode,
 	}
 	timeStamp := time.Now()
 	lathContact := GetSenderContact()
 	sendingSystem := GetSendingSystem()
-	messageHead := db.GeneratorMessageHead{
+	messageHead := generatorMessageHead{
 		ProcessID:     processID,
 		MessageType:   messageType,
 		CreationTime:  timeStamp.Format("2006-01-02T15:04:05"),
@@ -152,17 +242,14 @@ func GenerateMessageHead(processID string, sender db.Contact, messageCode string
 }
 
 func Generate0506Message(message db.Message, archivePackages []db.ArchivePackage) string {
-	xdomeaVersion, err := db.GetXdomeaVersionByCode(message.XdomeaVersion)
-	if err != nil {
-		panic(err)
-	}
+	xdomeaVersion := XdomeaVersions[message.XdomeaVersion]
 	messageHead := GenerateMessageHead(message.MessageHead.ProcessID, message.MessageHead.Sender, "0506")
-	message0506 := db.GeneratorMessage0506{
+	message0506 := generatorMessage0506{
 		XdomeaXmlNs: xdomeaVersion.URI,
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
 	}
-	if xdomeaVersion.IsVersionPriorTo300() {
+	if isVersionPriorTo300(xdomeaVersion.Code) {
 		info := GetArchivingInfoPre300(archivePackages)
 		message0506.ArchivingInfoPre300 = &info
 	} else {
@@ -173,7 +260,7 @@ func Generate0506Message(message db.Message, archivePackages []db.ArchivePackage
 	if err != nil {
 		panic("0506 message couldn't be created")
 	}
-	valid, err := ValidateXdomeaXmlString(messageXml, xdomeaVersion)
+	err = ValidateXdomeaXmlString(messageXml, xdomeaVersion)
 	if err != nil {
 		validationError, ok := err.(xsd.SchemaValidationError)
 		if ok {
@@ -181,38 +268,22 @@ func Generate0506Message(message db.Message, archivePackages []db.ArchivePackage
 				log.Printf("XML schema error: %s", e.Error())
 			}
 		}
-		if !valid {
-			panic("generated 0506 message is invalid")
-		}
+		panic("generated 0506 message is invalid")
 	}
 	return messageXml
 }
 
-func GetArchivingInfoPre300(archivePackages []db.ArchivePackage) db.GeneratorArchivingInfoPre300 {
-	info := db.GeneratorArchivingInfoPre300{
+func GetArchivingInfoPre300(archivePackages []db.ArchivePackage) generatorArchivingInfoPre300 {
+	info := generatorArchivingInfoPre300{
 		Success: true,
 	}
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
 	if archiveTarget == "dimag" {
-		var recordArchiveMapping []db.GeneratorRecordArchiveMapping
+		var recordArchiveMapping []generatorRecordArchiveMapping
 		for _, aip := range archivePackages {
-			for _, fileRecord := range aip.FileRecordObjects {
-				idMapping := db.GeneratorRecordArchiveMapping{
-					RecordID:  fileRecord.XdomeaID.String(),
-					ArchiveID: aip.PackageID,
-				}
-				recordArchiveMapping = append(recordArchiveMapping, idMapping)
-			}
-			for _, processRecord := range aip.ProcessRecordObjects {
-				idMapping := db.GeneratorRecordArchiveMapping{
-					RecordID:  processRecord.XdomeaID.String(),
-					ArchiveID: aip.PackageID,
-				}
-				recordArchiveMapping = append(recordArchiveMapping, idMapping)
-			}
-			for _, documentRecord := range aip.DocumentRecordObjects {
-				idMapping := db.GeneratorRecordArchiveMapping{
-					RecordID:  documentRecord.XdomeaID.String(),
+			for _, recordID := range aip.RootRecordIDs {
+				idMapping := generatorRecordArchiveMapping{
+					RecordID:  recordID.String(),
 					ArchiveID: aip.PackageID,
 				}
 				recordArchiveMapping = append(recordArchiveMapping, idMapping)
@@ -223,25 +294,19 @@ func GetArchivingInfoPre300(archivePackages []db.ArchivePackage) db.GeneratorArc
 	return info
 }
 
-func GetArchivedRecordInfo(archivePackages []db.ArchivePackage) []db.GeneratorArchivedRecordInfo {
-	var info []db.GeneratorArchivedRecordInfo
+func GetArchivedRecordInfo(archivePackages []db.ArchivePackage) []generatorArchivedRecordInfo {
+	var info []generatorArchivedRecordInfo
 	for _, aip := range archivePackages {
-		for _, fileRecord := range aip.FileRecordObjects {
-			info = append(info, GetArchivedRecordIDMapping(fileRecord.XdomeaID.String(), aip))
-		}
-		for _, processRecord := range aip.ProcessRecordObjects {
-			info = append(info, GetArchivedRecordIDMapping(processRecord.XdomeaID.String(), aip))
-		}
-		for _, documentRecord := range aip.DocumentRecordObjects {
-			info = append(info, GetArchivedRecordIDMapping(documentRecord.XdomeaID.String(), aip))
+		for _, recordID := range aip.RootRecordIDs {
+			info = append(info, GetArchivedRecordIDMapping(recordID.String(), aip))
 		}
 	}
 	return info
 }
 
-func GetArchivedRecordIDMapping(recordID string, aip db.ArchivePackage) db.GeneratorArchivedRecordInfo {
+func GetArchivedRecordIDMapping(recordID string, aip db.ArchivePackage) generatorArchivedRecordInfo {
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
-	idMapping := db.GeneratorArchivedRecordInfo{
+	idMapping := generatorArchivedRecordInfo{
 		RecordID: recordID,
 		Success:  true,
 	}
@@ -251,23 +316,23 @@ func GetArchivedRecordIDMapping(recordID string, aip db.ArchivePackage) db.Gener
 	return idMapping
 }
 
-func GetSenderContact() db.GeneratorContact {
+func GetSenderContact() generatorContact {
 	institutionName := os.Getenv("INSTITUTION_NAME")
 	institutionAbbreviation := os.Getenv("INSTITUTION_ABBREVIATION")
-	institution := db.GeneratorInstitution{
+	institution := generatorInstitution{
 		Name:         &institutionName,
 		Abbreviation: &institutionAbbreviation,
 	}
-	contact := db.GeneratorContact{
+	contact := generatorContact{
 		Institution: &institution,
 	}
 	return contact
 }
 
-func ConvertParserToGeneratorContact(contact db.Contact) db.GeneratorContact {
-	var generatorContact db.GeneratorContact
+func ConvertParserToGeneratorContact(contact db.Contact) generatorContact {
+	var generatorContact generatorContact
 	if contact.Institution != nil {
-		institution := db.GeneratorInstitution{
+		institution := generatorInstitution{
 			Name:         contact.Institution.Name,
 			Abbreviation: contact.Institution.Abbreviation,
 		}
@@ -276,12 +341,16 @@ func ConvertParserToGeneratorContact(contact db.Contact) db.GeneratorContact {
 	return generatorContact
 }
 
-func GetSendingSystem() db.GeneratorSendingSystem {
+func GetSendingSystem() generatorSendingSystem {
 	productName := "X-MAN"
 	productVersion := "0.1"
-	sendingSystem := db.GeneratorSendingSystem{
+	sendingSystem := generatorSendingSystem{
 		ProductName:    &productName,
 		ProductVersion: &productVersion,
 	}
 	return sendingSystem
+}
+
+func isVersionPriorTo300(v string) bool {
+	return v == "2.3.0" || v == "2.4.0"
 }

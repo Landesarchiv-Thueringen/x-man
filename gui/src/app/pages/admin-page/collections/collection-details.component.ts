@@ -10,7 +10,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable } from 'rxjs';
 import { Agency } from '../../../services/agencies.service';
-import { Collection, CollectionsService } from './collections.service';
+import { ArchiveCollection, CollectionsService } from './collections.service';
 
 /**
  * Collection metadata and associations.
@@ -53,7 +53,7 @@ export class CollectionDetailsComponent {
 
   constructor(
     private dialogRef: MatDialogRef<CollectionDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) public collection: Collection,
+    @Inject(MAT_DIALOG_DATA) public collection: ArchiveCollection,
     private dialog: MatDialog,
     private collectionsService: CollectionsService,
   ) {
@@ -63,7 +63,7 @@ export class CollectionDetailsComponent {
   }
 
   save() {
-    const updatedCollection: Omit<Collection, 'id'> = this.form.getRawValue();
+    const updatedCollection: Omit<ArchiveCollection, 'id'> = this.form.getRawValue();
     this.dialogRef.close(updatedCollection);
   }
 

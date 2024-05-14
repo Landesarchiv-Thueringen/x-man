@@ -41,7 +41,7 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
     private clearingService: ClearingService,
     private dialog: MatDialog,
   ) {
-    this.displayedColumns = ['detectedAt', 'agency', 'description'];
+    this.displayedColumns = ['createdAt', 'agency', 'description'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
     this.clearingService.markAllSeen();
   }
@@ -75,7 +75,7 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
     this.errorsSubscription?.unsubscribe();
   }
 
-  trackTableRow(index: number, element: ProcessingError): number {
+  trackTableRow(index: number, element: ProcessingError): string {
     return element.id;
   }
 

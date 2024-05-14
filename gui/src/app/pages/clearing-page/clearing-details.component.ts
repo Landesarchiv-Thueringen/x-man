@@ -41,15 +41,12 @@ export class ClearingDetailsComponent {
     private clearingService: ClearingService,
     private notificationService: NotificationService,
   ) {
-    // Exclude the message form the displayed data since it might become
-    // extremely large.
-    const { message, ...jsonData } = this.data;
-    this.json = JSON.stringify(jsonData, null, 2);
+    this.json = JSON.stringify(this.data, null, 2);
   }
 
   sendEmail() {
     let subject: string;
-    switch (this.data.message?.messageType.code) {
+    switch (this.data.messageType) {
       case '0501':
         subject = 'Fehler bei xdomea-Anbietung';
         break;

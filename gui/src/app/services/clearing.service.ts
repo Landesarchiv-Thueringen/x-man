@@ -3,23 +3,23 @@ import { Injectable } from '@angular/core';
 import { Observable, interval, map, shareReplay, startWith, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
-import { Message } from '../services/message.service';
-import { Process } from '../services/process.service';
+import { MessageType } from '../services/message.service';
 
 type ProcessingErrorType = 'agency-mismatch';
 type ProcessingErrorResolution = 'mark-solved' | 'reimport-message' | 'delete-message';
 
 export interface ProcessingError {
-  id: number;
-  detectedAt: string;
+  id: string;
+  createdAt: string;
   type: ProcessingErrorType;
-  agency?: Agency;
   resolved: boolean;
   resolution: ProcessingErrorResolution;
   description: string;
   additionalInfo: string;
-  process?: Process;
-  message?: Message;
+
+  agency?: Agency;
+  processId?: string;
+  messageType?: MessageType;
   transferPath?: string;
 }
 
@@ -39,6 +39,7 @@ export class ClearingService {
     return interval(environment.updateInterval).pipe(
       startWith(void 0), // initial fetch
       switchMap(() => this.getProcessingErrors()),
+      map((errors) => errors ?? []),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
   }
@@ -49,7 +50,7 @@ export class ClearingService {
    */
   observeNumberUnseen(): Observable<number> {
     return this.observeProcessingErrors().pipe(
-      map((errors) => errors.filter((e) => !e.resolved && new Date(e.detectedAt).valueOf() > this.seenTime).length),
+      map((errors) => errors?.filter((e) => !e.resolved && new Date(e.createdAt).valueOf() > this.seenTime).length),
     );
   }
 
@@ -66,7 +67,7 @@ export class ClearingService {
     return this.httpClient.get<ProcessingError[]>(this.apiEndpoint + '/processing-errors');
   }
 
-  resolveError(errorId: number, resolution: ProcessingErrorResolution): Observable<void> {
+  resolveError(errorId: string, resolution: ProcessingErrorResolution): Observable<void> {
     const url = this.apiEndpoint + '/processing-errors/resolve/' + errorId;
     return this.httpClient.post<void>(url, resolution);
   }

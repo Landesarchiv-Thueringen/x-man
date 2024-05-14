@@ -42,12 +42,8 @@ export class UsersService {
     return this.users.pipe(map((users) => ids.map((id) => this.findById(users, id))));
   }
 
-  getUserInformation(userId?: string): Observable<UserInformation> {
-    if (userId) {
-      return this.httpClient.get<UserInformation>(environment.endpoint + '/user-info', { params: { userId } });
-    } else {
-      return this.httpClient.get<UserInformation>(environment.endpoint + '/user-info/my');
-    }
+  getUserInformation(): Observable<UserInformation> {
+    return this.httpClient.get<UserInformation>(environment.endpoint + '/user-info');
   }
 
   updateUserPreferences(preferences: UserPreferences): Observable<void> {

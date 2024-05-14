@@ -25,7 +25,7 @@ export const routes: Routes = [
   },
   { path: 'nachricht/:processId', redirectTo: 'nachricht/:processId/' },
   {
-    path: 'nachricht/:processId/:messageCode',
+    path: 'nachricht/:processId/:messageType',
     component: MessagePageComponent,
     canActivate: [isLoggedIn],
     children: [

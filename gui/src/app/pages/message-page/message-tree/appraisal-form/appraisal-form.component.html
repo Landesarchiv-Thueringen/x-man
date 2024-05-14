@@ -5,7 +5,7 @@
     <mat-form-field class="appraisal-input" floatLabel="always">
       <mat-label>Bewertungsentscheidung</mat-label>
       <mat-select formControlName="appraisal" [(value)]="selectedAppraisal">
-        <mat-option *ngFor="let appraisal of recordObjectAppraisals" [value]="appraisal.code">
+        <mat-option *ngFor="let appraisal of appraisalCodes" [value]="appraisal.code">
           {{ appraisal.shortDesc }}
         </mat-option>
       </mat-select>

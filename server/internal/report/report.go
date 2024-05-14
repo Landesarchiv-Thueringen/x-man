@@ -2,6 +2,7 @@ package report
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,7 @@ import (
 )
 
 type ReportData struct {
-	Process          db.Process
+	Process          db.SubmissionProcess
 	ArchivePackages  []ArchivePackageData
 	Message0503Stats *ContentStats
 	AppraisalStats   *AppraisalStats
@@ -20,8 +21,8 @@ type ReportData struct {
 }
 
 // GetReport sends process data to the report service and returns the generated PDF.
-func GetReport(process db.Process) (contentLength int64, contentType string, body io.Reader) {
-	values, err := getReportData(process)
+func GetReport(ctx context.Context, process db.SubmissionProcess) (contentLength int64, contentType string, body io.Reader) {
+	values, err := getReportData(ctx, process)
 	if err != nil {
 		panic(err)
 	}
@@ -41,29 +42,25 @@ func GetReport(process db.Process) (contentLength int64, contentType string, bod
 }
 
 // getReportData accumulates process data for use by the report service.
-func getReportData(process db.Process) (reportData ReportData, err error) {
-	if process.Message0503ID == nil {
-		return reportData, errors.New("tried to get report of process with Message0503ID == nil")
+func getReportData(ctx context.Context, process db.SubmissionProcess) (reportData ReportData, err error) {
+	messages := make(map[db.MessageType]db.Message)
+	for _, m := range db.FindMessagesForProcess(ctx, process.ProcessID) {
+		messages[m.MessageType] = m
+	}
+	message0503, found := messages[db.MessageType0503]
+	if !found {
+		return reportData, errors.New("tried to get report of process without 0503 message")
 	}
 	reportData.Process = process
-	var message0501 db.Message
-	if process.Message0501ID != nil {
-		var found bool
-		message0501, found = db.GetCompleteMessageByID(*process.Message0501ID)
-		if !found {
-			panic(fmt.Sprintf("message not found: %v", *process.Message0501ID))
-		}
-		appraisalStats := getAppraisalStats(message0501)
+
+	if message0501, ok := messages[db.MessageType0501]; ok {
+		appraisalStats := getAppraisalStats(ctx, message0501)
 		reportData.AppraisalStats = &appraisalStats
 	}
-	message0503, found := db.GetCompleteMessageByID(*process.Message0503ID)
-	if !found {
-		panic(fmt.Sprintf("message not found: %v", *process.Message0503ID))
-	}
-	reportData.ArchivePackages = getArchivePackages(process)
-	messageStats := getMessageContentStats(message0503)
+	reportData.ArchivePackages = getArchivePackages(ctx, process)
+	messageStats := getMessageContentStats(ctx, message0503)
 	reportData.Message0503Stats = &messageStats
-	reportData.FileStats = getFileStats(process)
+	reportData.FileStats = getFileStats(ctx, process)
 	if os.Getenv("DEBUG_MODE") == "true" {
 		writeToFile(reportData, "/debug-data/data.json")
 	}

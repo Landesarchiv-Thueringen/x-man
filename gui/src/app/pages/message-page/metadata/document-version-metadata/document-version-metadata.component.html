@@ -14,7 +14,7 @@
       <button
         mat-icon-button
         *ngIf="node.type === 'format'"
-        (click)="downloadPrimaryFile(node.fileID, node.fileName)"
+        (click)="downloadPrimaryFile(node)"
         class="download-button"
       >
         <mat-icon>download</mat-icon>

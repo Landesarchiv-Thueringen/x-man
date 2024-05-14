@@ -8,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { firstValueFrom } from 'rxjs';
+import { AgenciesService } from '../../../services/agencies.service';
 import { User, UsersService } from '../../../services/users.service';
 import { UserDetailsComponent } from './user-details.component';
 
@@ -34,6 +36,7 @@ export class UsersComponent implements AfterViewInit {
   filter = new FormControl('');
 
   constructor(
+    private agenciesService: AgenciesService,
     private usersService: UsersService,
     private dialog: MatDialog,
   ) {
@@ -57,9 +60,9 @@ export class UsersComponent implements AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  openDetails(user: User) {
-    this.usersService.getUserInformation(user.id).subscribe(({ agencies }) => {
-      this.dialog.open(UserDetailsComponent, { data: { user, agencies } });
-    });
+  async openDetails(user: User) {
+    let agencies = await firstValueFrom(this.agenciesService.observeAgencies());
+    agencies = agencies.filter((a) => a.users.includes(user.id));
+    this.dialog.open(UserDetailsComponent, { data: { user, agencies } });
   }
 }

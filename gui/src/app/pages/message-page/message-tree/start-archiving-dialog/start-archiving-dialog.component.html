@@ -9,12 +9,14 @@
     Der Archivierungsprozess kann mehrere Minuten dauern. Sie können diesen Dialog schließen. Der Prozess wird weiter
     durchgeführt. Sie können den aktuellen Stand weiter in der Gesamtübersicht der Aussonderungen sehen.
   </p>
-  @if (config()?.archiveTarget === "dimag" && collections(); as collections) {
+  @if (config()?.archiveTarget === "dimag") {
     <mat-form-field>
       <mat-label>Bestand</mat-label>
       <mat-select [formControl]="collectionControl">
-        @for (c of collections; track c) {
-          <mat-option [value]="c.id">{{ c.name }}</mat-option>
+        @if (collections(); as collections) {
+          @for (c of collections; track c) {
+            <mat-option [value]="c.id">{{ c.name }}</mat-option>
+          }
         }
       </mat-select>
     </mat-form-field>

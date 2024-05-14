@@ -106,7 +106,7 @@
     [Objektart:],
     [E-Akte],
     [Prozess-ID:],
-    data.Process.id,
+    data.Process.processId,
     [Aussonderungsverfahren:],
     if data.Process.processState.receive0501.complete [
       4-stufig
@@ -116,20 +116,20 @@
     ..if data.Process.processState.appraisal.complete {
       (
         [Anbietung erhalten:],
-        formatDateTime(data.Process.processState.receive0501.completionTime),
+        formatDateTime(data.Process.processState.receive0501.completedAt),
         [Bewertung versendet:],
-        formatDateTime(data.Process.processState.appraisal.completionTime),
+        formatDateTime(data.Process.processState.appraisal.completedAt),
         [Bewertung durch:],
         data.Process.processState.appraisal.completedBy,
       )
     } else {
       (
         [Abgabe erhalten:],
-        formatDateTime(data.Process.processState.receive0503.completionTime),
+        formatDateTime(data.Process.processState.receive0503.completedAt),
       )
     },
     [Abgabe archiviert:],
-    formatDateTime(data.Process.processState.archiving.completionTime),
+    formatDateTime(data.Process.processState.archiving.completedAt),
     [Archivierung durch:],
     data.Process.processState.archiving.completedBy,
   )
@@ -264,7 +264,7 @@
   #let title = [
     Übernahmebericht --
     #data.Process.agency.abbreviation -- E-Akte --
-    #formatDate(data.Process.processState.archiving.completionTime)
+    #formatDate(data.Process.processState.archiving.completedAt)
   ]
 
   #set document(title: title)

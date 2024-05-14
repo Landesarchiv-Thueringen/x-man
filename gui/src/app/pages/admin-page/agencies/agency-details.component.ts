@@ -72,7 +72,7 @@ export class AgencyDetailsComponent {
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
     }),
-    userIds: new FormControl(this.agency.users?.map((user) => user.id) ?? [], { nonNullable: true }),
+    userIds: new FormControl(this.agency.users ?? [], { nonNullable: true }),
   });
   archivistsFilterControl = new FormControl('');
   filteredArchivists: Observable<User[]>;
@@ -184,7 +184,7 @@ export class AgencyDetailsComponent {
         const { userIds, transferDir, ...agency } = this.form.getRawValue();
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
-          users: userIds.map((userId) => ({ id: userId }) as User),
+          users: userIds,
           transferDirURL: this.getTransferDirURI(),
         };
         this.dialogRef.close(updateAgency);

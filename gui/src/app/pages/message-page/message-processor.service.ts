@@ -2,14 +2,9 @@ import { Injectable } from '@angular/core';
 import { Subject, first, firstValueFrom, map, startWith } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Config, ConfigService } from '../../services/config.service';
-import {
-  DocumentRecordObject,
-  FileRecordObject,
-  GeneralMetadata,
-  Message,
-  ProcessRecordObject,
-} from '../../services/message.service';
-import { Process } from '../../services/process.service';
+import { Message } from '../../services/message.service';
+import { SubmissionProcess } from '../../services/process.service';
+import { DocumentRecord, FileRecord, GeneralMetadata, ProcessRecord, Records } from '../../services/records.service';
 import { notNull } from '../../utils/predicates';
 
 export type StructureNodeType =
@@ -23,12 +18,12 @@ export type StructureNodeType =
   | 'primaryDocuments';
 
 export interface StructureNode {
-  id: string;
+  id: string; // FIXME: this is mostly the same as recordId
   type: StructureNodeType;
   title: string;
   subtitle?: string;
-  parentID?: string;
-  xdomeaID?: string;
+  parentId?: string;
+  recordId?: string;
   routerLink?: string;
   generalMetadata?: GeneralMetadata;
   /**
@@ -49,7 +44,7 @@ export interface StructureNode {
 @Injectable()
 export class MessageProcessorService {
   private config?: Config;
-  private readonly nodes: Map<string, StructureNode> = new Map<string, StructureNode>();
+  private readonly nodes = new Map<string, StructureNode>();
   private messageProcessed = new Subject<void>();
 
   constructor(private configService: ConfigService) {}
@@ -61,26 +56,25 @@ export class MessageProcessorService {
    * Also save's the generated tree in the service, so subsequent calls to
    * `getNode` will return nodes from the new tree.
    */
-  async processMessage(process: Process, message: Message): Promise<StructureNode> {
+  async processMessage(process: SubmissionProcess, message: Message, rootRecords: Records): Promise<StructureNode> {
     this.config = await firstValueFrom(this.configService.config);
     this.nodes.clear();
     // Create message node
-    const messageNode = this.getMessageNode(process, message);
+    const messageNode = this.getMessageNode(process, message, rootRecords);
     // Create file-verification node
-    if (message.messageType?.code === '0503') {
-      messageNode.children!.push(this.getPrimaryDocumentsNode(message.id));
+    if (message.messageType === '0503') {
+      messageNode.children!.push(this.getPrimaryDocumentsNode(messageNode.id));
     }
     // Add file nodes
-    for (const fileRecordObject of message.fileRecordObjects ?? []) {
+    for (const fileRecordObject of rootRecords.files ?? []) {
       messageNode.children!.push(this.getFileStructureNode(fileRecordObject, messageNode));
     }
     // Add process nodes
-    message.processRecordObjects ??= [];
-    for (const processRecordObject of message.processRecordObjects ?? []) {
+    for (const processRecordObject of rootRecords.processes ?? []) {
       messageNode.children!.push(this.getProcessStructureNode(processRecordObject, messageNode));
     }
     // Add document nodes
-    for (const documentRecordObject of message.documentRecordObjects ?? []) {
+    for (const documentRecordObject of rootRecords.documents ?? []) {
       messageNode.children!.push(this.getDocumentStructureNode(documentRecordObject, messageNode));
     }
     this.messageProcessed.next();
@@ -129,9 +123,9 @@ export class MessageProcessorService {
     }
   }
 
-  private getMessageNode(process: Process, message: Message): StructureNode {
+  private getMessageNode(process: SubmissionProcess, message: Message, rootRecords: Records): StructureNode {
     let title: string;
-    switch (message.messageType.code) {
+    switch (message.messageType) {
       case '0501':
         title = 'Anbietung';
         break;
@@ -142,12 +136,10 @@ export class MessageProcessorService {
         throw new Error('unhandled message type');
     }
     const numberElements =
-      (message.fileRecordObjects?.length ?? 0) +
-      (message.documentRecordObjects?.length ?? 0) +
-      (message.processRecordObjects?.length ?? 0);
+      (rootRecords.files?.length ?? 0) + (rootRecords.documents?.length ?? 0) + (rootRecords.processes?.length ?? 0);
     title = `${title} (${numberElements} ${numberElements === 1 ? 'Element' : 'Elemente'})`;
     const messageNode: StructureNode = {
-      id: message.id,
+      id: message.messageHead.processID,
       title,
       subtitle: process.agency.name,
       type: 'message',
@@ -167,39 +159,39 @@ export class MessageProcessorService {
       subtitle: 'Primärdateien',
       type: 'primaryDocuments',
       routerLink: routerLink,
-      parentID: messageID,
+      parentId: messageID,
       canBeAppraised: false,
     };
     this.nodes.set(primaryDocumentsNode.id, primaryDocumentsNode);
     return primaryDocumentsNode;
   }
 
-  private getFileStructureNode(fileRecordObject: FileRecordObject, parent: StructureNode): StructureNode {
+  private getFileStructureNode(fileRecord: FileRecord, parent: StructureNode): StructureNode {
     const children: StructureNode[] = [];
     const type = parent.type.endsWith('file') ? 'subfile' : 'file';
     const nodeName = type === 'file' ? 'Akte' : 'Teilakte';
-    const routerLink: string = 'akte/' + fileRecordObject.id;
+    const routerLink: string = 'akte/' + fileRecord.recordId;
     const fileNode: StructureNode = {
-      id: fileRecordObject.id,
-      title: nodeName + ': ' + fileRecordObject.generalMetadata?.xdomeaID,
-      subtitle: fileRecordObject.generalMetadata?.subject,
-      xdomeaID: fileRecordObject.xdomeaID,
+      id: fileRecord.recordId,
+      title: nodeName + ': ' + fileRecord.generalMetadata?.recordNumber,
+      subtitle: fileRecord.generalMetadata?.subject,
+      recordId: fileRecord.recordId,
       type,
       routerLink,
-      parentID: parent.id,
-      generalMetadata: fileRecordObject.generalMetadata,
+      parentId: parent.id,
+      generalMetadata: fileRecord.generalMetadata,
       children,
       canBeAppraised: this.canBeAppraised(type, parent),
     };
     // generate child nodes for all subfiles (de: Teilakten)
-    if (fileRecordObject.subfiles) {
-      for (let subfile of fileRecordObject.subfiles) {
+    if (fileRecord.subfiles) {
+      for (let subfile of fileRecord.subfiles) {
         children.push(this.getFileStructureNode(subfile, fileNode));
       }
     }
     // generate child nodes for all processes (de: Vorgänge)
-    if (fileRecordObject.processes) {
-      for (let process of fileRecordObject.processes) {
+    if (fileRecord.processes) {
+      for (let process of fileRecord.processes) {
         children.push(this.getProcessStructureNode(process, fileNode));
       }
     }
@@ -208,32 +200,32 @@ export class MessageProcessorService {
     return fileNode;
   }
 
-  private getProcessStructureNode(processRecordObject: ProcessRecordObject, parent: StructureNode): StructureNode {
+  private getProcessStructureNode(processRecord: ProcessRecord, parent: StructureNode): StructureNode {
     const children: StructureNode[] = [];
-    const routerLink: string = 'vorgang/' + processRecordObject.id;
+    const routerLink: string = 'vorgang/' + processRecord.recordId;
     const type = parent.type.endsWith('process') ? 'subprocess' : 'process';
     const nodeName = type === 'process' ? 'Vorgang' : 'Teilvorgang';
     const processNode: StructureNode = {
-      id: processRecordObject.id,
-      title: nodeName + ': ' + processRecordObject.generalMetadata?.xdomeaID,
-      subtitle: processRecordObject.generalMetadata?.subject,
-      xdomeaID: processRecordObject.xdomeaID,
+      id: processRecord.recordId,
+      title: nodeName + ': ' + processRecord.generalMetadata?.recordNumber,
+      subtitle: processRecord.generalMetadata?.subject,
+      recordId: processRecord.recordId,
       type: type,
       routerLink: routerLink,
-      parentID: parent.id,
-      generalMetadata: processRecordObject.generalMetadata,
+      parentId: parent.id,
+      generalMetadata: processRecord.generalMetadata,
       canBeAppraised: this.canBeAppraised(type, parent),
       children: children,
     };
     // generate child nodes for all subprocesses (de: Teilvorgänge)
-    if (processRecordObject.subprocesses) {
-      for (let subprocess of processRecordObject.subprocesses) {
+    if (processRecord.subprocesses) {
+      for (let subprocess of processRecord.subprocesses) {
         children.push(this.getProcessStructureNode(subprocess, processNode));
       }
     }
     // generate child nodes for all documents (de: Dokumente)
-    if (processRecordObject.documents) {
-      for (let document of processRecordObject.documents) {
+    if (processRecord.documents) {
+      for (let document of processRecord.documents) {
         children.push(this.getDocumentStructureNode(document, processNode));
       }
     }
@@ -242,25 +234,25 @@ export class MessageProcessorService {
     return processNode;
   }
 
-  private getDocumentStructureNode(documentRecordObject: DocumentRecordObject, parent: StructureNode): StructureNode {
+  private getDocumentStructureNode(documentRecord: DocumentRecord, parent: StructureNode): StructureNode {
     const children: StructureNode[] = [];
     const type = parent.type === 'document' || parent.type === 'attachment' ? 'attachment' : 'document';
     const nodeName = type === 'attachment' ? 'Anlage' : 'Dokument';
-    const routerLink: string = 'dokument/' + documentRecordObject.id;
+    const routerLink: string = 'dokument/' + documentRecord.recordId;
     const documentNode: StructureNode = {
-      id: documentRecordObject.id,
-      title: nodeName + ': ' + documentRecordObject.generalMetadata?.xdomeaID,
-      subtitle: documentRecordObject.generalMetadata?.subject,
-      xdomeaID: documentRecordObject.xdomeaID,
+      id: documentRecord.recordId,
+      title: nodeName + ': ' + documentRecord.generalMetadata?.recordNumber,
+      subtitle: documentRecord.generalMetadata?.subject,
+      recordId: documentRecord.recordId,
       type: type,
       routerLink: routerLink,
-      parentID: parent.id,
-      generalMetadata: documentRecordObject.generalMetadata,
+      parentId: parent.id,
+      generalMetadata: documentRecord.generalMetadata,
       canBeAppraised: false,
       children: children,
     };
-    if (documentRecordObject.attachments) {
-      for (let document of documentRecordObject.attachments) {
+    if (documentRecord.attachments) {
+      for (let document of documentRecord.attachments) {
         children.push(this.getDocumentStructureNode(document, documentNode));
       }
     }

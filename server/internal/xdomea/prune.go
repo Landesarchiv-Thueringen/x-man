@@ -12,7 +12,10 @@ var idPathXdomea = etree.MustCompilePath("./Identifikation/ID")
 
 // PruneMessage removes all records from message which are no part of the archive package.
 func PruneMessage(message db.Message, aip db.ArchivePackage) (string, error) {
-	rootIDs := aip.GetRootIDs()
+	rootRecordIDs := make([]string, len(aip.RootRecordIDs))
+	for i, id := range aip.RootRecordIDs {
+		rootRecordIDs[i] = id.String()
+	}
 	doc := etree.NewDocument()
 	if err := doc.ReadFromFile(message.MessagePath); err != nil {
 		return "", err
@@ -30,7 +33,7 @@ func PruneMessage(message db.Message, aip db.ArchivePackage) (string, error) {
 		if recordEl != nil {
 			idEl := recordEl.FindElementPath(idPathXdomea)
 			if idEl != nil {
-				if !slices.Contains(rootIDs, idEl.Text()) {
+				if !slices.Contains(rootRecordIDs, idEl.Text()) {
 					removedChild := root.RemoveChild(genericRecord)
 					// Should never happen unless the xdomea specification changes.
 					if removedChild == nil {

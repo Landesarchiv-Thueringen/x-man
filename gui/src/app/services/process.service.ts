@@ -3,21 +3,19 @@ import { Injectable } from '@angular/core';
 import { Observable, interval } from 'rxjs';
 import { first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { Message } from '../services/message.service';
 import { Agency } from './agencies.service';
 import { ProcessingError } from './clearing.service';
-import { Task } from './tasks.service';
 
-export interface Process {
-  agency: Agency;
-  id: string;
-  receivedAt: string;
-  note: string;
-  message0501Id: string;
-  message0501: Message;
-  message0503Id: string;
-  message0503: Message;
+export interface ProcessData {
+  process: SubmissionProcess;
   processingErrors: ProcessingError[];
+}
+
+export interface SubmissionProcess {
+  processId: string;
+  createdAt: string;
+  agency: Agency;
+  note: string;
   processState: ProcessState;
 }
 
@@ -31,12 +29,12 @@ export interface ProcessState {
 }
 
 export interface ProcessStep {
+  updatedAt: string;
   complete: boolean;
-  completionTime?: string;
-  updateTime: string;
-  message?: string;
-  tasks: Task[];
-  processingErrors: ProcessingError[];
+  completedAt: string;
+  progress: string;
+  running: boolean;
+  unresolvedErrors: number;
 }
 
 @Injectable({
@@ -45,7 +43,7 @@ export interface ProcessStep {
 export class ProcessService {
   private apiEndpoint: string;
   private cachedProcessId?: string;
-  private cachedProcess?: Observable<Process>;
+  private cachedProcessData?: Observable<ProcessData>;
 
   constructor(private httpClient: HttpClient) {
     this.apiEndpoint = environment.endpoint;
@@ -53,26 +51,26 @@ export class ProcessService {
 
   getProcesses(allUsers: boolean) {
     if (allUsers) {
-      return this.httpClient.get<Process[]>(this.apiEndpoint + '/processes');
+      return this.httpClient.get<SubmissionProcess[]>(this.apiEndpoint + '/processes');
     } else {
-      return this.httpClient.get<Process[]>(this.apiEndpoint + '/processes/my');
+      return this.httpClient.get<SubmissionProcess[]>(this.apiEndpoint + '/processes/my');
     }
   }
 
-  observeProcess(id: string): Observable<Process> {
+  observeProcessData(id: string): Observable<ProcessData> {
     if (id !== this.cachedProcessId) {
       this.cachedProcessId = id;
-      this.cachedProcess = interval(environment.updateInterval).pipe(
+      this.cachedProcessData = interval(environment.updateInterval).pipe(
         startWith(void 0),
-        switchMap(() => this.httpClient.get<Process>(this.apiEndpoint + '/process/' + id)),
+        switchMap(() => this.httpClient.get<ProcessData>(this.apiEndpoint + '/process/' + id)),
         shareReplay({ bufferSize: 1, refCount: true }),
       );
     }
-    return this.cachedProcess!;
+    return this.cachedProcessData!;
   }
 
-  getProcess(id: string): Observable<Process> {
-    return this.observeProcess(id).pipe(first());
+  getProcessData(id: string): Observable<ProcessData> {
+    return this.observeProcessData(id).pipe(first());
   }
 
   setNote(processId: string, note: string): Observable<void> {

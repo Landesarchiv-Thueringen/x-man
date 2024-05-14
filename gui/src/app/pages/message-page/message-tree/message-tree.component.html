@@ -68,7 +68,7 @@
             }
           </mat-menu>
           <button
-            *ngIf="process?.message0501 && process?.message0503"
+            *ngIf="process?.processState?.receive0501?.complete && process?.processState?.receive0503?.complete"
             mat-icon-button
             [matMenuTriggerFor]="menu"
             (click)="$event.stopPropagation()"
@@ -77,8 +77,12 @@
             <mat-icon class="mat-icon-rtl-mirror">expand_more</mat-icon>
           </button>
           <mat-menu #menu="matMenu" class="message-tree-menu">
-            @if (process?.message0501) {
-              <a mat-menu-item [routerLink]="['/nachricht', process?.id, '0501']" [routerLinkActive]="['active']">
+            @if (process?.processState?.receive0501?.complete) {
+              <a
+                mat-menu-item
+                [routerLink]="['/nachricht', process?.processId, '0501']"
+                [routerLinkActive]="['active']"
+              >
                 <mat-icon>assignment</mat-icon>
                 <span
                   >Anbietung
@@ -86,8 +90,12 @@
                 </span>
               </a>
             }
-            @if (process?.message0503) {
-              <a mat-menu-item [routerLink]="['/nachricht', process?.id, '0503']" [routerLinkActive]="['active']">
+            @if (process?.processState?.receive0503?.complete) {
+              <a
+                mat-menu-item
+                [routerLink]="['/nachricht', process?.processId, '0503']"
+                [routerLinkActive]="['active']"
+              >
                 <mat-icon>assignment</mat-icon>
                 <span
                   >Abgabe
@@ -134,7 +142,7 @@
     </button>
     <button
       mat-flat-button
-      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete"
+      *ngIf="message.messageType === '0501' && !process.processState.appraisal.complete"
       (click)="enableSelection()"
       [disabled]="isDisabled()"
     >
@@ -153,7 +161,7 @@
     <button
       mat-flat-button
       class="tertiary-button"
-      *ngIf="message.messageType.code === '0501' && !process.processState.appraisal.complete"
+      *ngIf="message.messageType === '0501' && !process.processState.appraisal.complete"
       (click)="sendAppraisalMessage()"
       [disabled]="hasUnresolvedError()"
     >
@@ -164,9 +172,9 @@
       mat-flat-button
       class="tertiary-button"
       *ngIf="
-        message.messageType.code === '0503' &&
+        message.messageType === '0503' &&
         (config()?.borgSupport === false || process.processState.formatVerification.complete) &&
-        canStartStep(process.processState.archiving)
+        !process.processState.archiving.running
       "
       (click)="archive0503Message()"
       [disabled]="hasUnresolvedError()"
@@ -219,7 +227,7 @@
   @if (showAppraisal) {
     @if (node.canBeAppraised) {
       <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
-        appraisal.decision | recordObjectAppraisal
+        appraisal.decision | recordAppraisal
       }}</span>
     }
     @if (showSelection() && node.selectable) {

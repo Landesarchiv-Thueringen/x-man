@@ -22,15 +22,13 @@ services:
     environment:
       - GIN_MODE=debug
 
-  database-debug:
-    image: sosedoff/pgweb
-    depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/${POSTGRES_DB}?sslmode=disable
+  mongo-express:
+    image: mongo-express
     ports:
       - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongo:27017/
+      ME_CONFIG_BASICAUTH: false
 
   webdav:
     image: bytemark/webdav

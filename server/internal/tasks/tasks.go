@@ -1,38 +1,30 @@
 package tasks
 
 import (
-	"fmt"
 	"lath/xman/internal/db"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 // Start creates a task and marks the process step started.
-func Start(taskType db.TaskType, process db.Process, itemCount uint) db.Task {
-	processStep := getProcessStep(taskType, process)
+func Start(taskType db.ProcessStepType, processID uuid.UUID, progress string) db.Task {
 	// Create task
-	task := db.CreateTask(db.Task{
-		Type:          taskType,
-		State:         db.TaskStateRunning,
-		ProcessID:     process.ID,
-		ProcessStepID: processStep.ID,
-		ItemCount:     itemCount,
+	task := db.InsertTask(db.Task{
+		Type:      taskType,
+		State:     db.TaskStateRunning,
+		ProcessID: processID,
+		Progress:  progress,
 	})
-	task.Process = &process
-	task.ProcessStep = &processStep
 	// Update process step
-	db.UpdateProcessStep(*&task.ProcessStep.ID, db.ProcessStep{
-		Complete: false,
-	})
+	db.UpdateProcessStepProgress(processID, taskType, task.Progress, true)
 	return task
 }
 
-func MarkItemComplete(task *db.Task) {
-	task.ItemCompletedCount = task.ItemCompletedCount + 1
-	db.UpdateTask(task.ID, db.Task{
-		ItemCompletedCount: task.ItemCompletedCount,
-	})
+func Progress(task db.Task, progress string) {
+	// Update task
+	db.UpdateTaskProgress(task.ID, progress)
+	// Update process step
+	db.UpdateProcessStepProgress(task.ProcessID, task.Type, progress, true)
 }
 
 // MarkFailed marks the task and its process step failed.
@@ -40,69 +32,43 @@ func MarkItemComplete(task *db.Task) {
 // It returns a matching ProcessingError to be passed on.
 func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 	// Update task
-	task.State = db.TaskStateFailed
-	task.ErrorMessage = errorMessage
-	db.UpdateTask(task.ID, db.Task{
-		State:        task.State,
-		ErrorMessage: task.ErrorMessage,
-	})
+	db.UpdateTaskState(task.ID, db.TaskStateFailed, errorMessage)
 	// The process step is marked failed by the processing error
 
 	// Create processing error
 	var processingErrorType db.ProcessingErrorType
-	var messageID uuid.UUID
+	var messageType db.MessageType
 	switch task.Type {
-	case db.TaskTypeArchiving:
+	case db.ProcessStepArchiving:
 		processingErrorType = db.ProcessingErrorArchivingFailed
-		messageID = *task.Process.Message0503ID
-	case db.TaskTypeFormatVerification:
+		messageType = db.MessageType0503
+	case db.ProcessStepFormatVerification:
 		processingErrorType = db.ProcessingErrorFormatVerificationFailed
-		messageID = *task.Process.Message0503ID
+		messageType = db.MessageType0503
 	}
 	return db.ProcessingError{
-		ProcessID:      &task.ProcessID,
-		ProcessStepID:  &task.ProcessStepID,
+		ProcessID:      task.ProcessID,
+		ProcessStep:    task.Type,
 		Type:           processingErrorType,
-		AgencyID:       &task.Process.AgencyID,
 		Description:    getDisplayName(task.Type) + " fehlgeschlagen",
-		MessageID:      &messageID,
+		MessageType:    messageType,
 		AdditionalInfo: errorMessage,
 	}
 }
 
 // MarkDone marks the task and its process stop completed successfully.
-func MarkDone(task *db.Task, completedBy *string) {
+func MarkDone(task db.Task, completedBy string) {
 	// Update task
-	task.State = db.TaskStateSucceeded
-	db.UpdateTask(task.ID, db.Task{
-		State: task.State,
-	})
+	db.UpdateTaskState(task.ID, db.TaskStateSucceeded, "")
 	// Update process step
-	completionTime := time.Now()
-	db.UpdateProcessStep(task.ProcessStep.ID, db.ProcessStep{
-		Complete:       true,
-		CompletionTime: &completionTime,
-		CompletedBy:    completedBy,
-	})
+	db.UpdateProcessStepCompletion(task.ProcessID, task.Type, true, completedBy)
 }
 
-// getProcessStep returns the process step to which the task belongs.
-func getProcessStep(taskType db.TaskType, process db.Process) db.ProcessStep {
+func getDisplayName(taskType db.ProcessStepType) string {
 	switch taskType {
-	case db.TaskTypeArchiving:
-		return process.ProcessState.Archiving
-	case db.TaskTypeFormatVerification:
-		return process.ProcessState.FormatVerification
-	default:
-		panic(fmt.Errorf("unknown task type: %s", taskType))
-	}
-}
-
-func getDisplayName(taskType db.TaskType) string {
-	switch taskType {
-	case db.TaskTypeArchiving:
+	case db.ProcessStepArchiving:
 		return "Archivierung"
-	case db.TaskTypeFormatVerification:
+	case db.ProcessStepFormatVerification:
 		return "Formatverifikation"
 	default:
 		return string(taskType)

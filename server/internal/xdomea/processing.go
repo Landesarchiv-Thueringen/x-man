@@ -2,16 +2,15 @@ package xdomea
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
-	"lath/xman/internal/format"
 	"lath/xman/internal/mail"
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -41,7 +40,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if err != nil {
 		HandleError(db.ProcessingError{
 			Agency:         &agency,
-			TransferPath:   &transferDirMessagePath,
+			TransferPath:   transferDirMessagePath,
 			Description:    "Fehler beim Entpacken der Nachricht",
 			AdditionalInfo: err.Error(),
 		})
@@ -68,17 +67,21 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if err != nil {
 		HandleError(err)
 	}
-	if messageType.Code == "0503" {
+	if messageType == "0503" {
 		// get primary documents
-		primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
-		err = checkMessage0503Integrity(process, message, primaryDocuments)
+		rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+		primaryDocuments := GetPrimaryDocuments(&rootRecords)
+		err = collectPrimaryDocumentsData(process, message, primaryDocuments)
 		if err != nil {
 			HandleError(err)
 		}
-		recordFileSizes(message, primaryDocuments)
+		err = checkMessage0503Integrity(process, message)
+		if err != nil {
+			HandleError(err)
+		}
 		// start format verification
 		if os.Getenv("BORG_ENDPOINT") != "" {
-			err = format.VerifyFileFormats(process, message)
+			err = VerifyFileFormats(process, message)
 			if err != nil {
 				HandleError(err)
 			}
@@ -87,16 +90,14 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	// if no error occurred while processing the message
 	if err == nil {
 		// send the confirmation message that the 0501 message was received
-		if messageType.Code == "0501" {
+		if messageType == "0501" {
 			messagePath := Send0504Message(agency, message)
-			db.UpdateProcess(process.ID, db.Process{
-				Message0504Path: &messagePath,
-			})
+			db.UpdateProcessMessagePath(process.ProcessID, db.MessageType0504, messagePath)
 		}
 		// send e-mail notification to users
 		for _, user := range agency.Users {
-			address := auth.GetMailAddress(user.ID)
-			preferences := db.GetUserInformation(user.ID).Preferences
+			address := auth.GetMailAddress(user)
+			preferences := db.FindUserPreferences(context.Background(), user)
 			if preferences.MessageEmailNotifications {
 				mail.SendMailNewMessage(address, agency.Name, message)
 			}
@@ -109,97 +110,120 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 // It returns an error when a reading the message resulted in any processing error.
 func AddMessage(
 	agency db.Agency,
-	processID string,
+	processID uuid.UUID,
 	messageType db.MessageType,
 	processStoreDir string,
-	messageStoreDir string,
-	transferDirMessagePath string,
-) (db.Process, db.Message, error) {
-	var process db.Process
-	var message db.Message
+	storeDir string,
+	transferDir string,
+) (db.SubmissionProcess, db.Message, error) {
 	messageName := GetMessageName(processID, messageType)
-	messagePath := path.Join(messageStoreDir, messageName)
+	messagePath := path.Join(storeDir, messageName)
 	_, err := os.Stat(messagePath)
 	if err != nil {
 		panic("message doesn't exist: " + messagePath)
 	}
-	message = db.Message{
-		MessageType:     messageType,
-		TransferDirPath: transferDirMessagePath,
-		StoreDir:        messageStoreDir,
+	storagePaths := db.StoragePaths{
+		TransferDirPath: transferDir,
+		StoreDir:        storeDir,
 		MessagePath:     messagePath,
 	}
-	err = checkMessageValidity(agency, &message, transferDirMessagePath)
+	err = checkMessageValidity(agency, messageType, storagePaths)
 	if err != nil {
-		return process, message, err
+		return db.SubmissionProcess{}, db.Message{}, err
 	}
-	// parse message
-	message, err = ParseMessage(message)
+	parsedMessage, err := parseMessage(messagePath, messageType)
 	if err != nil {
-		return process, message, err
+		return db.SubmissionProcess{}, db.Message{}, err
 	}
-	// count the maximal record object depth within the message
-	message.MaxRecordObjectDepth = message.GetMaxChildDepth()
-	// Store message in database with parsed message metadata.
-	return db.AddMessage(agency, processID, processStoreDir, message)
+	message := db.Message{
+		StoragePaths:   storagePaths,
+		MessageType:    messageType,
+		MessageHead:    parsedMessage.MessageHead,
+		XdomeaVersion:  parsedMessage.XdomeaVersion.Code,
+		MaxRecordDepth: getMaxRecordDepth(parsedMessage.RootRecords),
+	}
+	process := db.FindOrInsertProcess(processID, agency, processStoreDir)
+	db.InsertMessage(message)
+	markMessageReceived(message, process)
+	if parsedMessage.RootRecords != nil {
+		db.InsertRootRecords(processID, messageType, *parsedMessage.RootRecords)
+	}
+	return process, message, nil
 }
 
 // checkMessageValidity performs a xsd schema validation against the message XML file.
-func checkMessageValidity(agency db.Agency, message *db.Message, transferDirMessagePath string) error {
-	xdomeaVersion, err := ExtractVersionFromMessage(*message)
+func checkMessageValidity(agency db.Agency, messageType db.MessageType, storagePaths db.StoragePaths) (err error) {
+	xdomeaVersion, err := ExtractXdomeaVersion(messageType, storagePaths.MessagePath)
 	if err != nil {
 		return err
 	}
-	messageIsValid, err := ValidateXdomeaXmlFile(message.MessagePath, xdomeaVersion)
-	message.SchemaValidation = messageIsValid
-	if err != nil {
-		if !messageIsValid {
-			validationError, ok := err.(xsd.SchemaValidationError)
-			if ok {
-				var errorMessages []string
-				for _, e := range validationError.Errors() {
-					errorMessages = append(errorMessages, e.Error())
-					log.Printf("XML schema error: %s", e.Error())
-				}
-				additionalInfo := strings.Join(errorMessages, "\n")
-				return db.ProcessingError{
-					Agency:         &agency,
-					TransferPath:   &transferDirMessagePath,
-					Description:    "Schema-Validierung ungültig",
-					AdditionalInfo: additionalInfo,
-				}
-			} else {
-				return db.ProcessingError{
-					Agency:       &agency,
-					TransferPath: &transferDirMessagePath,
-					Description:  "Schema-Validierung ungültig",
-				}
-			}
+	err = ValidateXdomeaXmlFile(storagePaths.MessagePath, xdomeaVersion)
+	if err == nil {
+		return
+	}
+	validationError, ok := err.(xsd.SchemaValidationError)
+	if ok {
+		var errorMessages []string
+		for _, e := range validationError.Errors() {
+			errorMessages = append(errorMessages, e.Error())
+			log.Printf("XML schema error: %s", e.Error())
 		}
-		return err
+		additionalInfo := strings.Join(errorMessages, "\n")
+		return db.ProcessingError{
+			Agency:         &agency,
+			TransferPath:   storagePaths.MessagePath,
+			Description:    "Schema-Validierung ungültig",
+			AdditionalInfo: additionalInfo,
+		}
+	} else {
+		return db.ProcessingError{
+			Agency:       &agency,
+			TransferPath: storagePaths.MessagePath,
+			Description:  "Schema-Validierung ungültig",
+		}
+	}
+}
+
+// collectPrimaryDocumentsData checks the files referenced by the given primary
+// documents and inserts corresponding primary-document-data entries into the
+// database. If files are missing, it returns a processing error.
+func collectPrimaryDocumentsData(
+	process db.SubmissionProcess,
+	message db.Message,
+	primaryDocuments []db.PrimaryDocument,
+) error {
+	var missingDocuments []string
+	var primaryDocumentsData []db.PrimaryDocumentData
+	for _, d := range primaryDocuments {
+		filePath := path.Join(message.StoreDir, d.Filename)
+		s, err := os.Stat(filePath)
+		if err != nil {
+			missingDocuments = append(missingDocuments, d.Filename)
+		} else {
+			primaryDocumentsData = append(primaryDocumentsData, db.PrimaryDocumentData{
+				ProcessID:       process.ProcessID,
+				PrimaryDocument: d,
+				FileSize:        s.Size(),
+			})
+		}
+	}
+	db.InsertPrimaryDocumentsData(primaryDocumentsData)
+	if len(missingDocuments) > 0 {
+		return db.ProcessingError{
+			ProcessID:   process.ProcessID,
+			Description: fmt.Sprintf("Primärdateien fehlen in Abgabe:\n  %v", strings.Join(missingDocuments, "\n  ")),
+			MessageType: message.MessageType,
+		}
 	}
 	return nil
 }
 
 func checkMessage0503Integrity(
-	process db.Process,
-	message0503 db.Message,
-	primaryDocuments []db.PrimaryDocument,
+	process db.SubmissionProcess,
+	message db.Message,
 ) error {
-	// check if all primary document files exist
-	for _, primaryDocument := range primaryDocuments {
-		filePath := path.Join(message0503.StoreDir, primaryDocument.FileName)
-		_, err := os.Stat(filePath)
-		if err != nil {
-			return db.ProcessingError{
-				Process:     &process,
-				Description: "Primärdatei fehlt in Abgabe",
-				Message:     &message0503,
-			}
-		}
-	}
 	// check if 0501 message exists
-	_, found := db.GetMessageOfProcessByCode(process, "0501")
+	_, found := db.FindMessage(context.Background(), process.ProcessID, db.MessageType0501)
 	// 0501 Message doesn't exist. No further message validation necessary.
 	if !found {
 		return nil
@@ -208,28 +232,12 @@ func checkMessage0503Integrity(
 	if !process.ProcessState.Appraisal.Complete {
 		errorMessage := "Die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde"
 		return db.ProcessingError{
-			Process:     &process,
+			ProcessID:   process.ProcessID,
 			Description: errorMessage,
-			Message:     &message0503,
+			MessageType: message.MessageType,
 		}
 	} else {
-		return checkRecordObjectsOfMessage0503(process, message0503)
-	}
-}
-
-// recordFileSizes reads the primary documents' file sizes on disk and saves the
-// numbers to the database record.
-func recordFileSizes(message db.Message, documents []db.PrimaryDocument) {
-	for _, d := range documents {
-		filePath := filepath.Join(message.StoreDir, d.FileName)
-		s, err := os.Stat(filePath)
-		if err != nil {
-			panic(err)
-		}
-		size := s.Size()
-		db.UpdatePrimaryDocument(d.ID, db.PrimaryDocument{
-			FileSize: uint64(size),
-		})
+		return checkRecordObjectsOfMessage0503(process, message)
 	}
 }
 
@@ -238,27 +246,29 @@ func recordFileSizes(message db.Message, documents []db.PrimaryDocument) {
 // the 0503 message that were marked as to be archived in the appraisal or if
 // there are any surplus objects included in the 0503 message.
 func checkRecordObjectsOfMessage0503(
-	process db.Process,
+	process db.SubmissionProcess,
 	message0503 db.Message,
 ) error {
 	// Gather data
 	appraisals := make(map[uuid.UUID]db.Appraisal)
-	for _, a := range db.GetAppraisalsForProcess(process.ID) {
-		appraisals[a.RecordObjectID] = a
+	for _, a := range db.FindAppraisalsForProcess(context.Background(), process.ProcessID) {
+		appraisals[a.RecordID] = a
 	}
 
-	includedRecordObjects := make(map[uuid.UUID]db.AppraisableRecordObject)
-	for _, f := range db.GetAllFileRecordObjects(message0503.ID) {
-		includedRecordObjects[f.XdomeaID] = &f
+	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	records := db.ExtractNestedRecords(&rootRecords)
+	includedAppraisableRecords := make(map[uuid.UUID]interface{})
+	for _, f := range records.Files {
+		includedAppraisableRecords[f.RecordID] = &f
 	}
-	for _, p := range db.GetAllProcessRecordObjects(message0503.ID) {
-		includedRecordObjects[p.XdomeaID] = &p
+	for _, p := range records.Processes {
+		includedAppraisableRecords[p.RecordID] = &p
 	}
 
 	// Check for objects missing from the 0503 message
 	var missingRecordObjects []string
 	for id, a := range appraisals {
-		if a.Decision == db.AppraisalDecisionA && includedRecordObjects[id] == nil {
+		if a.Decision == db.AppraisalDecisionA && includedAppraisableRecords[id] == nil {
 			missingRecordObjects = append(missingRecordObjects, id.String())
 		}
 	}
@@ -269,19 +279,19 @@ func checkRecordObjectsOfMessage0503(
 			len(missingRecordObjects),
 			strings.Join(missingRecordObjects, "\n    "))
 		return db.ProcessingError{
-			Process:        &process,
+			ProcessID:      process.ProcessID,
 			Description:    errorMessage,
 			AdditionalInfo: additionalInfo,
-			Message:        &message0503,
+			MessageType:    db.MessageType0503,
 		}
 	}
 
 	// Check for surplus objects in the 0503 message
 	var surplusRecordObjects []string
-	for id, o := range includedRecordObjects {
+	for id, o := range includedAppraisableRecords {
 		a := appraisals[id]
 		if a.Decision != db.AppraisalDecisionA {
-			if _, isFile := o.(*db.FileRecordObject); isFile {
+			if _, isFile := o.(*db.FileRecord); isFile {
 				surplusRecordObjects = append(surplusRecordObjects, fmt.Sprintf("Akte [%s]", id.String()))
 			} else {
 				surplusRecordObjects = append(surplusRecordObjects, fmt.Sprintf("Vorgang [%s]", id.String()))
@@ -295,10 +305,10 @@ func checkRecordObjectsOfMessage0503(
 			len(surplusRecordObjects),
 			strings.Join(surplusRecordObjects, "\n    "))
 		return db.ProcessingError{
-			Process:        &process,
+			ProcessID:      process.ProcessID,
 			Description:    errorMessage,
 			AdditionalInfo: additionalInfo,
-			Message:        &message0503,
+			MessageType:    db.MessageType0503,
 		}
 	}
 
@@ -309,7 +319,7 @@ func checkRecordObjectsOfMessage0503(
 // and creates a processing error if not.
 //
 // Only values that are set in `agency` are checked.
-func compareAgencyFields(agency db.Agency, message db.Message, process db.Process) error {
+func compareAgencyFields(agency db.Agency, message db.Message, process db.SubmissionProcess) error {
 	a := message.MessageHead.Sender.AgencyIdentification
 	if a == nil ||
 		(agency.Prefix != "" && a.Prefix == nil) ||
@@ -338,8 +348,8 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
 		}
 		return db.ProcessingError{
-			Process:        &process,
-			Message:        &message,
+			ProcessID:      process.ProcessID,
+			MessageType:    message.MessageType,
 			Type:           db.ProcessingErrorAgencyMismatch,
 			Description:    "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
 			AdditionalInfo: info,
@@ -350,21 +360,21 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Proces
 
 // checkMaxRecordObjectDepth checks if the configured maximal depth of record objects in the message
 // comply with the configuration. The xdomea specification allows a maximal depth of 5.
-func checkMaxRecordObjectDepth(agency db.Agency, process db.Process, message db.Message) error {
+func checkMaxRecordObjectDepth(agency db.Agency, process db.SubmissionProcess, message db.Message) error {
 	maxDepthConfig := os.Getenv("XDOMEA_MAX_RECORD_OBJECT_DEPTH")
 	// This configuration does not need to be set.
 	if maxDepthConfig != "" {
 		maxDepth, err := strconv.Atoi(maxDepthConfig)
 		// This function is not the correct place to check configuration validity.
 		if err == nil {
-			if maxDepth < int(message.MaxRecordObjectDepth) {
+			if maxDepth < int(message.MaxRecordDepth) {
 				additionalInfo := "konfigurierte maximale Stufigkeit: " +
 					maxDepthConfig +
 					"\nmaximale Stufigkeit in der Nachricht: " +
-					strconv.FormatUint(uint64(message.MaxRecordObjectDepth), 10)
+					strconv.FormatUint(uint64(message.MaxRecordDepth), 10)
 				return db.ProcessingError{
-					Process:        &process,
-					Message:        &message,
+					ProcessID:      process.ProcessID,
+					MessageType:    message.MessageType,
 					Description:    "Stufigkeit zu hoch",
 					AdditionalInfo: additionalInfo,
 				}
@@ -394,8 +404,8 @@ func Send0504Message(agency db.Agency, message db.Message) string {
 	)
 }
 
-func Send0506Message(process db.Process, message db.Message) {
-	archivePackages := db.GetArchivePackagesWithAssociations(process.ID)
+func Send0506Message(process db.SubmissionProcess, message db.Message) {
+	archivePackages := db.FindArchivePackagesForProcess(context.Background(), process.ProcessID)
 	messageXml := Generate0506Message(message, archivePackages)
 	messagePath := sendMessage(
 		process.Agency,
@@ -403,25 +413,25 @@ func Send0506Message(process db.Process, message db.Message) {
 		messageXml,
 		Message0506MessageSuffix,
 	)
-	db.UpdateProcess(process.ID, db.Process{Message0506Path: &messagePath})
+	db.UpdateProcessMessagePath(process.ProcessID, db.MessageType0506, messagePath)
 }
 
 // sendMessage creates a xdomea message and copies it into the transfer directory.
 // Returns the location of the message in the transfer directory.
 func sendMessage(
 	agency db.Agency,
-	processID string,
+	processID uuid.UUID,
 	messageXml string,
 	messageSuffix string,
 ) string {
 	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := os.MkdirTemp("", processID)
+	tempDir, err := os.MkdirTemp("", processID.String())
 	if err != nil {
 		panic(err)
 	}
 	defer os.RemoveAll(tempDir)
-	xmlName := processID + messageSuffix + ".xml"
-	messageName := processID + messageSuffix + ".zip"
+	xmlName := processID.String() + messageSuffix + ".xml"
+	messageName := processID.String() + messageSuffix + ".zip"
 	messagePath := path.Join(tempDir, messageName)
 	messageArchive, err := os.Create(messagePath)
 	if err != nil {
@@ -443,4 +453,79 @@ func sendMessage(
 	zipWriter.Close()
 	messageArchive.Close()
 	return CopyMessageToTransferDirectory(agency, messagePath)
+}
+
+// getMaxRecordDepth returns the nesting level of the deepest nesting within the
+// given root records.
+func getMaxRecordDepth(rootRecords *db.RootRecords) uint {
+	if rootRecords == nil {
+		return 0
+	}
+	var getMaxDepthForDocuments func(documents []db.DocumentRecord) uint
+	getMaxDepthForDocuments = func(documents []db.DocumentRecord) uint {
+		if len(documents) == 0 {
+			return 0
+		}
+		var depth uint = 1
+		for _, d := range documents {
+			depth = max(depth, 1+getMaxDepthForDocuments(d.Attachments))
+		}
+		return depth
+	}
+	var getMaxDepthForProcesses func(Processes []db.ProcessRecord) uint
+	getMaxDepthForProcesses = func(processes []db.ProcessRecord) uint {
+		if len(processes) == 0 {
+			return 0
+		}
+		var depth uint = 1
+		for _, p := range processes {
+			depth = max(depth, 1+getMaxDepthForProcesses(p.Subprocesses))
+			depth = max(depth, 1+getMaxDepthForDocuments(p.Documents))
+		}
+		return depth
+	}
+	var getMaxDepthForFiles func(Files []db.FileRecord) uint
+	getMaxDepthForFiles = func(files []db.FileRecord) uint {
+		if len(files) == 0 {
+			return 0
+		}
+		var depth uint = 1
+		for _, p := range files {
+			depth = max(depth, 1+getMaxDepthForFiles(p.Subfiles))
+			depth = max(depth, 1+getMaxDepthForProcesses(p.Processes))
+			depth = max(depth, 1+getMaxDepthForDocuments(p.Documents))
+		}
+		return depth
+	}
+	return max(
+		getMaxDepthForFiles(rootRecords.Files),
+		getMaxDepthForProcesses(rootRecords.Processes),
+		getMaxDepthForDocuments(rootRecords.Documents),
+	)
+}
+
+func markMessageReceived(
+	message db.Message,
+	process db.SubmissionProcess,
+) {
+	var processStepType db.ProcessStepType
+	var processStep db.ProcessStep
+	switch message.MessageType {
+	case "0501":
+		processStepType = db.ProcessStepReceive0501
+		processStep = process.ProcessState.Receive0501
+	case "0503":
+		processStepType = db.ProcessStepReceive0503
+		processStep = process.ProcessState.Receive0503
+	case "0505":
+		processStepType = db.ProcessStepReceive0505
+		processStep = process.ProcessState.Receive0505
+	default:
+		panic("unhandled message type: " + message.MessageType)
+	}
+	// Check if the process has already a message with the type of the given message.
+	if processStep.Complete {
+		panic("process already has message with type " + message.MessageType)
+	}
+	db.UpdateProcessStepCompletion(process.ProcessID, processStepType, true, "")
 }

@@ -9,10 +9,18 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Params } from '@angular/router';
 import { combineLatest, switchMap } from 'rxjs';
 import { debounceTime, shareReplay, skip } from 'rxjs/operators';
-import { Appraisal, AppraisalDecision } from '../../../../services/appraisal.service';
-import { AppraisalCode, MessageService, ProcessRecordObject } from '../../../../services/message.service';
+import {
+  Appraisal,
+  AppraisalCode,
+  AppraisalService,
+  appraisalDescriptions,
+} from '../../../../services/appraisal.service';
+import { MessageService } from '../../../../services/message.service';
+import { ProcessRecord } from '../../../../services/records.service';
 import { MessagePageService } from '../../message-page.service';
 import { MessageProcessorService, StructureNode } from '../../message-processor.service';
+import { confidentialityLevels } from '../confidentiality-level.pipe';
+import { media } from '../medium.pipe';
 
 @Component({
   selector: 'app-process-metadata',
@@ -23,18 +31,19 @@ import { MessageProcessorService, StructureNode } from '../../message-processor.
 })
 export class ProcessMetadataComponent {
   /** The pages process record object. Might update on page changes. */
-  recordObject?: ProcessRecordObject;
+  recordObject?: ProcessRecord;
   appraisal?: Appraisal | null;
-  appraisalCodes: AppraisalCode[] = [];
+  appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({ code, ...d }));
   appraisalComplete?: boolean;
   form: FormGroup;
   canBeAppraised = false;
 
   constructor(
+    private appraisalService: AppraisalService,
     private formBuilder: FormBuilder,
     private messagePage: MessagePageService,
-    private messageService: MessageService,
     private messageProcessor: MessageProcessorService,
+    private messageService: MessageService,
     private route: ActivatedRoute,
   ) {
     this.form = this.formBuilder.group({
@@ -51,26 +60,20 @@ export class ProcessMetadataComponent {
       medium: new FormControl<string | null>(null),
     });
     const recordObject = this.route.params.pipe(
-      switchMap((params: Params) => this.messageService.getProcessRecordObject(params['id'])),
+      switchMap((params: Params) => this.messagePage.getProcessRecord(params['id'])),
       shareReplay(1),
     );
     const structureNode = recordObject.pipe(
-      switchMap((recordObject) => this.messageProcessor.getNodeWhenReady(recordObject.id)),
+      switchMap((recordObject) => this.messageProcessor.getNodeWhenReady(recordObject.recordId)),
     );
     const appraisal = recordObject.pipe(
-      switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.xdomeaID)),
+      switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.recordId)),
     );
     // Update the form and local properties on changes.
-    combineLatest([
-      recordObject,
-      structureNode,
-      appraisal,
-      this.messageService.getAppraisalCodelist(),
-      this.messagePage.observeAppraisalComplete(),
-    ])
+    combineLatest([recordObject, structureNode, appraisal, this.messagePage.observeAppraisalComplete()])
       .pipe(takeUntilDestroyed())
-      .subscribe(([recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete]) =>
-        this.setMetadata(recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete),
+      .subscribe(([recordObject, structureNode, appraisal, appraisalComplete]) =>
+        this.setMetadata(recordObject, structureNode, appraisal, appraisalComplete),
       );
     // Send the appraisal note to the backend when the value of the form field changes.
     this.registerAppraisalNoteChanges();
@@ -88,49 +91,53 @@ export class ProcessMetadataComponent {
 
   registerAppraisalNoteChanges(): void {
     this.form.controls['appraisalNote'].valueChanges.pipe(skip(1), debounceTime(400)).subscribe((value) => {
-      if (value !== this.appraisal?.internalNote && this.appraisalComplete === false) {
+      if (value !== this.appraisal?.note && this.appraisalComplete === false) {
         this.setAppraisalNote(value);
       }
     });
   }
 
   setMetadata(
-    recordObject: ProcessRecordObject,
+    recordObject: ProcessRecord,
     structureNode: StructureNode,
     appraisal: Appraisal | null,
-    appraisalCodes: AppraisalCode[],
     appraisalComplete: boolean,
   ): void {
     this.recordObject = recordObject;
     this.canBeAppraised = structureNode.canBeAppraised;
     this.appraisal = appraisal;
-    this.appraisalCodes = appraisalCodes;
     this.appraisalComplete = appraisalComplete;
-    const appraisalDecision = this.messageService.getRecordObjectAppraisalByCode(appraisal?.decision, appraisalCodes);
-    const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
-      recordObject.archiveMetadata?.appraisalRecommCode,
-      appraisalCodes,
-    )?.shortDesc;
+    const appraisalRecomm = recordObject.archiveMetadata?.appraisalRecommCode;
+    let confidentiality: string | undefined;
+    if (recordObject.generalMetadata?.confidentialityLevel) {
+      confidentiality = confidentialityLevels[recordObject.generalMetadata?.confidentialityLevel].shortDesc;
+    }
+    let medium: string | undefined;
+    if (recordObject.generalMetadata?.medium) {
+      medium = media[recordObject.generalMetadata?.medium].shortDesc;
+    }
     this.form.patchValue({
-      recordPlanId: recordObject.generalMetadata?.filePlan?.xdomeaID,
-      fileId: recordObject.generalMetadata?.xdomeaID,
+      recordPlanId: recordObject.generalMetadata?.filePlan?.filePlanNumber,
+      fileId: recordObject.generalMetadata?.recordNumber,
       subject: recordObject.generalMetadata?.subject,
       processType: recordObject.type,
       lifeStart: this.messageService.getDateText(recordObject.lifetime?.start),
       lifeEnd: this.messageService.getDateText(recordObject.lifetime?.end),
-      appraisal: this.appraisalComplete ? appraisalDecision?.shortDesc : appraisalDecision?.code,
-      appraisalRecomm: appraisalRecomm,
-      appraisalNote: appraisal?.internalNote,
-      confidentiality: recordObject.generalMetadata?.confidentialityLevel?.shortDesc,
-      medium: recordObject.generalMetadata?.medium?.shortDesc,
+      appraisal: this.appraisalComplete
+        ? this.appraisalService.getAppraisalDescription(appraisal?.decision)?.shortDesc
+        : appraisal?.decision,
+      appraisalRecomm: this.appraisalService.getAppraisalDescription(appraisalRecomm)?.shortDesc,
+      appraisalNote: appraisal?.note,
+      confidentiality,
+      medium,
     });
   }
 
-  setAppraisal(decision: AppraisalDecision): void {
-    this.messagePage.setAppraisalDecision(this.recordObject!.xdomeaID, decision);
+  setAppraisal(decision: AppraisalCode): void {
+    this.messagePage.setAppraisalDecision(this.recordObject!.recordId, decision);
   }
 
   setAppraisalNote(note: string): void {
-    this.messagePage.setAppraisalInternalNote(this.recordObject!.xdomeaID, note);
+    this.messagePage.setAppraisalInternalNote(this.recordObject!.recordId, note);
   }
 }

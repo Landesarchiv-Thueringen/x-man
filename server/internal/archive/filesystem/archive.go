@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"lath/xman/internal/archive"
@@ -15,86 +16,95 @@ import (
 const temporaryArchivePath = "/xman/archive"
 
 // ArchiveMessage creates on distinct folder for every archive package on a local filesystem
-func ArchiveMessage(process db.Process, message db.Message) error {
-	for _, fileRecordObject := range message.FileRecordObjects {
-		archivePackage := createAipFromFileRecordObject(process, fileRecordObject)
-		err := StoreArchivePackage(process, message, archivePackage)
+func ArchiveMessage(process db.SubmissionProcess, message db.Message) error {
+	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, message.MessageType)
+	for _, f := range rootRecords.Files {
+		aip := createAipFromFileRecordObject(process, f)
+		err := StoreArchivePackage(process, message, aip)
 		if err != nil {
 			return err
 		}
-		db.AddArchivePackage(archivePackage)
+		db.InsertArchivePackage(aip)
 	}
-	for _, processRecordObject := range message.ProcessRecordObjects {
-		archivePackage := createAipFromProcessRecordObject(process, processRecordObject)
+	for _, p := range rootRecords.Processes {
+		archivePackage := createAipFromProcessRecordObject(process, p)
 		err := StoreArchivePackage(process, message, archivePackage)
 		if err != nil {
 			return err
 		}
-		db.AddArchivePackage(archivePackage)
+		db.InsertArchivePackage(archivePackage)
 	}
 	// combine documents which don't belong to a file or process in one archive package
-	if len(message.DocumentRecordObjects) > 0 {
-		archivePackage := createAipFromDocumentRecordObjects(process, message.DocumentRecordObjects)
+	if len(rootRecords.Documents) > 0 {
+		archivePackage := createAipFromDocumentRecordObjects(process, rootRecords.Documents)
 		err := StoreArchivePackage(process, message, archivePackage)
 		if err != nil {
 			return err
 		}
-		db.AddArchivePackage(archivePackage)
+		db.InsertArchivePackage(archivePackage)
 	}
 	return nil
 }
 
 // createAipFromFileRecordObject creates the archive package metadata from a file record object.
-func createAipFromFileRecordObject(process db.Process, fileRecordObject db.FileRecordObject) db.ArchivePackage {
+func createAipFromFileRecordObject(process db.SubmissionProcess, f db.FileRecord) db.ArchivePackage {
 	archivePackageData := db.ArchivePackage{
-		ProcessID:          process.ID,
-		IOTitle:            fileRecordObject.GetTitle(),
-		IOLifetimeCombined: fileRecordObject.GetCombinedLifetime(),
-		REPTitle:           "Original",
-		PrimaryDocuments:   fileRecordObject.GetPrimaryDocuments(),
-		FileRecordObjects:  []db.FileRecordObject{fileRecordObject},
+		ProcessID:        process.ProcessID,
+		IOTitle:          archive.GetFileRecordTitle(f),
+		IOLifetime:       archive.GetCombinedLifetime(f.Lifetime),
+		REPTitle:         "Original",
+		RootRecordIDs:    []uuid.UUID{f.RecordID},
+		PrimaryDocuments: xdomea.GetPrimaryDocumentsForFile(&f),
 	}
 	return archivePackageData
 }
 
 // createAipFromProcessRecordObject creates the archive package metadata from a process record object.
-func createAipFromProcessRecordObject(process db.Process, processRecordObject db.ProcessRecordObject) db.ArchivePackage {
+func createAipFromProcessRecordObject(process db.SubmissionProcess, p db.ProcessRecord) db.ArchivePackage {
 	archivePackageData := db.ArchivePackage{
-		ProcessID:            process.ID,
-		IOTitle:              processRecordObject.GetTitle(),
-		IOLifetimeCombined:   processRecordObject.GetCombinedLifetime(),
-		REPTitle:             "Original",
-		PrimaryDocuments:     processRecordObject.GetPrimaryDocuments(),
-		ProcessRecordObjects: []db.ProcessRecordObject{processRecordObject},
+		ProcessID:        process.ProcessID,
+		IOTitle:          archive.GetProcessRecordTitle(p),
+		IOLifetime:       archive.GetCombinedLifetime(p.Lifetime),
+		REPTitle:         "Original",
+		RootRecordIDs:    []uuid.UUID{p.RecordID},
+		PrimaryDocuments: xdomea.GetPrimaryDocumentsForProcess(&p),
 	}
 	return archivePackageData
 }
 
 // createAipFromDocumentRecordObjects creates the metadata for a shared archive package of multiple documents.
 func createAipFromDocumentRecordObjects(
-	process db.Process,
-	documentRecordObjects []db.DocumentRecordObject,
+	process db.SubmissionProcess,
+	documentRecords []db.DocumentRecord,
 ) db.ArchivePackage {
 	var primaryDocuments []db.PrimaryDocument
-	for _, documentRecordObject := range documentRecordObjects {
-		primaryDocuments = append(primaryDocuments, documentRecordObject.GetPrimaryDocuments()...)
+	for _, d := range documentRecords {
+		primaryDocuments = append(primaryDocuments, xdomea.GetPrimaryDocumentsForDocument(&d)...)
 	}
 	ioTitle := "Nicht zugeordnete Dokumente Behörde: " + process.Agency.Name +
-		" Prozess-ID: " + process.ID
+		" Prozess-ID: " + process.ProcessID.String()
 	repTitle := "Original"
-	archivePackageData := db.ArchivePackage{
-		ProcessID:             process.ID,
-		IOTitle:               ioTitle,
-		IOLifetimeCombined:    "-",
-		REPTitle:              repTitle,
-		PrimaryDocuments:      primaryDocuments,
-		DocumentRecordObjects: documentRecordObjects,
+	var rootRecordIDs []uuid.UUID
+	for _, r := range documentRecords {
+		rootRecordIDs = append(rootRecordIDs, r.RecordID)
 	}
-	return archivePackageData
+	aip := db.ArchivePackage{
+		ProcessID:        process.ProcessID,
+		IOTitle:          ioTitle,
+		IOLifetime:       "-",
+		REPTitle:         repTitle,
+		RootRecordIDs:    rootRecordIDs,
+		PrimaryDocuments: primaryDocuments,
+	}
+	return aip
 }
 
 // StoreArchivePackage creates a folder on the file system for the archive package and copies all primary files in this folder.
-func StoreArchivePackage(process db.Process, message db.Message, archivePackage db.ArchivePackage) error {
+func StoreArchivePackage(
+	process db.SubmissionProcess,
+	message db.Message,
+	archivePackage db.ArchivePackage,
+) error {
 	id := uuid.New().String()
 	archivePackagePath := filepath.Join(temporaryArchivePath, id)
 	err := os.Mkdir(archivePackagePath, 0744)
@@ -103,17 +113,17 @@ func StoreArchivePackage(process db.Process, message db.Message, archivePackage 
 	}
 	// copy all primary documents in archive package
 	for _, primaryDocument := range archivePackage.PrimaryDocuments {
-		err := copyFileIntoArchivePackage(message.StoreDir, archivePackagePath, primaryDocument.FileName)
+		err := copyFileIntoArchivePackage(message.StoreDir, archivePackagePath, primaryDocument.Filename)
 		if err != nil {
 			return err
 		}
 	}
-	prunnedMessage, err := xdomea.PruneMessage(message, archivePackage)
+	prunedMessage, err := xdomea.PruneMessage(message, archivePackage)
 	if err != nil {
 		return err
 	}
 	messageFileName := filepath.Base(message.MessagePath)
-	err = writeTextFile(archivePackagePath, messageFileName, prunnedMessage)
+	err = writeTextFile(archivePackagePath, messageFileName, prunedMessage)
 	if err != nil {
 		return err
 	}

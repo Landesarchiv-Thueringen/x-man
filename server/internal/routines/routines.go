@@ -2,9 +2,9 @@
 package routines
 
 import (
+	"context"
 	"fmt"
 	"lath/xman/internal/db"
-	"lath/xman/internal/format"
 	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
 	"log"
@@ -33,7 +33,7 @@ func Init() {
 // to restart them.
 func tryRestartRunningTasks() {
 	defer xdomea.HandlePanic("tryRestartRunningTasks")
-	ts := db.GetTasks()
+	ts := db.FindTasks(context.Background())
 	for _, t := range ts {
 		if t.State == db.TaskStateRunning {
 			tryRestart(&t)
@@ -50,15 +50,18 @@ func tryRestartRunningTasks() {
 func tryRestart(task *db.Task) {
 	var couldRestart = false
 	switch task.Type {
-	case db.TaskTypeFormatVerification:
-		process, found := db.GetProcess(task.ProcessID)
-		if found && process.Message0503 != nil {
-			go func() {
-				defer xdomea.HandlePanic(fmt.Sprintf("tryRestart FormatVerification"))
-				err := format.VerifyFileFormats(process, *process.Message0503)
-				xdomea.HandleError(err)
-			}()
-			couldRestart = true
+	case db.ProcessStepFormatVerification:
+		process, found := db.FindProcess(context.Background(), task.ProcessID)
+		if found {
+			message, found := db.FindMessage(context.Background(), process.ProcessID, db.MessageType0503)
+			if found {
+				go func() {
+					defer xdomea.HandlePanic(fmt.Sprintf("tryRestart FormatVerification"))
+					err := xdomea.VerifyFileFormats(process, message)
+					xdomea.HandleError(err)
+				}()
+				couldRestart = true
+			}
 		}
 	}
 	processingError := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
@@ -80,10 +83,10 @@ func cleanupArchivedProcesses() {
 		panic(err)
 	}
 	deleteBeforeTime := time.Now().Add(-1 * time.Hour * 24 * time.Duration(deleteDeltaDays))
-	processes := db.GetProcesses()
+	processes := db.FindProcesses(context.Background())
 	for _, process := range processes {
 		if process.ProcessState.Archiving.Complete &&
-			process.ProcessState.Archiving.CompletionTime.Before(deleteBeforeTime) {
+			process.ProcessState.Archiving.CompletedAt.Before(deleteBeforeTime) {
 			deleteProcess(process)
 		}
 	}
@@ -92,9 +95,9 @@ func cleanupArchivedProcesses() {
 
 // deleteProcess deletes the given process and all associated data from the
 // database and removes all associated message files from the message store.
-func deleteProcess(process db.Process) {
-	found := xdomea.DeleteProcess(process.ID)
+func deleteProcess(process db.SubmissionProcess) {
+	found := xdomea.DeleteProcess(process.ProcessID)
 	if !found {
-		panic(fmt.Sprintf("failed to delete process %v: not found", process.ID))
+		panic(fmt.Sprintf("failed to delete process %v: not found", process.ProcessID))
 	}
 }

@@ -18,10 +18,8 @@ import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Agency } from '../../services/agencies.service';
 import { AuthService } from '../../services/auth.service';
-import { ProcessingError } from '../../services/clearing.service';
 import { ConfigService } from '../../services/config.service';
-import { Process, ProcessService, ProcessStep } from '../../services/process.service';
-import { Task } from '../../services/tasks.service';
+import { ProcessService, ProcessStep, SubmissionProcess } from '../../services/process.service';
 
 @Component({
   selector: 'app-process-table-page',
@@ -52,7 +50,7 @@ import { Task } from '../../services/tasks.service';
   ],
 })
 export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
-  readonly dataSource: MatTableDataSource<Process> = new MatTableDataSource<Process>();
+  readonly dataSource: MatTableDataSource<SubmissionProcess> = new MatTableDataSource<SubmissionProcess>();
   readonly displayedColumns = [
     'agency',
     'note',
@@ -74,7 +72,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   ] as const;
   readonly filter = this.formBuilder.group({
     string: new FormControl(''),
-    agency: new FormControl<number | null>(null),
+    agency: new FormControl<string | null>(null),
     state: new FormControl('' as ProcessTablePageComponent['stateValues'][number]['value']),
   });
   /** All agencies for which there are processes. Used for agencies filter field. */
@@ -96,31 +94,31 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     private processService: ProcessService,
   ) {
     this.dataSource.sortingDataAccessor = ((
-      process: Process,
+      process: SubmissionProcess,
       property: ProcessTablePageComponent['displayedColumns'][number],
     ) => {
       switch (property) {
         case 'message0501':
-          return process.processState.receive0501.completionTime ?? '';
+          return process.processState.receive0501.completedAt ?? '';
         case 'appraisalComplete':
-          return process.processState.appraisal.completionTime ?? '';
+          return process.processState.appraisal.completedAt ?? '';
         case 'message0505':
-          return process.processState.receive0505.completionTime ?? '';
+          return process.processState.receive0505.completedAt ?? '';
         case 'message0503':
-          return process.processState.receive0503.completionTime ?? '';
+          return process.processState.receive0503.completedAt ?? '';
         case 'formatVerification':
-          return process.processState.formatVerification.completionTime ?? '';
+          return process.processState.formatVerification.completedAt ?? '';
         case 'archivingComplete':
-          return process.processState.archiving.completionTime ?? '';
+          return process.processState.archiving.completedAt ?? '';
         case 'agency':
           return process.agency.name;
         default:
           return process[property] ?? '';
       }
-    }) as (data: Process, sortHeaderId: string) => string;
+    }) as (data: SubmissionProcess, sortHeaderId: string) => string;
     // We use object instead of string for filter. Hence we cast to the "wrong" types in both assignments below.
     this.filter.valueChanges.subscribe((filter) => (this.dataSource.filter = filter as string));
-    this.dataSource.filterPredicate = this.filterPredicate as (data: Process, filter: string) => boolean;
+    this.dataSource.filterPredicate = this.filterPredicate as (data: SubmissionProcess, filter: string) => boolean;
 
     // refetch processes every `updateInterval` milliseconds
     this.processSubscription = this.allUsersControl.valueChanges
@@ -138,9 +136,9 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
         error: (error) => {
           console.error(error);
         },
-        next: (processes: Process[]) => {
-          this.dataSource.data = processes;
-          this.populateAgencies(processes);
+        next: (processes: SubmissionProcess[]) => {
+          this.dataSource.data = processes ?? [];
+          this.populateAgencies(processes ?? []);
         },
       });
   }
@@ -176,7 +174,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     window.localStorage.setItem('main-table-page-size', event.pageSize.toString());
   }
 
-  private populateAgencies(processes: Process[]): void {
+  private populateAgencies(processes: SubmissionProcess[]): void {
     this.agencies = [];
     for (const { agency } of processes) {
       if (!this.agencies.some((a) => a.id === agency.id)) {
@@ -194,7 +192,10 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
    * Note that we don't use "string" as type for filter. Instead we provide a
    * filter object and cast types where needed.
    */
-  private filterPredicate = (process: Process, filter: ProcessTablePageComponent['filter']['value']): boolean => {
+  private filterPredicate = (
+    process: SubmissionProcess,
+    filter: ProcessTablePageComponent['filter']['value'],
+  ): boolean => {
     return (
       // Match string field
       this.textFilterPredicate(process, filter.string ?? '') &&
@@ -218,7 +219,9 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   };
 
   /** Returns the highest process state that the process completed. */
-  private getCurrentState(process: Process): ProcessTablePageComponent['stateValues'][number]['value'] | null {
+  private getCurrentState(
+    process: SubmissionProcess,
+  ): ProcessTablePageComponent['stateValues'][number]['value'] | null {
     for (const state of this.stateValues.map((v) => v.value).reverse()) {
       if (state === 'message0501' && process.processState.receive0501.complete) {
         return state;
@@ -240,8 +243,8 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
   /**
    * Implements a track-by predicate for Angular to match table rows on data updates.
    */
-  trackProcess(index: number, item: Process): string {
-    return item.id;
+  trackProcess(index: number, item: SubmissionProcess): string {
+    return item.processId;
   }
 
   /**
@@ -249,7 +252,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
    *
    * Other filters are applied as normal.
    */
-  getElementsForAgency(agency: number | null): number {
+  getElementsForAgency(agency: string | null): number {
     return this.dataSource.data.filter((process) =>
       this.filterPredicate(process, {
         ...(this.dataSource.filter as ProcessTablePageComponent['filter']['value']),
@@ -272,23 +275,15 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     ).length;
   }
 
-  hasUnresolvedError(process: Process): boolean {
-    return process.processingErrors.some((processingError) => !processingError.resolved);
+  hasUnresolvedError(process: SubmissionProcess): boolean {
+    return Object.values(process.processState).some((step: ProcessStep) => step.unresolvedErrors > 0);
   }
 
   isStepFailed(processStep: ProcessStep): boolean {
-    return this.getUnresolvedErrors(processStep).length > 0;
-  }
-
-  getUnresolvedErrors(processStep: ProcessStep): ProcessingError[] {
-    return processStep.processingErrors.filter((processingError) => !processingError.resolved);
+    return processStep.unresolvedErrors > 0;
   }
 
   getErrorTime(processStep: ProcessStep): string | null {
-    return this.getUnresolvedErrors(processStep)[0]?.detectedAt;
-  }
-
-  getRunningTask(processStep: ProcessStep): Task | null {
-    return processStep.tasks.find((task) => task.state === 'running') ?? null;
+    return processStep.unresolvedErrors > 0 ? processStep.updatedAt : null;
   }
 }

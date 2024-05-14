@@ -1,32 +1,19 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscriber, filter, shareReplay } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { notNull } from '../utils/predicates';
 
 export interface Message {
-  id: string;
   messageType: MessageType;
   creationTime: string;
   xdomeaVersion: string;
-  schemaValidation: boolean;
   messageHead: MessageHead;
-  formatVerificationComplete: boolean;
-  primaryDocumentCount: number;
-  verificationCompleteCount: number;
-  fileRecordObjects?: FileRecordObject[];
-  processRecordObjects?: ProcessRecordObject[];
-  documentRecordObjects?: DocumentRecordObject[];
 }
 
-export interface MessageType {
-  id: number;
-  code: string;
-}
+export type MessageType = '0501' | '0502' | '0503' | '0504' | '0505' | '0506' | '0507';
 
 export interface MessageHead {
-  id: number;
   processID: string;
   creationTime: string;
   sender: Contact;
@@ -34,84 +21,18 @@ export interface MessageHead {
 }
 
 export interface Contact {
-  id: number;
   agencyIdentification?: AgencyIdentification;
   institution?: Institution;
 }
 
 export interface AgencyIdentification {
-  id: number;
   code?: string;
   prefix?: string;
 }
 
 export interface Institution {
-  id: number;
   name?: string;
   abbreviation?: string;
-}
-
-export interface FileRecordObject {
-  id: string;
-  xdomeaID: string;
-  messageID: string;
-  recordObjectType: RecordObjectType;
-  generalMetadata?: GeneralMetadata;
-  archiveMetadata?: ArchiveMetadata;
-  lifetime?: Lifetime;
-  type?: string;
-  subfiles: FileRecordObject[];
-  processes: ProcessRecordObject[];
-}
-
-export interface ProcessRecordObject {
-  id: string;
-  xdomeaID: string;
-  messageID: string;
-  recordObjectType: RecordObjectType;
-  generalMetadata?: GeneralMetadata;
-  archiveMetadata?: ArchiveMetadata;
-  lifetime?: Lifetime;
-  type?: string;
-  subprocesses: ProcessRecordObject[];
-  documents: DocumentRecordObject[];
-}
-
-export interface DocumentRecordObject {
-  id: string;
-  xdomeaID: string;
-  messageID: string;
-  recordObjectType: RecordObjectType;
-  generalMetadata?: GeneralMetadata;
-  type?: string;
-  incomingDate?: string;
-  outgoingDate?: string;
-  documentDate?: string;
-  versions?: DocumentVersion[];
-  attachments?: DocumentRecordObject[];
-}
-
-export interface DocumentVersion {
-  id: number;
-  versionID: string;
-  formats: Format[];
-}
-
-export interface Format {
-  id: number;
-  code: string;
-  otherName?: string;
-  version: string;
-  primaryDocument: PrimaryDocument;
-}
-
-export interface PrimaryDocument {
-  id: number;
-  fileName: string;
-  fileNameOriginal?: string;
-  creatorName?: string;
-  creationTime?: string;
-  formatVerification?: FormatVerification;
 }
 
 export interface FormatVerification {
@@ -149,65 +70,27 @@ export interface ToolConfidence {
   toolName: string;
 }
 
-export interface GeneralMetadata {
-  id: number;
-  subject?: string;
-  xdomeaID?: string;
-  filePlan?: FilePlan;
-  confidentialityLevel?: ConfidentialityLevel;
-  medium?: Medium;
+export interface PrimaryDocumentData {
+  filename: string;
+  filenameOriginal?: string;
+  creatorName?: string;
+  creationTime?: string;
+  formatVerification?: FormatVerification;
 }
-
-export interface ConfidentialityLevel {
-  code: string;
-  shortDesc: string;
-  desc: string;
-}
-
-export interface ArchiveMetadata {
-  id: number;
-  appraisalCode: string;
-  appraisalRecommCode: string;
-}
-
-export interface AppraisalCode {
-  id: number;
-  code: string;
-  shortDesc: string;
-  desc: string;
-}
-
-export interface Medium {
-  code: string;
-  desc: string;
-  shortDesc: string;
-}
-
-export interface FilePlan {
-  id: number;
-  xdomeaID?: number;
-}
-
-export interface Lifetime {
-  id: number;
-  start?: string;
-  end?: string;
-}
-
-export type RecordObjectType = 'file' | 'process' | 'document';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MessageService {
   private apiEndpoint: string;
-  private appraisalCodes = new BehaviorSubject<AppraisalCode[] | null>(null);
-  private confidentialityLevelCodelist?: ConfidentialityLevel[];
 
   private featureOrder: Map<string, number>;
   private overviewFeatures: string[];
 
-  private cachedMessageId?: string;
+  private cachedMessageId?: {
+    processId: string;
+    messageType: MessageType;
+  };
   private cachedMessage?: Observable<Message>;
 
   constructor(
@@ -215,10 +98,6 @@ export class MessageService {
     private httpClient: HttpClient,
   ) {
     this.apiEndpoint = environment.endpoint;
-    this.fetchAppraisalCodelist().subscribe((codes) => this.appraisalCodes.next(codes));
-    this.getConfidentialityLevelCodelist().subscribe((confidentialityLevelCodelist: ConfidentialityLevel[]) => {
-      this.confidentialityLevelCodelist = confidentialityLevelCodelist;
-    });
     this.overviewFeatures = ['relativePath', 'fileName', 'fileSize', 'puid', 'mimeType', 'formatVersion', 'valid'];
     this.featureOrder = new Map<string, number>([
       ['relativePath', 1],
@@ -234,54 +113,34 @@ export class MessageService {
     ]);
   }
 
-  getMessage(id: string): Observable<Message> {
-    if (id == null) {
+  getMessage(processId: string, messageType: MessageType): Observable<Message> {
+    if (!processId || !messageType) {
       throw new Error('called getMessage with empty string');
     }
-    if (id !== this.cachedMessageId) {
-      this.cachedMessageId = id;
+    if (this.cachedMessageId?.processId !== processId || this.cachedMessageId?.messageType !== messageType) {
+      this.cachedMessageId = { processId, messageType };
       this.cachedMessage = this.httpClient
-        .get<Message>(this.apiEndpoint + '/message/' + id)
+        .get<Message>(this.apiEndpoint + '/message/' + processId + '/' + messageType)
         .pipe(shareReplay({ bufferSize: 1, refCount: true }));
     }
     return this.cachedMessage!;
   }
 
-  getFileRecordObject(id: string): Observable<FileRecordObject> {
-    return this.httpClient.get<FileRecordObject>(this.apiEndpoint + '/file-record-object/' + id);
-  }
-
-  getProcessRecordObject(id: string): Observable<ProcessRecordObject> {
-    return this.httpClient.get<ProcessRecordObject>(this.apiEndpoint + '/process-record-object/' + id);
-  }
-
-  getDocumentRecordObject(id: string): Observable<DocumentRecordObject> {
-    return this.httpClient.get<DocumentRecordObject>(this.apiEndpoint + '/document-record-object/' + id);
-  }
-
-  get0501Messages(): Observable<Message[]> {
-    return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0501');
-  }
-
-  get0503Messages(): Observable<Message[]> {
-    return this.httpClient.get<Message[]>(this.apiEndpoint + '/messages/0503');
-  }
-
-  getPrimaryDocument(messageID: string, primaryDocumentID: number): Observable<Blob> {
+  getPrimaryDocument(processId: string, filename: string): Observable<Blob> {
     const url = this.apiEndpoint + '/primary-document';
     const options = {
-      params: new HttpParams().set('messageID', messageID).set('primaryDocumentID', primaryDocumentID),
+      params: new HttpParams().set('processID', processId).set('filename', filename),
       responseType: 'blob' as 'json', // https://github.com/angular/angular/issues/18586
     };
     return this.httpClient.get<Blob>(url, options);
   }
 
-  getPrimaryDocuments(id: string): Observable<PrimaryDocument[]> {
-    if (!id) {
+  getPrimaryDocumentsData(processId: string): Observable<PrimaryDocumentData[]> {
+    if (!processId) {
       throw new Error('called getPrimaryDocuments with null ID');
     }
-    const url = this.apiEndpoint + '/primary-documents/' + id;
-    return this.httpClient.get<PrimaryDocument[]>(url);
+    const url = this.apiEndpoint + '/primary-documents-data/' + processId;
+    return this.httpClient.get<PrimaryDocumentData[]>(url);
   }
 
   finalizeMessageAppraisal(messageId: string): Observable<void> {
@@ -291,9 +150,9 @@ export class MessageService {
     return this.httpClient.patch<void>(url, body, options);
   }
 
-  archive0503Message(messageId: string, collectionId?: number): Observable<void> {
-    let url = this.apiEndpoint + '/archive-0503-message/' + messageId;
-    if (collectionId) {
+  archive0503Message(processId: string, collectionId: string): Observable<void> {
+    let url = this.apiEndpoint + '/archive-0503-message/' + processId;
+    if (collectionId != '000000000000000000000000') {
       url += '?collectionId=' + collectionId;
     }
     const body = {};
@@ -301,42 +160,8 @@ export class MessageService {
     return this.httpClient.patch<void>(url, body, options);
   }
 
-  getAppraisalCodelist(): Observable<AppraisalCode[]> {
-    return this.appraisalCodes.pipe(filter(notNull));
-  }
-
-  private fetchAppraisalCodelist(): Observable<AppraisalCode[]> {
-    return this.httpClient.get<AppraisalCode[]>(this.apiEndpoint + '/appraisal-codelist');
-  }
-
-  getConfidentialityLevelCodelist(): Observable<ConfidentialityLevel[]> {
-    if (this.confidentialityLevelCodelist) {
-      return new Observable((subscriber: Subscriber<ConfidentialityLevel[]>) => {
-        subscriber.next(this.confidentialityLevelCodelist);
-        subscriber.complete();
-      });
-    } else {
-      return this.httpClient.get<ConfidentialityLevel[]>(this.apiEndpoint + '/confidentiality-level-codelist');
-    }
-  }
-
-  getRecordObjectAppraisalByCode(code: string | undefined, appraisals: AppraisalCode[]): AppraisalCode | null {
-    if (!code) {
-      return null;
-    }
-    const appraisal = appraisals.find((appraisal: AppraisalCode) => appraisal.code === code);
-    if (!appraisal) {
-      throw new Error('record object appraisal with code <' + code + "> wasn't found");
-    }
-    return appraisal;
-  }
-
-  areAllRecordObjectsAppraised(id: string): Observable<boolean> {
-    return this.httpClient.get<boolean>(this.apiEndpoint + '/all-record-objects-appraised/' + id);
-  }
-
-  getMessageTypeCode(id: string): Observable<string> {
-    return this.httpClient.get<string>(this.apiEndpoint + '/message-type-code/' + id);
+  areAllRecordObjectsAppraised(processId: string): Observable<boolean> {
+    return this.httpClient.get<boolean>(this.apiEndpoint + '/all-record-objects-appraised/' + processId);
   }
 
   sortFeatures(features: string[]): string[] {

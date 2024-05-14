@@ -9,6 +9,7 @@
 package xdomea
 
 import (
+	"context"
 	"fmt"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
@@ -16,6 +17,9 @@ import (
 	"log"
 	"runtime/debug"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 func CreateProcessingErrorPanic(info map[string]any) {
@@ -73,8 +77,12 @@ func HandleError(err error) {
 		return
 	} else if e, ok := err.(db.ProcessingError); ok {
 		e = augmentProcessingError(e)
-		log.Printf("Processing error for message %s: %s\n", e.MessageID, e.Description)
-		db.AddProcessingError(db.ProcessingError(e))
+		if e.ProcessID != uuid.Nil {
+			log.Printf("Processing error for submission process %s: %s\n", e.ProcessID.String(), e.Description)
+		} else {
+			log.Printf("Processing error: %s\n", e.Description)
+		}
+		db.InsertProcessingError(e)
 		sendEmailNotifications(e)
 	} else {
 		panic(fmt.Sprintf("unhandled error: %v", err))
@@ -90,23 +98,20 @@ func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorRe
 	case db.ErrorResolutionMarkSolved:
 		// Do nothing
 	case db.ErrorResolutionReimportMessage:
-		DeleteMessage(*processingError.MessageID, true)
+		DeleteMessage(processingError.ProcessID, processingError.MessageType, true)
 	case db.ErrorResolutionDeleteMessage:
-		DeleteMessage(*processingError.MessageID, false)
+		DeleteMessage(processingError.ProcessID, processingError.MessageType, false)
 	default:
 		panic(fmt.Sprintf("unknown resolution: %s", resolution))
 	}
-	db.UpdateProcessingError(processingError.ID, db.ProcessingError{
-		Resolved:   true,
-		Resolution: resolution,
-	})
+	db.UpdateProcessingErrorResolve(processingError, resolution)
 }
 
 func sendEmailNotifications(e db.ProcessingError) {
 	users := auth.ListUsers()
 	for _, user := range users {
 		if user.Permissions.Admin {
-			preferences := db.GetUserInformation(user.ID).Preferences
+			preferences := db.FindUserPreferences(context.Background(), user.ID)
 			if preferences.ErrorEmailNotifications {
 				mailAddr := auth.GetMailAddress(user.ID)
 				mail.SendMailProcessingError(mailAddr, e)
@@ -116,35 +121,27 @@ func sendEmailNotifications(e db.ProcessingError) {
 }
 
 func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
-	if e.Process == nil && e.ProcessID != nil {
-		process, found := db.GetProcess(*e.ProcessID)
+	e.CreatedAt = time.Now()
+	if e.Agency == nil && e.ProcessID != uuid.Nil {
+		process, found := db.FindProcess(context.Background(), e.ProcessID)
 		if found {
-			e.Process = &process
+			e.Agency = &process.Agency
 		}
 	}
-	if e.AgencyID == nil && e.Agency == nil {
-		if e.Process != nil {
-			e.AgencyID = &e.Process.AgencyID
-			e.Agency = &e.Process.Agency
-		}
-	}
-	if e.Message == nil && e.MessageID != nil {
-		message, found := db.GetMessageByID(*e.MessageID)
+	if e.TransferPath == "" && e.ProcessID != uuid.Nil && e.MessageType != "" {
+		message, found := db.FindMessage(context.Background(), e.ProcessID, e.MessageType)
 		if found {
-			e.Message = &message
+			e.TransferPath = message.TransferDirPath
 		}
 	}
-	if e.TransferPath == nil && e.Message != nil {
-		e.TransferPath = &e.Message.TransferDirPath
-	}
-	if e.Message != nil && e.Process != nil && e.ProcessStep == nil && e.ProcessStepID == nil {
-		switch e.Message.MessageType.Code {
-		case "0501":
-			e.ProcessStep = &e.Process.ProcessState.Receive0501
-		case "0503":
-			e.ProcessStep = &e.Process.ProcessState.Receive0503
-		case "0505":
-			e.ProcessStep = &e.Process.ProcessState.Receive0505
+	if e.ProcessStep == "" && e.MessageType != "" {
+		switch e.MessageType {
+		case db.MessageType0501:
+			e.ProcessStep = db.ProcessStepReceive0501
+		case db.MessageType0503:
+			e.ProcessStep = db.ProcessStepReceive0503
+		case db.MessageType0505:
+			e.ProcessStep = db.ProcessStepReceive0505
 		}
 	}
 	return e

@@ -31,13 +31,13 @@ export class MessagePageComponent {
     // Redirect to latest message when to message code is given in the URL.
     route.params
       .pipe(
-        map((params) => params['messageCode']),
-        filter((messageCode) => messageCode == ''),
+        map((params) => params['messageType']),
+        filter((messageType) => messageType == ''),
         distinctUntilChanged(),
         switchMap(() => this.messagePage.getProcess()),
       )
       .subscribe((process) => {
-        if (process.message0503Id) {
+        if (process.processState.receive0503.complete) {
           this.router.navigate(['../0503'], { relativeTo: route, replaceUrl: true });
         } else {
           this.router.navigate(['../0501'], { relativeTo: route, replaceUrl: true });

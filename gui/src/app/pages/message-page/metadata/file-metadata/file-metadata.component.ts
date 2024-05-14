@@ -9,10 +9,18 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Params } from '@angular/router';
 import { combineLatest, switchMap } from 'rxjs';
 import { debounceTime, shareReplay, skip } from 'rxjs/operators';
-import { Appraisal, AppraisalDecision } from '../../../../services/appraisal.service';
-import { AppraisalCode, FileRecordObject, MessageService } from '../../../../services/message.service';
+import {
+  Appraisal,
+  AppraisalCode,
+  AppraisalService,
+  appraisalDescriptions,
+} from '../../../../services/appraisal.service';
+import { MessageService } from '../../../../services/message.service';
+import { FileRecord } from '../../../../services/records.service';
 import { MessagePageService } from '../../message-page.service';
 import { MessageProcessorService, StructureNode } from '../../message-processor.service';
+import { confidentialityLevels } from '../confidentiality-level.pipe';
+import { media } from '../medium.pipe';
 
 @Component({
   selector: 'app-file-metadata',
@@ -24,14 +32,15 @@ import { MessageProcessorService, StructureNode } from '../../message-processor.
 export class FileMetadataComponent {
   metadataQuery?: Query;
   /** The pages file record object. Might update on page changes. */
-  recordObject?: FileRecordObject;
+  record?: FileRecord;
   appraisal?: Appraisal | null;
-  appraisalCodes?: AppraisalCode[];
+  appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({ code, ...d }));
   appraisalComplete?: boolean;
   form: FormGroup;
   canBeAppraised = false;
 
   constructor(
+    private appraisalService: AppraisalService,
     private formBuilder: FormBuilder,
     private messagePage: MessagePageService,
     private messageService: MessageService,
@@ -51,27 +60,17 @@ export class FileMetadataComponent {
       confidentiality: new FormControl<string | null>(null),
       medium: new FormControl<string | null>(null),
     });
-    const recordObject = this.route.params.pipe(
-      switchMap((params: Params) => this.messageService.getFileRecordObject(params['id'])),
+    const record = this.route.params.pipe(
+      switchMap((params: Params) => this.messagePage.getFileRecord(params['id'])),
       shareReplay(1),
     );
-    const structureNode = recordObject.pipe(
-      switchMap((recordObject) => this.messageProcessor.getNodeWhenReady(recordObject.id)),
-    );
-    const appraisal = recordObject.pipe(
-      switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.xdomeaID)),
-    );
+    const structureNode = record.pipe(switchMap((record) => this.messageProcessor.getNodeWhenReady(record.recordId)));
+    const appraisal = record.pipe(switchMap((record) => this.messagePage.observeAppraisal(record.recordId)));
     // Update the form and local properties on changes.
-    combineLatest([
-      recordObject,
-      structureNode,
-      appraisal,
-      this.messageService.getAppraisalCodelist(),
-      this.messagePage.observeAppraisalComplete(),
-    ])
+    combineLatest([record, structureNode, appraisal, this.messagePage.observeAppraisalComplete()])
       .pipe(takeUntilDestroyed())
-      .subscribe(([recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete]) =>
-        this.setMetadata(recordObject, structureNode, appraisal, appraisalCodes, appraisalComplete),
+      .subscribe(([recordObject, structureNode, appraisal, appraisalComplete]) =>
+        this.setMetadata(recordObject, structureNode, appraisal, appraisalComplete),
       );
     this.registerAppraisalNoteChanges();
     // Disable individual appraisal controls while selection is active.
@@ -88,49 +87,53 @@ export class FileMetadataComponent {
 
   registerAppraisalNoteChanges(): void {
     this.form.controls['appraisalNote'].valueChanges.pipe(skip(1), debounceTime(400)).subscribe((value) => {
-      if (value !== this.appraisal?.internalNote && this.appraisalComplete === false) {
+      if (value !== this.appraisal?.note && this.appraisalComplete === false) {
         this.setAppraisalNote(value);
       }
     });
   }
 
   setMetadata(
-    recordObject: FileRecordObject,
+    record: FileRecord,
     structureNode: StructureNode,
     appraisal: Appraisal | null,
-    appraisalCodes: AppraisalCode[],
     appraisalComplete: boolean,
   ): void {
-    this.recordObject = recordObject;
+    this.record = record;
     this.canBeAppraised = structureNode.canBeAppraised;
     this.appraisal = appraisal;
-    this.appraisalCodes = appraisalCodes;
     this.appraisalComplete = appraisalComplete;
-    const appraisalDecision = this.messageService.getRecordObjectAppraisalByCode(appraisal?.decision, appraisalCodes);
-    const appraisalRecomm = this.messageService.getRecordObjectAppraisalByCode(
-      this.recordObject.archiveMetadata?.appraisalRecommCode,
-      this.appraisalCodes,
-    )?.shortDesc;
+    const appraisalRecomm = this.record.archiveMetadata?.appraisalRecommCode;
+    let confidentiality: string | undefined;
+    if (record.generalMetadata?.confidentialityLevel) {
+      confidentiality = confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
+    }
+    let medium: string | undefined;
+    if (record.generalMetadata?.medium) {
+      medium = media[record.generalMetadata?.medium].shortDesc;
+    }
     this.form.patchValue({
-      recordPlanId: this.recordObject.generalMetadata?.filePlan?.xdomeaID,
-      fileId: this.recordObject.generalMetadata?.xdomeaID,
-      subject: this.recordObject.generalMetadata?.subject,
-      fileType: this.recordObject.type,
-      lifeStart: this.messageService.getDateText(this.recordObject.lifetime?.start),
-      lifeEnd: this.messageService.getDateText(this.recordObject.lifetime?.end),
-      appraisal: this.appraisalComplete ? appraisalDecision?.shortDesc : appraisalDecision?.code,
-      appraisalRecomm: appraisalRecomm,
-      appraisalNote: appraisal?.internalNote,
-      confidentiality: this.recordObject.generalMetadata?.confidentialityLevel?.shortDesc,
-      medium: this.recordObject.generalMetadata?.medium?.shortDesc,
+      recordPlanId: this.record.generalMetadata?.filePlan?.filePlanNumber,
+      fileId: this.record.generalMetadata?.recordNumber,
+      subject: this.record.generalMetadata?.subject,
+      fileType: this.record.type,
+      lifeStart: this.messageService.getDateText(this.record.lifetime?.start),
+      lifeEnd: this.messageService.getDateText(this.record.lifetime?.end),
+      appraisal: this.appraisalComplete
+        ? this.appraisalService.getAppraisalDescription(appraisal?.decision)?.shortDesc
+        : appraisal?.decision,
+      appraisalRecomm: this.appraisalService.getAppraisalDescription(appraisalRecomm)?.shortDesc,
+      appraisalNote: appraisal?.note,
+      confidentiality,
+      medium,
     });
   }
 
-  setAppraisal(decision: AppraisalDecision): void {
-    this.messagePage.setAppraisalDecision(this.recordObject!.xdomeaID, decision);
+  setAppraisal(decision: AppraisalCode): void {
+    this.messagePage.setAppraisalDecision(this.record!.recordId, decision);
   }
 
   setAppraisalNote(note: string): void {
-    this.messagePage.setAppraisalInternalNote(this.recordObject!.xdomeaID, note);
+    this.messagePage.setAppraisalInternalNote(this.record!.recordId, note);
   }
 }

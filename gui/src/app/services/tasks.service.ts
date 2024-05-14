@@ -2,21 +2,20 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, interval, startWith, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Process, ProcessStep } from './process.service';
+import { ProcessStep } from './process.service';
 
 export type TaskState = 'running' | 'failed' | 'succeeded';
-export type TaskType = 'formatVerification' | 'archiving';
+export type TaskType = 'format_verification' | 'archiving';
 export interface Task {
-  id: number;
+  id: string;
   createdAt: string;
   updatedAt: string;
-  process: Process;
+  processId: string;
   processStep: ProcessStep;
   type: TaskType;
   state: TaskState;
+  progress: string;
   errorMessage: string;
-  itemCount: number;
-  itemCompletedCount: number;
 }
 
 @Injectable({

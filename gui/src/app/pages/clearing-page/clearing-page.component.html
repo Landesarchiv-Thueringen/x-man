@@ -9,13 +9,13 @@
       [dataSource]="dataSource"
       [trackBy]="trackTableRow"
       matSort
-      matSortActive="detectedAt"
+      matSortActive="createdAt"
       matSortDirection="desc"
     >
       <!-- detected at column -->
-      <ng-container matColumnDef="detectedAt">
+      <ng-container matColumnDef="createdAt">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Feststellungs&shy;zeitpunkt</mat-header-cell>
-        <mat-cell *matCellDef="let error">{{ error.detectedAt | date: "short" }}</mat-cell>
+        <mat-cell *matCellDef="let error">{{ error.createdAt | date: "short" }}</mat-cell>
       </ng-container>
 
       <!-- transfer dir path column -->

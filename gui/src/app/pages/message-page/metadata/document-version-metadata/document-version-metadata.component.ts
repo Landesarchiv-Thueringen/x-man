@@ -1,20 +1,22 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
 import { saveAs } from 'file-saver';
-import { DocumentRecordObject, MessageService } from '../../../../services/message.service';
+import { MessageService } from '../../../../services/message.service';
+import { DocumentRecord } from '../../../../services/records.service';
+import { MessagePageService } from '../../message-page.service';
 
 export type NodeType = 'version' | 'format';
 
 export interface Node {
   text: string;
   type: NodeType;
-  fileID?: number;
-  fileName?: string;
+  filename?: string;
   children?: Node[];
 }
 
@@ -22,8 +24,7 @@ export interface FlatNode {
   expandable: boolean;
   level: number;
   text: string;
-  fileID?: number;
-  fileName?: string;
+  filename?: string;
   type: NodeType;
 }
 
@@ -38,8 +39,12 @@ export class DocumentVersionMetadataComponent {
   treeControl: FlatTreeControl<FlatNode>;
   treeFlattener: MatTreeFlattener<Node, FlatNode>;
   dataSource: MatTreeFlatDataSource<Node, FlatNode>;
+  message = toSignal(this.messagePageService.observeMessage());
 
-  constructor(private messageService: MessageService) {
+  constructor(
+    private messageService: MessageService,
+    private messagePageService: MessagePageService,
+  ) {
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
       (node) => node.expandable,
@@ -59,36 +64,34 @@ export class DocumentVersionMetadataComponent {
       level: level,
       text: node.text,
       type: node.type,
-      fileID: node.fileID,
-      fileName: node.fileName,
+      filename: node.filename,
     };
   };
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-  d?: DocumentRecordObject;
-  @Input() set document(d: DocumentRecordObject | null | undefined) {
-    if (!!d) {
-      this.d = d;
+  documentRecord?: DocumentRecord;
+  @Input() set document(d: DocumentRecord | null | undefined) {
+    if (d) {
+      this.documentRecord = d;
       this.initTree();
     }
   }
 
   initTree(): void {
-    if (!!this.d && !!this.d.versions) {
+    if (this.documentRecord && this.documentRecord.versions) {
       const treeData: Node[] = [];
-      for (let version of this.d.versions) {
+      for (let version of this.documentRecord.versions) {
         const formatNodes: Node[] = [];
         for (let format of version.formats) {
           const formatNode: Node = {
-            text: format.primaryDocument.fileNameOriginal
-              ? format.primaryDocument.fileNameOriginal
-              : format.primaryDocument.fileName,
+            text: format.primaryDocument.filenameOriginal
+              ? format.primaryDocument.filenameOriginal
+              : format.primaryDocument.filename,
             type: 'format',
-            fileID: format.primaryDocument.id,
-            fileName: format.primaryDocument.fileNameOriginal
-              ? format.primaryDocument.fileNameOriginal
-              : format.primaryDocument.fileName,
+            filename: format.primaryDocument.filenameOriginal
+              ? format.primaryDocument.filenameOriginal
+              : format.primaryDocument.filename,
           };
           formatNodes.push(formatNode);
         }
@@ -104,14 +107,14 @@ export class DocumentVersionMetadataComponent {
     }
   }
 
-  downloadPrimaryFile(fileID: number, fileName: string): void {
-    if (this.d) {
-      this.messageService.getPrimaryDocument(this.d.messageID, fileID).subscribe({
+  downloadPrimaryFile(node: FlatNode): void {
+    if (this.documentRecord) {
+      this.messageService.getPrimaryDocument(this.message()!.messageHead.processID, node.filename!).subscribe({
         error: (error) => {
           console.error(error);
         },
         next: (file: Blob) => {
-          saveAs(file, fileName);
+          saveAs(file, node.filename);
         },
       });
     }

@@ -1,6 +1,7 @@
 package xdomea
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/fs"
@@ -90,7 +91,7 @@ func watchLoop(ticker time.Ticker, stop chan bool) {
 
 // readMessages checks the contents of all transfer directories.
 func readMessages() {
-	agencies := db.GetAgencies()
+	agencies := db.FindAgencies(context.Background())
 	for _, agency := range agencies {
 		transferDirURL, err := url.Parse(agency.TransferDirURL)
 		if err != nil {
@@ -116,9 +117,10 @@ func readMessagesFromLocalFilesystem(agency db.Agency, transferDirURL *url.URL) 
 	if err != nil {
 		panic(err)
 	}
+	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
 	for _, file := range files {
-		if !file.IsDir() && IsMessage(file.Name()) && !db.IsMessageAlreadyProcessed(agency, file.Name()) {
-			db.MarkFileAsProcessed(agency, file.Name())
+		if !file.IsDir() && IsMessage(file.Name()) && !processedPaths[file.Name()] {
+			db.InsertProcessedTransferDirFile(agency.ID, file.Name())
 			go func() {
 				waitUntilStable(file)
 				log.Println("Processing new message " + file.Name())
@@ -157,9 +159,10 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
 	if err != nil {
 		panic(err)
 	}
+	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
 	for _, file := range files {
-		if !db.IsMessageAlreadyProcessed(agency, file.Name()) && !file.IsDir() && IsMessage(file.Name()) {
-			db.MarkFileAsProcessed(agency, file.Name())
+		if !processedPaths[file.Name()] && !file.IsDir() && IsMessage(file.Name()) {
+			db.InsertProcessedTransferDirFile(agency.ID, file.Name())
 			go func() {
 				waitUntilStableWebDav(client, file)
 				log.Println("Processing new message " + file.Name())
@@ -302,7 +305,7 @@ func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) st
 	processID := GetMessageID(messagePath)
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory contains the message ID.
-	tempDir, err := os.MkdirTemp("", processID)
+	tempDir, err := os.MkdirTemp("", processID.String())
 	if err != nil {
 		panic(err)
 	}
@@ -337,9 +340,7 @@ func RemoveFileFromTransferDir(agency db.Agency, path string) {
 	switch transferDirURL.Scheme {
 	case string(Local):
 		RemoveFileFromLocalFilesystem(transferDirURL, path)
-	case string(WebDAV):
-		fallthrough
-	case string(WebDAVSec):
+	case string(WebDAV), string(WebDAVSec):
 		RemoveFileFromWebDAV(transferDirURL, path)
 	default:
 		panic("unknown transfer directory scheme")

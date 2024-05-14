@@ -7,7 +7,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
   FeatureValue,
   MessageService,
-  PrimaryDocument,
+  PrimaryDocumentData,
   Summary,
   ToolConfidence,
   ToolResult,
@@ -15,8 +15,9 @@ import {
 import { StatusIconsService } from '../primary-documents-table/status-icons.service';
 import { FileFeaturePipe } from '../tool-output/file-attribut-de.pipe';
 import { ToolOutputComponent } from '../tool-output/tool-output.component';
+
 interface DialogData {
-  primaryDocument: PrimaryDocument;
+  primaryDocument: PrimaryDocumentData;
 }
 
 interface FileFeature {

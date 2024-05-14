@@ -63,7 +63,7 @@
             mat-button
             class="open-details-button"
             aria-label="Details anzeigen"
-            [routerLink]="['/nachricht/', process.id]"
+            [routerLink]="['/nachricht/', process.processId]"
           ></a>
         </mat-cell>
       </ng-container>
@@ -89,7 +89,7 @@
             <div class="task-cell">
               <mat-icon>check</mat-icon>
               <span class="task-completion-time">
-                {{ process.processState.receive0501.completionTime | date: "short" }}
+                {{ process.processState.receive0501.completedAt | date: "short" }}
               </span>
             </div>
           }
@@ -111,12 +111,12 @@
             <div class="task-cell">
               <mat-icon>check</mat-icon>
               <span class="task-completion-time">
-                {{ process.processState.appraisal.completionTime | date: "short" }}
+                {{ process.processState.appraisal.completedAt | date: "short" }}
               </span>
             </div>
           } @else {
             <div class="task-cell">
-              <span>{{ process.processState.appraisal.message }}</span>
+              <span>{{ process.processState.appraisal.progress }}</span>
             </div>
           }
         </mat-cell>
@@ -137,7 +137,7 @@
             <div class="task-cell">
               <mat-icon>check</mat-icon>
               <span class="task-completion-time">
-                {{ process.processState.receive0505.completionTime | date: "short" }}
+                {{ process.processState.receive0505.completedAt | date: "short" }}
               </span>
             </div>
           }
@@ -159,7 +159,7 @@
             <div class="task-cell">
               <mat-icon>check</mat-icon>
               <span class="task-completion-time">
-                {{ process.processState.receive0503.completionTime | date: "short" }}
+                {{ process.processState.receive0503.completedAt | date: "short" }}
               </span>
             </div>
           }
@@ -181,13 +181,12 @@
             <div class="task-cell">
               <mat-icon>check</mat-icon>
               <span class="task-completion-time">
-                {{ process.processState.formatVerification.completionTime | date: "short" }}
+                {{ process.processState.formatVerification.completedAt | date: "short" }}
               </span>
             </div>
-          } @else if (getRunningTask(process.processState.formatVerification)) {
+          } @else if (process.processState.formatVerification.running) {
             <div class="progress-cell">
-              {{ getRunningTask(process.processState.formatVerification)!.itemCompletedCount }} /
-              {{ getRunningTask(process.processState.formatVerification)!.itemCount }}
+              {{ process.processState.formatVerification.progress }}
               <mat-spinner diameter="24"></mat-spinner>
             </div>
           } @else if (config()!.borgSupport === false) {
@@ -211,10 +210,10 @@
             <div class="task-cell">
               <mat-icon>check</mat-icon>
               <span class="task-completion-time">
-                {{ process.processState.archiving.completionTime | date: "short" }}
+                {{ process.processState.archiving.completedAt | date: "short" }}
               </span>
             </div>
-          } @else if (getRunningTask(process.processState.archiving)) {
+          } @else if (process.processState.archiving.running) {
             <div class="progress-cell">
               Archivierung läuft
               <mat-spinner diameter="24"></mat-spinner>

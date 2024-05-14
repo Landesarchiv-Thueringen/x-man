@@ -5,6 +5,8 @@ import (
 	"lath/xman/internal/db"
 	"path/filepath"
 	"regexp"
+
+	"github.com/google/uuid"
 )
 
 var uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -33,23 +35,28 @@ func IsMessage(path string) bool {
 func GetMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	fileName := filepath.Base(path)
 	if message0501Regex.MatchString(fileName) {
-		return db.GetMessageTypeByCode("0501"), nil
+		return db.MessageType0501, nil
 	} else if message0503Regex.MatchString(fileName) {
-		return db.GetMessageTypeByCode("0503"), nil
+		return db.MessageType0503, nil
 	} else if message0505Regex.MatchString(fileName) {
-		return db.GetMessageTypeByCode("0505"), nil
+		return db.MessageType0505, nil
 	}
-	return db.GetMessageTypeByCode("0000"), errors.New("unknown message type: " + path)
+	return "", errors.New("unknown message type: " + path)
 }
 
-func GetMessageID(path string) string {
+func GetMessageID(path string) uuid.UUID {
 	fileName := filepath.Base(path)
-	return uuidRegex.FindString(fileName)
+	s := uuidRegex.FindString(fileName)
+	processID, err := uuid.Parse(s)
+	if err != nil {
+		panic("failed to parse process id: " + err.Error())
+	}
+	return processID
 }
 
-func GetMessageName(id string, messageType db.MessageType) string {
+func GetMessageName(id uuid.UUID, messageType db.MessageType) string {
 	messageSuffix := ""
-	switch messageType.Code {
+	switch messageType {
 	case "0501":
 		messageSuffix = Message0501MessageSuffix
 	case "0503":
@@ -57,7 +64,7 @@ func GetMessageName(id string, messageType db.MessageType) string {
 	case "0505":
 		messageSuffix = Message0505MessageSuffix
 	default:
-		panic("message type not supported: " + messageType.Code)
+		panic("message type not supported: " + messageType)
 	}
-	return id + messageSuffix + ".xml"
+	return id.String() + messageSuffix + ".xml"
 }

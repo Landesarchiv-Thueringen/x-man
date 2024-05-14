@@ -6,8 +6,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
-import { DocumentRecordObject, MessageService } from '../../../../services/message.service';
+import { MessageService } from '../../../../services/message.service';
+import { DocumentRecord } from '../../../../services/records.service';
+import { MessagePageService } from '../../message-page.service';
+import { confidentialityLevels } from '../confidentiality-level.pipe';
 import { DocumentVersionMetadataComponent } from '../document-version-metadata/document-version-metadata.component';
+import { media } from '../medium.pipe';
 
 @Component({
   selector: 'app-document-metadata',
@@ -25,12 +29,13 @@ import { DocumentVersionMetadataComponent } from '../document-version-metadata/d
 })
 export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
   urlParameterSubscription?: Subscription;
-  documentRecordObject?: DocumentRecordObject;
+  documentRecordObject?: DocumentRecord;
   messageTypeCode?: string;
   form: FormGroup;
 
   constructor(
     private formBuilder: FormBuilder,
+    private messagePage: MessagePageService,
     private messageService: MessageService,
     private route: ActivatedRoute,
   ) {
@@ -52,21 +57,29 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
     this.urlParameterSubscription = this.route.params
       .pipe(
         switchMap((params: Params) => {
-          return this.messageService.getDocumentRecordObject(params['id']);
+          return this.messagePage.getDocumentRecord(params['id']);
         }),
       )
-      .subscribe((document: DocumentRecordObject) => {
-        this.documentRecordObject = document;
+      .subscribe((recordObject: DocumentRecord) => {
+        this.documentRecordObject = recordObject;
+        let confidentiality: string | undefined;
+        if (recordObject.generalMetadata?.confidentialityLevel) {
+          confidentiality = confidentialityLevels[recordObject.generalMetadata?.confidentialityLevel].shortDesc;
+        }
+        let medium: string | undefined;
+        if (recordObject.generalMetadata?.medium) {
+          medium = media[recordObject.generalMetadata?.medium].shortDesc;
+        }
         this.form.patchValue({
-          recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.xdomeaID,
-          fileId: this.documentRecordObject!.generalMetadata?.xdomeaID,
+          recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.filePlanNumber,
+          fileId: this.documentRecordObject!.generalMetadata?.recordNumber,
           subject: this.documentRecordObject!.generalMetadata?.subject,
           documentType: this.documentRecordObject!.type,
           incomingDate: this.messageService.getDateText(this.documentRecordObject!.incomingDate),
           outgoingDate: this.messageService.getDateText(this.documentRecordObject!.outgoingDate),
           documentDate: this.messageService.getDateText(this.documentRecordObject!.documentDate),
-          confidentiality: this.documentRecordObject?.generalMetadata?.confidentialityLevel?.shortDesc,
-          medium: this.documentRecordObject?.generalMetadata?.medium?.shortDesc,
+          confidentiality,
+          medium,
         });
       });
   }

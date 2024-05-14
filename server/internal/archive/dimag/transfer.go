@@ -90,7 +90,7 @@ func CloseConnection() {
 
 func uploadArchivePackage(
 	sftpClient *sftp.Client,
-	process db.Process,
+	process db.SubmissionProcess,
 	message db.Message,
 	archivePackage db.ArchivePackage,
 ) (string, error) {
@@ -99,7 +99,7 @@ func uploadArchivePackage(
 	importPath := filepath.Join(uploadDir, importDir)
 	err := sftpClient.Mkdir(importPath)
 	if err != nil {
-		log.Println(err)
+		log.Println("sftpClient.Mkdir", err)
 		return importDir, err
 	}
 	err = uploadXdomeaMessageFile(sftpClient, message, importPath, archivePackage)
@@ -111,13 +111,13 @@ func uploadArchivePackage(
 		return importDir, err
 	}
 	for _, primaryDocument := range archivePackage.PrimaryDocuments {
-		filePath := filepath.Join(message.StoreDir, primaryDocument.FileName)
+		filePath := filepath.Join(message.StoreDir, primaryDocument.Filename)
 		_, err := os.Stat(filePath)
 		if err != nil {
-			log.Println(err)
+			log.Println("os.Stat(filePath)", err, filePath)
 			return importDir, err
 		}
-		remotePath := primaryDocument.GetRemotePath(importPath)
+		remotePath := filepath.Join(importPath, primaryDocument.Filename)
 		err = uploadFile(sftpClient, filePath, remotePath)
 		if err != nil {
 			return importDir, err
@@ -132,15 +132,15 @@ func uploadXdomeaMessageFile(
 	importPath string,
 	archivePackage db.ArchivePackage,
 ) error {
-	remotePath := message.GetRemoteXmlPath(importPath)
-	prunnedMessage, err := xdomea.PruneMessage(message, archivePackage)
+	remotePath := getRemoteXmlPath(message, importPath)
+	prunedMessage, err := xdomea.PruneMessage(message, archivePackage)
 	if err != nil {
 		return err
 	}
-	return createRemoteTextFile(sftpClient, prunnedMessage, remotePath)
+	return createRemoteTextFile(sftpClient, prunedMessage, remotePath)
 }
 
-func uploadProtocol(sftpClient *sftp.Client, process db.Process, importPath string) error {
+func uploadProtocol(sftpClient *sftp.Client, process db.SubmissionProcess, importPath string) error {
 	remotePath := filepath.Join(importPath, archive.ProtocolFilename)
 	protocol := archive.GenerateProtocol(process)
 	return createRemoteTextFile(sftpClient, protocol, remotePath)
@@ -162,20 +162,20 @@ func uploadControlFile(
 func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) error {
 	srcFile, err := os.Open(localPath)
 	if err != nil {
-		log.Println(err)
+		log.Println("os.Open(localPath)", err, localPath)
 		return err
 	}
 	defer srcFile.Close()
 	// the remote path must already exist
 	dstFile, err := sftpClient.OpenFile(remotePath, (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
 	if err != nil {
-		log.Println(err)
+		log.Println("sftpClient.OpenFile", err, remotePath)
 		return err
 	}
 	defer dstFile.Close()
 	_, err = io.Copy(dstFile, srcFile)
 	if err != nil {
-		log.Println(err)
+		log.Println("io.Copy", err, dstFile, srcFile)
 		return err
 	}
 	return nil

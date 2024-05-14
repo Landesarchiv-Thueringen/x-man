@@ -41,7 +41,7 @@ export class TasksComponent implements AfterViewInit {
     this.dataSource.sortingDataAccessor = ((task: Task, property: TasksComponent['displayedColumns'][number]) => {
       switch (property) {
         case 'process':
-          return task.process.id;
+          return task.processId;
         default:
           return task[property] ?? '';
       }
@@ -52,7 +52,7 @@ export class TasksComponent implements AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  trackTableRow(index: number, element: Task): number {
+  trackTableRow(index: number, element: Task): string {
     return element.id;
   }
 }

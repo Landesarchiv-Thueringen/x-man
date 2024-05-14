@@ -13,10 +13,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, take } from 'rxjs';
 import { AuthService } from '../../../../services/auth.service';
+import { ProcessingError } from '../../../../services/clearing.service';
 import { ConfigService } from '../../../../services/config.service';
 import { Message } from '../../../../services/message.service';
 import { NotificationService } from '../../../../services/notification.service';
-import { Process, ProcessService, ProcessStep } from '../../../../services/process.service';
+import { ProcessService, ProcessStep, SubmissionProcess } from '../../../../services/process.service';
 import { ClearingDetailsComponent } from '../../../clearing-page/clearing-details.component';
 import { MessagePageService } from '../../message-page.service';
 import { InstitutMetadataComponent } from '../institution-metadata/institution-metadata.component';
@@ -58,7 +59,8 @@ export class MessageMetadataComponent {
     note: new FormControl<string | null>(null),
   });
   message?: Message;
-  process?: Process;
+  process?: SubmissionProcess;
+  processingErrors: ProcessingError[] = [];
   stateItems: StateItem[] = [];
   processDeleteTime: Date | null = null;
   isAdmin = this.auth.isAdmin();
@@ -76,16 +78,17 @@ export class MessageMetadataComponent {
     private messagePage: MessagePageService,
   ) {
     this.messagePage
-      .observeProcess()
+      .observeProcessData()
       .pipe(takeUntilDestroyed())
-      .subscribe((process) => {
+      .subscribe((data) => {
         const isFirstValue = !this.process;
-        this.process = process ?? undefined;
+        this.process = data.process ?? undefined;
+        this.processingErrors = data.processingErrors;
         this.stateItems = this.getStateItems();
         if (isFirstValue) {
-          this.form.patchValue({ note: process.note });
+          this.form.patchValue({ note: data.process.note });
         }
-        this.getProcessDeleteTime(process).subscribe(
+        this.getProcessDeleteTime(data.process).subscribe(
           (processDeleteTime) => (this.processDeleteTime = processDeleteTime),
         );
       });
@@ -116,7 +119,7 @@ export class MessageMetadataComponent {
   saveNote(): void {
     const value = this.form.get('note')?.value ?? '';
     if (this.process!.note !== value) {
-      this.processService.setNote(this.process!.id, value).subscribe(() => {
+      this.processService.setNote(this.process!.processId, value).subscribe(() => {
         this.process!.note = value;
         this.notification.show('Notiz gespeichert');
       });
@@ -129,7 +132,7 @@ export class MessageMetadataComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.processService.deleteProcess(this.process!.id).subscribe(() => {
+          this.processService.deleteProcess(this.process!.processId).subscribe(() => {
             this.notification.show('Aussonderung gelöscht');
             this.router.navigate(['/']);
           });
@@ -138,11 +141,10 @@ export class MessageMetadataComponent {
   }
 
   numberOfUnresolvedErrors(): number {
-    return this.process?.processingErrors.filter((processingError) => !processingError.resolved).length ?? 0;
-  }
-
-  isStepRunning(processStep: ProcessStep): boolean {
-    return processStep.tasks.some((task) => task.state === 'running');
+    if (!this.process) {
+      return 0;
+    }
+    return Object.values(this.process.processState).reduce((acc, step: ProcessStep) => step.unresolvedErrors + acc, 0);
   }
 
   scrollToBottom(panel: MatExpansionPanel): void {
@@ -163,73 +165,72 @@ export class MessageMetadataComponent {
     const state = this.process.processState;
     let items: StateItem[] = [];
     if (state.receive0501.complete) {
-      items.push({ title: 'Anbietung erhalten', icon: 'check', date: state.receive0501.completionTime! });
+      items.push({ title: 'Anbietung erhalten', icon: 'check', date: state.receive0501.completedAt! });
     }
     if (state.appraisal.complete) {
-      items.push({ title: 'Bewertung abgeschlossen', icon: 'check', date: state.appraisal.completionTime! });
-    } else if (state.appraisal.message) {
+      items.push({ title: 'Bewertung abgeschlossen', icon: 'check', date: state.appraisal.completedAt! });
+    } else if (state.appraisal.progress) {
       items.push({
         title: 'Bewertung',
         icon: 'edit_note',
-        message: state.appraisal.message,
-        date: state.appraisal.updateTime!,
+        message: state.appraisal.progress,
+        date: state.appraisal.updatedAt!,
       });
     }
     if (state.receive0505.complete) {
-      items.push({ title: 'Bewertung in DMS importiert', icon: 'check', date: state.receive0505.completionTime! });
+      items.push({ title: 'Bewertung in DMS importiert', icon: 'check', date: state.receive0505.completedAt! });
     }
     if (state.receive0503.complete) {
-      items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completionTime! });
+      items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completedAt! });
     }
     if (state.formatVerification.complete) {
       items.push({
         title: 'Formatverifikation abgeschlossen',
         icon: 'check',
-        date: state.formatVerification.completionTime!,
+        date: state.formatVerification.completedAt!,
       });
-    } else if (this.isStepRunning(state.formatVerification)) {
-      const task = state.formatVerification.tasks.find((task) => task.state === 'running')!;
+    } else if (state.formatVerification.running) {
       items.push({
         title: 'Formatverifikation läuft...',
         icon: 'spinner',
-        date: task.createdAt,
-        message: `${task.itemCompletedCount} / ${task.itemCount}`,
+        date: state.formatVerification.updatedAt,
+        message: state.formatVerification.progress,
       });
     }
     if (state.archiving.complete) {
       items.push({
         title: 'Abgabe archiviert',
         icon: 'check',
-        date: state.archiving.completionTime!,
+        date: state.archiving.completedAt!,
       });
-    } else if (this.isStepRunning(state.archiving)) {
-      const task = state.archiving.tasks.find((task) => task.state === 'running')!;
+    } else if (state.archiving.running) {
       items.push({
         title: 'Archivierung läuft...',
         icon: 'spinner',
-        date: task.createdAt,
+        date: state.archiving.updatedAt,
       });
     }
-    for (const processingError of this.process.processingErrors) {
+    for (const processingError of this.processingErrors) {
       let onClick;
       if (this.auth.isAdmin()) {
         onClick = () =>
           this.dialog.open(ClearingDetailsComponent, {
-            data: { ...processingError, process: this.process, message: this.message },
+            maxWidth: '80vw',
+            data: processingError,
           });
       }
       if (processingError.resolved) {
         items.push({
           title: 'Gelöst: ' + processingError.description,
           icon: 'check_circle',
-          date: processingError.detectedAt,
+          date: processingError.createdAt,
           onClick,
         });
       } else {
         items.push({
           title: processingError.description,
           icon: 'error',
-          date: processingError.detectedAt,
+          date: processingError.createdAt,
           onClick,
         });
       }
@@ -237,11 +238,11 @@ export class MessageMetadataComponent {
     return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
-  private getProcessDeleteTime(process: Process): Observable<Date | null> {
+  private getProcessDeleteTime(process: SubmissionProcess): Observable<Date | null> {
     if (process.processState.archiving.complete) {
       return this.configService.config.pipe(
         map((config) => {
-          let date = new Date(process.processState.archiving.completionTime!);
+          let date = new Date(process.processState.archiving.completedAt!);
           date.setDate(date.getDate() + config.deleteArchivedProcessesAfterDays);
           return date;
         }),

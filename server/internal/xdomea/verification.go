@@ -1,7 +1,8 @@
-package format
+package xdomea
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,12 +31,18 @@ var client http.Client = http.Client{
 }
 var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 
-func VerifyFileFormats(process db.Process, message db.Message) error {
-	log.Printf("Starting VerifyFileFormats for message %v...\n", message.ID)
-	primaryDocuments := db.GetAllPrimaryDocuments(message.ID)
-	task := tasks.Start(db.TaskTypeFormatVerification, process, uint(len(primaryDocuments)))
+func VerifyFileFormats(process db.SubmissionProcess, message db.Message) error {
+	log.Printf("Starting VerifyFileFormats for process %v...\n", process.ProcessID)
+	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	primaryDocuments := GetPrimaryDocuments(&rootRecords)
+	task := tasks.Start(
+		db.ProcessStepFormatVerification,
+		process.ProcessID,
+		fmt.Sprintf("0 / %d", len(primaryDocuments)),
+	)
 	var wg sync.WaitGroup
 	errorMessages := make([]string, 0)
+	itemsComplete := 0
 	for _, primaryDocument := range primaryDocuments {
 		// Suppress warning about loop-variable scope. Actual problem is fixed
 		// since go 1.22. Can be removed when tooling is updated to not show the
@@ -48,35 +55,36 @@ func VerifyFileFormats(process db.Process, message db.Message) error {
 				wg.Done()
 				<-guard
 			}()
-			err := verifyDocument(message.StoreDir, primaryDocument)
+			err := verifyDocument(message, primaryDocument)
 			if err != nil {
-				errorMessage := fmt.Sprintf("%s\n%s", primaryDocument.FileName, err.Error())
+				errorMessage := fmt.Sprintf("%s\n%s", primaryDocument.Filename, err.Error())
 				errorMessages = append(errorMessages, errorMessage)
 			}
-			tasks.MarkItemComplete(&task)
+			itemsComplete++
+			tasks.Progress(task, fmt.Sprintf("%d / %d", itemsComplete, len(primaryDocuments)))
 		}()
 	}
 	wg.Wait()
 	if len(errorMessages) == 0 {
-		tasks.MarkDone(&task, nil)
+		tasks.MarkDone(task, "")
 	} else {
 		return tasks.MarkFailed(&task, strings.Join(errorMessages, "\n\n"))
 	}
-	log.Printf("VerifyFileFormats for message %v done\n", message.ID)
+	log.Printf("VerifyFileFormats for process %v done\n", process.ProcessID)
 	return nil
 }
 
 // verifyDocument runs format verification on the given document using the
 // remote BORG service and saves the result to the document object.
-func verifyDocument(storeDir string, primaryDocument db.PrimaryDocument) error {
-	filePath := path.Join(storeDir, primaryDocument.FileName)
+func verifyDocument(message db.Message, primaryDocument db.PrimaryDocument) error {
+	filePath := path.Join(message.StoreDir, primaryDocument.Filename)
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return err
 	}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	fw, err := writer.CreateFormFile("file", primaryDocument.FileName)
+	fw, err := writer.CreateFormFile("file", primaryDocument.Filename)
 	if err != nil {
 		return err
 	}
@@ -106,39 +114,6 @@ func verifyDocument(storeDir string, primaryDocument db.PrimaryDocument) error {
 	if err != nil {
 		return err
 	}
-	prepareForDatabase(&parsedResponse)
-	db.CreateFormatVerification(primaryDocument.ID, parsedResponse)
+	db.UpdatePrimaryDocumentFormatVerification(message.MessageHead.ProcessID, primaryDocument.Filename, &parsedResponse)
 	return nil
-}
-
-func prepareForDatabase(formatVerification *db.FormatVerification) {
-	var features []db.Feature
-	for _, feature := range formatVerification.Summary {
-		features = append(features, feature)
-	}
-	formatVerification.Features = features
-	if formatVerification.FileIdentificationResults != nil {
-		for toolIndex := range formatVerification.FileIdentificationResults {
-			prepareToolResponseForDatabase(&formatVerification.FileIdentificationResults[toolIndex])
-		}
-	}
-	if formatVerification.FileValidationResults != nil {
-		for toolIndex := range formatVerification.FileValidationResults {
-			prepareToolResponseForDatabase(&formatVerification.FileValidationResults[toolIndex])
-		}
-	}
-}
-
-func prepareToolResponseForDatabase(toolResponse *db.ToolResponse) {
-	if toolResponse.ExtractedFeatures != nil {
-		var extractedFeatures []db.ExtractedFeature
-		for key, value := range *toolResponse.ExtractedFeatures {
-			extractedFeature := db.ExtractedFeature{
-				Key:   key,
-				Value: value,
-			}
-			extractedFeatures = append(extractedFeatures, extractedFeature)
-		}
-		toolResponse.Features = extractedFeatures
-	}
 }

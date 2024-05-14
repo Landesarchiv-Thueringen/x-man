@@ -1,6 +1,7 @@
 package dimag
 
 import (
+	"context"
 	"encoding/xml"
 	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
@@ -29,8 +30,8 @@ func GenerateControlFile(
 	xmlIndexItem := IndexItem{
 		IndexID:  "",
 		ItemType: FileAbbreviation,
-		Title:    message.GetMessageFileName(),
-		FilePath: message.GetRemoteXmlPath(importDir),
+		Title:    filepath.Base(message.MessagePath),
+		FilePath: getRemoteXmlPath(message, importDir),
 	}
 	protocolIndexItem := GetIndexItemForProtocol(importDir)
 	fileIndexItems = append(fileIndexItems, xmlIndexItem, protocolIndexItem)
@@ -43,14 +44,18 @@ func GenerateControlFile(
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
-		Lifetime:   archivePackageData.IOLifetimeCombined,
+		Lifetime:   archivePackageData.IOLifetime,
 		ItemType:   InformationObjectAbbreviation,
 		Title:      archivePackageData.IOTitle,
 		IndexItems: repItems,
 	}
 	ioItems := []IndexItem{ioIndexItem}
+	archiveCollection, ok := db.FindArchiveCollection(context.Background(), archivePackageData.CollectionID)
+	if !ok {
+		panic("failed to find archive collection: " + archivePackageData.CollectionID.Hex())
+	}
 	dimagControl := DimagControl{
-		RootID:     archivePackageData.Collection.DimagID,
+		RootID:     archiveCollection.DimagID,
 		IndexItems: ioItems,
 	}
 	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")
@@ -68,9 +73,9 @@ func GetIndexItemForPrimaryDocument(
 	fileIndexItem := IndexItem{
 		IndexID:  "",
 		ItemType: FileAbbreviation,
-		Title:    primaryDocument.GetFileName(),
-		FileName: primaryDocument.GetFileName(),
-		FilePath: primaryDocument.GetRemotePath(importDir),
+		Title:    getFileName(primaryDocument),
+		FileName: getFileName(primaryDocument),
+		FilePath: filepath.Join(importDir, primaryDocument.Filename),
 	}
 	return fileIndexItem
 }
@@ -86,4 +91,16 @@ func GetIndexItemForProtocol(
 		FilePath: filepath.Join(importDir, archive.ProtocolFilename),
 	}
 	return fileIndexItem
+}
+
+func getFileName(primaryDocument db.PrimaryDocument) string {
+	if primaryDocument.FilenameOriginal == nil {
+		return primaryDocument.Filename
+	}
+	return *primaryDocument.FilenameOriginal
+}
+
+func getRemoteXmlPath(message db.Message, importDir string) string {
+	filename := filepath.Base(message.MessagePath)
+	return filepath.Join(importDir, filename)
 }

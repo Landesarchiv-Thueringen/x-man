@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"lath/xman/internal/db"
 
 	"github.com/google/uuid"
@@ -40,33 +41,33 @@ type AppraisalStats struct {
 
 type appraisalMap = map[uuid.UUID]db.Appraisal
 
-func (a *AppraisalStats) processFiles(files []db.FileRecordObject, isSubLevel bool, m appraisalMap) {
+func (a *AppraisalStats) processFiles(files []db.FileRecord, isSubLevel bool, m appraisalMap) {
 	for _, file := range files {
 		if isSubLevel {
-			a.SubFiles.addObject(m[file.XdomeaID])
+			a.SubFiles.addObject(m[file.RecordID])
 		} else {
-			a.Files.addObject(m[file.XdomeaID])
+			a.Files.addObject(m[file.RecordID])
 		}
-		a.processFiles(file.SubFileRecordObjects, true, m)
-		a.processProcesses(file.ProcessRecordObjects, false, m)
-		a.processDocuments(file.DocumentRecordObjects, false, m[file.XdomeaID])
+		a.processFiles(file.Subfiles, true, m)
+		a.processProcesses(file.Processes, false, m)
+		a.processDocuments(file.Documents, false, m[file.RecordID])
 	}
 }
 
-func (a *AppraisalStats) processProcesses(processes []db.ProcessRecordObject, isSubLevel bool, m appraisalMap) {
+func (a *AppraisalStats) processProcesses(processes []db.ProcessRecord, isSubLevel bool, m appraisalMap) {
 	for _, process := range processes {
 		if isSubLevel {
-			a.SubProcesses.addObject(m[process.XdomeaID])
+			a.SubProcesses.addObject(m[process.RecordID])
 		} else {
-			a.Processes.addObject(m[process.XdomeaID])
+			a.Processes.addObject(m[process.RecordID])
 		}
-		a.processProcesses(process.SubProcessRecordObjects, false, m)
-		a.processDocuments(process.DocumentRecordObjects, false, m[process.XdomeaID])
+		a.processProcesses(process.Subprocesses, false, m)
+		a.processDocuments(process.Documents, false, m[process.RecordID])
 	}
 }
 
 func (a *AppraisalStats) processDocuments(
-	documents []db.DocumentRecordObject,
+	documents []db.DocumentRecord,
 	isSubLevel bool,
 	appraisal db.Appraisal,
 ) {
@@ -98,23 +99,24 @@ func (a *AppraisalStats) checkForDeviatingAppraisals(appraisalCode string) {
 	}
 }
 
-func getAppraisalsMap(processID string) appraisalMap {
+func getAppraisalsMap(processID uuid.UUID) appraisalMap {
 	m := make(appraisalMap)
-	appraisals := db.GetAppraisalsForProcess(processID)
+	appraisals := db.FindAppraisalsForProcess(context.Background(), processID)
 	for _, a := range appraisals {
-		m[a.RecordObjectID] = a
+		m[a.RecordID] = a
 	}
 	return m
 }
 
-func getAppraisalStats(message db.Message) (a AppraisalStats) {
+func getAppraisalStats(ctx context.Context, message db.Message) (a AppraisalStats) {
 	m := getAppraisalsMap(message.MessageHead.ProcessID)
-	a.processFiles(message.FileRecordObjects, false, m)
-	a.processProcesses(message.ProcessRecordObjects, false, m)
+	rootRecords := db.FindRootRecords(ctx, message.MessageHead.ProcessID, message.MessageType)
+	a.processFiles(rootRecords.Files, false, m)
+	a.processProcesses(rootRecords.Processes, false, m)
 	// Treat all root-level documents as appraised to "A" since documents always
 	// inherit their appraisal from their parent element (which in this case is
 	// the message itself).
-	a.processDocuments(message.DocumentRecordObjects, false, db.Appraisal{Decision: "A"})
+	a.processDocuments(rootRecords.Documents, false, db.Appraisal{Decision: "A"})
 	a.checkForDeviatingAppraisals("A")
 	return
 }

@@ -1,16 +1,21 @@
 package dimag
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
+	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
+	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 var DimagApiEndpoint = os.Getenv("DIMAG_CORE_SOAP_ENDPOINT")
@@ -22,75 +27,84 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 // The record objects in the message should be complete loaded.
 //
 // ImportMessageSync returns after the archiving process completed.
-func ImportMessageSync(process db.Process, message db.Message, collection db.Collection) error {
+func ImportMessageSync(process db.SubmissionProcess, message db.Message, collection db.ArchiveCollection) error {
 	err := InitConnection()
 	if err != nil {
 		log.Println("couldn't init connection to DIMAG sftp server")
 		return err
 	}
 	defer CloseConnection()
-	for _, fileRecordObject := range message.FileRecordObjects {
-		archivePackageData := db.ArchivePackage{
-			ProcessID:          process.ID,
-			IOTitle:            fileRecordObject.GetTitle(),
-			IOLifetimeCombined: fileRecordObject.GetCombinedLifetime(),
-			REPTitle:           "Original",
-			PrimaryDocuments:   fileRecordObject.GetPrimaryDocuments(),
-			Collection:         &collection,
-			FileRecordObjects:  []db.FileRecordObject{fileRecordObject},
+	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, message.MessageType)
+	for _, f := range rootRecords.Files {
+		aip := db.ArchivePackage{
+			ProcessID:        process.ProcessID,
+			IOTitle:          archive.GetFileRecordTitle(f),
+			IOLifetime:       archive.GetCombinedLifetime(f.Lifetime),
+			REPTitle:         "Original",
+			PrimaryDocuments: xdomea.GetPrimaryDocumentsForFile(&f),
+			CollectionID:     collection.ID,
+			RootRecordIDs:    []uuid.UUID{f.RecordID},
 		}
-		err = importArchivePackage(process, message, &archivePackageData)
+		err = importArchivePackage(process, message, &aip)
 		if err != nil {
 			return err
 		}
-		db.AddArchivePackage(archivePackageData)
+		db.InsertArchivePackage(aip)
 	}
-	for _, processRecordObject := range message.ProcessRecordObjects {
-		archivePackageData := db.ArchivePackage{
-			ProcessID:            process.ID,
-			IOTitle:              processRecordObject.GetTitle(),
-			IOLifetimeCombined:   processRecordObject.GetCombinedLifetime(),
-			REPTitle:             "Original",
-			PrimaryDocuments:     processRecordObject.GetPrimaryDocuments(),
-			Collection:           &collection,
-			ProcessRecordObjects: []db.ProcessRecordObject{processRecordObject},
+	for _, p := range rootRecords.Processes {
+		aip := db.ArchivePackage{
+			ProcessID:        process.ProcessID,
+			IOTitle:          archive.GetProcessRecordTitle(p),
+			IOLifetime:       archive.GetCombinedLifetime(p.Lifetime),
+			REPTitle:         "Original",
+			PrimaryDocuments: xdomea.GetPrimaryDocumentsForProcess(&p),
+			CollectionID:     collection.ID,
+			RootRecordIDs:    []uuid.UUID{p.RecordID},
 		}
-		err = importArchivePackage(process, message, &archivePackageData)
+		err = importArchivePackage(process, message, &aip)
 		if err != nil {
 			return err
 		}
-		db.AddArchivePackage(archivePackageData)
+		db.InsertArchivePackage(aip)
 	}
-	// combine documents which don't belong to a file or process in one archive package
-	if len(message.DocumentRecordObjects) > 0 {
+	// Combine documents which don't belong to a file or process in one archive package.
+	if len(rootRecords.Documents) > 0 {
 		var primaryDocuments []db.PrimaryDocument
-		for _, documentRecordObject := range message.DocumentRecordObjects {
-			primaryDocuments = append(primaryDocuments, documentRecordObject.GetPrimaryDocuments()...)
+		for _, d := range rootRecords.Documents {
+			primaryDocuments = append(primaryDocuments, xdomea.GetPrimaryDocumentsForDocument(&d)...)
 		}
 		ioTitle := "Nicht zugeordnete Dokumente Behörde: " + process.Agency.Name +
-			" Prozess-ID: " + process.ID
+			" Prozess-ID: " + process.ProcessID.String()
 		repTitle := "Original"
-		archivePackageData := db.ArchivePackage{
-			ProcessID:             process.ID,
-			IOTitle:               ioTitle,
-			IOLifetimeCombined:    "-",
-			REPTitle:              repTitle,
-			PrimaryDocuments:      primaryDocuments,
-			Collection:            &collection,
-			DocumentRecordObjects: message.DocumentRecordObjects,
+		var rootRecordIDs []uuid.UUID
+		for _, r := range rootRecords.Documents {
+			rootRecordIDs = append(rootRecordIDs, r.RecordID)
 		}
-		err = importArchivePackage(process, message, &archivePackageData)
+		aip := db.ArchivePackage{
+			ProcessID:        process.ProcessID,
+			IOTitle:          ioTitle,
+			IOLifetime:       "-",
+			REPTitle:         repTitle,
+			PrimaryDocuments: primaryDocuments,
+			CollectionID:     collection.ID,
+			RootRecordIDs:    rootRecordIDs,
+		}
+		err = importArchivePackage(process, message, &aip)
 		if err != nil {
 			return err
 		}
-		db.AddArchivePackage(archivePackageData)
+		db.InsertArchivePackage(aip)
 	}
 	return nil
 }
 
 // importArchivePackage archives a file record object in DIMAG.
-func importArchivePackage(process db.Process, message db.Message, archivePackageData *db.ArchivePackage) error {
-	importDir, err := uploadArchivePackage(sftpClient, process, message, *archivePackageData)
+func importArchivePackage(
+	process db.SubmissionProcess,
+	message db.Message,
+	aip *db.ArchivePackage,
+) error {
+	importDir, err := uploadArchivePackage(sftpClient, process, message, *aip)
 	if err != nil {
 		return err
 	}
@@ -127,7 +141,7 @@ func importArchivePackage(process db.Process, message db.Message, archivePackage
 		return err
 	}
 	defer response.Body.Close()
-	return processImportResponse(response, archivePackageData)
+	return processImportResponse(response, aip)
 }
 
 func processImportResponse(response *http.Response, archivePackageData *db.ArchivePackage) error {

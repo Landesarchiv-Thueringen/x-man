@@ -273,7 +273,7 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
           id: uuidv4(),
           title: `${name} ${index + 1}...${Math.min(index + GROUP_SIZE, relevantNodes.length)}`,
           type: groupType,
-          parentID: node.parentID,
+          parentId: node.parentId,
           children: [],
           canBeAppraised: false,
           selectable: relevantNodes.some((n) => n.canBeAppraised),
@@ -282,7 +282,7 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
       }
       currentGroup!.children!.push({
         ...node,
-        parentID: currentGroup!.id,
+        parentId: currentGroup!.id,
         selectable: node.canBeAppraised,
         children: node.children?.map((child) => this.groupNodes(child)),
       });

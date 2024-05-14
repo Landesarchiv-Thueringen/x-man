@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CollectionDetailsComponent } from './collection-details.component';
-import { Collection, CollectionsService } from './collections.service';
+import { ArchiveCollection, CollectionsService } from './collections.service';
 
 @Component({
   selector: 'app-collections',
@@ -20,7 +20,7 @@ export class CollectionsComponent implements AfterViewInit {
   @ViewChild('newCollectionDialog') newCollectionDialog!: TemplateRef<unknown>;
   @ViewChild(MatSort) sort!: MatSort;
 
-  dataSource = new MatTableDataSource<Collection>();
+  dataSource = new MatTableDataSource<ArchiveCollection>();
   displayedColumns: string[] = ['icon', 'name', 'dimagId'];
   newCollectionNameControl = new FormControl('', Validators.required);
 
@@ -38,7 +38,7 @@ export class CollectionsComponent implements AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  openDetails(collection: Collection) {
+  openDetails(collection: ArchiveCollection) {
     const dialogRef = this.dialog.open(CollectionDetailsComponent, { data: collection });
     dialogRef.afterClosed().subscribe((updatedCollection) => {
       if (updatedCollection) {

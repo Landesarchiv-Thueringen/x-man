@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MessageService } from '../../../../services/message.service';
 
 export interface DialogData {
-  messageID: string;
+  processId: string;
 }
 
 @Component({
@@ -24,7 +24,7 @@ export class FinalizeAppraisalDialogComponent {
     private messageService: MessageService,
   ) {
     this.appraisalComplete = false;
-    this.messageService.areAllRecordObjectsAppraised(data.messageID).subscribe({
+    this.messageService.areAllRecordObjectsAppraised(data.processId).subscribe({
       error: (error: any) => {
         console.error(error);
       },
