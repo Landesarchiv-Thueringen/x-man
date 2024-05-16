@@ -22,9 +22,9 @@ Ergänzende Funktionen:
 - Administration und Fehlerbehandlung durch gesonderte Administratoren
 - Zuordnung von Archivarinnen zu abgebenden Stellen
 
-## Entwicklungsstand/Warnung
+## Entwicklungsstand
 
-Die Anwendung wurde bisher nur mit generierten Testdaten geprüft. Ein Test mit Echtdaten ist geplant, konnte aber noch nicht durchgeführt werden. Für den produktiven Einsatz sollten Backups der Aussonderungsnachrichten erstellt werden, weiterhin sollten die Aussonderungsnachrichten erst gelöscht werden, wenn die vollständige Archivierung geprüft werden konnte.
+Die Anwendung wurde bisher nur mit generierten Testdaten geprüft. Ein Test mit Echtdaten ist noch nicht abgeschlossen. Für den produktiven Einsatz sollten Backups der Aussonderungsnachrichten erstellt werden, weiterhin sollten die Aussonderungsnachrichten erst gelöscht werden, wenn die vollständige Archivierung geprüft werden konnte.
 
 ## Bedienung
 
