@@ -57,7 +57,7 @@ type FileRecord struct {
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	ArchiveMetadata *ArchiveMetadata `bson:"archive_metadata" json:"archiveMetadata"`
 	Lifetime        *Lifetime        `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
-	Type            *string          `json:"type"`
+	Type            string           `json:"type"`
 	Subfiles        []FileRecord     `json:"subfiles"`
 	Processes       []ProcessRecord  `json:"processes"`
 	Documents       []DocumentRecord `json:"documents"`
@@ -68,7 +68,7 @@ type ProcessRecord struct {
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	ArchiveMetadata *ArchiveMetadata `bson:"archive_metadata" json:"archiveMetadata"`
 	Lifetime        *Lifetime        `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
-	Type            *string          `json:"type" xml:"Typ"`
+	Type            string           `json:"type" xml:"Typ"`
 	Subprocesses    []ProcessRecord  `xml:"Teilvorgang" json:"subprocesses"`
 	Documents       []DocumentRecord `xml:"Dokument" json:"documents"`
 }
@@ -77,18 +77,18 @@ type DocumentRecord struct {
 	XMLName         xml.Name         `bson:"-" json:"-"`
 	RecordID        uuid.UUID        `xml:"Identifikation>ID" bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
-	Type            *string          `json:"type" xml:"Typ"`
-	IncomingDate    *string          `xml:"Posteingangsdatum" bson:"incoming_date" json:"incomingDate"`
-	OutgoingDate    *string          `xml:"Postausgangsdatum" bson:"outgoing_date" json:"outgoingDate"`
-	DocumentDate    *string          `xml:"DatumDesSchreibens" bson:"document_date" json:"documentDate"`
+	Type            string           `json:"type" xml:"Typ"`
+	IncomingDate    string           `xml:"Posteingangsdatum" bson:"incoming_date" json:"incomingDate"`
+	OutgoingDate    string           `xml:"Postausgangsdatum" bson:"outgoing_date" json:"outgoingDate"`
+	DocumentDate    string           `xml:"DatumDesSchreibens" bson:"document_date" json:"documentDate"`
 	Versions        []Version        `xml:"Version" json:"versions"`
 	Attachments     []DocumentRecord `xml:"Anlage" json:"attachments"`
 }
 
 type GeneralMetadata struct {
 	XMLName              xml.Name              `xml:"AllgemeineMetadaten" bson:"-"  json:"-"`
-	Subject              *string               `xml:"Betreff" json:"subject"`
-	RecordNumber         *string               `xml:"Kennzeichen" bson:"record_number" json:"recordNumber"`
+	Subject              string                `xml:"Betreff" json:"subject"`
+	RecordNumber         string                `xml:"Kennzeichen" bson:"record_number" json:"recordNumber"`
 	FilePlan             *FilePlan             `xml:"Aktenplaneinheit" bson:"file_plan"  json:"filePlan"`
 	ConfidentialityLevel *ConfidentialityLevel `xml:"Vertraulichkeitsstufe>code" json:"confidentialityLevel"`
 	Medium               *Medium               `xml:"Medium>code" json:"medium"`
@@ -114,19 +114,19 @@ const (
 
 type FilePlan struct {
 	XMLName        xml.Name `xml:"Aktenplaneinheit" bson:"-" json:"-"`
-	FilePlanNumber *string  `xml:"Kennzeichen" bson:"file_plan_number" json:"filePlanNumber"`
+	FilePlanNumber string   `xml:"Kennzeichen" bson:"file_plan_number" json:"filePlanNumber"`
 }
 
 type Lifetime struct {
 	XMLName xml.Name `xml:"Laufzeit" bson:"-" json:"-"`
-	Start   *string  `xml:"Beginn" json:"start"`
-	End     *string  `xml:"Ende" json:"end"`
+	Start   string   `xml:"Beginn" json:"start"`
+	End     string   `xml:"Ende" json:"end"`
 }
 
 type ArchiveMetadata struct {
 	XMLName             xml.Name `xml:"ArchivspezifischeMetadaten" bson:"-" json:"-"`
-	AppraisalCode       *string  `xml:"Aussonderungsart>Aussonderungsart>code" bson:"appraisal_code" json:"appraisalCode"`
-	AppraisalRecommCode *string  `xml:"Bewertungsvorschlag>code" bson:"appraisal_recomm_code" json:"appraisalRecommCode"`
+	AppraisalCode       string   `xml:"Aussonderungsart>Aussonderungsart>code" bson:"appraisal_code" json:"appraisalCode"`
+	AppraisalRecommCode string   `xml:"Bewertungsvorschlag>code" bson:"appraisal_recomm_code" json:"appraisalRecommCode"`
 }
 
 type Version struct {
@@ -136,16 +136,16 @@ type Version struct {
 
 type Format struct {
 	Code            string          `xml:"Name>code" json:"code"`
-	OtherName       *string         `xml:"SonstigerName" bson:"other_name" json:"otherName"`
+	OtherName       string          `xml:"SonstigerName" bson:"other_name" json:"otherName"`
 	Version         string          `xml:"Version" json:"version"`
 	PrimaryDocument PrimaryDocument `xml:"Primaerdokument" bson:"primary_document" json:"primaryDocument"`
 }
 
 type PrimaryDocument struct {
-	Filename         string  `xml:"Dateiname" json:"filename"`
-	FilenameOriginal *string `xml:"DateinameOriginal" bson:"filename_original" json:"filenameOriginal"`
-	CreatorName      *string `xml:"Ersteller" bson:"creator_name" json:"creatorName"`
-	CreationTime     *string `xml:"DatumUhrzeit" bson:"creation_time" json:"creationTime"`
+	Filename         string `xml:"Dateiname" json:"filename"`
+	FilenameOriginal string `xml:"DateinameOriginal" bson:"filename_original" json:"filenameOriginal"`
+	CreatorName      string `xml:"Ersteller" bson:"creator_name" json:"creatorName"`
+	CreationTime     string `xml:"DatumUhrzeit" bson:"creation_time" json:"creationTime"`
 }
 
 type fileRecordObjectVersionDifferences struct {
@@ -153,7 +153,7 @@ type fileRecordObjectVersionDifferences struct {
 	GeneralMetadata *GeneralMetadata `xml:"AllgemeineMetadaten"`
 	ArchiveMetadata *ArchiveMetadata `xml:"ArchivspezifischeMetadaten"`
 	Lifetime        *Lifetime        `xml:"Laufzeit"`
-	Type            *string          `xml:"Typ"`
+	Type            string           `xml:"Typ"`
 	Processes       []ProcessRecord  `xml:"Akteninhalt>Vorgang"`
 	Documents       []DocumentRecord `xml:"Akteninhalt>Dokument"`
 	Subfiles        []FileRecord     `xml:"Akteninhalt>Teilakte"`
@@ -161,15 +161,15 @@ type fileRecordObjectVersionDifferences struct {
 }
 
 type agencyIdentificationVersionIndependent struct {
-	Code       *string `xml:"Behoerdenschluessel>code"`
-	CodePre300 *string `xml:"Kennung>code"`
-	Prefix     *string `xml:"Praefix>code"`
+	Code       string `xml:"Behoerdenschluessel>code"`
+	CodePre300 string `xml:"Kennung>code"`
+	Prefix     string `xml:"Praefix>code"`
 }
 
 type archiveMetadataVersionIndependent struct {
-	AppraisalCode       *string `xml:"Aussonderungsart>Aussonderungsart>code"`
-	AppraisalCodePre300 *string `xml:"Aussonderungsart>code"`
-	AppraisalRecommCode *string `xml:"Bewertungsvorschlag>code"`
+	AppraisalCode       string `xml:"Aussonderungsart>Aussonderungsart>code"`
+	AppraisalCodePre300 string `xml:"Aussonderungsart>code"`
+	AppraisalRecommCode string `xml:"Bewertungsvorschlag>code"`
 }
 
 // UnmarshalXML corrects version specific differences of file record objects.
@@ -202,9 +202,9 @@ func (agencyIdentification *AgencyIdentification) UnmarshalXML(d *xml.Decoder, s
 		return err
 	}
 	agencyIdentification.Prefix = temp.Prefix
-	if temp.Code != nil {
+	if temp.Code != "" {
 		agencyIdentification.Code = temp.Code
-	} else if temp.CodePre300 != nil {
+	} else if temp.CodePre300 != "" {
 		agencyIdentification.Code = temp.CodePre300
 	}
 	return nil
@@ -218,9 +218,9 @@ func (archiveMetadata *ArchiveMetadata) UnmarshalXML(d *xml.Decoder, start xml.S
 		return err
 	}
 	archiveMetadata.AppraisalRecommCode = temp.AppraisalRecommCode
-	if temp.AppraisalCode != nil {
+	if temp.AppraisalCode != "" {
 		archiveMetadata.AppraisalCode = temp.AppraisalCode
-	} else if temp.AppraisalCodePre300 != nil {
+	} else if temp.AppraisalCodePre300 != "" {
 		archiveMetadata.AppraisalCode = temp.AppraisalCodePre300
 	}
 	return nil

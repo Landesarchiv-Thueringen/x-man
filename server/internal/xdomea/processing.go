@@ -321,19 +321,15 @@ func checkRecordObjectsOfMessage0503(
 // Only values that are set in `agency` are checked.
 func compareAgencyFields(agency db.Agency, message db.Message, process db.SubmissionProcess) error {
 	a := message.MessageHead.Sender.AgencyIdentification
-	if a == nil ||
-		(agency.Prefix != "" && a.Prefix == nil) ||
-		(agency.Code != "" && a.Code == nil) ||
-		(a.Prefix != nil && agency.Prefix != *a.Prefix) ||
-		(a.Code != nil && agency.Code != *a.Code) {
+	if a == nil || agency.Prefix != a.Prefix || agency.Code != a.Code {
 		info := ""
-		if a != nil && a.Prefix != nil {
-			info += fmt.Sprintf("Präfix der Nachricht: %s\n", *a.Prefix)
+		if a != nil && a.Prefix != "" {
+			info += fmt.Sprintf("Präfix der Nachricht: %s\n", a.Prefix)
 		} else {
 			info += fmt.Sprintf("Präfix der Nachricht: (kein Wert)\n")
 		}
-		if a != nil && a.Code != nil {
-			info += fmt.Sprintf("Behördenschlüssel der Nachricht: %s\n\n", *a.Code)
+		if a != nil && a.Code != "" {
+			info += fmt.Sprintf("Behördenschlüssel der Nachricht: %s\n\n", a.Code)
 		} else {
 			info += fmt.Sprintf("Behördenschlüssel der Nachricht: (kein Wert)\n\n")
 		}

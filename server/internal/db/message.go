@@ -55,13 +55,13 @@ type Contact struct {
 }
 
 type AgencyIdentification struct {
-	Code   *string `xml:"Behoerdenschluessel>code" json:"code"`
-	Prefix *string `xml:"Praefix>code" json:"prefix"`
+	Code   string `xml:"Behoerdenschluessel>code" json:"code"`
+	Prefix string `xml:"Praefix>code" json:"prefix"`
 }
 
 type Institution struct {
-	Name         *string `xml:"Name"  json:"name"`
-	Abbreviation *string `xml:"Kurzbezeichnung" json:"abbreviation"`
+	Name         string `xml:"Name"  json:"name"`
+	Abbreviation string `xml:"Kurzbezeichnung" json:"abbreviation"`
 }
 
 // InsertMessage adds xdomea message to collection.

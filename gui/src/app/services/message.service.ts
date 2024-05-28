@@ -26,13 +26,13 @@ export interface Contact {
 }
 
 export interface AgencyIdentification {
-  code?: string;
-  prefix?: string;
+  code: string;
+  prefix: string;
 }
 
 export interface Institution {
-  name?: string;
-  abbreviation?: string;
+  name: string;
+  abbreviation: string;
 }
 
 export interface FormatVerification {
@@ -72,9 +72,9 @@ export interface ToolConfidence {
 
 export interface PrimaryDocumentData {
   filename: string;
-  filenameOriginal?: string;
-  creatorName?: string;
-  creationTime?: string;
+  filenameOriginal: string;
+  creatorName: string;
+  creationTime: string;
   formatVerification?: FormatVerification;
 }
 

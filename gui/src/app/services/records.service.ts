@@ -16,7 +16,7 @@ export interface FileRecord {
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
-  type?: string;
+  type: string;
   subfiles: FileRecord[];
   processes: ProcessRecord[];
 }
@@ -26,7 +26,7 @@ export interface ProcessRecord {
   generalMetadata?: GeneralMetadata;
   archiveMetadata?: ArchiveMetadata;
   lifetime?: Lifetime;
-  type?: string;
+  type: string;
   subprocesses: ProcessRecord[];
   documents: DocumentRecord[];
 }
@@ -34,10 +34,10 @@ export interface ProcessRecord {
 export interface DocumentRecord {
   recordId: string;
   generalMetadata?: GeneralMetadata;
-  type?: string;
-  incomingDate?: string;
-  outgoingDate?: string;
-  documentDate?: string;
+  type: string;
+  incomingDate: string;
+  outgoingDate: string;
+  documentDate: string;
   versions?: DocumentVersion[];
   attachments?: DocumentRecord[];
 }
@@ -48,8 +48,8 @@ export interface DocumentVersion {
 }
 
 export interface GeneralMetadata {
-  subject?: string;
-  recordNumber?: string;
+  subject: string;
+  recordNumber: string;
   filePlan?: FilePlan;
   confidentialityLevel?: ConfidentialityLevel;
   medium?: Medium;
@@ -68,22 +68,22 @@ export interface FilePlan {
 }
 
 export interface Lifetime {
-  start?: string;
-  end?: string;
+  start: string;
+  end: string;
 }
 
 export interface Format {
   code: string;
-  otherName?: string;
+  otherName: string;
   version: string;
   primaryDocument: PrimaryDocument;
 }
 
 export interface PrimaryDocument {
   filename: string;
-  filenameOriginal?: string;
-  creatorName?: string;
-  creationTime?: string;
+  filenameOriginal: string;
+  creatorName: string;
+  creationTime: string;
 }
 
 @Injectable({

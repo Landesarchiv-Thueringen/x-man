@@ -49,7 +49,7 @@ type generatorAppraisedObject struct {
 type generatorObjectAppraisal struct {
 	XMLName             xml.Name       `xml:"xdomea:Aussonderungsart"`
 	AppraisalCode       *generatorCode `xml:"xdomea:Aussonderungsart"`
-	AppraisalCodePre300 *string        `xml:"code"`
+	AppraisalCodePre300 string         `xml:"code,omitempty"`
 }
 
 type generatorMessageHead0502 struct {
@@ -73,8 +73,8 @@ type generatorMessageHead struct {
 
 type generatorSendingSystem struct {
 	XMLName        xml.Name `xml:"xdomea:SendendesSystem"`
-	ProductName    *string  `xml:"xdomea:Produktname"`
-	ProductVersion *string  `xml:"xdomea:Version"`
+	ProductName    string   `xml:"xdomea:Produktname,omitempty"`
+	ProductVersion string   `xml:"xdomea:Version,omitempty"`
 }
 
 type generatorContact struct {
@@ -88,8 +88,8 @@ type generatorAgencyIdentification struct {
 }
 
 type generatorInstitution struct {
-	Name         *string `xml:"xdomea:Name"`
-	Abbreviation *string `xml:"xdomea:Kurzbezeichnung"`
+	Name         string `xml:"xdomea:Name,omitempty"`
+	Abbreviation string `xml:"xdomea:Kurzbezeichnung,omitempty"`
 }
 
 type generatorCode struct {
@@ -107,9 +107,9 @@ type generatorRecordArchiveMapping struct {
 }
 
 type generatorArchivedRecordInfo struct {
-	RecordID  string  `xml:"xdomea:IDSGO"`
-	Success   bool    `xml:"xdomea:Erfolgreich"`
-	ArchiveID *string `xml:"xdomea:Archivkennung"`
+	RecordID  string `xml:"xdomea:IDSGO"`
+	Success   bool   `xml:"xdomea:Erfolgreich"`
+	ArchiveID string `xml:"xdomea:Archivkennung,omitempty"`
 }
 
 // Generate0502Message creates the XML code for the appraisal message (code: 0502).
@@ -161,7 +161,7 @@ func GenerateAppraisedObject(
 	var objectAppraisal generatorObjectAppraisal
 	if isVersionPriorTo300(xdomeaVersion.Code) {
 		objectAppraisal = generatorObjectAppraisal{
-			AppraisalCodePre300: (*string)(&a.Decision),
+			AppraisalCodePre300: string(a.Decision),
 		}
 	} else {
 		appraisalCode := generatorCode{
@@ -311,7 +311,7 @@ func GetArchivedRecordIDMapping(recordID string, aip db.ArchivePackage) generato
 		Success:  true,
 	}
 	if archiveTarget == "dimag" {
-		idMapping.ArchiveID = &aip.PackageID
+		idMapping.ArchiveID = aip.PackageID
 	}
 	return idMapping
 }
@@ -320,8 +320,8 @@ func GetSenderContact() generatorContact {
 	institutionName := os.Getenv("INSTITUTION_NAME")
 	institutionAbbreviation := os.Getenv("INSTITUTION_ABBREVIATION")
 	institution := generatorInstitution{
-		Name:         &institutionName,
-		Abbreviation: &institutionAbbreviation,
+		Name:         institutionName,
+		Abbreviation: institutionAbbreviation,
 	}
 	contact := generatorContact{
 		Institution: &institution,
@@ -345,8 +345,8 @@ func GetSendingSystem() generatorSendingSystem {
 	productName := "X-MAN"
 	productVersion := "0.1"
 	sendingSystem := generatorSendingSystem{
-		ProductName:    &productName,
-		ProductVersion: &productVersion,
+		ProductName:    productName,
+		ProductVersion: productVersion,
 	}
 	return sendingSystem
 }

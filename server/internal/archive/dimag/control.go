@@ -94,10 +94,10 @@ func GetIndexItemForProtocol(
 }
 
 func getFileName(primaryDocument db.PrimaryDocument) string {
-	if primaryDocument.FilenameOriginal == nil {
+	if primaryDocument.FilenameOriginal == "" {
 		return primaryDocument.Filename
 	}
-	return *primaryDocument.FilenameOriginal
+	return primaryDocument.FilenameOriginal
 }
 
 func getRemoteXmlPath(message db.Message, importDir string) string {
