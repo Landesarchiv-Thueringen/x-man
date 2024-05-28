@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.0
+
+- Intern: Migration von PostgreSQL nach MongoDB
+
 ## v0.9.1
 
 - Fix: Fehler bei Datenbank-Migration
