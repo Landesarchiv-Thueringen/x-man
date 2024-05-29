@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
+	"lath/xman/internal/errors"
 	"lath/xman/internal/tasks"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -31,8 +31,7 @@ var client http.Client = http.Client{
 }
 var guard = make(chan struct{}, MAX_CONCURRENT_CALLS)
 
-func VerifyFileFormats(process db.SubmissionProcess, message db.Message) error {
-	log.Printf("Starting VerifyFileFormats for process %v...\n", process.ProcessID)
+func VerifyFileFormats(process db.SubmissionProcess, message db.Message) {
 	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
 	primaryDocuments := GetPrimaryDocuments(&rootRecords)
 	task := tasks.Start(
@@ -44,12 +43,8 @@ func VerifyFileFormats(process db.SubmissionProcess, message db.Message) error {
 	errorMessages := make([]string, 0)
 	itemsComplete := 0
 	for _, primaryDocument := range primaryDocuments {
-		// Suppress warning about loop-variable scope. Actual problem is fixed
-		// since go 1.22. Can be removed when tooling is updated to not show the
-		// warning anymore.
-		primaryDocument := primaryDocument
 		wg.Add(1)
-		guard <- struct{}{} // would block if guard channel is already filled
+		guard <- struct{}{} // blocks when guard channel is already filled
 		go func() {
 			defer func() {
 				wg.Done()
@@ -68,10 +63,9 @@ func VerifyFileFormats(process db.SubmissionProcess, message db.Message) error {
 	if len(errorMessages) == 0 {
 		tasks.MarkDone(task, "")
 	} else {
-		return tasks.MarkFailed(&task, strings.Join(errorMessages, "\n\n"))
+		info := strings.Join(errorMessages, "\n\n")
+		errors.AddProcessingError(tasks.MarkFailed(&task, info))
 	}
-	log.Printf("VerifyFileFormats for process %v done\n", process.ProcessID)
-	return nil
 }
 
 // verifyDocument runs format verification on the given document using the

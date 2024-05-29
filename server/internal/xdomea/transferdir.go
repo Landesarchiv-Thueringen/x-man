@@ -2,11 +2,10 @@ package xdomea
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/fs"
 	"lath/xman/internal/db"
-	"log"
+	"lath/xman/internal/errors"
 	"net/url"
 	"os"
 	"path"
@@ -56,7 +55,7 @@ func testLocalFilesystem(transferDirURL *url.URL) bool {
 
 // testWebDAV checks if an transfer directory configuration for a webDAV works.
 func testWebDAV(transferDirURL *url.URL) bool {
-	_, err := getWebDAVClient(transferDirURL)
+	_, err := connectWebDAV(transferDirURL)
 	return err == nil
 }
 
@@ -78,6 +77,7 @@ func MonitorTransferDirs() {
 
 // watchLoop reads the contents of all transfer directories periodically.
 func watchLoop(ticker time.Ticker, stop chan bool) {
+	defer errors.HandlePanic("watchLoop", nil, nil)
 	for {
 		select {
 		case <-stop:
@@ -91,43 +91,53 @@ func watchLoop(ticker time.Ticker, stop chan bool) {
 
 // readMessages checks the contents of all transfer directories.
 func readMessages() {
+	errorData := db.ProcessingError{
+		Title: "Fehler beim Lesen des Transferverzeichnisses",
+	}
 	agencies := db.FindAgencies(context.Background())
 	for _, agency := range agencies {
+		errorData.Agency = &agency
 		transferDirURL, err := url.Parse(agency.TransferDirURL)
 		if err != nil {
 			panic(err)
 		}
 		switch transferDirURL.Scheme {
 		case string(Local):
-			readMessagesFromLocalFilesystem(agency, transferDirURL)
-		case string(WebDAV):
-			fallthrough
-		case string(WebDAVSec):
-			readMessagesFromWebDAV(agency, transferDirURL)
+			readMessagesFromFilesystem(agency, transferDirURL)
+		case string(WebDAV), string(WebDAVSec):
+			err = readMessagesFromWebDAV(agency, transferDirURL)
 		default:
 			panic("unknown transfer directory scheme")
+		}
+		if err != nil {
+			// TODO: don't repeatedly create errors
+			errors.AddProcessingErrorWithData(err, errorData)
 		}
 	}
 }
 
-// readMessagesFromLocalFilesystem checks if new messages exist for a local filesystem.
-func readMessagesFromLocalFilesystem(agency db.Agency, transferDirURL *url.URL) {
+// readMessagesFromFilesystem checks if new messages exist for a local filesystem.
+func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error {
 	rootDir := filepath.Join(transferDirURL.Path)
 	files, err := os.ReadDir(rootDir)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
 	for _, file := range files {
-		if !file.IsDir() && IsMessage(file.Name()) && !processedPaths[file.Name()] {
+		if !file.IsDir() && isMessage(file.Name()) && !processedPaths[file.Name()] {
 			db.InsertProcessedTransferDirFile(agency.ID, file.Name())
 			go func() {
+				defer errors.HandlePanic("readMessagesFromFilesystem", &db.ProcessingError{
+					Agency:       &agency,
+					TransferPath: file.Name(),
+				}, nil)
 				waitUntilStable(file)
-				log.Println("Processing new message " + file.Name())
 				ProcessNewMessage(agency, file.Name())
 			}()
 		}
 	}
+	return nil
 }
 
 // waitUntilStable regularly inspects the given file's stats for changes and
@@ -148,28 +158,31 @@ func waitUntilStable(file fs.DirEntry) {
 }
 
 // readMessagesFromWebDAV checks if new messages exist for a webDAV.
-func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) {
-	defer HandlePanic(fmt.Sprintf("readMessagesFromWebDAV \"%s\" %s", agency.Name, transferDirURL))
-	client, err := getWebDAVClient(transferDirURL)
+func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
+	client, err := connectWebDAV(transferDirURL)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	path := transferDirURL.Path
 	files, err := client.ReadDir(path)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
 	for _, file := range files {
-		if !processedPaths[file.Name()] && !file.IsDir() && IsMessage(file.Name()) {
+		if !processedPaths[file.Name()] && !file.IsDir() && isMessage(file.Name()) {
 			db.InsertProcessedTransferDirFile(agency.ID, file.Name())
 			go func() {
+				defer errors.HandlePanic("readMessagesFromWebDAV", &db.ProcessingError{
+					Agency:       &agency,
+					TransferPath: file.Name(),
+				}, nil)
 				waitUntilStableWebDav(client, file)
-				log.Println("Processing new message " + file.Name())
-				go ProcessNewMessage(agency, file.Name())
+				ProcessNewMessage(agency, file.Name())
 			}()
 		}
 	}
+	return nil
 }
 
 // waitUntilStableWebDav regularly inspects the given file's stats for changes
@@ -229,7 +242,7 @@ func copyMessageToLocalFilesystem(transferDirURL *url.URL, messagePath string) s
 
 // copyMessageToWebDAV copies a file from the local filesystem to a webDAV.
 func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) string {
-	client, err := getWebDAVClient(transferDirURL)
+	client, err := connectWebDAV(transferDirURL)
 	if err != nil {
 		panic(err)
 	}
@@ -270,7 +283,7 @@ func CopyMessageFromTransferDirectory(agency db.Agency, messagePath string) stri
 //
 // Returns the local path of the copied file.
 func copMessageFromWebDAV(transferDirURL *url.URL, webDAVFilePath string) string {
-	client, err := getWebDAVClient(transferDirURL)
+	client, err := connectWebDAV(transferDirURL)
 	if err != nil {
 		panic(err)
 	}
@@ -297,12 +310,15 @@ func copMessageFromWebDAV(transferDirURL *url.URL, webDAVFilePath string) string
 }
 
 // copyFileFromLocalFilesystem copies the file specified by messagePath.
-// The copied file is localy stored in a temporary directory.
+// The copied file is locally stored in a temporary directory.
 // The caller of this function should remove the temporary directory.
 //
 // Returns the local path of the copied file.
 func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) string {
-	processID := GetMessageID(messagePath)
+	processID, err := getProcessID(messagePath)
+	if err != nil {
+		panic(err)
+	}
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory contains the message ID.
 	tempDir, err := os.MkdirTemp("", processID.String())
@@ -358,7 +374,7 @@ func RemoveFileFromLocalFilesystem(transferDirURL *url.URL, path string) {
 
 // RemoveFileFromWebDAV deletes a file on a webDAV.
 func RemoveFileFromWebDAV(transferDirURL *url.URL, path string) {
-	client, err := getWebDAVClient(transferDirURL)
+	client, err := connectWebDAV(transferDirURL)
 	if err != nil {
 		panic(err)
 	}
@@ -368,9 +384,9 @@ func RemoveFileFromWebDAV(transferDirURL *url.URL, path string) {
 	}
 }
 
-// getWebDAVClient creates a client from an parsed transfer directory URL.
+// connectWebDAV creates a client from an parsed transfer directory URL.
 // Checks if a connection with the transfer directory with the given configuration is possible.
-func getWebDAVClient(transferDirURL *url.URL) (*gowebdav.Client, error) {
+func connectWebDAV(transferDirURL *url.URL) (*gowebdav.Client, error) {
 	var root string
 	switch transferDirURL.Scheme {
 	case string(WebDAV):

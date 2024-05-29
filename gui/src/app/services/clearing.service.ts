@@ -5,18 +5,16 @@ import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
 import { MessageType } from '../services/message.service';
 
-type ProcessingErrorType = 'agency-mismatch';
 type ProcessingErrorResolution = 'mark-solved' | 'reimport-message' | 'delete-message';
 
 export interface ProcessingError {
   id: string;
   createdAt: string;
-  type: ProcessingErrorType;
   resolved: boolean;
   resolution: ProcessingErrorResolution;
-  description: string;
-  additionalInfo: string;
-
+  title: string;
+  info: string;
+  stack: string;
   agency?: Agency;
   processId?: string;
   messageType?: MessageType;

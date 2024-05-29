@@ -38,7 +38,7 @@ type Message struct {
 	XdomeaVersion  string      `bson:"xdomea_version" json:"xdomeaVersion"`
 	MessageType    MessageType `bson:"message_type" json:"messageType"`
 	MessageHead    MessageHead `bson:"message_head" json:"messageHead"`
-	MaxRecordDepth uint        `bson:"max_record_depth" json:"maxRecordDepth"`
+	MaxRecordDepth int         `bson:"max_record_depth" json:"maxRecordDepth"`
 }
 
 type MessageHead struct {

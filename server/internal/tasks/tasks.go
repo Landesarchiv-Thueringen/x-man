@@ -2,12 +2,14 @@ package tasks
 
 import (
 	"lath/xman/internal/db"
+	"log"
 
 	"github.com/google/uuid"
 )
 
 // Start creates a task and marks the process step started.
 func Start(taskType db.ProcessStepType, processID uuid.UUID, progress string) db.Task {
+	log.Printf("Starting %s for process %v...\n", taskType, processID)
 	// Create task
 	task := db.InsertTask(db.Task{
 		Type:      taskType,
@@ -21,6 +23,7 @@ func Start(taskType db.ProcessStepType, processID uuid.UUID, progress string) db
 }
 
 func Progress(task db.Task, progress string) {
+	log.Printf("%s for process %v: %s\n", task.Type, task.ProcessID, progress)
 	// Update task
 	db.UpdateTaskProgress(task.ID, progress)
 	// Update process step
@@ -36,28 +39,17 @@ func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 	// The process step is marked failed by the processing error
 
 	// Create processing error
-	var processingErrorType db.ProcessingErrorType
-	var messageType db.MessageType
-	switch task.Type {
-	case db.ProcessStepArchiving:
-		processingErrorType = db.ProcessingErrorArchivingFailed
-		messageType = db.MessageType0503
-	case db.ProcessStepFormatVerification:
-		processingErrorType = db.ProcessingErrorFormatVerificationFailed
-		messageType = db.MessageType0503
-	}
 	return db.ProcessingError{
-		ProcessID:      task.ProcessID,
-		ProcessStep:    task.Type,
-		Type:           processingErrorType,
-		Description:    getDisplayName(task.Type) + " fehlgeschlagen",
-		MessageType:    messageType,
-		AdditionalInfo: errorMessage,
+		ProcessID:   task.ProcessID,
+		ProcessStep: task.Type,
+		Title:       getDisplayName(task.Type) + " fehlgeschlagen",
+		Info:        errorMessage,
 	}
 }
 
 // MarkDone marks the task and its process stop completed successfully.
 func MarkDone(task db.Task, completedBy string) {
+	log.Printf("Task %s for process %v done\n", task.Type, task.ProcessID)
 	// Update task
 	db.UpdateTaskState(task.ID, db.TaskStateSucceeded, "")
 	// Update process step

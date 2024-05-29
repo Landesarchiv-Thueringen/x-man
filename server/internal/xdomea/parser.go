@@ -48,57 +48,54 @@ type parsedMessage struct {
 	RootRecords   *db.RootRecords
 }
 
-func ExtractXdomeaVersion(messageType db.MessageType, messagePath string) (
-	xdomeaVersion XdomeaVersion, err error,
-) {
+func extractXdomeaVersion(messageType db.MessageType, messagePath string) (XdomeaVersion, error) {
 	xmlFile, err := os.Open(messagePath)
 	if err != nil {
-		return
+		panic(err)
 	}
 	defer xmlFile.Close()
 	// Read the opened xmlFile as a byte array.
 	xmlBytes, err := io.ReadAll(xmlFile)
 	if err != nil {
-		return
+		panic(err)
 	}
 	switch messageType {
 	case "0501":
 		var messageBody messageBody0501
 		err = xml.Unmarshal(xmlBytes, &messageBody)
 		if err != nil {
-			return
+			return XdomeaVersion{}, err
 		}
 		return extractVersion(messageBody.XMLName.Space)
 	case "0503":
 		var messageBody messageBody0503
 		err = xml.Unmarshal(xmlBytes, &messageBody)
 		if err != nil {
-			return
+			return XdomeaVersion{}, err
 		}
 		return extractVersion(messageBody.XMLName.Space)
 	case "0505":
 		var messageBody messageBody0505
 		err = xml.Unmarshal(xmlBytes, &messageBody)
 		if err != nil {
-			return
+			return XdomeaVersion{}, err
 		}
 		return extractVersion(messageBody.XMLName.Space)
 	default:
-		errorMessage := "message type can't be parsed"
-		return xdomeaVersion, errors.New(errorMessage)
+		panic("unknown message type: " + messageType)
 	}
 }
 
 func parseMessage(messagePath string, messageType db.MessageType) (result parsedMessage, err error) {
 	xmlFile, err := os.Open(messagePath)
 	if err != nil {
-		return
+		panic(err)
 	}
 	defer xmlFile.Close()
 	// Read the opened xmlFile as a byte array.
 	xmlBytes, err := io.ReadAll(xmlFile)
 	if err != nil {
-		return
+		panic(err)
 	}
 	switch messageType {
 	case "0501":
@@ -108,8 +105,7 @@ func parseMessage(messagePath string, messageType db.MessageType) (result parsed
 	case "0505":
 		return parse0505Message(xmlBytes)
 	default:
-		errorMessage := "message type can't be parsed"
-		return result, errors.New(errorMessage)
+		panic("unknown message type: " + messageType)
 	}
 }
 
@@ -162,12 +158,11 @@ func extractVersion(namespace string) (XdomeaVersion, error) {
 	if namespaceRegex.MatchString(namespace) {
 		version = namespaceRegex.FindStringSubmatch(namespace)[1]
 	} else {
-		errorMessage := "xdomea version can't be extracted from xdomea namespace"
-		return xdomeaVersion, errors.New(errorMessage)
+		return XdomeaVersion{}, errors.New("xdomea version can't be extracted from xdomea namespace")
 	}
 	xdomeaVersion, ok := XdomeaVersions[version]
 	if !ok {
-		return xdomeaVersion, fmt.Errorf("unsupported xdomea version: %s", version)
+		return XdomeaVersion{}, fmt.Errorf("unsupported xdomea version: %s", version)
 	}
 	return xdomeaVersion, nil
 }

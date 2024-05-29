@@ -59,9 +59,9 @@ export class ClearingDetailsComponent {
       default:
         subject = 'Fehler bei xdomea-Nachricht';
     }
-    let body = 'Beim Einlesen einer xdomea-Nachricht ein ein Fehler aufgetreten: ' + this.data.description;
-    if (this.data.additionalInfo) {
-      body += '\n\nFehlerausgabe vom System:\n' + this.data.additionalInfo;
+    let body = 'Beim Einlesen einer xdomea-Nachricht ein ein Fehler aufgetreten: ' + this.data.title;
+    if (this.data.info) {
+      body += '\n\nFehlerausgabe vom System:\n' + this.data.info;
     }
     const a = document.createElement('a');
     a.setAttribute(

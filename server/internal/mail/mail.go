@@ -60,19 +60,19 @@ func SendMailReport(to string, process db.SubmissionProcess, report Attachment) 
 func SendMailProcessingError(to string, e db.ProcessingError) {
 	origin := os.Getenv("ORIGIN")
 	message := "<p>Ein Fehler wurde in der Steuerungsstelle eingetragen.</p>\n"
-	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Description)
+	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Title)
 	if e.ProcessID != uuid.Nil {
 		url := origin + "/nachricht/" + e.ProcessID.String()
 		message += fmt.Sprintf("<p>Nachricht: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
-	if e.AdditionalInfo != "" {
-		message += fmt.Sprintf("<p>%s</p>", strings.ReplaceAll(e.AdditionalInfo, "\n", "\n<br>"))
+	if e.Info != "" {
+		message += fmt.Sprintf("<p>%s</p>", strings.ReplaceAll(e.Info, "\n", "\n<br>"))
 	}
 	message += fmt.Sprintf("<p>Sie bekommen diese E-Mail, weil Sie sich als Administrator für Benachrichtigungen für Fehler eingetragen haben.<br>\n"+
 		"Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>",
 		origin, origin,
 	)
-	sendMail(to, "Fehler in Steuerungsstelle: "+e.Description, message, []Attachment{})
+	sendMail(to, "Fehler in Steuerungsstelle: "+e.Title, message, []Attachment{})
 }
 
 func sendMail(to, subject, body string, attachments []Attachment) {

@@ -24,14 +24,14 @@
         <mat-cell *matCellDef="let error">{{ error.agency?.name }}</mat-cell>
       </ng-container>
 
-      <!-- description column -->
-      <ng-container matColumnDef="description">
-        <mat-header-cell *matHeaderCellDef mat-sort-header>Problembeschreibung</mat-header-cell>
+      <!-- title column -->
+      <ng-container matColumnDef="title">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Fehler</mat-header-cell>
         <mat-cell *matCellDef="let error">
           @if (error.resolved) {
             Gelöst:
           }
-          {{ error.description }}
+          {{ error.title }}
           <button
             mat-button
             class="open-details-button"

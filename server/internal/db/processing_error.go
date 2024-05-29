@@ -2,22 +2,12 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-)
-
-type ProcessingErrorType string
-
-const (
-	ProcessingErrorPanic                    ProcessingErrorType = "panic"
-	ProcessingErrorAgencyMismatch           ProcessingErrorType = "agency-mismatch"
-	ProcessingErrorFormatVerificationFailed ProcessingErrorType = "format-verification-failed"
-	ProcessingErrorArchivingFailed          ProcessingErrorType = "format-archiving-failed"
 )
 
 type ProcessingErrorResolution string
@@ -35,23 +25,22 @@ const (
 // Higher-level functions are responsible for calling
 // clearing.PassProcessingError.
 type ProcessingError struct {
-	ID             primitive.ObjectID        `bson:"_id,omitempty" json:"id"`
-	CreatedAt      time.Time                 `bson:"created_at" json:"createdAt"`
-	Type           ProcessingErrorType       `json:"type"`
-	Resolved       bool                      `json:"resolved"`
-	Resolution     ProcessingErrorResolution `json:"resolution"`
-	Description    string                    `json:"description"`
-	AdditionalInfo string                    `bson:"additional_info" json:"additionalInfo"`
-
-	Agency       *Agency         `json:"agency"` // Copy, needs to be kept in sync
-	TransferPath string          `bson:"transfer_path" json:"transferPath"`
-	ProcessID    uuid.UUID       `bson:"process_id" json:"processId"`
-	ProcessStep  ProcessStepType `bson:"process_step" json:"-"`
-	MessageType  MessageType     `bson:"message_type" json:"messageType"`
+	ID           primitive.ObjectID        `bson:"_id,omitempty" json:"id"`
+	CreatedAt    time.Time                 `bson:"created_at" json:"createdAt"`
+	Resolved     bool                      `json:"resolved"`
+	Resolution   ProcessingErrorResolution `json:"resolution"`
+	Title        string                    `json:"title"`
+	Info         string                    `bson:"info" json:"info"`
+	Stack        string                    `json:"stack"`
+	Agency       *Agency                   `json:"agency"` // Copy, needs to be kept in sync
+	ProcessID    uuid.UUID                 `bson:"process_id" json:"processId"`
+	MessageType  MessageType               `bson:"message_type" json:"messageType"`
+	ProcessStep  ProcessStepType           `bson:"process_step" json:"-"`
+	TransferPath string                    `bson:"transfer_path" json:"transferPath"`
 }
 
-func (p ProcessingError) Error() string {
-	return fmt.Sprintf("processing error: %v", p.Description)
+func (e *ProcessingError) Error() string {
+	return e.Title
 }
 
 // InsertProcessingError saves a processing error to the database.

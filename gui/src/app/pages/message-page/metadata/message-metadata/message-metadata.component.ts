@@ -221,14 +221,14 @@ export class MessageMetadataComponent {
       }
       if (processingError.resolved) {
         items.push({
-          title: 'Gelöst: ' + processingError.description,
+          title: 'Gelöst: ' + processingError.title,
           icon: 'check_circle',
           date: processingError.createdAt,
           onClick,
         });
       } else {
         items.push({
-          title: processingError.description,
+          title: processingError.title,
           icon: 'error',
           date: processingError.createdAt,
           onClick,

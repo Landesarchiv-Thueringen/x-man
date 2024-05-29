@@ -9,12 +9,12 @@ import (
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
-// ValidateXdomeaXmlFile performs a xsd schema validation against the XML file of a xdomea message.
+// validateXdomeaXmlFile performs a xsd schema validation against the XML file of a xdomea message.
 // Returns nil if the schema validation didn't find an error.
 // Returns SchemaValidationError if the schema validation found errors.
 // All schema errors can be extracted from the SchemaValidationError.
 // Returns error if another error happened.
-func ValidateXdomeaXmlFile(xmlPath string, version XdomeaVersion) error {
+func validateXdomeaXmlFile(xmlPath string, version XdomeaVersion) error {
 	schema, err := xsd.ParseFromFile(version.XSDPath)
 	if err != nil {
 		return err

@@ -8,7 +8,6 @@ import (
 	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
 	"lath/xman/internal/xdomea"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -27,12 +26,8 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 // The record objects in the message should be complete loaded.
 //
 // ImportMessageSync returns after the archiving process completed.
-func ImportMessageSync(process db.SubmissionProcess, message db.Message, collection db.ArchiveCollection) error {
-	err := InitConnection()
-	if err != nil {
-		log.Println("couldn't init connection to DIMAG sftp server")
-		return err
-	}
+func ImportMessageSync(process db.SubmissionProcess, message db.Message, collection db.ArchiveCollection) {
+	InitConnection()
 	defer CloseConnection()
 	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, message.MessageType)
 	for _, f := range rootRecords.Files {
@@ -45,10 +40,7 @@ func ImportMessageSync(process db.SubmissionProcess, message db.Message, collect
 			CollectionID:     collection.ID,
 			RootRecordIDs:    []uuid.UUID{f.RecordID},
 		}
-		err = importArchivePackage(process, message, &aip)
-		if err != nil {
-			return err
-		}
+		importArchivePackage(process, message, &aip)
 		db.InsertArchivePackage(aip)
 	}
 	for _, p := range rootRecords.Processes {
@@ -61,10 +53,7 @@ func ImportMessageSync(process db.SubmissionProcess, message db.Message, collect
 			CollectionID:     collection.ID,
 			RootRecordIDs:    []uuid.UUID{p.RecordID},
 		}
-		err = importArchivePackage(process, message, &aip)
-		if err != nil {
-			return err
-		}
+		importArchivePackage(process, message, &aip)
 		db.InsertArchivePackage(aip)
 	}
 	// Combine documents which don't belong to a file or process in one archive package.
@@ -89,13 +78,9 @@ func ImportMessageSync(process db.SubmissionProcess, message db.Message, collect
 			CollectionID:     collection.ID,
 			RootRecordIDs:    rootRecordIDs,
 		}
-		err = importArchivePackage(process, message, &aip)
-		if err != nil {
-			return err
-		}
+		importArchivePackage(process, message, &aip)
 		db.InsertArchivePackage(aip)
 	}
-	return nil
 }
 
 // importArchivePackage archives a file record object in DIMAG.
@@ -103,11 +88,8 @@ func importArchivePackage(
 	process db.SubmissionProcess,
 	message db.Message,
 	aip *db.ArchivePackage,
-) error {
-	importDir, err := uploadArchivePackage(sftpClient, process, message, *aip)
-	if err != nil {
-		return err
-	}
+) {
+	importDir := uploadArchivePackage(sftpClient, process, message, *aip)
 	requestMetadata := ImportDoc{
 		UserName:        DimagApiUser,
 		Password:        DimagApiPassword,
@@ -123,52 +105,47 @@ func importArchivePackage(
 	}
 	xmlBytes, err := xml.MarshalIndent(soapRequest, " ", " ")
 	if err != nil {
-		log.Println(err)
-		return err
+		panic(err)
 	}
 	requestString := string(xmlBytes)
 	req, err := http.NewRequest("POST", DimagApiEndpoint, strings.NewReader(requestString))
 	if err != nil {
-		log.Println(err)
-		return err
+		panic(err)
 	}
 	req.Header.Set("Content-Type", "text/xml;charset=UTF-8")
 	req.Header.Set("SOAPAction", "importDoc")
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
-		return err
+		panic(err)
 	}
 	defer response.Body.Close()
-	return processImportResponse(response, aip)
+	processImportResponse(response, aip)
 }
 
-func processImportResponse(response *http.Response, archivePackageData *db.ArchivePackage) error {
+func processImportResponse(response *http.Response, archivePackageData *db.ArchivePackage) {
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("DIMAG ingest error: status code %d", response.StatusCode)
+		panic(fmt.Sprintf("DIMAG ingest error: status code %d", response.StatusCode))
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	var parsedResponse EnvelopeImportDocResponse
 	err = xml.Unmarshal(body, &parsedResponse)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	if parsedResponse.Body.ImportDocResponse.Status != 200 {
-		log.Println(parsedResponse.Body.ImportDocResponse.Message)
-		return fmt.Errorf("DIMAG ingest error: %s", parsedResponse.Body.ImportDocResponse.Message)
+		panic(fmt.Sprintf("DIMAG ingest error: %s", parsedResponse.Body.ImportDocResponse.Message))
 	}
 	// Extract package ID from response message.
 	re := regexp.MustCompile(`ok: Informationsobjekt (\S+) \[\] : .+ inserted<br\/>`)
 	match := re.FindStringSubmatch(parsedResponse.Body.ImportDocResponse.Message)
 	if len(match) != 2 {
-		return fmt.Errorf("unexpected DIMAG response message: %s", parsedResponse.Body.ImportDocResponse.Message)
+		panic(fmt.Sprintf("unexpected DIMAG response message: %s", parsedResponse.Body.ImportDocResponse.Message))
 	}
 	archivePackageData.PackageID = match[1]
-	return nil
 }
 
 // getCollectionIDs gets a list of all collection IDs via a SOAP request from DIMAG.

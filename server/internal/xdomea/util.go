@@ -25,14 +25,14 @@ var message0503Regex = regexp.MustCompile(message0503RegexString)
 var message0505Regex = regexp.MustCompile(message0505RegexString)
 var namespaceRegex = regexp.MustCompile("^urn:xoev-de:xdomea:schema:([0-9].[0-9].[0=9])$")
 
-func IsMessage(path string) bool {
+func isMessage(path string) bool {
 	fileName := filepath.Base(path)
 	return message0501Regex.MatchString(fileName) ||
 		message0503Regex.MatchString(fileName) ||
 		message0505Regex.MatchString(fileName)
 }
 
-func GetMessageTypeImpliedByPath(path string) (db.MessageType, error) {
+func getMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	fileName := filepath.Base(path)
 	if message0501Regex.MatchString(fileName) {
 		return db.MessageType0501, nil
@@ -44,17 +44,17 @@ func GetMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	return "", errors.New("unknown message type: " + path)
 }
 
-func GetMessageID(path string) uuid.UUID {
+func getProcessID(path string) (uuid.UUID, error) {
 	fileName := filepath.Base(path)
 	s := uuidRegex.FindString(fileName)
 	processID, err := uuid.Parse(s)
 	if err != nil {
-		panic("failed to parse process id: " + err.Error())
+		return processID, errors.New("failed to parse process id: " + err.Error())
 	}
-	return processID
+	return processID, nil
 }
 
-func GetMessageName(id uuid.UUID, messageType db.MessageType) string {
+func getMessageName(id uuid.UUID, messageType db.MessageType) string {
 	messageSuffix := ""
 	switch messageType {
 	case "0501":

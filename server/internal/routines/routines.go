@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"lath/xman/internal/db"
+	"lath/xman/internal/errors"
 	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
 	"log"
@@ -32,7 +33,7 @@ func Init() {
 // tryRestartRunningTasks searches for tasks that are marked 'running' and tries
 // to restart them.
 func tryRestartRunningTasks() {
-	defer xdomea.HandlePanic("tryRestartRunningTasks")
+	defer errors.HandlePanic("tryRestartRunningTasks", nil, nil)
 	ts := db.FindTasks(context.Background())
 	for _, t := range ts {
 		if t.State == db.TaskStateRunning {
@@ -56,9 +57,15 @@ func tryRestart(task *db.Task) {
 			message, found := db.FindMessage(context.Background(), process.ProcessID, db.MessageType0503)
 			if found {
 				go func() {
-					defer xdomea.HandlePanic(fmt.Sprintf("tryRestart FormatVerification"))
-					err := xdomea.VerifyFileFormats(process, message)
-					xdomea.HandleError(err)
+					defer errors.HandlePanic(
+						"tryRestart FormatVerification",
+						&db.ProcessingError{
+							ProcessID:   process.ProcessID,
+							MessageType: message.MessageType,
+						},
+						task,
+					)
+					xdomea.VerifyFileFormats(process, message)
 				}()
 				couldRestart = true
 			}
@@ -66,7 +73,7 @@ func tryRestart(task *db.Task) {
 	}
 	processingError := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
 	if !couldRestart {
-		xdomea.HandleError(processingError)
+		errors.AddProcessingError(processingError)
 	}
 }
 
@@ -76,7 +83,7 @@ func tryRestart(task *db.Task) {
 // The time after which processes are deleted can be configured via the
 // environment variable `DELETE_ARCHIVED_PROCESSES_AFTER_DAYS`.
 func cleanupArchivedProcesses() {
-	defer xdomea.HandlePanic("cleanupArchivedProcesses")
+	defer errors.HandlePanic("cleanupArchivedProcesses", nil, nil)
 	log.Println("Starting cleanupArchivedProcesses...")
 	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
 	if err != nil {

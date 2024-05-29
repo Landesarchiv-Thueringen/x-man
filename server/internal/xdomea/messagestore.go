@@ -18,45 +18,45 @@ const rootStoreDir = "message_store"
 // extractMessage parses the given message file into a database entry and saves
 // it to the database. It returns the saved entry.
 //
-// Returns the directories in message store for the process and the message or an error.
+// Returns the directories in message store for the process and the message.
 func extractMessageToMessageStore(
 	agency db.Agency,
 	transferDirMessagePath string,
 	localMessagePath string,
 	processID uuid.UUID,
 	messageType db.MessageType,
-) (string, string, error) {
-	processStoreDir := path.Join(rootStoreDir, processID.String())
+) (processStoreDir string, messageStoreDir string) {
+	processStoreDir = path.Join(rootStoreDir, processID.String())
 	// Create the message store directory if necessary.
-	messageStoreDir := path.Join(processStoreDir, string(messageType))
+	messageStoreDir = path.Join(processStoreDir, string(messageType))
 	err := os.MkdirAll(messageStoreDir, 0700)
 	if err != nil {
-		return processStoreDir, messageStoreDir, nil
+		panic(err)
 	}
 	// Open the message archive (zip).
 	archive, err := zip.OpenReader(localMessagePath)
 	if err != nil {
-		return processStoreDir, messageStoreDir, nil
+		panic(err)
 	}
 	defer archive.Close()
 	for _, f := range archive.File {
 		fileInArchive, err := f.Open()
 		if err != nil {
-			return processStoreDir, messageStoreDir, nil
+			panic(err)
 		}
 		defer fileInArchive.Close()
 		fileStorePath := path.Join(messageStoreDir, f.Name)
 		fileInStore, err := os.Create(fileStorePath)
 		if err != nil {
-			return processStoreDir, messageStoreDir, nil
+			panic(err)
 		}
 		defer fileInStore.Close()
 		_, err = io.Copy(fileInStore, fileInArchive)
 		if err != nil {
-			return processStoreDir, messageStoreDir, nil
+			panic(err)
 		}
 	}
-	return processStoreDir, messageStoreDir, nil
+	return
 }
 
 // DeleteProcess deletes the given process from the database and removes all

@@ -2,7 +2,7 @@
   @if (data.resolution) {
     <ng-container>Gelöst: </ng-container>
   }
-  <ng-container>{{ data.description }}</ng-container>
+  <ng-container>{{ data.title }}</ng-container>
 </h2>
 <div mat-dialog-content>
   <div role="table">
@@ -66,14 +66,22 @@
       </div>
     }
   </div>
-  @if (data.additionalInfo) {
+  @if (data.info) {
     <mat-form-field>
       <mat-label>Fehler-Informationen</mat-label>
-      <textarea matInput readonly [value]="data.additionalInfo" rows="6"></textarea>
+      <textarea matInput readonly [value]="data.info" rows="6"></textarea>
     </mat-form-field>
   }
 
   <mat-accordion>
+    @if (data.stack) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Stack</mat-panel-title>
+        </mat-expansion-panel-header>
+        <pre>{{ data.stack }}</pre>
+      </mat-expansion-panel>
+    }
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title>Fehlerobjekt</mat-panel-title>

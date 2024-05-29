@@ -16,34 +16,24 @@ import (
 const temporaryArchivePath = "/xman/archive"
 
 // ArchiveMessage creates on distinct folder for every archive package on a local filesystem
-func ArchiveMessage(process db.SubmissionProcess, message db.Message) error {
+func ArchiveMessage(process db.SubmissionProcess, message db.Message) {
 	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, message.MessageType)
 	for _, f := range rootRecords.Files {
 		aip := createAipFromFileRecordObject(process, f)
-		err := StoreArchivePackage(process, message, aip)
-		if err != nil {
-			return err
-		}
+		StoreArchivePackage(process, message, aip)
 		db.InsertArchivePackage(aip)
 	}
 	for _, p := range rootRecords.Processes {
 		archivePackage := createAipFromProcessRecordObject(process, p)
-		err := StoreArchivePackage(process, message, archivePackage)
-		if err != nil {
-			return err
-		}
+		StoreArchivePackage(process, message, archivePackage)
 		db.InsertArchivePackage(archivePackage)
 	}
 	// combine documents which don't belong to a file or process in one archive package
 	if len(rootRecords.Documents) > 0 {
 		archivePackage := createAipFromDocumentRecordObjects(process, rootRecords.Documents)
-		err := StoreArchivePackage(process, message, archivePackage)
-		if err != nil {
-			return err
-		}
+		StoreArchivePackage(process, message, archivePackage)
 		db.InsertArchivePackage(archivePackage)
 	}
-	return nil
 }
 
 // createAipFromFileRecordObject creates the archive package metadata from a file record object.
@@ -104,34 +94,34 @@ func StoreArchivePackage(
 	process db.SubmissionProcess,
 	message db.Message,
 	archivePackage db.ArchivePackage,
-) error {
+) {
 	id := uuid.New().String()
 	archivePackagePath := filepath.Join(temporaryArchivePath, id)
 	err := os.Mkdir(archivePackagePath, 0744)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	// copy all primary documents in archive package
 	for _, primaryDocument := range archivePackage.PrimaryDocuments {
 		err := copyFileIntoArchivePackage(message.StoreDir, archivePackagePath, primaryDocument.Filename)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 	prunedMessage, err := xdomea.PruneMessage(message, archivePackage)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	messageFileName := filepath.Base(message.MessagePath)
 	err = writeTextFile(archivePackagePath, messageFileName, prunedMessage)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	err = writeTextFile(archivePackagePath, archive.ProtocolFilename, archive.GenerateProtocol(process))
 	if err != nil {
-		return err
+		panic(err)
 	}
-	return writeObjectToTextfile(archivePackage, archivePackagePath, "aip.json")
+	writeObjectToTextfile(archivePackage, archivePackagePath, "aip.json")
 }
 
 // CopyFileIntoArchivePackage copies a file from the message store into an archive package.
@@ -156,13 +146,15 @@ func copyFileIntoArchivePackage(storePath string, archivePackagePath string, fil
 }
 
 // writeObjectToTextfile writes an object to a textfile in the archive package.
-func writeObjectToTextfile(obj any, archivePackagePath string, filename string) error {
+func writeObjectToTextfile(obj any, archivePackagePath string, filename string) {
 	bytes, err := json.MarshalIndent(obj, "", " ")
 	if err != nil {
-		return err
+		panic(err)
 	}
 	err = os.WriteFile(filepath.Join(archivePackagePath, filename), bytes, 0644)
-	return err
+	if err != nil {
+		panic(err)
+	}
 }
 
 // writeTextFile writes a textfile in the archive package.

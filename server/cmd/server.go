@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/archive/filesystem"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
+	"lath/xman/internal/errors"
 	"lath/xman/internal/mail"
 	"lath/xman/internal/report"
 	"lath/xman/internal/routines"
@@ -451,7 +451,7 @@ func archive0503Message(ctx *gin.Context) {
 		isArchivable = state.Receive0503.Complete && !state.Archiving.Complete
 	}
 	if !isArchivable {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("message can't be archived"))
+		ctx.AbortWithError(http.StatusBadRequest, fmt.Errorf("message can't be archived"))
 		return
 	}
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
@@ -477,39 +477,43 @@ func archive0503Message(ctx *gin.Context) {
 	userName := auth.GetDisplayName(userID)
 	task := tasks.Start(db.ProcessStepArchiving, process.ProcessID, "")
 	go func() {
+		defer errors.HandlePanic("archive0503Message", &db.ProcessingError{
+			Agency:      &process.Agency,
+			ProcessID:   process.ProcessID,
+			MessageType: db.MessageType0503,
+			ProcessStep: db.ProcessStepArchiving,
+		}, &task)
 		switch archiveTarget {
 		case "filesystem":
-			err = filesystem.ArchiveMessage(process, message)
+			filesystem.ArchiveMessage(process, message)
 		case "dimag":
-			err = dimag.ImportMessageSync(process, message, collection)
+			dimag.ImportMessageSync(process, message, collection)
 		default:
 			panic("unknown archive target: " + archiveTarget)
 		}
-		if err != nil {
-			processingError := tasks.MarkFailed(&task, err.Error())
-			xdomea.HandleError(processingError)
-		} else {
-			xdomea.Send0506Message(process, message)
-			tasks.MarkDone(task, userName)
-			preferences := db.FindUserPreferences(context.Background(), userID)
-			if preferences.ReportByEmail {
-				defer xdomea.HandlePanic("generate report for e-mail")
-				process, ok := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
-				if !ok {
-					panic("failed to find process:" + message.MessageHead.ProcessID.String())
-				}
-				_, contentType, reader := report.GetReport(context.Background(), process)
-				body, err := io.ReadAll(reader)
-				if err != nil {
-					panic(err)
-				}
-				address := auth.GetMailAddress(userID)
-				filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
-				mail.SendMailReport(
-					address, process,
-					mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
-				)
+		xdomea.Send0506Message(process, message)
+		tasks.MarkDone(task, userName)
+		preferences := db.FindUserPreferences(context.Background(), userID)
+		if preferences.ReportByEmail {
+			defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
+				ProcessID: processID,
+			}, nil)
+			process, ok := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
+			if !ok {
+				panic("failed to find process:" + message.MessageHead.ProcessID.String())
 			}
+			_, contentType, reader := report.GetReport(context.Background(), process)
+			body, err := io.ReadAll(reader)
+			if err != nil {
+				panic(err)
+			}
+			address := auth.GetMailAddress(userID)
+			filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
+			mail.SendMailReport(
+				address, process,
+				mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
+			)
+
 		}
 	}()
 }
@@ -679,7 +683,7 @@ func getCollectionDimagIDs(context *gin.Context) {
 }
 
 func handleRecovery(c *gin.Context, err any) {
-	if os.Getenv("GIN_MODE") == "debug" {
+	if os.Getenv("DEBUG_MODE") == "debug" {
 		c.AbortWithStatusJSON(
 			http.StatusInternalServerError,
 			gin.H{"error": err},
@@ -687,13 +691,18 @@ func handleRecovery(c *gin.Context, err any) {
 	} else {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}
-	info := map[string]any{
-		"Fehler": err,
-		"URL":    c.Request.URL,
+	e := db.ProcessingError{
+		Title: "Anwendungsfehler",
+		Info:  fmt.Sprintf("%s %s\n\n%v", c.Request.Method, c.Request.URL, err),
 	}
-	userID := c.GetString("userId")
-	if userID != "" {
-		info["Nutzer"] = auth.GetDisplayName(userID)
+	if processID, err := uuid.Parse(c.Param("processId")); err == nil {
+		e.ProcessID = processID
 	}
-	xdomea.CreateProcessingErrorPanic(info)
+	if messageType := c.Param("messageType"); messageType != "" {
+		e.MessageType = db.MessageType(messageType)
+	}
+	if userID := c.GetString("userId"); userID != "" {
+		e.Info += "\n\nNutzer: " + auth.GetDisplayName(userID)
+	}
+	errors.AddProcessingError(e)
 }
