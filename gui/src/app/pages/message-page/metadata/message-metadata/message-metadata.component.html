@@ -2,7 +2,7 @@
   <form *ngIf="message" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel
-        [expanded]="hasUnresolvedError()"
+        [expanded]="true"
         [class.archiving-complete]="process?.processState?.archiving?.complete"
         [class.unresolved-error]="hasUnresolvedError()"
       >

@@ -131,7 +131,9 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 		panic("process not found " + message.MessageHead.ProcessID.String())
 	}
 	// Delete transfer file
-	if !keepTransferFile {
+	if keepTransferFile {
+		db.DeleteProcessedTransferDirFile(process.Agency.ID, transferFile)
+	} else {
 		RemoveFileFromTransferDir(process.Agency, transferFile)
 		cleanupEmptyProcess(message.MessageHead.ProcessID)
 	}

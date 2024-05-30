@@ -139,6 +139,13 @@ func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageTy
 	if err != nil {
 		panic(err)
 	}
+	switch messageType {
+	case MessageType0501:
+		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepReceive0501)
+	case MessageType0503:
+		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepReceive0503)
+		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepFormatVerification)
+	}
 }
 
 func refreshUnresolvedErrorsForProcessStep(processID uuid.UUID, step ProcessStepType) {
