@@ -152,7 +152,7 @@ export class MessageService {
 
   archive0503Message(processId: string, collectionId: string): Observable<void> {
     let url = this.apiEndpoint + '/archive-0503-message/' + processId;
-    if (collectionId != '000000000000000000000000') {
+    if (collectionId) {
       url += '?collectionId=' + collectionId;
     }
     const body = {};
