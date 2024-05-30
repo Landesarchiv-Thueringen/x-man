@@ -14,9 +14,8 @@ type ArchivePackage struct {
 	CollectionID primitive.ObjectID `bson:"collection_id"`
 	// IOTitle is the title of the information object in DIMAG.
 	IOTitle string `bson:"io_title"`
-	// IOLifetime is the combined lifetime begin and end of the information
-	// object in DIMAG.
-	IOLifetime string `bson:"io_lifetime"`
+	// IOLifetime is the lifetime of the information object in DIMAG.
+	IOLifetime *Lifetime `bson:"io_lifetime"`
 	// REPTitle is the title of the representation in DIMAG.
 	REPTitle string `bson:"rep_title"`
 	// RootRecordIDs are the RecordIDs of all root-level records contained in

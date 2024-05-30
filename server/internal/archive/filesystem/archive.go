@@ -41,7 +41,7 @@ func createAipFromFileRecordObject(process db.SubmissionProcess, f db.FileRecord
 	archivePackageData := db.ArchivePackage{
 		ProcessID:        process.ProcessID,
 		IOTitle:          archive.GetFileRecordTitle(f),
-		IOLifetime:       archive.GetCombinedLifetime(f.Lifetime),
+		IOLifetime:       f.Lifetime,
 		REPTitle:         "Original",
 		RootRecordIDs:    []uuid.UUID{f.RecordID},
 		PrimaryDocuments: xdomea.GetPrimaryDocumentsForFile(&f),
@@ -54,7 +54,7 @@ func createAipFromProcessRecordObject(process db.SubmissionProcess, p db.Process
 	archivePackageData := db.ArchivePackage{
 		ProcessID:        process.ProcessID,
 		IOTitle:          archive.GetProcessRecordTitle(p),
-		IOLifetime:       archive.GetCombinedLifetime(p.Lifetime),
+		IOLifetime:       p.Lifetime,
 		REPTitle:         "Original",
 		RootRecordIDs:    []uuid.UUID{p.RecordID},
 		PrimaryDocuments: xdomea.GetPrimaryDocumentsForProcess(&p),
@@ -81,7 +81,7 @@ func createAipFromDocumentRecordObjects(
 	aip := db.ArchivePackage{
 		ProcessID:        process.ProcessID,
 		IOTitle:          ioTitle,
-		IOLifetime:       "-",
+		IOLifetime:       nil,
 		REPTitle:         repTitle,
 		RootRecordIDs:    rootRecordIDs,
 		PrimaryDocuments: primaryDocuments,

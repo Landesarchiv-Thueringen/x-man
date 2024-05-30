@@ -82,11 +82,11 @@
     return [-]
   }
   let keys = lifetime.keys()
-  if (lifetime.Start != "" and lifetime.End != "") {
-    [#formatDate(lifetime.Start) -- #formatDate(lifetime.End)]
-  } else if (lifetime.Start != "") {
+  if (lifetime.start != "" and lifetime.end != "") {
+    [#formatDate(lifetime.start) -- #formatDate(lifetime.end)]
+  } else if (lifetime.start != "") {
     [ab #formatDate(lifetime.start)]
-  } else if (lifetime.End != "") {
+  } else if (lifetime.end != "") {
     [bis #formatDate(lifetime.end)]
   } else {
     [-]

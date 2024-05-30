@@ -44,7 +44,7 @@ func GenerateControlFile(
 	repItems := []IndexItem{repIndexItem}
 	ioIndexItem := IndexItem{
 		IndexID:    "",
-		Lifetime:   archivePackageData.IOLifetime,
+		Lifetime:   getCombinedLifetime(archivePackageData.IOLifetime),
 		ItemType:   InformationObjectAbbreviation,
 		Title:      archivePackageData.IOTitle,
 		IndexItems: repItems,
@@ -103,4 +103,18 @@ func getFileName(primaryDocument db.PrimaryDocument) string {
 func getRemoteXmlPath(message db.Message, importDir string) string {
 	filename := filepath.Base(message.MessagePath)
 	return filepath.Join(importDir, filename)
+}
+
+// getCombinedLifetime returns a string representation of lifetime start and end.
+func getCombinedLifetime(l *db.Lifetime) string {
+	if l != nil {
+		if l.Start != "" && l.End != "" {
+			return l.Start + " - " + l.End
+		} else if l.Start != "" {
+			return l.Start + " - "
+		} else if l.End != "" {
+			return " - " + l.End
+		}
+	}
+	return ""
 }

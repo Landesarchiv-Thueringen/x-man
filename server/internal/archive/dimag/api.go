@@ -34,7 +34,7 @@ func ImportMessageSync(process db.SubmissionProcess, message db.Message, collect
 		aip := db.ArchivePackage{
 			ProcessID:        process.ProcessID,
 			IOTitle:          archive.GetFileRecordTitle(f),
-			IOLifetime:       archive.GetCombinedLifetime(f.Lifetime),
+			IOLifetime:       f.Lifetime,
 			REPTitle:         "Original",
 			PrimaryDocuments: xdomea.GetPrimaryDocumentsForFile(&f),
 			CollectionID:     collection.ID,
@@ -47,7 +47,7 @@ func ImportMessageSync(process db.SubmissionProcess, message db.Message, collect
 		aip := db.ArchivePackage{
 			ProcessID:        process.ProcessID,
 			IOTitle:          archive.GetProcessRecordTitle(p),
-			IOLifetime:       archive.GetCombinedLifetime(p.Lifetime),
+			IOLifetime:       p.Lifetime,
 			REPTitle:         "Original",
 			PrimaryDocuments: xdomea.GetPrimaryDocumentsForProcess(&p),
 			CollectionID:     collection.ID,
@@ -72,7 +72,7 @@ func ImportMessageSync(process db.SubmissionProcess, message db.Message, collect
 		aip := db.ArchivePackage{
 			ProcessID:        process.ProcessID,
 			IOTitle:          ioTitle,
-			IOLifetime:       "-",
+			IOLifetime:       nil,
 			REPTitle:         repTitle,
 			PrimaryDocuments: primaryDocuments,
 			CollectionID:     collection.ID,
