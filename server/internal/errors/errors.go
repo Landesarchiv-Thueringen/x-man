@@ -39,19 +39,21 @@ func FromError(title string, err error) db.ProcessingError {
 // The inserted error is based on `err`, which can be a standard return error or
 // a processing error. `data` is used to complement `err`. Fields of `data` take
 // precedence over fields of `err`.
-func AddProcessingErrorWithData(err error, data db.ProcessingError) {
+func AddProcessingErrorWithData(err error, data db.ProcessingError) db.ProcessingError {
 	e := withData(err, data)
-	AddProcessingError(e)
+	e = AddProcessingError(e)
+	return e
 }
 
 // AddProcessingError inserts a new processing error into the database.
-func AddProcessingError(e db.ProcessingError) {
+func AddProcessingError(e db.ProcessingError) db.ProcessingError {
 	e.CreatedAt = time.Now()
 	e.Stack = string(debug.Stack())
 	e = augmentProcessingError(e)
 	log.Printf("processing error: %s\n", e.Title)
-	db.InsertProcessingError(e)
+	e.ID = db.InsertProcessingError(e)
 	sendEmailNotifications(e)
+	return e
 }
 
 // HandlePanic checks for a panic in the current go routine and recovers from

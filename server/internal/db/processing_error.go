@@ -17,6 +17,7 @@ const (
 	ErrorResolutionReimportMessage    ProcessingErrorResolution = "reimport-message"
 	ErrorResolutionDeleteMessage      ProcessingErrorResolution = "delete-message"
 	ErrorResolutionDeleteTransferFile ProcessingErrorResolution = "delete-transfer-file"
+	ErrorResolutionObsolete           ProcessingErrorResolution = "obsolete"
 )
 
 // ProcessingError represents any problem that should be communicated to
@@ -29,6 +30,7 @@ type ProcessingError struct {
 	ID           primitive.ObjectID        `bson:"_id,omitempty" json:"id"`
 	CreatedAt    time.Time                 `bson:"created_at" json:"createdAt"`
 	Resolved     bool                      `json:"resolved"`
+	ResolvedAt   time.Time                 `bson:"resolved_at" json:"resolvedAt"`
 	Resolution   ProcessingErrorResolution `json:"resolution"`
 	Title        string                    `json:"title"`
 	Info         string                    `bson:"info" json:"info"`
@@ -47,9 +49,9 @@ func (e *ProcessingError) Error() string {
 // InsertProcessingError saves a processing error to the database.
 //
 // Do not call directly. Instead use clearing.HandleError.
-func InsertProcessingError(e ProcessingError) {
+func InsertProcessingError(e ProcessingError) primitive.ObjectID {
 	coll := mongoDatabase.Collection("processing_errors")
-	_, err := coll.InsertOne(context.Background(), e)
+	result, err := coll.InsertOne(context.Background(), e)
 	if err != nil {
 		panic(err)
 	}
@@ -57,6 +59,7 @@ func InsertProcessingError(e ProcessingError) {
 	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
 		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
 	}
+	return result.InsertedID.(primitive.ObjectID)
 }
 
 func FindProcessingErrors(ctx context.Context) []ProcessingError {
@@ -100,6 +103,7 @@ func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution
 	coll := mongoDatabase.Collection("processing_errors")
 	update := bson.D{{"$set", bson.D{
 		{"resolved", true},
+		{"resolved_at", time.Now()},
 		{"resolution", r},
 	}}}
 	result, err := coll.UpdateByID(context.Background(), e.ID, update)

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/studio-b12/gowebdav"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // all possible URL protocol schemes for transfer directories
@@ -61,6 +62,7 @@ func testWebDAV(transferDirURL *url.URL) bool {
 
 // MonitorTransferDirs starts the watch loop to process the contents of the transfer directories.
 func MonitorTransferDirs() {
+	defer errors.HandlePanic("MonitorTransferDirs", nil, nil)
 	interval := time.Minute
 	intervalString := os.Getenv("TRANSFER_DIR_SCAN_INTERVAL_SECONDS")
 	if intervalString != "" {
@@ -71,47 +73,36 @@ func MonitorTransferDirs() {
 		interval = time.Second * time.Duration(intervalSeconds)
 	}
 	ticker = *time.NewTicker(interval)
-	stop = make(chan bool)
-	go watchLoop(ticker, stop)
-}
-
-// watchLoop reads the contents of all transfer directories periodically.
-func watchLoop(ticker time.Ticker, stop chan bool) {
-	defer errors.HandlePanic("watchLoop", nil, nil)
-	for {
-		select {
-		case <-stop:
-			ticker.Stop()
-			return
-		case <-ticker.C:
-			readMessages()
-		}
-	}
-}
-
-// readMessages checks the contents of all transfer directories.
-func readMessages() {
+	// connectionErrors maps agency IDs to known errors, so we won't add
+	// existing errors again and we can mark errors as resolved when they stop
+	// occurring.
+	connectionErrors := make(map[primitive.ObjectID]db.ProcessingError)
 	errorData := db.ProcessingError{
 		Title: "Fehler beim Lesen des Transferverzeichnisses",
 	}
-	agencies := db.FindAgencies(context.Background())
-	for _, agency := range agencies {
-		errorData.Agency = &agency
-		transferDirURL, err := url.Parse(agency.TransferDirURL)
-		if err != nil {
-			panic(err)
-		}
-		switch transferDirURL.Scheme {
-		case string(Local):
-			readMessagesFromFilesystem(agency, transferDirURL)
-		case string(WebDAV), string(WebDAVSec):
-			err = readMessagesFromWebDAV(agency, transferDirURL)
-		default:
-			panic("unknown transfer directory scheme")
-		}
-		if err != nil {
-			// TODO: don't repeatedly create errors
-			errors.AddProcessingErrorWithData(err, errorData)
+	// Regularly check all transfer dirs.
+	for {
+		<-ticker.C
+		agencies := db.FindAgencies(context.Background())
+		for _, agency := range agencies {
+			errorData.Agency = &agency
+			transferDirURL, err := url.Parse(agency.TransferDirURL)
+			if err != nil {
+				panic(err)
+			}
+			switch transferDirURL.Scheme {
+			case string(Local):
+				readMessagesFromFilesystem(agency, transferDirURL)
+			case string(WebDAV), string(WebDAVSec):
+				err = readMessagesFromWebDAV(agency, transferDirURL)
+			default:
+				panic("unknown transfer directory scheme")
+			}
+			if knownError, hasKnownError := connectionErrors[agency.ID]; !hasKnownError && err != nil {
+				connectionErrors[agency.ID] = errors.AddProcessingErrorWithData(err, errorData)
+			} else if hasKnownError && err == nil {
+				db.UpdateProcessingErrorResolve(knownError, db.ErrorResolutionObsolete)
+			}
 		}
 	}
 }

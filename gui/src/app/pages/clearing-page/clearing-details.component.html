@@ -23,15 +23,22 @@
             @case ("delete-transfer-file") {
               Transferdatei gelöscht
             }
+            @case ("obsolete") {
+              Fehler nicht mehr vorhanden
+            }
             @default {
               {{ data.resolution }}
             }
           }
         </div>
       </div>
+      <div role="row">
+        <div role="cell">Gelöst am</div>
+        <div role="cell">{{ data.resolvedAt | date: "medium" }}</div>
+      </div>
     }
     <div role="row">
-      <div role="cell">Feststellungszeitpunkt</div>
+      <div role="cell">Festgestellt am</div>
       <div role="cell">{{ data.createdAt | date: "medium" }}</div>
     </div>
     @if (data.agency) {

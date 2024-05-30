@@ -5,12 +5,18 @@ import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
 import { MessageType } from '../services/message.service';
 
-type ProcessingErrorResolution = 'mark-solved' | 'reimport-message' | 'delete-message' | 'delete-transfer-file';
+type ProcessingErrorResolution =
+  | 'mark-solved'
+  | 'reimport-message'
+  | 'delete-message'
+  | 'delete-transfer-file'
+  | 'obsolete';
 
 export interface ProcessingError {
   id: string;
   createdAt: string;
   resolved: boolean;
+  resolvedAt: string;
   resolution: ProcessingErrorResolution;
   title: string;
   info: string;

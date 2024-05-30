@@ -90,7 +90,7 @@ func initServer() {
 	log.Println(defaultResponse)
 	db.Init()
 	MigrateData()
-	xdomea.MonitorTransferDirs()
+	go xdomea.MonitorTransferDirs()
 }
 
 func MigrateData() {
