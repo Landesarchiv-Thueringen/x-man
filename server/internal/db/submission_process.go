@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -132,16 +131,17 @@ func insertProcess(
 // DeleteProcess deletes the given submission process from the database.
 //
 // Do not call directly, instead use `xdomea.DeleteProcess`.
-func DeleteProcess(processID uuid.UUID) {
+func DeleteProcess(processID uuid.UUID) (ok bool) {
 	coll := mongoDatabase.Collection("submission_processes")
 	filter := bson.D{{"process_id", processID}}
 	result, err := coll.DeleteOne(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
-	if result.DeletedCount < 1 {
-		panic(fmt.Sprintf("failed to delete process %v: not found", processID))
+	if result.DeletedCount == 0 {
+		return false
 	}
+	return true
 }
 
 func UpdateProcessNote(
@@ -152,7 +152,7 @@ func UpdateProcessNote(
 	return updateProcess(processID, update)
 }
 
-func UpdateProcessMessagePath(processID uuid.UUID, messageType MessageType, messagePath string) {
+func MustUpdateProcessMessagePath(processID uuid.UUID, messageType MessageType, messagePath string) {
 	var field string
 	switch messageType {
 	case MessageType0502, MessageType0504, MessageType0506:
@@ -167,7 +167,7 @@ func UpdateProcessMessagePath(processID uuid.UUID, messageType MessageType, mess
 	}
 }
 
-func UpdateProcessStepCompletion(
+func MustUpdateProcessStepCompletion(
 	processID uuid.UUID,
 	step ProcessStepType,
 	complete bool,
@@ -185,7 +185,7 @@ func UpdateProcessStepCompletion(
 	}
 }
 
-func UpdateProcessStepProgress(
+func MustUpdateProcessStepProgress(
 	processID uuid.UUID,
 	step ProcessStepType,
 	progress string,

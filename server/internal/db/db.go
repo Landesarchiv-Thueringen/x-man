@@ -1,3 +1,19 @@
+// Package db provides types and accessor functions for database entries.
+//
+// Other business logic should be kept at a minimum.
+//
+// Accessor functions adhere to the following rules:
+//   - Functions panic on unexpected errors.
+//   - `Find`, `Update`, `Replace`, and `Delete` functions return an `ok` value
+//     to indicate whether the document could be found.
+//   - `MustFind`, `MustUpdate`, ... functions can be provided that panic when
+//     the document could not be found.
+//   - `TryFind` functions return a default value when the document could not
+//     be found.
+//   - `Upsert` functions either insert a new document or update an existing
+//     one.
+//   - `Find` and `Delete` functions for multiple documents succeed without
+//     errors, even if no documents were found or deleted.
 package db
 
 import (

@@ -95,20 +95,24 @@ func FindProcessingError(ctx context.Context, id primitive.ObjectID) (e Processi
 }
 
 // UpdateProcessingErrorResolve marks the given processing error as resolved.
-func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution) {
+func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution) (ok bool) {
 	coll := mongoDatabase.Collection("processing_errors")
 	update := bson.D{{"$set", bson.D{
 		{"resolved", true},
 		{"resolution", r},
 	}}}
-	_, err := coll.UpdateByID(context.Background(), e.ID, update)
+	result, err := coll.UpdateByID(context.Background(), e.ID, update)
 	if err != nil {
 		panic(err)
+	}
+	if result.MatchedCount == 0 {
+		return false
 	}
 	// Update submission process
 	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
 		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
 	}
+	return true
 }
 
 // DeleteProcessingErrorsForProcess deletes all processing errors associated

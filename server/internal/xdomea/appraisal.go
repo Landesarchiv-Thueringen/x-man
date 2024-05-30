@@ -221,7 +221,7 @@ func markAncestorsToBeArchived(processID uuid.UUID, m AppraisableRecordsMap, id 
 
 func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message {
 	markUnappraisedRecordObjectsAsDiscardable(message)
-	db.UpdateProcessStepCompletion(
+	db.MustUpdateProcessStepCompletion(
 		message.MessageHead.ProcessID,
 		db.ProcessStepAppraisal,
 		true,
@@ -261,5 +261,5 @@ func updateAppraisalProcessStep(processID uuid.UUID) {
 		}
 	}
 	processStepMessage := fmt.Sprintf("%d / %d", numberAppraisalComplete, len(appraisableRootRecordIDs))
-	db.UpdateProcessStepProgress(process.ProcessID, db.ProcessStepAppraisal, processStepMessage, false)
+	db.MustUpdateProcessStepProgress(process.ProcessID, db.ProcessStepAppraisal, processStepMessage, false)
 }

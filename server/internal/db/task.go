@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -62,27 +63,30 @@ func InsertTask(task Task) Task {
 	return task
 }
 
-func UpdateTaskProgress(id primitive.ObjectID, progress string) {
+func MustUpdateTaskProgress(id primitive.ObjectID, progress string) {
 	update := bson.D{{"$set", bson.D{
 		{"updated_at", time.Now()},
 		{"progress", progress},
 	}}}
-	updateTask(id, update)
+	mustUpdateTask(id, update)
 }
 
-func UpdateTaskState(id primitive.ObjectID, state TaskState, errorMessage string) {
+func MustUpdateTaskState(id primitive.ObjectID, state TaskState, errorMessage string) {
 	update := bson.D{{"$set", bson.D{
 		{"updated_at", time.Now()},
 		{"state", state},
 		{"error_message", errorMessage},
 	}}}
-	updateTask(id, update)
+	mustUpdateTask(id, update)
 }
 
-func updateTask(id primitive.ObjectID, update interface{}) {
+func mustUpdateTask(id primitive.ObjectID, update interface{}) {
 	coll := mongoDatabase.Collection("tasks")
-	_, err := coll.UpdateByID(context.Background(), id, update)
+	result, err := coll.UpdateByID(context.Background(), id, update)
 	if err != nil {
 		panic(err)
+	}
+	if result.MatchedCount == 0 {
+		panic(fmt.Sprintf("failed to update task %v: not found", id))
 	}
 }

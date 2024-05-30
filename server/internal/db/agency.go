@@ -33,17 +33,6 @@ type Agency struct {
 	CollectionID *primitive.ObjectID `bson:"collection_id" json:"collectionId"`
 }
 
-func FindAgency(ctx context.Context, id primitive.ObjectID) Agency {
-	coll := mongoDatabase.Collection("agencies")
-	filter := bson.D{{"_id", id}}
-	var agency Agency
-	err := coll.FindOne(ctx, filter).Decode(&agency)
-	if err != nil {
-		panic(err)
-	}
-	return agency
-}
-
 func FindAgencies(ctx context.Context) []Agency {
 	return findAgencies(ctx, bson.D{{}})
 }
@@ -79,22 +68,30 @@ func InsertAgency(agency Agency) (id primitive.ObjectID) {
 	return result.InsertedID.(primitive.ObjectID)
 }
 
-func ReplaceAgency(agency Agency) {
+func ReplaceAgency(agency Agency) (ok bool) {
 	coll := mongoDatabase.Collection("agencies")
 	filter := bson.D{{"_id", agency.ID}}
-	_, err := coll.ReplaceOne(context.Background(), filter, agency)
+	result, err := coll.ReplaceOne(context.Background(), filter, agency)
 	if err != nil {
 		panic(err)
+	}
+	if result.MatchedCount == 0 {
+		return false
 	}
 	updateAgencyForProcesses(agency)
 	updateAgencyForProcessingErrors(agency)
+	return true
 }
 
-func DeleteAgency(id primitive.ObjectID) {
+func DeleteAgency(id primitive.ObjectID) (ok bool) {
 	coll := mongoDatabase.Collection("agencies")
 	filter := bson.D{{"_id", id}}
-	_, err := coll.DeleteOne(context.Background(), filter)
+	result, err := coll.DeleteOne(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
+	if result.DeletedCount == 0 {
+		return false
+	}
+	return true
 }

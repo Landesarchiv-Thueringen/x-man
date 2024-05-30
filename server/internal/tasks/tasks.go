@@ -18,16 +18,16 @@ func Start(taskType db.ProcessStepType, processID uuid.UUID, progress string) db
 		Progress:  progress,
 	})
 	// Update process step
-	db.UpdateProcessStepProgress(processID, taskType, task.Progress, true)
+	db.MustUpdateProcessStepProgress(processID, taskType, task.Progress, true)
 	return task
 }
 
 func Progress(task db.Task, progress string) {
 	log.Printf("%s for process %v: %s\n", task.Type, task.ProcessID, progress)
 	// Update task
-	db.UpdateTaskProgress(task.ID, progress)
+	db.MustUpdateTaskProgress(task.ID, progress)
 	// Update process step
-	db.UpdateProcessStepProgress(task.ProcessID, task.Type, progress, true)
+	db.MustUpdateProcessStepProgress(task.ProcessID, task.Type, progress, true)
 }
 
 // MarkFailed marks the task and its process step failed.
@@ -35,7 +35,7 @@ func Progress(task db.Task, progress string) {
 // It returns a matching ProcessingError to be passed on.
 func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 	// Update task
-	db.UpdateTaskState(task.ID, db.TaskStateFailed, errorMessage)
+	db.MustUpdateTaskState(task.ID, db.TaskStateFailed, errorMessage)
 	// The process step is marked failed by the processing error
 
 	// Create processing error
@@ -51,9 +51,9 @@ func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 func MarkDone(task db.Task, completedBy string) {
 	log.Printf("Task %s for process %v done\n", task.Type, task.ProcessID)
 	// Update task
-	db.UpdateTaskState(task.ID, db.TaskStateSucceeded, "")
+	db.MustUpdateTaskState(task.ID, db.TaskStateSucceeded, "")
 	// Update process step
-	db.UpdateProcessStepCompletion(task.ProcessID, task.Type, true, completedBy)
+	db.MustUpdateProcessStepCompletion(task.ProcessID, task.Type, true, completedBy)
 }
 
 func getDisplayName(taskType db.ProcessStepType) string {

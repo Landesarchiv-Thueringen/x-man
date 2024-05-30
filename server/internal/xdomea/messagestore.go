@@ -122,7 +122,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 	case db.MessageType0505:
 		processStepType = db.ProcessStepReceive0505
 	}
-	db.UpdateProcessStepCompletion(processID, processStepType, false, "")
+	db.MustUpdateProcessStepCompletion(processID, processStepType, false, "")
 	// Delete message storage
 	if err := os.RemoveAll(storeDir); err != nil {
 		panic(err)

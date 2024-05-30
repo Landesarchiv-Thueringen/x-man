@@ -110,21 +110,23 @@ func FindMessage(
 	return message, true
 }
 
-// DeleteMessage deletes the given message and all its associations.
-//
-// Panics if the message cannot be found.
+// DeleteMessage deletes the given message.
 //
 // Do not use directly, instead use `xdomea.DeleteMessage`.
-func DeleteMessage(message Message) {
+func DeleteMessage(message Message) (ok bool) {
 	coll := mongoDatabase.Collection("messages")
 	filter := bson.D{
 		{"message_head.process_id", message.MessageHead.ProcessID},
 		{"message_type", message.MessageType},
 	}
-	_, err := coll.DeleteOne(context.Background(), filter)
+	result, err := coll.DeleteOne(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
+	if result.DeletedCount == 0 {
+		return false
+	}
+	return true
 }
 
 func DeleteMessagesForProcess(processID uuid.UUID) {

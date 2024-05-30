@@ -353,7 +353,7 @@ func finalizeMessageAppraisal(ctx *gin.Context) {
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
 	messagePath := xdomea.Send0502Message(process.Agency, message)
-	db.UpdateProcessMessagePath(process.ProcessID, db.MessageType0502, messagePath)
+	db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0502, messagePath)
 }
 
 func areAllRecordObjectsAppraised(context *gin.Context) {
@@ -493,7 +493,7 @@ func archive0503Message(ctx *gin.Context) {
 		}
 		xdomea.Send0506Message(process, message)
 		tasks.MarkDone(task, userName)
-		preferences := db.FindUserPreferences(context.Background(), userID)
+		preferences := db.TryFindUserPreferences(context.Background(), userID)
 		if preferences.ReportByEmail {
 			defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
 				ProcessID: processID,
@@ -526,7 +526,7 @@ func Users(c *gin.Context) {
 func getUserInformation(context *gin.Context) {
 	userID := context.MustGet("userId").(string)
 	agencies := db.FindAgenciesForUser(context, userID)
-	preferences := db.FindUserPreferences(context, userID)
+	preferences := db.TryFindUserPreferences(context, userID)
 	context.JSON(http.StatusOK, gin.H{
 		"agencies":    agencies,
 		"preferences": preferences,
@@ -590,7 +590,11 @@ func postAgency(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	db.ReplaceAgency(agency)
+	ok := db.ReplaceAgency(agency)
+	if !ok {
+		context.AbortWithStatus(http.StatusNotFound)
+		return
+	}
 	context.Status(http.StatusAccepted)
 }
 
@@ -601,7 +605,11 @@ func deleteAgency(context *gin.Context) {
 		context.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	db.DeleteAgency(id)
+	ok := db.DeleteAgency(id)
+	if !ok {
+		context.AbortWithStatus(http.StatusNotFound)
+		return
+	}
 	context.Status(http.StatusAccepted)
 }
 

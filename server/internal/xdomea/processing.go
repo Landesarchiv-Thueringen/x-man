@@ -92,12 +92,12 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		// send the confirmation message that the 0501 message was received
 		if messageType == "0501" {
 			messagePath := Send0504Message(agency, message)
-			db.UpdateProcessMessagePath(process.ProcessID, db.MessageType0504, messagePath)
+			db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0504, messagePath)
 		}
 		// send e-mail notification to users
 		for _, user := range agency.Users {
 			address := auth.GetMailAddress(user)
-			preferences := db.FindUserPreferences(context.Background(), user)
+			preferences := db.TryFindUserPreferences(context.Background(), user)
 			if preferences.MessageEmailNotifications {
 				mail.SendMailNewMessage(address, agency.Name, message)
 			}
@@ -387,7 +387,7 @@ func Send0506Message(process db.SubmissionProcess, message db.Message) {
 		messageXml,
 		Message0506MessageSuffix,
 	)
-	db.UpdateProcessMessagePath(process.ProcessID, db.MessageType0506, messagePath)
+	db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0506, messagePath)
 }
 
 // sendMessage creates a xdomea message and copies it into the transfer directory.
@@ -501,5 +501,5 @@ func markMessageReceived(
 	if processStep.Complete {
 		panic("process already has message with type " + message.MessageType)
 	}
-	db.UpdateProcessStepCompletion(process.ProcessID, processStepType, true, "")
+	db.MustUpdateProcessStepCompletion(process.ProcessID, processStepType, true, "")
 }
