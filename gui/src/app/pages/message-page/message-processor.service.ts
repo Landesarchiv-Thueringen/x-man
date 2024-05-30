@@ -18,7 +18,10 @@ export type StructureNodeType =
   | 'primaryDocuments';
 
 export interface StructureNode {
-  id: string; // FIXME: this is mostly the same as recordId
+  // For records `id` is equal to `recordId`. We need this, so we can expand the
+  // active record when loading the page. For meta nodes like record groups or
+  // `primaryDocuments`, we `id` is a random UUID.
+  id: string;
   type: StructureNodeType;
   title: string;
   subtitle?: string;
