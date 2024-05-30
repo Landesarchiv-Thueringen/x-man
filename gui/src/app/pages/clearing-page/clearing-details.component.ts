@@ -90,4 +90,11 @@ export class ClearingDetailsComponent {
       this.dialogRef.close();
     });
   }
+
+  deleteTransferFile() {
+    this.clearingService.resolveError(this.data.id, 'delete-transfer-file').subscribe(() => {
+      this.notificationService.show('Transferdatei gelöscht');
+      this.dialogRef.close();
+    });
+  }
 }

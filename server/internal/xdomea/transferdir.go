@@ -361,6 +361,7 @@ func RemoveFileFromTransferDir(agency db.Agency, path string) {
 	default:
 		panic("unknown transfer directory scheme")
 	}
+	db.DeleteProcessedTransferDirFile(agency.ID, path)
 }
 
 // RemoveFileFromLocalFilesystem deletes a file on a local filesystem.

@@ -45,11 +45,15 @@ func InsertProcessedTransferDirFile(agencyID primitive.ObjectID, transferDirPath
 	}
 }
 
-func DeleteProcessedTransferDirFile(agencyID primitive.ObjectID, transferDirPath string) {
+func DeleteProcessedTransferDirFile(agencyID primitive.ObjectID, transferDirPath string) (ok bool) {
 	coll := mongoDatabase.Collection("transfer_dir_files")
 	filter := bson.D{{"agency_id", agencyID}, {"transfer_dir_path", transferDirPath}}
-	_, err := coll.DeleteOne(context.Background(), filter)
+	result, err := coll.DeleteOne(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
+	if result.DeletedCount == 0 {
+		return false
+	}
+	return true
 }

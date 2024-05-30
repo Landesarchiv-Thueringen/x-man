@@ -17,6 +17,8 @@ func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorRe
 		DeleteMessage(processingError.ProcessID, processingError.MessageType, true)
 	case db.ErrorResolutionDeleteMessage:
 		DeleteMessage(processingError.ProcessID, processingError.MessageType, false)
+	case db.ErrorResolutionDeleteTransferFile:
+		RemoveFileFromTransferDir(*processingError.Agency, processingError.TransferPath)
 	default:
 		panic(fmt.Sprintf("unknown resolution: %s", resolution))
 	}

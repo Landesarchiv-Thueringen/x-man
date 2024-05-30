@@ -31,13 +31,11 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if err != nil {
 		panic(err)
 	}
-	errorData.ProcessID = processID
 	// extract message type from message filename
 	messageType, err := getMessageTypeImpliedByPath(transferDirMessagePath)
 	if err != nil {
 		panic(err)
 	}
-	errorData.MessageType = messageType
 	// copy message from transfer directory to a local temporary directory
 	localMessagePath := CopyMessageFromTransferDirectory(agency, transferDirMessagePath)
 	defer os.Remove(localMessagePath)
@@ -62,6 +60,8 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		errors.AddProcessingErrorWithData(err, errorData)
 		return
 	}
+	errorData.ProcessID = processID
+	errorData.MessageType = messageType
 	err = compareAgencyFields(agency, message, process)
 	if err != nil {
 		errors.AddProcessingErrorWithData(err, errorData)

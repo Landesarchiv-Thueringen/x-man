@@ -13,9 +13,10 @@ import (
 type ProcessingErrorResolution string
 
 const (
-	ErrorResolutionMarkSolved      ProcessingErrorResolution = "mark-solved"
-	ErrorResolutionReimportMessage ProcessingErrorResolution = "reimport-message"
-	ErrorResolutionDeleteMessage   ProcessingErrorResolution = "delete-message"
+	ErrorResolutionMarkSolved         ProcessingErrorResolution = "mark-solved"
+	ErrorResolutionReimportMessage    ProcessingErrorResolution = "reimport-message"
+	ErrorResolutionDeleteMessage      ProcessingErrorResolution = "delete-message"
+	ErrorResolutionDeleteTransferFile ProcessingErrorResolution = "delete-transfer-file"
 )
 
 // ProcessingError represents any problem that should be communicated to

@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
 import { MessageType } from '../services/message.service';
 
-type ProcessingErrorResolution = 'mark-solved' | 'reimport-message' | 'delete-message';
+type ProcessingErrorResolution = 'mark-solved' | 'reimport-message' | 'delete-message' | 'delete-transfer-file';
 
 export interface ProcessingError {
   id: string;
