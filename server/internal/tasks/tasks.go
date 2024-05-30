@@ -36,8 +36,8 @@ func Progress(task db.Task, progress string) {
 func MarkFailed(task *db.Task, errorMessage string) db.ProcessingError {
 	// Update task
 	db.MustUpdateTaskState(task.ID, db.TaskStateFailed, errorMessage)
-	// The process step is marked failed by the processing error
-
+	// Update processing step
+	db.MustUpdateProcessStepProgress(task.ProcessID, task.Type, "", false)
 	// Create processing error
 	return db.ProcessingError{
 		ProcessID:   task.ProcessID,

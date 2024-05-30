@@ -178,6 +178,7 @@ func MustUpdateProcessStepCompletion(
 		{"process_state." + string(step) + ".complete", complete},
 		{"process_state." + string(step) + ".completed_at", time.Now()},
 		{"process_state." + string(step) + ".completed_by", completedBy},
+		{"process_state." + string(step) + ".running", false},
 	}}}
 	ok := updateProcess(processID, update)
 	if !ok {
