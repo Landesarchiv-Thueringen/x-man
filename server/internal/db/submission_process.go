@@ -17,7 +17,7 @@ type SubmissionProcess struct {
 	StoreDir        string       `json:"-"`
 	Message0502Path string       `bson:"message_0502_path" json:"-"`
 	Message0504Path string       `bson:"message_0504_path" json:"-"`
-	Message0506Path string       `bson:"message_0505_path" json:"-"`
+	Message0506Path string       `bson:"message_0506_path" json:"-"`
 	Note            string       `json:"note"`
 	ProcessState    ProcessState `bson:"process_state" json:"processState"`
 }
