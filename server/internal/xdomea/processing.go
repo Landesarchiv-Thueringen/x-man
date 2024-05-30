@@ -19,7 +19,6 @@ import (
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
-// ProcessNewMessage
 func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	log.Println("Processing new message " + transferDirMessagePath)
 	errorData := db.ProcessingError{
@@ -103,6 +102,50 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 			}
 		}
 	}
+}
+
+// extractMessage parses the given message file into a database entry and saves
+// it to the database. It returns the saved entry.
+//
+// Returns the directories in message store for the process and the message.
+func extractMessageToMessageStore(
+	agency db.Agency,
+	transferDirMessagePath string,
+	localMessagePath string,
+	processID uuid.UUID,
+	messageType db.MessageType,
+) (processStoreDir string, messageStoreDir string) {
+	processStoreDir = path.Join("message_store", processID.String())
+	// Create the message store directory if necessary.
+	messageStoreDir = path.Join(processStoreDir, string(messageType))
+	err := os.MkdirAll(messageStoreDir, 0700)
+	if err != nil {
+		panic(err)
+	}
+	// Open the message archive (zip).
+	archive, err := zip.OpenReader(localMessagePath)
+	if err != nil {
+		panic(err)
+	}
+	defer archive.Close()
+	for _, f := range archive.File {
+		fileInArchive, err := f.Open()
+		if err != nil {
+			panic(err)
+		}
+		defer fileInArchive.Close()
+		fileStorePath := path.Join(messageStoreDir, f.Name)
+		fileInStore, err := os.Create(fileStorePath)
+		if err != nil {
+			panic(err)
+		}
+		defer fileInStore.Close()
+		_, err = io.Copy(fileInStore, fileInArchive)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return
 }
 
 // addMessage parses the message and saves it in the database.
