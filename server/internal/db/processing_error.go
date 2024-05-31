@@ -34,6 +34,7 @@ type ProcessingError struct {
 	Resolution   ProcessingErrorResolution `json:"resolution"`
 	Title        string                    `json:"title"`
 	Info         string                    `bson:"info" json:"info"`
+	ErrorType    string                    `bson:"error_type" json:"-"`
 	Stack        string                    `json:"stack"`
 	Agency       *Agency                   `json:"agency"` // Copy, needs to be kept in sync
 	ProcessID    uuid.UUID                 `bson:"process_id" json:"processId"`
@@ -49,9 +50,9 @@ func (e *ProcessingError) Error() string {
 // InsertProcessingError saves a processing error to the database.
 //
 // Do not call directly. Instead use clearing.HandleError.
-func InsertProcessingError(e ProcessingError) primitive.ObjectID {
+func InsertProcessingError(e ProcessingError) {
 	coll := mongoDatabase.Collection("processing_errors")
-	result, err := coll.InsertOne(context.Background(), e)
+	_, err := coll.InsertOne(context.Background(), e)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +60,6 @@ func InsertProcessingError(e ProcessingError) primitive.ObjectID {
 	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
 		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
 	}
-	return result.InsertedID.(primitive.ObjectID)
 }
 
 func FindProcessingErrors(ctx context.Context) []ProcessingError {
@@ -69,6 +69,14 @@ func FindProcessingErrors(ctx context.Context) []ProcessingError {
 
 func FindProcessingErrorsForProcess(ctx context.Context, processID uuid.UUID) []ProcessingError {
 	filter := bson.D{{"process_id", processID}}
+	return findProcessingErrors(ctx, filter)
+}
+
+func FindUnresolvedProcessingErrorsByType(ctx context.Context, errorType string) []ProcessingError {
+	filter := bson.D{
+		{"resolved", false},
+		{"error_type", errorType},
+	}
 	return findProcessingErrors(ctx, filter)
 }
 

@@ -102,6 +102,12 @@ func createIndexes() {
 			{"resolved", 1},
 		},
 	})
+	createIndex("processing_errors", mongo.IndexModel{
+		Keys: bson.D{
+			{"resolved", 1},
+			{"error_type", 1},
+		},
+	})
 	createIndex("user_preferences", mongo.IndexModel{
 		Keys: bson.D{
 			{"user_id", 1},

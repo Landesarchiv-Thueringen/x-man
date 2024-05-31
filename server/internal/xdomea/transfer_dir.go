@@ -73,16 +73,18 @@ func MonitorTransferDirs() {
 		interval = time.Second * time.Duration(intervalSeconds)
 	}
 	ticker = *time.NewTicker(interval)
-	// connectionErrors maps agency IDs to known errors, so we won't add
-	// existing errors again and we can mark errors as resolved when they stop
-	// occurring.
-	connectionErrors := make(map[primitive.ObjectID]db.ProcessingError)
+
 	errorData := db.ProcessingError{
-		Title: "Fehler beim Lesen des Transferverzeichnisses",
+		Title:     "Fehler beim Lesen des Transferverzeichnisses",
+		ErrorType: "access-transfer-dir",
 	}
 	// Regularly check all transfer dirs.
 	for {
 		<-ticker.C
+		// accessErrors maps agency IDs to known errors, so we won't add
+		// existing errors again and we can mark errors as resolved when they stop
+		// occurring.
+		accessErrors := getAccessTransferDirErrors()
 		agencies := db.FindAgencies(context.Background())
 		for _, agency := range agencies {
 			errorData.Agency = &agency
@@ -98,13 +100,22 @@ func MonitorTransferDirs() {
 			default:
 				panic("unknown transfer directory scheme")
 			}
-			if knownError, hasKnownError := connectionErrors[agency.ID]; !hasKnownError && err != nil {
-				connectionErrors[agency.ID] = errors.AddProcessingErrorWithData(err, errorData)
+			if knownError, hasKnownError := accessErrors[agency.ID]; !hasKnownError && err != nil {
+				errors.AddProcessingErrorWithData(err, errorData)
 			} else if hasKnownError && err == nil {
 				db.UpdateProcessingErrorResolve(knownError, db.ErrorResolutionObsolete)
 			}
 		}
 	}
+}
+
+func getAccessTransferDirErrors() map[primitive.ObjectID]db.ProcessingError {
+	errors := db.FindUnresolvedProcessingErrorsByType(context.Background(), "access-transfer-dir")
+	m := make(map[primitive.ObjectID]db.ProcessingError)
+	for _, e := range errors {
+		m[e.Agency.ID] = e
+	}
+	return m
 }
 
 // readMessagesFromFilesystem checks if new messages exist for a local filesystem.
