@@ -60,6 +60,11 @@ func InsertTask(task Task) Task {
 		panic(err)
 	}
 	task.ID = result.InsertedID.(primitive.ObjectID)
+	broadcastUpdate(Update{
+		Collection: "tasks",
+		ProcessID:  task.ProcessID,
+		Operation:  UpdateOperationInsert,
+	})
 	return task
 }
 
@@ -89,4 +94,10 @@ func mustUpdateTask(id primitive.ObjectID, update interface{}) {
 	if result.MatchedCount == 0 {
 		panic(fmt.Sprintf("failed to update task %v: not found", id))
 	}
+	broadcastUpdate(Update{
+		Collection: "tasks",
+		// Note, that we currently don't populate the field ProcessID since it
+		// is not used.
+		Operation: UpdateOperationUpdate,
+	})
 }

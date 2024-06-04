@@ -1,10 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, interval } from 'rxjs';
-import { first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { NIL_UUID } from '../utils/constants';
 import { Agency } from './agencies.service';
 import { ProcessingError } from './clearing.service';
+import { UpdatesService } from './updates.service';
 
 export interface ProcessData {
   process: SubmissionProcess;
@@ -45,7 +47,10 @@ export class ProcessService {
   private cachedProcessId?: string;
   private cachedProcessData?: Observable<ProcessData>;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(
+    private httpClient: HttpClient,
+    private updates: UpdatesService,
+  ) {
     this.apiEndpoint = environment.endpoint;
   }
 
@@ -60,7 +65,8 @@ export class ProcessService {
   observeProcessData(id: string): Observable<ProcessData> {
     if (id !== this.cachedProcessId) {
       this.cachedProcessId = id;
-      this.cachedProcessData = interval(environment.updateInterval).pipe(
+      this.cachedProcessData = this.updates.observe('submission_processes').pipe(
+        filter((update) => update.processId === id || update.processId === NIL_UUID),
         startWith(void 0),
         switchMap(() => this.httpClient.get<ProcessData>(this.apiEndpoint + '/process/' + id)),
         shareReplay({ bufferSize: 1, refCount: true }),

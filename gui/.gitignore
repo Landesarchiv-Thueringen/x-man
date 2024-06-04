@@ -7,7 +7,7 @@
 !/tsconfig.app.json
 !/tsconfig.json
 !/tsconfig.spec.json
-!/src/proxy.conf.json
+!/src/proxy.conf.mjs
 
 # allow source code
 !/src/**/*.ts

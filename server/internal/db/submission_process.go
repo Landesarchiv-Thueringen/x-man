@@ -125,6 +125,11 @@ func insertProcess(
 	if err != nil {
 		panic(err)
 	}
+	broadcastUpdate(Update{
+		Collection: "submission_processes",
+		ProcessID:  processID,
+		Operation:  UpdateOperationInsert,
+	})
 	return process
 }
 
@@ -141,6 +146,11 @@ func DeleteProcess(processID uuid.UUID) (ok bool) {
 	if result.DeletedCount == 0 {
 		return false
 	}
+	broadcastUpdate(Update{
+		Collection: "submission_processes",
+		ProcessID:  processID,
+		Operation:  UpdateOperationDelete,
+	})
 	return true
 }
 
@@ -148,7 +158,7 @@ func UpdateProcessNote(
 	processID uuid.UUID,
 	note string,
 ) (ok bool) {
-	update := bson.D{{"$set", bson.D{{"node", processID}}}}
+	update := bson.D{{"$set", bson.D{{"note", note}}}}
 	return updateProcess(processID, update)
 }
 
@@ -211,7 +221,15 @@ func updateProcess(processID uuid.UUID, update interface{}) (ok bool) {
 	if err != nil {
 		panic(err)
 	}
-	return result.MatchedCount > 0
+	ok = result.MatchedCount > 0
+	if ok {
+		broadcastUpdate(Update{
+			Collection: "submission_processes",
+			ProcessID:  processID,
+			Operation:  UpdateOperationUpdate,
+		})
+	}
+	return
 }
 
 // updateAgencyForProcesses updates the `Agency` field of all processes
@@ -224,6 +242,10 @@ func updateAgencyForProcesses(agency Agency) {
 	if err != nil {
 		panic(err)
 	}
+	broadcastUpdate(Update{
+		Collection: "submission_processes",
+		Operation:  UpdateOperationUpdate,
+	})
 }
 
 func updateUnresolvedErrorsForProcessStep(processID uuid.UUID, step ProcessStepType, n int) {
@@ -237,4 +259,9 @@ func updateUnresolvedErrorsForProcessStep(processID uuid.UUID, step ProcessStepT
 	if err != nil {
 		panic(err)
 	}
+	broadcastUpdate(Update{
+		Collection: "submission_processes",
+		ProcessID:  processID,
+		Operation:  UpdateOperationUpdate,
+	})
 }

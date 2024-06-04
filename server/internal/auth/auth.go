@@ -20,6 +20,17 @@ func AuthRequired() gin.HandlerFunc {
 	}
 }
 
+func AuthRequiredQueryParam() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Query("token")
+		result, err := validateToken(token)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+		c.Set("userId", result.UserID)
+	}
+}
+
 // AdminRequired requires a valid bearer token with permission "admin" or else stops the request.
 func AdminRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {

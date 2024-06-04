@@ -60,6 +60,11 @@ func InsertProcessingError(e ProcessingError) {
 	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
 		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
 	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		ProcessID:  e.ProcessID,
+		Operation:  UpdateOperationInsert,
+	})
 }
 
 func FindProcessingErrors(ctx context.Context) []ProcessingError {
@@ -125,6 +130,11 @@ func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution
 	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
 		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
 	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		ProcessID:  e.ProcessID,
+		Operation:  UpdateOperationUpdate,
+	})
 	return true
 }
 
@@ -139,6 +149,11 @@ func DeleteProcessingErrorsForProcess(processID uuid.UUID) {
 	if err != nil {
 		panic(err)
 	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		ProcessID:  processID,
+		Operation:  UpdateOperationDelete,
+	})
 }
 
 func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageType) {
@@ -158,6 +173,11 @@ func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageTy
 		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepReceive0503)
 		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepFormatVerification)
 	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		ProcessID:  processID,
+		Operation:  UpdateOperationDelete,
+	})
 }
 
 func refreshUnresolvedErrorsForProcessStep(processID uuid.UUID, step ProcessStepType) {
@@ -184,4 +204,8 @@ func updateAgencyForProcessingErrors(agency Agency) {
 	if err != nil {
 		panic(err)
 	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		Operation:  UpdateOperationUpdate,
+	})
 }

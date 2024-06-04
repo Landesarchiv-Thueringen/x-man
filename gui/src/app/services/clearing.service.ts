@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, interval, map, shareReplay, startWith, switchMap } from 'rxjs';
+import { Observable, map, shareReplay, startWith, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
 import { MessageType } from '../services/message.service';
+import { UpdatesService } from './updates.service';
 
 type ProcessingErrorResolution =
   | 'mark-solved'
@@ -34,13 +35,16 @@ export class ClearingService {
   apiEndpoint: string;
   seenTime = parseInt(window.localStorage.getItem('processing-errors-seen-time') ?? '0');
 
-  constructor(private httpClient: HttpClient) {
+  constructor(
+    private httpClient: HttpClient,
+    private updates: UpdatesService,
+  ) {
     this.apiEndpoint = environment.endpoint;
   }
 
   /** Fetches processing errors every `updateInterval` milliseconds. */
   observeProcessingErrors(): Observable<ProcessingError[]> {
-    return interval(environment.updateInterval).pipe(
+    return this.updates.observe('processing_errors').pipe(
       startWith(void 0), // initial fetch
       switchMap(() => this.getProcessingErrors()),
       map((errors) => errors ?? []),

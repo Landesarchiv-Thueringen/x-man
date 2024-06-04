@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,12 +14,12 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
-import { Subscription, interval, startWith, switchMap, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { debounceTime, startWith, switchMap, tap } from 'rxjs';
 import { Agency } from '../../services/agencies.service';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
 import { ProcessService, ProcessStep, SubmissionProcess } from '../../services/process.service';
+import { UpdatesService } from '../../services/updates.service';
 
 @Component({
   selector: 'app-process-table-page',
@@ -49,7 +49,7 @@ import { ProcessService, ProcessStep, SubmissionProcess } from '../../services/p
     RouterModule,
   ],
 })
-export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
+export class ProcessTablePageComponent implements AfterViewInit {
   readonly dataSource: MatTableDataSource<SubmissionProcess> = new MatTableDataSource<SubmissionProcess>();
   readonly displayedColumns = [
     'agency',
@@ -61,7 +61,6 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     'formatVerification',
     'archivingComplete',
   ] as const;
-  readonly processSubscription: Subscription;
   readonly stateValues = [
     { value: 'message0501', viewValue: 'Anbietung erhalten' },
     { value: 'appraisalComplete', viewValue: 'Bewertung abgeschlossen' },
@@ -92,6 +91,7 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     private configService: ConfigService,
     private formBuilder: FormBuilder,
     private processService: ProcessService,
+    private updatesService: UpdatesService,
   ) {
     this.dataSource.sortingDataAccessor = ((
       process: SubmissionProcess,
@@ -121,25 +121,22 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     this.dataSource.filterPredicate = this.filterPredicate as (data: SubmissionProcess, filter: string) => boolean;
 
     // refetch processes every `updateInterval` milliseconds
-    this.processSubscription = this.allUsersControl.valueChanges
+    this.allUsersControl.valueChanges
       .pipe(
         tap((allUsers) => window.localStorage.setItem('show-all-user-processes', allUsers.toString())),
         startWith(this.allUsersControl.value),
         switchMap(() =>
-          interval(environment.updateInterval).pipe(
+          this.updatesService.observe('submission_processes').pipe(
+            debounceTime(200),
             startWith(void 0), // initial fetch
           ),
         ),
         switchMap(() => this.processService.getProcesses(this.allUsersControl.value)),
+        takeUntilDestroyed(),
       )
-      .subscribe({
-        error: (error) => {
-          console.error(error);
-        },
-        next: (processes: SubmissionProcess[]) => {
-          this.dataSource.data = processes ?? [];
-          this.populateAgencies(processes ?? []);
-        },
+      .subscribe((processes: SubmissionProcess[]) => {
+        this.dataSource.data = processes ?? [];
+        this.populateAgencies(processes ?? []);
       });
   }
 
@@ -147,10 +144,6 @@ export class ProcessTablePageComponent implements AfterViewInit, OnDestroy {
     this.dataSource.paginator = this.paginator;
     this.paginator.pageSize = this.getPageSize();
     this.dataSource.sort = this.sort;
-  }
-
-  ngOnDestroy(): void {
-    this.processSubscription.unsubscribe();
   }
 
   toggleFilters(): void {

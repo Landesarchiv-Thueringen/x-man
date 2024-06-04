@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -44,6 +45,7 @@ func main() {
 	router.GET("api", getDefaultResponse)
 	router.GET("api/about", getAbout)
 	router.GET("api/login", auth.Login)
+	router.GET("api/updates", auth.AuthRequiredQueryParam(), getUpdates)
 	authorized := router.Group("/")
 	authorized.Use(auth.AuthRequired())
 	authorized.GET("api/config", getConfig)
@@ -114,6 +116,28 @@ func getDefaultResponse(context *gin.Context) {
 func getAbout(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{
 		"version": XMAN_VERSION,
+	})
+}
+
+func getUpdates(c *gin.Context) {
+	ch := db.RegisterUpdatesChannel()
+	defer db.UnregisterUpdatesChannel(ch)
+	// This connection should be kept open while a client is connected, i.e.,
+	// the app is open in a browser. However, we might miss disconnects when not
+	// properly propagated, e.g., by a misconfigured proxy. We add a generous
+	// timeout to eventually unregister the channel in these cases. When in fact
+	// still connected, the client will reconnect after being disconnected by
+	// us.
+	ctx, cancel := context.WithTimeout(c.Request.Context(), time.Hour*1)
+	defer cancel()
+	c.Stream(func(w io.Writer) bool {
+		select {
+		case <-ctx.Done():
+			return false
+		case msg := <-ch:
+			c.SSEvent("message", msg)
+			return true
+		}
 	})
 }
 

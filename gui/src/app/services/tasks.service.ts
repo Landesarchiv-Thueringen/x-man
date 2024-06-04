@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, interval, startWith, switchMap } from 'rxjs';
+import { Observable, startWith, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ProcessStep } from './process.service';
+import { UpdatesService } from './updates.service';
 
 export type TaskState = 'running' | 'failed' | 'succeeded';
 export type TaskType = 'format_verification' | 'archiving';
@@ -22,10 +23,13 @@ export interface Task {
   providedIn: 'root',
 })
 export class TasksService {
-  constructor(private httpClient: HttpClient) {}
+  constructor(
+    private httpClient: HttpClient,
+    private updates: UpdatesService,
+  ) {}
 
   observeTasks(): Observable<Task[]> {
-    return interval(environment.updateInterval).pipe(
+    return this.updates.observe('tasks').pipe(
       startWith(void 0),
       switchMap(() => this.httpClient.get<Task[]>(environment.endpoint + '/tasks')),
     );
