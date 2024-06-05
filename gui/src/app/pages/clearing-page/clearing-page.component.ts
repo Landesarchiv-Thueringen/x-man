@@ -33,6 +33,7 @@ export class ClearingPageComponent implements AfterViewInit {
   showResolvedControl = new FormControl(window.localStorage.getItem('show-resolved-processing-errors') === 'true', {
     nonNullable: true,
   });
+  lastSeenTime = this.clearingService.getLastSeenTime();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -53,6 +54,9 @@ export class ClearingPageComponent implements AfterViewInit {
         takeUntilDestroyed(),
       )
       .subscribe((errors: ProcessingError[]) => {
+        // Since we cannot expect the server and client clocks to be in sync on
+        // the millisecond, we take the time from the most recent error.
+        this.clearingService.markAllSeen(this.getMostRecentErrorTime(errors));
         if (this.showResolvedControl.value) {
           this.dataSource.data = errors;
         } else {
@@ -71,6 +75,10 @@ export class ClearingPageComponent implements AfterViewInit {
     return element.id;
   }
 
+  isNew(node: ProcessingError) {
+    return new Date(node.createdAt).valueOf() > this.lastSeenTime;
+  }
+
   openDetails(processingError: Partial<ProcessingError>) {
     const dialogRef = this.dialog.open(ClearingDetailsComponent, { maxWidth: '80vw', data: processingError });
     dialogRef.afterClosed().subscribe((result) => {});
@@ -87,5 +95,16 @@ export class ClearingPageComponent implements AfterViewInit {
     } else {
       return 10;
     }
+  }
+
+  private getMostRecentErrorTime(errors: ProcessingError[]): number {
+    let result = 0;
+    for (const e of errors) {
+      const errorTime = new Date(e.createdAt).valueOf();
+      if (errorTime > result) {
+        result = errorTime;
+      }
+    }
+    return result;
   }
 }

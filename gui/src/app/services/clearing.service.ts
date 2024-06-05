@@ -32,8 +32,8 @@ export interface ProcessingError {
   providedIn: 'root',
 })
 export class ClearingService {
-  seenTime = new BehaviorSubject(0);
-  processingErrors = this.getProcessingErrorsObservable();
+  private seenTime = new BehaviorSubject(0);
+  private processingErrors = this.getProcessingErrorsObservable();
 
   constructor(
     private httpClient: HttpClient,
@@ -70,13 +70,16 @@ export class ClearingService {
     );
   }
 
+  getLastSeenTime(): number {
+    return this.seenTime.value;
+  }
+
   /**
    * Resets the number returned by `observeNumberUnseen` to 0.
    */
-  markAllSeen(): void {
-    const now = Date.now();
-    window.localStorage.setItem('processing-errors-seen-time', now.toString());
-    this.seenTime.next(now);
+  markAllSeen(time = Date.now()): void {
+    window.localStorage.setItem('processing-errors-seen-time', time.toString());
+    this.seenTime.next(time);
   }
 
   private getProcessingErrors() {
