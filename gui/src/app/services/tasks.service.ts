@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, startWith, switchMap } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ProcessStep } from './process.service';
 import { UpdatesService } from './updates.service';
@@ -29,9 +29,8 @@ export class TasksService {
   ) {}
 
   observeTasks(): Observable<Task[]> {
-    return this.updates.observe('tasks').pipe(
-      startWith(void 0),
-      switchMap(() => this.httpClient.get<Task[]>(environment.endpoint + '/tasks')),
-    );
+    return this.updates
+      .observeCollection('tasks')
+      .pipe(switchMap(() => this.httpClient.get<Task[]>(environment.endpoint + '/tasks')));
   }
 }

@@ -130,10 +130,25 @@ func getUpdates(c *gin.Context) {
 	// us.
 	ctx, cancel := context.WithTimeout(c.Request.Context(), time.Hour*1)
 	defer cancel()
+	heartbeat := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				heartbeat <- struct{}{}
+				time.Sleep(time.Second * 30)
+			}
+		}
+	}()
 	c.Stream(func(w io.Writer) bool {
 		select {
 		case <-ctx.Done():
 			return false
+		case <-heartbeat:
+			c.SSEvent("heartbeat", struct{}{})
+			return true
 		case msg := <-ch:
 			c.SSEvent("message", msg)
 			return true

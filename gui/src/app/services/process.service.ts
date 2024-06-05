@@ -1,9 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { filter, first, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
+import { first, map, shareReplay, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { NIL_UUID } from '../utils/constants';
 import { Agency } from './agencies.service';
 import { ProcessingError } from './clearing.service';
 import { UpdatesService } from './updates.service';
@@ -65,9 +64,7 @@ export class ProcessService {
   observeProcessData(id: string): Observable<ProcessData> {
     if (id !== this.cachedProcessId) {
       this.cachedProcessId = id;
-      this.cachedProcessData = this.updates.observe('submission_processes').pipe(
-        filter((update) => update.processId === id || update.processId === NIL_UUID),
-        startWith(void 0),
+      this.cachedProcessData = this.updates.observeSubmissionProcess(id).pipe(
         switchMap(() => this.httpClient.get<ProcessData>(this.apiEndpoint + '/process/' + id)),
         shareReplay({ bufferSize: 1, refCount: true }),
       );

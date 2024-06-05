@@ -14,7 +14,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
-import { debounceTime, startWith, switchMap, tap } from 'rxjs';
+import { startWith, switchMap, tap } from 'rxjs';
 import { Agency } from '../../services/agencies.service';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
@@ -125,12 +125,7 @@ export class ProcessTablePageComponent implements AfterViewInit {
       .pipe(
         tap((allUsers) => window.localStorage.setItem('show-all-user-processes', allUsers.toString())),
         startWith(this.allUsersControl.value),
-        switchMap(() =>
-          this.updatesService.observe('submission_processes').pipe(
-            debounceTime(200),
-            startWith(void 0), // initial fetch
-          ),
-        ),
+        switchMap(() => this.updatesService.observeCollection('submission_processes')),
         switchMap(() => this.processService.getProcesses(this.allUsersControl.value)),
         takeUntilDestroyed(),
       )

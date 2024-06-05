@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -7,7 +8,7 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Subscription, startWith, switchMap, tap } from 'rxjs';
+import { startWith, switchMap, tap } from 'rxjs';
 import { ClearingService, ProcessingError } from '../../services/clearing.service';
 import { ClearingDetailsComponent } from './clearing-details.component';
 
@@ -26,10 +27,9 @@ import { ClearingDetailsComponent } from './clearing-details.component';
     ReactiveFormsModule,
   ],
 })
-export class ClearingPageComponent implements AfterViewInit, OnDestroy {
+export class ClearingPageComponent implements AfterViewInit {
   dataSource: MatTableDataSource<ProcessingError>;
   displayedColumns: string[];
-  errorsSubscription?: Subscription;
   showResolvedControl = new FormControl(window.localStorage.getItem('show-resolved-processing-errors') === 'true', {
     nonNullable: true,
   });
@@ -44,35 +44,27 @@ export class ClearingPageComponent implements AfterViewInit, OnDestroy {
     this.displayedColumns = ['createdAt', 'agency', 'title'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
     this.clearingService.markAllSeen();
+
+    this.showResolvedControl.valueChanges
+      .pipe(
+        tap((showResolved) => window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString())),
+        startWith(this.showResolvedControl.value),
+        switchMap(() => this.clearingService.observeProcessingErrors()),
+        takeUntilDestroyed(),
+      )
+      .subscribe((errors: ProcessingError[]) => {
+        if (this.showResolvedControl.value) {
+          this.dataSource.data = errors;
+        } else {
+          this.dataSource.data = errors.filter((error) => !error.resolved);
+        }
+      });
   }
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.paginator.pageSize = this.getPageSize();
     this.dataSource.sort = this.sort;
-
-    this.errorsSubscription = this.showResolvedControl.valueChanges
-      .pipe(
-        tap((showResolved) => window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString())),
-        startWith(this.showResolvedControl.value),
-        switchMap(() => this.clearingService.observeProcessingErrors()),
-      )
-      .subscribe({
-        error: (error: any) => {
-          console.error(error);
-        },
-        next: (errors: ProcessingError[]) => {
-          if (this.showResolvedControl.value) {
-            this.dataSource.data = errors;
-          } else {
-            this.dataSource.data = errors.filter((error) => !error.resolved);
-          }
-        },
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.errorsSubscription?.unsubscribe();
   }
 
   trackTableRow(index: number, element: ProcessingError): string {
