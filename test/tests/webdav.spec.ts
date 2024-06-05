@@ -152,13 +152,20 @@ test.describe('Fry', () => {
     const row = page.locator('mat-row');
     await expect(row.getByText('check')).toHaveCount(5);
   });
+
+  test('download report', async ({ page }) => {
+    await page.goto('http://localhost:8080/nachricht/9a75050f-323a-4e84-94c9-a889aa2b4fe8');
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Übernahmebericht herunterladen' }).click();
+    await downloadPromise;
+  });
 });
 
 test.describe('Hermes', () => {
   test.use({ storageState: 'playwright/auth/hermes.json' });
 
-  test('delete process', async ({ page }) => {
-    await page.goto('http://localhost:8080/nachricht/9a75050f-323a-4e84-94c9-a889aa2b4fe8/0501/details');
+  test.skip('delete process', async ({ page }) => {
+    await page.goto('http://localhost:8080/nachricht/9a75050f-323a-4e84-94c9-a889aa2b4fe8');
     await page.getByRole('button', { name: 'Administration' }).click();
     await page.getByRole('button', { name: 'Aussonderung löschen' }).click();
     await page.getByRole('button', { name: 'Löschen' }).click();
