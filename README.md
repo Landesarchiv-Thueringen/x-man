@@ -33,13 +33,13 @@ Siehe
 - [Benutzerhandbuch für Archivarinnen](./doc/User-Manual_DE.md)
 - [Benutzerhandbuch für Administratoren](./doc/Administration-Manual_DE.md)
 
-## Installation
+## Betrieb und Entwicklung
 
-Siehe [Installation (en)](./doc/Installation.md).
+Siehe
 
-## Entwicklung
-
-Siehe [Development (en)](./doc/Development.md).
+- [Installation (en)](./doc/Installation.md)
+- [Development (en)](./doc/Development.md)
+- [Tests (en)](./test/README.md)
 
 ## Roadmap
 
