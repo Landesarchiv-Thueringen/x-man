@@ -164,7 +164,12 @@ test.describe('Fry', () => {
 test.describe('Hermes', () => {
   test.use({ storageState: 'playwright/auth/hermes.json' });
 
-  test.skip('delete process', async ({ page }) => {
+  test('no processing errors', async ({ page }) => {
+    await page.goto('http://localhost:8080/steuerungsstelle');
+    await expect(page.getByRole('heading')).toContainText('Fehler (0)');
+  });
+
+  test('delete process', async ({ page }) => {
     await page.goto('http://localhost:8080/nachricht/9a75050f-323a-4e84-94c9-a889aa2b4fe8');
     await page.getByRole('button', { name: 'Administration' }).click();
     await page.getByRole('button', { name: 'Aussonderung löschen' }).click();
