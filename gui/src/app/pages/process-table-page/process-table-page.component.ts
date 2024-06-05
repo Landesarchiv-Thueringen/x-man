@@ -264,14 +264,10 @@ export class ProcessTablePageComponent implements AfterViewInit {
   }
 
   hasUnresolvedError(process: SubmissionProcess): boolean {
-    return Object.values(process.processState).some((step: ProcessStep) => step.unresolvedErrors > 0);
-  }
-
-  isStepFailed(processStep: ProcessStep): boolean {
-    return processStep.unresolvedErrors > 0;
+    return process.unresolvedErrors > 0;
   }
 
   getErrorTime(processStep: ProcessStep): string | null {
-    return processStep.unresolvedErrors > 0 ? processStep.updatedAt : null;
+    return processStep.hasError ? processStep.updatedAt : null;
   }
 }

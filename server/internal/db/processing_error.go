@@ -57,8 +57,8 @@ func InsertProcessingError(e ProcessingError) {
 		panic(err)
 	}
 	// Update submission process
-	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
-		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
+	if e.ProcessID != uuid.Nil {
+		refreshUnresolvedErrorsForProcess(e.ProcessID)
 	}
 	broadcastUpdate(Update{
 		Collection: "processing_errors",
@@ -127,8 +127,8 @@ func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution
 		return false
 	}
 	// Update submission process
-	if e.ProcessID != uuid.Nil && e.ProcessStep != "" {
-		refreshUnresolvedErrorsForProcessStep(e.ProcessID, e.ProcessStep)
+	if e.ProcessID != uuid.Nil {
+		refreshUnresolvedErrorsForProcess(e.ProcessID)
 	}
 	broadcastUpdate(Update{
 		Collection: "processing_errors",
@@ -162,36 +162,36 @@ func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageTy
 		{"process_id", processID},
 		{"message_type", messageType},
 	}
-	_, err := coll.DeleteMany(context.Background(), filter)
+	result, err := coll.DeleteMany(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
-	switch messageType {
-	case MessageType0501:
-		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepReceive0501)
-	case MessageType0503:
-		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepReceive0503)
-		refreshUnresolvedErrorsForProcessStep(processID, ProcessStepFormatVerification)
+	if result.DeletedCount > 0 {
+		refreshUnresolvedErrorsForProcess(processID)
+		broadcastUpdate(Update{
+			Collection: "processing_errors",
+			ProcessID:  processID,
+			Operation:  UpdateOperationDelete,
+		})
 	}
-	broadcastUpdate(Update{
-		Collection: "processing_errors",
-		ProcessID:  processID,
-		Operation:  UpdateOperationDelete,
-	})
 }
 
-func refreshUnresolvedErrorsForProcessStep(processID uuid.UUID, step ProcessStepType) {
+func refreshUnresolvedErrorsForProcess(processID uuid.UUID) {
 	coll := mongoDatabase.Collection("processing_errors")
 	filter := bson.D{
 		{"process_id", processID},
-		{"process_step", step},
 		{"resolved", false},
 	}
-	n, err := coll.CountDocuments(context.Background(), filter)
+	cursor, err := coll.Find(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
-	updateUnresolvedErrorsForProcessStep(processID, step, int(n))
+	var errors []ProcessingError
+	err = cursor.All(context.Background(), &errors)
+	if err != nil {
+		panic(err)
+	}
+	updateUnresolvedErrorsForProcess(processID, errors)
 }
 
 // updateAgencyForProcesses updates the `Agency` field of all processing errors

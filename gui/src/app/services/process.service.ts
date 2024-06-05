@@ -18,6 +18,7 @@ export interface SubmissionProcess {
   agency: Agency;
   note: string;
   processState: ProcessState;
+  unresolvedErrors: number;
 }
 
 export interface ProcessState {
@@ -35,7 +36,7 @@ export interface ProcessStep {
   completedAt: string;
   progress: string;
   running: boolean;
-  unresolvedErrors: number;
+  hasError: boolean;
 }
 
 @Injectable({

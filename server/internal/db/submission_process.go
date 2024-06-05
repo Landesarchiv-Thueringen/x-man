@@ -20,6 +20,10 @@ type SubmissionProcess struct {
 	Message0506Path string       `bson:"message_0506_path" json:"-"`
 	Note            string       `json:"note"`
 	ProcessState    ProcessState `bson:"process_state" json:"processState"`
+	// UnresolvedErrors is the number of unresolved processing errors associated
+	// with the submission process. A number greater than 0 indicates a failed
+	// state.
+	UnresolvedErrors int `bson:"unresolved_errors" json:"unresolvedErrors"`
 }
 
 type ProcessState struct {
@@ -57,9 +61,10 @@ type ProcessStep struct {
 	// Running indicates that there is a task being currently executed for the
 	// process step.
 	Running bool `json:"running"`
-	// UnresolvedErrors is the number of unresolved processing errors associated
-	// with the process step. A number greater than 0 indicates a failed state.
-	UnresolvedErrors int `bson:"unresolved_errors" json:"unresolvedErrors"`
+
+	// HasError indicates whether there is one or more unresolved processing
+	// error associated with the process step. True indicates a failed state.
+	HasError bool `bson:"has_error" json:"hasError"`
 }
 
 func FindProcesses(ctx context.Context) []SubmissionProcess {
@@ -248,14 +253,45 @@ func updateAgencyForProcesses(agency Agency) {
 	})
 }
 
-func updateUnresolvedErrorsForProcessStep(processID uuid.UUID, step ProcessStepType, n int) {
+func updateUnresolvedErrorsForProcess(processID uuid.UUID, unresolvedErrors []ProcessingError) {
 	coll := mongoDatabase.Collection("submission_processes")
 	filter := bson.D{{"process_id", processID}}
-	update := bson.D{{"$set", bson.D{
-		{"process_state." + string(step) + ".updated_at", time.Now()},
-		{"process_state." + string(step) + ".unresolved_errors", n},
-	}}}
-	_, err := coll.UpdateOne(context.Background(), filter, update)
+	old, err := coll.FindOne(context.Background(), filter).Raw()
+	if err == mongo.ErrNoDocuments {
+		return
+	} else if err != nil {
+		panic(err)
+	}
+	set := bson.D{{
+		"unresolved_errors", len(unresolvedErrors),
+	}}
+	// hasErrorMap indicates for each process step whether it as any unresolved
+	// errors.
+	hasErrorMap := make(map[ProcessStepType]bool)
+	for _, e := range unresolvedErrors {
+		if e.ProcessStep != "" {
+			hasErrorMap[e.ProcessStep] = true
+		}
+	}
+	// For each process step, check whether the has_error changed and update the
+	// step if so.
+	for _, step := range []ProcessStepType{
+		ProcessStepReceive0501,
+		ProcessStepReceive0503,
+		ProcessStepReceive0505,
+		ProcessStepAppraisal,
+		ProcessStepArchiving,
+		ProcessStepFormatVerification,
+	} {
+		if hasErrorMap[step] != old.Lookup("process_state", string(step), "has_error").Boolean() {
+			set = append(set,
+				bson.E{"process_state." + string(step) + ".updated_at", time.Now()},
+				bson.E{"process_state." + string(step) + ".has_error", hasErrorMap[step]},
+			)
+		}
+	}
+	update := bson.D{{"$set", set}}
+	_, err = coll.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		panic(err)
 	}

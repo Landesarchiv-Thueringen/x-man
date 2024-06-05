@@ -66,7 +66,7 @@ export class MessagePageService {
     if (!data) {
       return 0;
     }
-    return Object.values(data.processingErrors).some((e) => !e.resolved);
+    return data.process.unresolvedErrors > 0;
   });
 
   constructor(

@@ -78,7 +78,7 @@
       <ng-container matColumnDef="message0501">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Anbietung erhalten</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (isStepFailed(process.processState.receive0501)) {
+          @if (process.processState.receive0501.hasError) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
@@ -100,7 +100,7 @@
       <ng-container matColumnDef="appraisalComplete">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung abgeschlossen</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (isStepFailed(process.processState.appraisal)) {
+          @if (process.processState.appraisal.hasError) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
@@ -126,7 +126,7 @@
       <ng-container matColumnDef="message0505">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in DMS importiert</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (isStepFailed(process.processState.receive0505)) {
+          @if (process.processState.receive0505.hasError) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
@@ -148,7 +148,7 @@
       <ng-container matColumnDef="message0503">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe erhalten</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (isStepFailed(process.processState.receive0503)) {
+          @if (process.processState.receive0503.hasError) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
@@ -170,7 +170,7 @@
       <ng-container matColumnDef="formatVerification">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (isStepFailed(process.processState.formatVerification)) {
+          @if (process.processState.formatVerification.hasError) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">
@@ -199,7 +199,7 @@
       <ng-container matColumnDef="archivingComplete">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Abgabe archiviert</mat-header-cell>
         <mat-cell *matCellDef="let process">
-          @if (isStepFailed(process.processState.archiving)) {
+          @if (process.processState.archiving.hasError) {
             <div class="task-cell failed">
               <mat-icon>error</mat-icon>
               <span class="task-completion-time">

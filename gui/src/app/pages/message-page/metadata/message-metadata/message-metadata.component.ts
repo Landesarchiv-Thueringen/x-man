@@ -17,7 +17,7 @@ import { ProcessingError } from '../../../../services/clearing.service';
 import { ConfigService } from '../../../../services/config.service';
 import { Message } from '../../../../services/message.service';
 import { NotificationService } from '../../../../services/notification.service';
-import { ProcessService, ProcessStep, SubmissionProcess } from '../../../../services/process.service';
+import { ProcessService, SubmissionProcess } from '../../../../services/process.service';
 import { ClearingDetailsComponent } from '../../../clearing-page/clearing-details.component';
 import { MessagePageService } from '../../message-page.service';
 import { InstitutMetadataComponent } from '../institution-metadata/institution-metadata.component';
@@ -141,10 +141,7 @@ export class MessageMetadataComponent {
   }
 
   numberOfUnresolvedErrors(): number {
-    if (!this.process) {
-      return 0;
-    }
-    return Object.values(this.process.processState).reduce((acc, step: ProcessStep) => step.unresolvedErrors + acc, 0);
+    return this.process?.unresolvedErrors ?? 0;
   }
 
   scrollToBottom(panel: MatExpansionPanel): void {
