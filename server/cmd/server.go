@@ -106,7 +106,7 @@ func MigrateData() {
 	} else {
 		log.Printf("Database is up do date with X-Man version %s\n", XMAN_VERSION)
 	}
-	db.UpsertServerStateXmanVersion(fmt.Sprintf("%d.%d.%d", XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION))
+	db.UpsertServerStateXmanVersion(XMAN_VERSION)
 }
 
 func getDefaultResponse(c *gin.Context) {
