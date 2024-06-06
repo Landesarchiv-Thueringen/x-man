@@ -191,7 +191,7 @@ func resolveProcessingError(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	processingError, found := db.FindProcessingError(c, id)
+	processingError, found := db.FindProcessingError(c.Request.Context(), id)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
@@ -210,12 +210,12 @@ func getProcessData(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	process, found := db.FindProcess(c, processID)
+	process, found := db.FindProcess(c.Request.Context(), processID)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	processingErrors := db.FindProcessingErrorsForProcess(c, processID)
+	processingErrors := db.FindProcessingErrorsForProcess(c.Request.Context(), processID)
 	if processingErrors == nil {
 		processingErrors = make([]db.ProcessingError, 0)
 	}
@@ -227,7 +227,7 @@ func getProcessData(c *gin.Context) {
 
 func getMyProcesses(c *gin.Context) {
 	userID := c.MustGet("userId").(string)
-	processes := db.FindProcessesForUser(c, userID)
+	processes := db.FindProcessesForUser(c.Request.Context(), userID)
 	c.JSON(http.StatusOK, processes)
 }
 
@@ -256,7 +256,7 @@ func getMessage(c *gin.Context) {
 		return
 	}
 	messageType := c.Param("messageType")
-	message, found := db.FindMessage(c, processID, db.MessageType(messageType))
+	message, found := db.FindMessage(c.Request.Context(), processID, db.MessageType(messageType))
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
@@ -271,7 +271,7 @@ func getRootRecords(c *gin.Context) {
 		return
 	}
 	messageType := c.Param("messageType")
-	rootRecords := db.FindRootRecords(c, processID, db.MessageType(messageType))
+	rootRecords := db.FindRootRecords(c.Request.Context(), processID, db.MessageType(messageType))
 	c.JSON(http.StatusOK, rootRecords)
 }
 
@@ -281,7 +281,7 @@ func getAppraisals(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(c, processID)
+	appraisals := db.FindAppraisalsForProcess(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisals)
 }
 
@@ -307,7 +307,7 @@ func setAppraisalDecision(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(c, processID)
+	appraisals := db.FindAppraisalsForProcess(c.Request.Context(), processID)
 	c.JSON(http.StatusAccepted, appraisals)
 }
 
@@ -331,7 +331,7 @@ func setAppraisalNote(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(c, processID)
+	appraisals := db.FindAppraisalsForProcess(c.Request.Context(), processID)
 	c.JSON(http.StatusAccepted, appraisals)
 }
 
@@ -364,7 +364,7 @@ func setAppraisals(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to set appraisals: %v", err))
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(c, parsedBody.ProcessID)
+	appraisals := db.FindAppraisalsForProcess(c.Request.Context(), parsedBody.ProcessID)
 	c.JSON(http.StatusAccepted, appraisals)
 }
 
@@ -401,7 +401,7 @@ func areAllRecordObjectsAppraised(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(c, processID)
+	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisalComplete)
 }
 
@@ -428,7 +428,7 @@ func getPrimaryDocument(c *gin.Context) {
 		return
 	}
 	filename := c.Query("filename")
-	message, ok := db.FindMessage(c, processID, db.MessageType0503)
+	message, ok := db.FindMessage(c.Request.Context(), processID, db.MessageType0503)
 	if !ok {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -446,7 +446,7 @@ func getPrimaryDocumentsData(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	primaryDocuments := db.FindPrimaryDocumentsDataForProcess(c, processID)
+	primaryDocuments := db.FindPrimaryDocumentsDataForProcess(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, primaryDocuments)
 }
 
@@ -456,12 +456,12 @@ func getReport(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	process, found := db.FindProcess(c, processID)
+	process, found := db.FindProcess(c.Request.Context(), processID)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	contentLength, contentType, body := report.GetReport(c, process)
+	contentLength, contentType, body := report.GetReport(c.Request.Context(), process)
 	c.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
 }
 
@@ -564,8 +564,8 @@ func Users(c *gin.Context) {
 
 func getUserInformation(c *gin.Context) {
 	userID := c.MustGet("userId").(string)
-	agencies := db.FindAgenciesForUser(c, userID)
-	preferences := db.TryFindUserPreferences(c, userID)
+	agencies := db.FindAgenciesForUser(c.Request.Context(), userID)
+	preferences := db.TryFindUserPreferences(c.Request.Context(), userID)
 	c.JSON(http.StatusOK, gin.H{
 		"agencies":    agencies,
 		"preferences": preferences,
@@ -596,7 +596,7 @@ func getAgencies(c *gin.Context) {
 			c.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		agencies = db.FindAgenciesForCollection(c, collectionID)
+		agencies = db.FindAgenciesForCollection(c.Request.Context(), collectionID)
 	} else {
 		agencies = db.FindAgencies(c)
 	}
