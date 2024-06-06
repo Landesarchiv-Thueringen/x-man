@@ -164,12 +164,15 @@ func DeleteProcessingError(ID primitive.ObjectID) (ok bool) {
 }
 
 // DeleteProcessingErrorsForProcess deletes all processing errors associated
-// with the given process.
+// with the given process except application errors.
 //
 // It expects the process to be deleted as well and will not update its values.
 func DeleteProcessingErrorsForProcess(processID uuid.UUID) {
 	coll := mongoDatabase.Collection("processing_errors")
-	filter := bson.D{{"process_id", processID}}
+	filter := bson.D{
+		{"process_id", processID},
+		{"error_type", bson.D{{"$ne", "application-error"}}},
+	}
 	_, err := coll.DeleteMany(context.Background(), filter)
 	if err != nil {
 		panic(err)
@@ -186,6 +189,7 @@ func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageTy
 	filter := bson.D{
 		{"process_id", processID},
 		{"message_type", messageType},
+		{"error_type", bson.D{{"$ne", "application-error"}}},
 	}
 	result, err := coll.DeleteMany(context.Background(), filter)
 	if err != nil {

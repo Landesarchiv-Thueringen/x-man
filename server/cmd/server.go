@@ -739,8 +739,9 @@ func handleRecovery(c *gin.Context, err any) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 	e := db.ProcessingError{
-		Title: "Anwendungsfehler",
-		Info:  fmt.Sprintf("%s %s\n\n%v", c.Request.Method, c.Request.URL, err),
+		Title:     "Anwendungsfehler",
+		ErrorType: "application-error",
+		Info:      fmt.Sprintf("%s %s\n\n%v", c.Request.Method, c.Request.URL, err),
 	}
 	if processID, err := uuid.Parse(c.Param("processId")); err == nil {
 		e.ProcessID = processID

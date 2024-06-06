@@ -39,6 +39,9 @@ func FromError(title string, err error) db.ProcessingError {
 // The inserted error is based on `err`, which can be a standard return error or
 // a processing error. `data` is used to complement `err`. Fields of `data` take
 // precedence over fields of `err`.
+//
+// If `err` is not a ProcessingError, `data` should at least populate the field
+// Title. Failing to do so will be treated as application error.
 func AddProcessingErrorWithData(err error, data db.ProcessingError) {
 	e := withData(err, data)
 	AddProcessingError(e)
@@ -73,8 +76,9 @@ func AddProcessingError(e db.ProcessingError) {
 func HandlePanic(taskDescription string, data *db.ProcessingError, task *db.Task) {
 	if r := recover(); r != nil {
 		e := db.ProcessingError{
-			Title: "Anwendungsfehler",
-			Info:  fmt.Sprintf("%s\n\n%v", taskDescription, r),
+			Title:     "Anwendungsfehler",
+			ErrorType: "application-error",
+			Info:      fmt.Sprintf("%s\n\n%v", taskDescription, r),
 		}
 		log.Printf("panic: %v\n", r)
 		debug.PrintStack()
@@ -92,8 +96,18 @@ func HandlePanic(taskDescription string, data *db.ProcessingError, task *db.Task
 func withData(err error, data db.ProcessingError) db.ProcessingError {
 	e, ok := err.(*db.ProcessingError)
 	if !ok {
-		p := FromError("Anwendungsfehler", err)
-		e = &p
+		if data.Title == "" {
+			e = &db.ProcessingError{
+				Title:     "Anwendungsfehler",
+				ErrorType: "application-error",
+				Info: "Fehler ohne ausreichende Kontext-Informationen\n\n" +
+					err.Error(),
+			}
+		} else {
+			e = &db.ProcessingError{
+				Info: err.Error(),
+			}
+		}
 	}
 	if data.Title != "" {
 		e.Title = data.Title
