@@ -9,6 +9,7 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
 	"lath/xman/internal/mail"
+	"lath/xman/internal/verification"
 	"log"
 	"os"
 	"path"
@@ -72,7 +73,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if messageType == "0503" {
 		// get primary documents
 		rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, messageType)
-		primaryDocuments := GetPrimaryDocuments(&rootRecords)
+		primaryDocuments := db.GetPrimaryDocuments(&rootRecords)
 		err = collectPrimaryDocumentsData(process, message, primaryDocuments)
 		if err != nil {
 			errors.AddProcessingErrorWithData(err, errorData)
@@ -82,8 +83,8 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 			errors.AddProcessingErrorWithData(err, errorData)
 		}
 		// start format verification
-		if os.Getenv("BORG_ENDPOINT") != "" {
-			VerifyFileFormats(process, message)
+		if os.Getenv("BORG_URL") != "" {
+			verification.VerifyFileFormats(process, message)
 		}
 	}
 	// if no error occurred while processing the message

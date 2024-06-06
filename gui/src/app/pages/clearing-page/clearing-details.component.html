@@ -92,12 +92,6 @@
         <pre>{{ data.stack }}</pre>
       </mat-expansion-panel>
     }
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>Fehlerobjekt</mat-panel-title>
-      </mat-expansion-panel-header>
-      <pre>{{ json }}</pre>
-    </mat-expansion-panel>
   </mat-accordion>
 </div>
 
@@ -111,6 +105,12 @@
 </div>
 
 <mat-menu #menu="matMenu">
+  @if (data.taskId !== "000000000000000000000000") {
+    <button mat-menu-item (click)="retryTask()">
+      <mat-icon>restart_alt</mat-icon>
+      <span>Prozess wiederholen</span>
+    </button>
+  }
   @if (data.agency?.contactEmail) {
     <button mat-menu-item (click)="sendEmail()">
       <mat-icon>outgoing_mail</mat-icon>

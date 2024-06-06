@@ -1,6 +1,8 @@
-package xdomea
+package shared
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"lath/xman/internal/db"
 	"slices"
@@ -8,9 +10,29 @@ import (
 	"github.com/beevik/etree"
 )
 
+const ProtocolFilename = "xman_protocol.json"
+
 var idPathXdomea = etree.MustCompilePath("./Identifikation/ID")
 
-// PruneMessage removes all records from message which are no part of the archive package.
+func GenerateProtocol(process db.SubmissionProcess) string {
+	processStateBytes, err := json.MarshalIndent(process.ProcessState, "", " ")
+	if err != nil {
+		panic(err)
+	}
+	protocol := string(processStateBytes)
+	processingErrors := db.FindProcessingErrorsForProcess(context.Background(), process.ProcessID)
+	if len(processingErrors) > 0 {
+		errorsBytes, err := json.MarshalIndent(processingErrors, "", " ")
+		if err != nil {
+			panic(err)
+		}
+		protocol += "\n" + string(errorsBytes)
+	}
+	return protocol
+}
+
+// PruneMessage removes all records from message which are no part of the
+// archive package.
 func PruneMessage(message db.Message, aip db.ArchivePackage) (string, error) {
 	rootRecordIDs := make([]string, len(aip.RootRecordIDs))
 	for i, id := range aip.RootRecordIDs {

@@ -103,6 +103,12 @@ func createIndexes() {
 	})
 	createIndex("processing_errors", mongo.IndexModel{
 		Keys: bson.D{
+			{"task_id", 1},
+			{"resolved", 1},
+		},
+	})
+	createIndex("processing_errors", mongo.IndexModel{
+		Keys: bson.D{
 			{"resolved", 1},
 			{"error_type", 1},
 		},

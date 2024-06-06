@@ -386,6 +386,29 @@ func FindRootRecord(
 	return r, true
 }
 
+func DeleteRecordsForProcess(processID uuid.UUID) {
+	coll := mongoDatabase.Collection("root_records")
+	filter := bson.D{
+		{"process_id", processID},
+	}
+	_, err := coll.DeleteMany(context.Background(), filter)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func DeleteRecordsForMessage(processID uuid.UUID, messageType MessageType) {
+	coll := mongoDatabase.Collection("root_records")
+	filter := bson.D{
+		{"process_id", processID},
+		{"message_type", messageType},
+	}
+	_, err := coll.DeleteMany(context.Background(), filter)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // ExtractNestedRecords returns all nested records from the given root records in
 // a flat structure. It additionally keeps the nested child records.
 func ExtractNestedRecords(r *RootRecords) NestedRecords {
@@ -438,25 +461,54 @@ func getContainedRecordIds(n NestedRecords) []uuid.UUID {
 	return ids
 }
 
-func DeleteRecordsForProcess(processID uuid.UUID) {
-	coll := mongoDatabase.Collection("root_records")
-	filter := bson.D{
-		{"process_id", processID},
+func GetPrimaryDocuments(r *RootRecords) []PrimaryDocument {
+	var d []PrimaryDocument
+	for _, c := range r.Files {
+		d = append(d, GetPrimaryDocumentsForFile(&c)...)
 	}
-	_, err := coll.DeleteMany(context.Background(), filter)
-	if err != nil {
-		panic(err)
+	for _, c := range r.Processes {
+		d = append(d, GetPrimaryDocumentsForProcess(&c)...)
 	}
+	for _, c := range r.Documents {
+		d = append(d, GetPrimaryDocumentsForDocument(&c)...)
+	}
+	return d
 }
 
-func DeleteRecordsForMessage(processID uuid.UUID, messageType MessageType) {
-	coll := mongoDatabase.Collection("root_records")
-	filter := bson.D{
-		{"process_id", processID},
-		{"message_type", messageType},
+func GetPrimaryDocumentsForFile(r *FileRecord) []PrimaryDocument {
+	var d []PrimaryDocument
+	for _, c := range r.Subfiles {
+		d = append(d, GetPrimaryDocumentsForFile(&c)...)
 	}
-	_, err := coll.DeleteMany(context.Background(), filter)
-	if err != nil {
-		panic(err)
+	for _, c := range r.Processes {
+		d = append(d, GetPrimaryDocumentsForProcess(&c)...)
 	}
+	for _, c := range r.Documents {
+		d = append(d, GetPrimaryDocumentsForDocument(&c)...)
+	}
+	return d
+}
+
+func GetPrimaryDocumentsForProcess(r *ProcessRecord) []PrimaryDocument {
+	var d []PrimaryDocument
+	for _, c := range r.Subprocesses {
+		d = append(d, GetPrimaryDocumentsForProcess(&c)...)
+	}
+	for _, c := range r.Documents {
+		d = append(d, GetPrimaryDocumentsForDocument(&c)...)
+	}
+	return d
+}
+
+func GetPrimaryDocumentsForDocument(r *DocumentRecord) []PrimaryDocument {
+	var d []PrimaryDocument
+	for _, version := range r.Versions {
+		for _, format := range version.Formats {
+			d = append(d, format.PrimaryDocument)
+		}
+	}
+	for _, c := range r.Attachments {
+		d = append(d, GetPrimaryDocumentsForDocument(&c)...)
+	}
+	return d
 }

@@ -205,6 +205,7 @@ export class MessageMetadataComponent {
         title: 'Archivierung läuft...',
         icon: 'spinner',
         date: state.archiving.updatedAt,
+        message: state.archiving.progress,
       });
     }
     for (const processingError of this.processingErrors) {

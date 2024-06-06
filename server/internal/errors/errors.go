@@ -18,7 +18,6 @@ import (
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
 	"lath/xman/internal/mail"
-	"lath/xman/internal/tasks"
 	"log"
 	"runtime/debug"
 	"time"
@@ -73,7 +72,7 @@ func AddProcessingError(e db.ProcessingError) {
 // there is a chance of panics caused by runtime conditions like a broken
 // network connection or a failure of an external service. For panics indicating
 // fatal misconfiguration, handling is not required.
-func HandlePanic(taskDescription string, data *db.ProcessingError, task *db.Task) {
+func HandlePanic(taskDescription string, data *db.ProcessingError) {
 	if r := recover(); r != nil {
 		e := db.ProcessingError{
 			Title:     "Anwendungsfehler",
@@ -86,9 +85,6 @@ func HandlePanic(taskDescription string, data *db.ProcessingError, task *db.Task
 			e = withData(&e, *data)
 		}
 		AddProcessingError(e)
-		if task != nil {
-			tasks.MarkFailed(task, e.Title)
-		}
 	}
 }
 

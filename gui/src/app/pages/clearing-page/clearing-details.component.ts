@@ -10,6 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { ClearingService, ProcessingError } from '../../services/clearing.service';
 import { NotificationService } from '../../services/notification.service';
+import { TasksService } from '../../services/tasks.service';
 import { BreakOpportunitiesPipe } from '../../shared/break-opportunities.pipe';
 
 @Component({
@@ -33,15 +34,19 @@ import { BreakOpportunitiesPipe } from '../../shared/break-opportunities.pipe';
 export class ClearingDetailsComponent {
   @HostBinding('class.resolved') readonly resolved = this.data.resolved;
 
-  json: string;
-
   constructor(
     private dialogRef: MatDialogRef<ClearingDetailsComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ProcessingError,
     private clearingService: ClearingService,
     private notificationService: NotificationService,
-  ) {
-    this.json = JSON.stringify(this.data, null, 2);
+    private tasksService: TasksService,
+  ) {}
+
+  retryTask() {
+    this.tasksService.retryTask(this.data.taskId).subscribe(() => {
+      this.dialogRef.close();
+      this.notificationService.show('Prozess wird wiederholt...');
+    });
   }
 
   sendEmail() {

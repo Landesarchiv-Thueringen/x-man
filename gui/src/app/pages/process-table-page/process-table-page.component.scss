@@ -96,9 +96,6 @@
   width: 100%;
   display: flex;
   align-items: center;
+  column-gap: 1em;
   font-weight: 400;
-
-  mat-spinner {
-    margin-left: 1em;
-  }
 }

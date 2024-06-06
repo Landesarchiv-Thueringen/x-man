@@ -65,7 +65,7 @@ E-Mail-Adressen werden den Nutzereinträgen aus LDAP entnommen und sind nicht ko
 
 ## Formatverifikation
 
-x-man unterstützt die automatische Formatverifikation mit dem Tool [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg). Die Konfiguration geschieht über die Umgebungsvariable `BORG_ENDPOINT`. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)).
+x-man unterstützt die automatische Formatverifikation mit dem Tool [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg). Die Konfiguration geschieht über die Umgebungsvariable `BORG_URL`. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)).
 
 Im Fall von negativen Ergebnissen wird für die Abgabe ein Fehler in der Steuerungsstelle erzeugt (siehe [Fehlerbehandlung](#fehlerbehebung)).
 

@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"lath/xman/internal/archive"
 	"lath/xman/internal/archive/dimag"
-	"lath/xman/internal/archive/filesystem"
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
-	"lath/xman/internal/mail"
 	"lath/xman/internal/report"
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
@@ -38,6 +37,7 @@ var defaultResponse = fmt.Sprintf("x-man server %s is running", XMAN_VERSION)
 func main() {
 	initServer()
 	routines.Init()
+	tasks.ResumeAfterAppRestart()
 	router := gin.New()
 	router.Use(gin.Logger(), gin.CustomRecovery(handleRecovery))
 	router.ForwardedByClientIP = true
@@ -83,6 +83,7 @@ func main() {
 	admin.DELETE("api/archive-collection/:id", deleteCollection)
 	admin.POST("api/test-transfer-dir", testTransferDir)
 	admin.GET("api/tasks", getTasks)
+	admin.POST("api/task/action/:id", taskAction)
 	admin.GET("api/dimag-collection-ids", getCollectionDimagIDs)
 	addr := "0.0.0.0:80"
 	router.Run(addr)
@@ -170,7 +171,7 @@ func getConfig(c *gin.Context) {
 	if archiveTarget == "" {
 		log.Fatal("missing environment variable: ARCHIVE_TARGET")
 	}
-	borgSupport := os.Getenv("BORG_ENDPOINT") != ""
+	borgSupport := os.Getenv("BORG_URL") != ""
 	c.JSON(http.StatusOK, gin.H{
 		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
 		"appraisalLevel":                   appraisalLevel,
@@ -466,95 +467,49 @@ func getReport(c *gin.Context) {
 }
 
 // archive0503Message archives all metadata and primary files in the digital archive.
-func archive0503Message(ctx *gin.Context) {
-	processID, err := uuid.Parse(ctx.Param("processId"))
+func archive0503Message(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		ctx.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, found := db.FindMessage(ctx, processID, db.MessageType0503)
+	process, found := db.FindProcess(context.Background(), processID)
 	if !found {
-		ctx.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-	process, found := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
-	if !found {
-		ctx.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 	var isArchivable bool
 	state := process.ProcessState
-	if os.Getenv("BORG_ENDPOINT") != "" {
+	if os.Getenv("BORG_URL") != "" {
 		isArchivable = state.FormatVerification.Complete && !state.Archiving.Complete
 	} else {
 		isArchivable = state.Receive0503.Complete && !state.Archiving.Complete
 	}
 	if !isArchivable {
-		ctx.AbortWithError(http.StatusBadRequest, fmt.Errorf("message can't be archived"))
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("message can't be archived"))
 		return
 	}
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
 	var collection db.ArchiveCollection
 	if archiveTarget == "dimag" {
-		collectionIDString := ctx.Query("collectionId")
+		collectionIDString := c.Query("collectionId")
 		if collectionIDString == "" {
-			ctx.String(http.StatusBadRequest, "missing query parameter \"collectionId\"")
+			c.String(http.StatusBadRequest, "missing query parameter \"collectionId\"")
 			return
 		}
 		collectionID, err := primitive.ObjectIDFromHex(collectionIDString)
 		if err != nil {
-			ctx.AbortWithError(http.StatusUnprocessableEntity, err)
+			c.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
 		collection, found = db.FindArchiveCollection(context.Background(), collectionID)
 		if !found {
-			ctx.String(http.StatusNotFound, fmt.Sprintf("collection not found: %v", collectionID))
+			c.String(http.StatusNotFound, fmt.Sprintf("collection not found: %v", collectionID))
 			return
 		}
 	}
-	userID := ctx.MustGet("userId").(string)
-	userName := auth.GetDisplayName(userID)
-	task := tasks.Start(db.ProcessStepArchiving, process.ProcessID, "")
-	go func() {
-		defer errors.HandlePanic("archive0503Message", &db.ProcessingError{
-			Agency:      &process.Agency,
-			ProcessID:   process.ProcessID,
-			MessageType: db.MessageType0503,
-			ProcessStep: db.ProcessStepArchiving,
-		}, &task)
-		switch archiveTarget {
-		case "filesystem":
-			filesystem.ArchiveMessage(process, message)
-		case "dimag":
-			dimag.ImportMessageSync(process, message, collection)
-		default:
-			panic("unknown archive target: " + archiveTarget)
-		}
-		xdomea.Send0506Message(process, message)
-		tasks.MarkDone(task, userName)
-		preferences := db.TryFindUserPreferences(context.Background(), userID)
-		if preferences.ReportByEmail {
-			defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
-				ProcessID: processID,
-			}, nil)
-			process, ok := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
-			if !ok {
-				panic("failed to find process:" + message.MessageHead.ProcessID.String())
-			}
-			_, contentType, reader := report.GetReport(context.Background(), process)
-			body, err := io.ReadAll(reader)
-			if err != nil {
-				panic(err)
-			}
-			address := auth.GetMailAddress(userID)
-			filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
-			mail.SendMailReport(
-				address, process,
-				mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
-			)
-
-		}
-	}()
+	userID := c.MustGet("userId").(string)
+	archive.ArchiveSubmission(process, collection, userID)
 }
 
 func Users(c *gin.Context) {
@@ -722,6 +677,28 @@ func testTransferDir(c *gin.Context) {
 func getTasks(c *gin.Context) {
 	tasks := db.FindTasks(c)
 	c.JSON(http.StatusOK, tasks)
+}
+
+func taskAction(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+	}
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		panic(err)
+	}
+	action := db.TaskAction(body)
+	if action != db.TaskActionPause && action != db.TaskActionRetry && action != db.TaskActionRun {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+	err = tasks.Action(id, action)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	c.Status(http.StatusAccepted)
 }
 
 func getCollectionDimagIDs(c *gin.Context) {

@@ -30,7 +30,7 @@ export class TasksComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   dataSource = new MatTableDataSource<Task>();
-  displayedColumns = ['state', 'type', 'process', 'createdAt', 'updatedAt', 'errorMessage'] as const;
+  displayedColumns = ['actions', 'state', 'type', 'process', 'createdAt', 'updatedAt', 'error'] as const;
 
   constructor(private tasksService: TasksService) {
     this.tasksService
@@ -42,6 +42,8 @@ export class TasksComponent implements AfterViewInit {
       switch (property) {
         case 'process':
           return task.processId;
+        case 'actions':
+          return null;
         default:
           return task[property] ?? '';
       }
@@ -54,5 +56,17 @@ export class TasksComponent implements AfterViewInit {
 
   trackTableRow(index: number, element: Task): string {
     return element.id;
+  }
+
+  pause(element: Task): void {
+    this.tasksService.pauseTask(element.id).subscribe();
+  }
+
+  run(element: Task): void {
+    this.tasksService.runTask(element.id).subscribe();
+  }
+
+  retry(element: Task): void {
+    this.tasksService.retryTask(element.id).subscribe();
   }
 }

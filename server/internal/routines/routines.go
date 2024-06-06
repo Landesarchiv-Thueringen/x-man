@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
-	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
 	"log"
 	"os"
@@ -21,8 +20,6 @@ const interval = 1 * time.Hour
 
 // Init schedules regular execution for all routines.
 func Init() {
-	// Run on application start
-	tryRestartRunningTasks()
 	// Run periodically
 	go func() {
 		for {
@@ -35,60 +32,13 @@ func Init() {
 	}()
 }
 
-// tryRestartRunningTasks searches for tasks that are marked 'running' and tries
-// to restart them.
-func tryRestartRunningTasks() {
-	defer errors.HandlePanic("tryRestartRunningTasks", nil, nil)
-	ts := db.FindTasks(context.Background())
-	for _, t := range ts {
-		if t.State == db.TaskStateRunning {
-			tryRestart(&t)
-		}
-	}
-}
-
-// tryRestart tries to restart a task after X-Man was shut down during
-// execution.
-//
-// It marks the existing task as failed. In case the task can be restarted
-// safely, it creates a new task that is equal to the existing one. Otherwise,
-// it updates the process to reflect the failed task.
-func tryRestart(task *db.Task) {
-	var couldRestart = false
-	switch task.Type {
-	case db.ProcessStepFormatVerification:
-		process, found := db.FindProcess(context.Background(), task.ProcessID)
-		if found {
-			message, found := db.FindMessage(context.Background(), process.ProcessID, db.MessageType0503)
-			if found {
-				go func() {
-					defer errors.HandlePanic(
-						"tryRestart FormatVerification",
-						&db.ProcessingError{
-							ProcessID:   process.ProcessID,
-							MessageType: message.MessageType,
-						},
-						task,
-					)
-					xdomea.VerifyFileFormats(process, message)
-				}()
-				couldRestart = true
-			}
-		}
-	}
-	processingError := tasks.MarkFailed(task, "Abgebrochen durch Neustart von X-Man")
-	if !couldRestart {
-		errors.AddProcessingError(processingError)
-	}
-}
-
 // cleanupArchivedProcesses deletes submission processes that have been archived
 // successfully in the past.
 //
 // The time after which submission processes are deleted can be configured via
 // the environment variable `DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS`.
 func cleanupArchivedProcesses() {
-	defer errors.HandlePanic("cleanupArchivedProcesses", nil, nil)
+	defer errors.HandlePanic("cleanupArchivedProcesses", nil)
 	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS"))
 	if err != nil {
 		panic("missing or improper env variable DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS")
@@ -112,7 +62,7 @@ func cleanupArchivedProcesses() {
 // The time after which tasks and errors are deleted can be configured with the
 // environment variable `DELETE_TASKS_AND_ERRORS_AFTER_DAYS`
 func cleanupTasksAndErrors() {
-	defer errors.HandlePanic("cleanupTasksAndErrors", nil, nil)
+	defer errors.HandlePanic("cleanupTasksAndErrors", nil)
 	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_TASKS_AND_ERRORS_AFTER_DAYS"))
 	if err != nil {
 		panic("missing or improper env variable DELETE_TASKS_AND_ERRORS_AFTER_DAYS")

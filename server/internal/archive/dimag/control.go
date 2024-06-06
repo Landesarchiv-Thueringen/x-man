@@ -3,7 +3,7 @@ package dimag
 import (
 	"context"
 	"encoding/xml"
-	"lath/xman/internal/archive"
+	"lath/xman/internal/archive/shared"
 	"lath/xman/internal/db"
 	"path/filepath"
 )
@@ -86,9 +86,9 @@ func GetIndexItemForProtocol(
 	fileIndexItem := IndexItem{
 		IndexID:  "",
 		ItemType: FileAbbreviation,
-		Title:    archive.ProtocolFilename,
-		FileName: archive.ProtocolFilename,
-		FilePath: filepath.Join(importDir, archive.ProtocolFilename),
+		Title:    shared.ProtocolFilename,
+		FileName: shared.ProtocolFilename,
+		FilePath: filepath.Join(importDir, shared.ProtocolFilename),
 	}
 	return fileIndexItem
 }

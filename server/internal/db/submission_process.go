@@ -61,7 +61,6 @@ type ProcessStep struct {
 	// Running indicates that there is a task being currently executed for the
 	// process step.
 	Running bool `json:"running"`
-
 	// HasError indicates whether there is one or more unresolved processing
 	// error associated with the process step. True indicates a failed state.
 	HasError bool `bson:"has_error" json:"hasError"`
@@ -194,6 +193,7 @@ func MustUpdateProcessStepCompletion(
 		{"process_state." + string(step) + ".completed_at", time.Now()},
 		{"process_state." + string(step) + ".completed_by", completedBy},
 		{"process_state." + string(step) + ".running", false},
+		{"process_state." + string(step) + ".has_error", false},
 	}}}
 	ok := updateProcess(processID, update)
 	if !ok {
@@ -212,6 +212,25 @@ func MustUpdateProcessStepProgress(
 		{"process_state." + string(step) + ".progress", progress},
 		{"process_state." + string(step) + ".running", running},
 		{"process_state." + string(step) + ".complete", false},
+		{"process_state." + string(step) + ".has_error", false},
+	}}}
+	ok := updateProcess(processID, update)
+	if !ok {
+		panic("failed to update process step for process " + processID.String() + ": not found")
+	}
+}
+
+func MustUpdateProcessStepError(
+	processID uuid.UUID,
+	step ProcessStepType,
+	progress string,
+) {
+	update := bson.D{{"$set", bson.D{
+		{"process_state." + string(step) + ".updated_at", time.Now()},
+		{"process_state." + string(step) + ".progress", progress},
+		{"process_state." + string(step) + ".complete", false},
+		{"process_state." + string(step) + ".running", false},
+		{"process_state." + string(step) + ".has_error", true},
 	}}}
 	ok := updateProcess(processID, update)
 	if !ok {

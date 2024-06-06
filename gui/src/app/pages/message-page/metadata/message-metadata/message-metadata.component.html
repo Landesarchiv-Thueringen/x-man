@@ -19,7 +19,7 @@
               } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
               } @else if (process.processState.archiving.running) {
-                Archivierung läuft...
+                Archivierung läuft... ({{ process.processState.archiving.progress }})
               } @else if (process.processState.formatVerification.complete) {
                 Formatverifikation abgeschlossen
               } @else if (process.processState.formatVerification.running) {

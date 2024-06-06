@@ -8,15 +8,33 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TaskState string
 
 const (
-	TaskStateRunning   TaskState = "running"
-	TaskStateFailed    TaskState = "failed"
-	TaskStateSucceeded TaskState = "succeeded"
+	TaskStatePending TaskState = "pending"
+	TaskStateRunning TaskState = "running"
+	TaskStatePaused  TaskState = "paused"
+	TaskStateFailed  TaskState = "failed"
+	TaskStateDone    TaskState = "done"
 )
+
+type TaskAction string
+
+const (
+	TaskActionRun   TaskAction = "run"
+	TaskActionRetry TaskAction = "retry"
+	TaskActionPause TaskAction = "pause"
+)
+
+type TaskItem struct {
+	Data  interface{} `json:"-"`
+	Label string      `json:"label"`
+	State TaskState   `json:"state"`
+	Error string      `json:"error"`
+}
 
 type Task struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -28,11 +46,22 @@ type Task struct {
 	Type ProcessStepType `json:"type"`
 	// State describes the current condition of the task.
 	State TaskState `json:"state"`
+	// Action is what should happen next with the task. E.g., when the task's
+	// state is "running" and it's action is "retry", it should continue
+	// running, retrying failed items. When it is done executing the action, the
+	// action is set to the empty string.
+	Action TaskAction `json:"action"`
 	// Progress is a short notice that indicates the state of the task, e.g.,
 	// "3 / 4".
 	Progress string `json:"progress"`
-	// ErrorMessage describes an error if `State == "failed"`.
-	ErrorMessage string `bson:"error_message" json:"errorMessage"`
+	// Error describes an error if `State == "failed"`.
+	Error string `bson:"error" json:"error"`
+	// UserID is the LDAP user ID of the user who initiated the task, if any.
+	UserID string `bson:"user_id" json:"userId"`
+	// Items are the elements the task has to process.
+	Items []TaskItem `json:"items"`
+	// Data is additional data that is specific to the task type.
+	Data interface{} `json:"data"`
 }
 
 func FindTasks(ctx context.Context) []Task {
@@ -48,6 +77,18 @@ func FindTasks(ctx context.Context) []Task {
 		panic(err)
 	}
 	return tasks
+}
+
+func FindTask(ctx context.Context, taskID primitive.ObjectID) (t Task, ok bool) {
+	coll := mongoDatabase.Collection("tasks")
+	filter := bson.D{{"_id", taskID}}
+	err := coll.FindOne(ctx, filter).Decode(&t)
+	if err == mongo.ErrNoDocuments {
+		return t, false
+	} else if err != nil {
+		panic(err)
+	}
+	return t, true
 }
 
 func InsertTask(task Task) Task {
@@ -68,21 +109,22 @@ func InsertTask(task Task) Task {
 	return task
 }
 
-func MustUpdateTaskProgress(id primitive.ObjectID, progress string) {
-	update := bson.D{{"$set", bson.D{
-		{"updated_at", time.Now()},
-		{"progress", progress},
-	}}}
-	mustUpdateTask(id, update)
-}
-
-func MustUpdateTaskState(id primitive.ObjectID, state TaskState, errorMessage string) {
-	update := bson.D{{"$set", bson.D{
-		{"updated_at", time.Now()},
-		{"state", state},
-		{"error_message", errorMessage},
-	}}}
-	mustUpdateTask(id, update)
+func MustReplaceTask(t Task) {
+	coll := mongoDatabase.Collection("tasks")
+	filter := bson.D{{"_id", t.ID}}
+	t.UpdatedAt = time.Now()
+	result, err := coll.ReplaceOne(context.Background(), filter, t)
+	if err != nil {
+		panic(err)
+	}
+	if result.MatchedCount == 0 {
+		panic(fmt.Sprintf("failed to update task %v: not found", t.ID))
+	}
+	broadcastUpdate(Update{
+		Collection: "tasks",
+		ProcessID:  t.ProcessID,
+		Operation:  UpdateOperationUpdate,
+	})
 }
 
 func mustUpdateTask(id primitive.ObjectID, update interface{}) {

@@ -1,95 +1,29 @@
 package dimag
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
-	"lath/xman/internal/archive"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 var DimagApiEndpoint = os.Getenv("DIMAG_CORE_SOAP_ENDPOINT")
 var DimagApiUser = os.Getenv("DIMAG_CORE_USER")
 var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 
-// ImportMessageSync archives all metadata and files of a 0503 message in DIMAG.
-//
-// The record objects in the message should be complete loaded.
-//
-// ImportMessageSync returns after the archiving process completed.
-func ImportMessageSync(process db.SubmissionProcess, message db.Message, collection db.ArchiveCollection) {
-	InitConnection()
-	defer CloseConnection()
-	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, message.MessageType)
-	for _, f := range rootRecords.Files {
-		aip := db.ArchivePackage{
-			ProcessID:        process.ProcessID,
-			IOTitle:          archive.GetFileRecordTitle(f),
-			IOLifetime:       f.Lifetime,
-			REPTitle:         "Original",
-			PrimaryDocuments: xdomea.GetPrimaryDocumentsForFile(&f),
-			CollectionID:     collection.ID,
-			RootRecordIDs:    []uuid.UUID{f.RecordID},
-		}
-		importArchivePackage(process, message, &aip)
-		db.InsertArchivePackage(aip)
-	}
-	for _, p := range rootRecords.Processes {
-		aip := db.ArchivePackage{
-			ProcessID:        process.ProcessID,
-			IOTitle:          archive.GetProcessRecordTitle(p),
-			IOLifetime:       p.Lifetime,
-			REPTitle:         "Original",
-			PrimaryDocuments: xdomea.GetPrimaryDocumentsForProcess(&p),
-			CollectionID:     collection.ID,
-			RootRecordIDs:    []uuid.UUID{p.RecordID},
-		}
-		importArchivePackage(process, message, &aip)
-		db.InsertArchivePackage(aip)
-	}
-	// Combine documents which don't belong to a file or process in one archive package.
-	if len(rootRecords.Documents) > 0 {
-		var primaryDocuments []db.PrimaryDocument
-		for _, d := range rootRecords.Documents {
-			primaryDocuments = append(primaryDocuments, xdomea.GetPrimaryDocumentsForDocument(&d)...)
-		}
-		ioTitle := "Nicht zugeordnete Dokumente Behörde: " + process.Agency.Name +
-			" Prozess-ID: " + process.ProcessID.String()
-		repTitle := "Original"
-		var rootRecordIDs []uuid.UUID
-		for _, r := range rootRecords.Documents {
-			rootRecordIDs = append(rootRecordIDs, r.RecordID)
-		}
-		aip := db.ArchivePackage{
-			ProcessID:        process.ProcessID,
-			IOTitle:          ioTitle,
-			IOLifetime:       nil,
-			REPTitle:         repTitle,
-			PrimaryDocuments: primaryDocuments,
-			CollectionID:     collection.ID,
-			RootRecordIDs:    rootRecordIDs,
-		}
-		importArchivePackage(process, message, &aip)
-		db.InsertArchivePackage(aip)
-	}
-}
-
-// importArchivePackage archives a file record object in DIMAG.
-func importArchivePackage(
+// ImportArchivePackage archives a file record object in DIMAG.
+func ImportArchivePackage(
 	process db.SubmissionProcess,
 	message db.Message,
 	aip *db.ArchivePackage,
+	c Connection,
 ) {
-	importDir := uploadArchivePackage(sftpClient, process, message, *aip)
+	importDir := uploadArchivePackage(c, process, message, *aip)
 	requestMetadata := ImportDoc{
 		UserName:        DimagApiUser,
 		Password:        DimagApiPassword,

@@ -4,9 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"lath/xman/internal/archive"
+	"lath/xman/internal/archive/shared"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 	"net"
 	"net/url"
 	"os"
@@ -20,21 +19,23 @@ import (
 
 const PortSFTP uint = 22
 
-var sshClient *ssh.Client
-var sftpClient *sftp.Client
+type Connection struct {
+	sshClient  *ssh.Client
+	sftpClient *sftp.Client
+}
 
-func InitConnection() {
+func InitConnection() Connection {
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
-		panic("DIMAG SFTP server URL not set")
+		panic("missing env variable DIMAG_SFTP_SERVER_URL")
 	}
 	url, err := url.Parse(urlString)
 	if err != nil {
-		panic("could't parse dimag SFTP server URl")
+		panic("failed to parse DIMAG SFTP server URL")
 	}
 	sftpUser := os.Getenv("DIMAG_SFTP_USER")
 	if sftpUser == "" {
-		panic("DIMAG SFTP user not set")
+		panic("missing env variable DIMAG_SFTP_USER")
 	}
 	// empty password is possible
 	sftpPassword := os.Getenv("DIMAG_SFTP_PASSWORD")
@@ -62,23 +63,34 @@ func InitConnection() {
 		},
 	}
 	addr := fmt.Sprintf("%s:%d", url.Host, PortSFTP)
-	sshClient, err = ssh.Dial("tcp", addr, &config)
+	sshClient, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
 		panic(err)
 	}
-	sftpClient, err = sftp.NewClient(sshClient)
+	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
+		sshClient.Close()
 		panic(err)
+	}
+	return Connection{
+		sshClient:  sshClient,
+		sftpClient: sftpClient,
 	}
 }
 
-func CloseConnection() {
-	sshClient.Close()
-	sftpClient.Close()
+func CloseConnection(c Connection) {
+	err := c.sftpClient.Close()
+	if err != nil {
+		panic(err)
+	}
+	err = c.sshClient.Close()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func uploadArchivePackage(
-	sftpClient *sftp.Client,
+	c Connection,
 	process db.SubmissionProcess,
 	message db.Message,
 	archivePackage db.ArchivePackage,
@@ -86,12 +98,12 @@ func uploadArchivePackage(
 	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
 	importDir := "xman_import_" + uuid.NewString()
 	importPath := filepath.Join(uploadDir, importDir)
-	err := sftpClient.Mkdir(importPath)
+	err := c.sftpClient.Mkdir(importPath)
 	if err != nil {
 		panic(err)
 	}
-	uploadXdomeaMessageFile(sftpClient, message, importPath, archivePackage)
-	uploadProtocol(sftpClient, process, importPath)
+	uploadXdomeaMessageFile(c.sftpClient, message, importPath, archivePackage)
+	uploadProtocol(c.sftpClient, process, importPath)
 	for _, primaryDocument := range archivePackage.PrimaryDocuments {
 		filePath := filepath.Join(message.StoreDir, primaryDocument.Filename)
 		_, err := os.Stat(filePath)
@@ -99,9 +111,9 @@ func uploadArchivePackage(
 			panic(err)
 		}
 		remotePath := filepath.Join(importPath, primaryDocument.Filename)
-		uploadFile(sftpClient, filePath, remotePath)
+		uploadFile(c.sftpClient, filePath, remotePath)
 	}
-	uploadControlFile(sftpClient, message, archivePackage, importPath, importDir)
+	uploadControlFile(c.sftpClient, message, archivePackage, importPath, importDir)
 	return importDir
 }
 
@@ -112,7 +124,7 @@ func uploadXdomeaMessageFile(
 	archivePackage db.ArchivePackage,
 ) {
 	remotePath := getRemoteXmlPath(message, importPath)
-	prunedMessage, err := xdomea.PruneMessage(message, archivePackage)
+	prunedMessage, err := shared.PruneMessage(message, archivePackage)
 	if err != nil {
 		panic(err)
 	}
@@ -120,8 +132,8 @@ func uploadXdomeaMessageFile(
 }
 
 func uploadProtocol(sftpClient *sftp.Client, process db.SubmissionProcess, importPath string) {
-	remotePath := filepath.Join(importPath, archive.ProtocolFilename)
-	protocol := archive.GenerateProtocol(process)
+	remotePath := filepath.Join(importPath, shared.ProtocolFilename)
+	protocol := shared.GenerateProtocol(process)
 	createRemoteTextFile(sftpClient, protocol, remotePath)
 }
 

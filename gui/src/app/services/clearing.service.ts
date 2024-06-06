@@ -23,9 +23,10 @@ export interface ProcessingError {
   info: string;
   stack: string;
   agency?: Agency;
-  processId?: string;
-  messageType?: MessageType;
-  transferPath?: string;
+  processId: string;
+  messageType: MessageType;
+  transferPath: string;
+  taskId: string;
 }
 
 @Injectable({

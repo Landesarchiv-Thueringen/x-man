@@ -62,7 +62,7 @@ func testWebDAV(transferDirURL *url.URL) bool {
 
 // MonitorTransferDirs starts the watch loop to process the contents of the transfer directories.
 func MonitorTransferDirs() {
-	defer errors.HandlePanic("MonitorTransferDirs", nil, nil)
+	defer errors.HandlePanic("MonitorTransferDirs", nil)
 	interval := time.Minute
 	intervalString := os.Getenv("TRANSFER_DIR_SCAN_INTERVAL_SECONDS")
 	if intervalString != "" {
@@ -133,7 +133,7 @@ func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error
 				defer errors.HandlePanic("readMessagesFromFilesystem", &db.ProcessingError{
 					Agency:       &agency,
 					TransferPath: file.Name(),
-				}, nil)
+				})
 				waitUntilStable(file)
 				ProcessNewMessage(agency, file.Name())
 			}()
@@ -178,7 +178,7 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
 				defer errors.HandlePanic("readMessagesFromWebDAV", &db.ProcessingError{
 					Agency:       &agency,
 					TransferPath: file.Name(),
-				}, nil)
+				})
 				waitUntilStableWebDav(client, file)
 				ProcessNewMessage(agency, file.Name())
 			}()

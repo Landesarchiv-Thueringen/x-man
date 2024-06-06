@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,6 +42,7 @@ type ProcessingError struct {
 	MessageType  MessageType               `bson:"message_type" json:"messageType"`
 	ProcessStep  ProcessStepType           `bson:"process_step" json:"-"`
 	TransferPath string                    `bson:"transfer_path" json:"transferPath"`
+	TaskID       primitive.ObjectID        `bson:"task_id" json:"taskId"`
 }
 
 func (e *ProcessingError) Error() string {
@@ -108,8 +110,23 @@ func findProcessingErrors(ctx context.Context, filter interface{}) []ProcessingE
 }
 
 func FindProcessingError(ctx context.Context, id primitive.ObjectID) (e ProcessingError, ok bool) {
-	coll := mongoDatabase.Collection("processing_errors")
 	filter := bson.D{{"_id", id}}
+	return findProcessingError(ctx, filter)
+}
+
+func FindUnresolvedProcessingErrorForTask(
+	ctx context.Context,
+	taskID primitive.ObjectID,
+) (ProcessingError, bool) {
+	filter := bson.D{
+		{"task_id", taskID},
+		{"resolved", false},
+	}
+	return findProcessingError(ctx, filter)
+}
+
+func findProcessingError(ctx context.Context, filter interface{}) (e ProcessingError, ok bool) {
+	coll := mongoDatabase.Collection("processing_errors")
 	err := coll.FindOne(ctx, filter).Decode(&e)
 	if err == mongo.ErrNoDocuments {
 		return e, false
@@ -144,6 +161,24 @@ func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution
 		Operation:  UpdateOperationUpdate,
 	})
 	return true
+}
+
+func MustReplaceProcessingError(e ProcessingError) {
+	coll := mongoDatabase.Collection("processing_errors")
+	filter := bson.D{{"_id", e.ID}}
+	e.CreatedAt = time.Now()
+	result, err := coll.ReplaceOne(context.Background(), filter, e)
+	if err != nil {
+		panic(err)
+	}
+	if result.MatchedCount == 0 {
+		panic(fmt.Sprintf("failed to replace processing error %v: not found", e.ID))
+	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		ProcessID:  e.ProcessID,
+		Operation:  UpdateOperationUpdate,
+	})
 }
 
 func DeleteProcessingError(ID primitive.ObjectID) (ok bool) {

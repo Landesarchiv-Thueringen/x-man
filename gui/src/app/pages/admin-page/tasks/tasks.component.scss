@@ -4,10 +4,15 @@ mat-table {
   @include tableBorder;
 }
 
+.cdk-column-actions {
+  box-sizing: content-box;
+  flex: 0 0 24px;
+}
+
 .cdk-column-state {
   box-sizing: content-box;
   flex: 0 0 24px;
-  .succeeded {
+  .done {
     color: green;
   }
   .failed {

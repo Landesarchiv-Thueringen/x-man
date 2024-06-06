@@ -9,11 +9,38 @@
         @case ("running") {
           <mat-spinner diameter="24"></mat-spinner>
         }
-        @case ("succeeded") {
-          <mat-icon class="succeeded">check</mat-icon>
+        @case ("done") {
+          <mat-icon class="done">check</mat-icon>
         }
         @case ("failed") {
           <mat-icon class="failed">close</mat-icon>
+        }
+        @case ("paused") {
+          <mat-spinner diameter="24" mode="determinate" value="60"></mat-spinner>
+        }
+      }
+    </mat-cell>
+  </ng-container>
+
+  <!-- Actions Column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      @switch (element.state) {
+        @case ("running") {
+          <button mat-icon-button [disabled]="element.action === 'pause'" (click)="pause(element)">
+            <mat-icon>pause</mat-icon>
+          </button>
+        }
+        @case ("paused") {
+          <button mat-icon-button [disabled]="element.action != ''" (click)="run(element)">
+            <mat-icon>play_arrow</mat-icon>
+          </button>
+        }
+        @case ("failed") {
+          <button mat-icon-button [disabled]="element.action != ''" (click)="retry(element)">
+            <mat-icon>restart_alt</mat-icon>
+          </button>
         }
       }
     </mat-cell>
@@ -56,11 +83,11 @@
     </mat-cell>
   </ng-container>
 
-  <!-- ErrorMessage Column -->
-  <ng-container matColumnDef="errorMessage">
+  <!-- Error Column -->
+  <ng-container matColumnDef="error">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Fehler</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      {{ element.errorMessage }}
+      {{ element.error }}
     </mat-cell>
   </ng-container>
 

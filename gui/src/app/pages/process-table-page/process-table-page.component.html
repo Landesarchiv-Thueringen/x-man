@@ -186,8 +186,8 @@
             </div>
           } @else if (process.processState.formatVerification.running) {
             <div class="progress-cell">
-              {{ process.processState.formatVerification.progress }}
               <mat-spinner diameter="24"></mat-spinner>
+              {{ process.processState.formatVerification.progress }}
             </div>
           } @else if (config()!.borgSupport === false) {
             <div class="task-cell"><em>nicht verfügbar</em></div>
@@ -215,8 +215,8 @@
             </div>
           } @else if (process.processState.archiving.running) {
             <div class="progress-cell">
-              Archivierung läuft
               <mat-spinner diameter="24"></mat-spinner>
+              {{ process.processState.archiving.progress }}
             </div>
           }
         </mat-cell>
