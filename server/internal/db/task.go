@@ -101,3 +101,22 @@ func mustUpdateTask(id primitive.ObjectID, update interface{}) {
 		Operation: UpdateOperationUpdate,
 	})
 }
+
+func DeleteCompletedTasksOlderThan(t time.Time) (deletedCount int64) {
+	coll := mongoDatabase.Collection("tasks")
+	filter := bson.D{
+		{"state", bson.D{{"$ne", "running"}}},
+		{"updated_at", bson.D{{"$lt", t}}},
+	}
+	result, err := coll.DeleteMany(context.Background(), filter)
+	if err != nil {
+		panic(err)
+	}
+	if result.DeletedCount > 0 {
+		broadcastUpdate(Update{
+			Collection: "tasks",
+			Operation:  UpdateOperationDelete,
+		})
+	}
+	return result.DeletedCount
+}

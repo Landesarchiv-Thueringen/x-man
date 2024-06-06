@@ -85,6 +85,14 @@ func FindUnresolvedProcessingErrorsByType(ctx context.Context, errorType string)
 	return findProcessingErrors(ctx, filter)
 }
 
+func FindResolvedProcessingErrorsOlderThan(ctx context.Context, t time.Time) []ProcessingError {
+	filter := bson.D{
+		{"resolved", true},
+		{"resolved_at", bson.D{{"$lt", t}}},
+	}
+	return findProcessingErrors(ctx, filter)
+}
+
 func findProcessingErrors(ctx context.Context, filter interface{}) []ProcessingError {
 	coll := mongoDatabase.Collection("processing_errors")
 	cursor, err := coll.Find(ctx, filter)
@@ -136,6 +144,23 @@ func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution
 		Operation:  UpdateOperationUpdate,
 	})
 	return true
+}
+
+func DeleteProcessingError(ID primitive.ObjectID) (ok bool) {
+	coll := mongoDatabase.Collection("processing_errors")
+	filter := bson.D{{"_id", ID}}
+	result, err := coll.DeleteOne(context.Background(), filter)
+	if err != nil {
+		panic(err)
+	}
+	ok = result.DeletedCount > 0
+	if ok {
+		broadcastUpdate(Update{
+			Collection: "processing_errors",
+			Operation:  UpdateOperationDelete,
+		})
+	}
+	return
 }
 
 // DeleteProcessingErrorsForProcess deletes all processing errors associated

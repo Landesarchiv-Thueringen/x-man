@@ -157,9 +157,9 @@ func getUpdates(c *gin.Context) {
 }
 
 func getConfig(c *gin.Context) {
-	deleteArchivedProcessesAfterDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
+	deleteArchivedProcessesAfterDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS"))
 	if err != nil {
-		log.Fatal("failed to read environment variable: DELETE_ARCHIVED_PROCESSES_AFTER_DAYS")
+		log.Fatal("failed to read environment variable: DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS")
 	}
 	appraisalLevel := os.Getenv("APPRAISAL_LEVEL")
 	if appraisalLevel == "" {

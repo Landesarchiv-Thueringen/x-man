@@ -36,7 +36,7 @@ Alternativ ist die Archivierung in ein lokales Dateisystem möglich. Das Verhalt
 
 ## Automatisches Löschen von Aussonderungen
 
-x-man ist ein Durchgangssystem, das Daten nicht dauerhaft vorhält. Entsprechend werden die zugehören Daten zu Aussonderungen nach der erfolgreichen Archivierung nach dem Ablauf einer Frist automatisch gelöscht. Diese Frist kann mit der Umgebungsvariable `DELETE_ARCHIVED_PROCESSES_AFTER_DAYS` in Tagen bestimmt werden.
+x-man ist ein Durchgangssystem, das Daten nicht dauerhaft vorhält. Entsprechend werden die zugehören Daten zu Aussonderungen nach der erfolgreichen Archivierung nach dem Ablauf einer Frist automatisch gelöscht. Diese Frist kann mit der Umgebungsvariable `DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS` in Tagen bestimmt werden.
 
 ## Nutzerverwaltung mit LDAP
 
