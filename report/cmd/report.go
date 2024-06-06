@@ -22,11 +22,11 @@ func main() {
 	router.Run("0.0.0.0:80")
 }
 
-func getDefaultResponse(context *gin.Context) {
-	context.String(http.StatusOK, defaultResponse)
+func getDefaultResponse(c *gin.Context) {
+	c.String(http.StatusOK, defaultResponse)
 }
 
-func render(context *gin.Context) {
+func render(c *gin.Context) {
 	// Create a temporary directory
 	dir, err := os.MkdirTemp("", "")
 	if err != nil {
@@ -39,7 +39,7 @@ func render(context *gin.Context) {
 		panic(fmt.Sprintf("failed to link template file: %v", err))
 	}
 	// Write the received data to a JSON file inside the temporary directory
-	jsonData, err := io.ReadAll(context.Request.Body)
+	jsonData, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(fmt.Sprintf("failed to read request body: %v", err))
 	}
@@ -62,9 +62,9 @@ func render(context *gin.Context) {
 	cmd.Dir = dir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		context.String(http.StatusUnprocessableEntity, "Failed to compile template with the given data.\n\n"+string(output))
+		c.String(http.StatusUnprocessableEntity, "Failed to compile template with the given data.\n\n"+string(output))
 		return
 	}
 	// Return the compiled file
-	context.FileAttachment(dir+"/"+outputFileName, outputFileName)
+	c.FileAttachment(dir+"/"+outputFileName, outputFileName)
 }

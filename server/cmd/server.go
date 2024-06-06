@@ -109,12 +109,12 @@ func MigrateData() {
 	db.UpsertServerStateXmanVersion(fmt.Sprintf("%d.%d.%d", XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION))
 }
 
-func getDefaultResponse(context *gin.Context) {
-	context.String(http.StatusOK, defaultResponse)
+func getDefaultResponse(c *gin.Context) {
+	c.String(http.StatusOK, defaultResponse)
 }
 
-func getAbout(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{
+func getAbout(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
 		"version": XMAN_VERSION,
 	})
 }
@@ -156,7 +156,7 @@ func getUpdates(c *gin.Context) {
 	})
 }
 
-func getConfig(context *gin.Context) {
+func getConfig(c *gin.Context) {
 	deleteArchivedProcessesAfterDays, err := strconv.Atoi(os.Getenv("DELETE_ARCHIVED_PROCESSES_AFTER_DAYS"))
 	if err != nil {
 		log.Fatal("failed to read environment variable: DELETE_ARCHIVED_PROCESSES_AFTER_DAYS")
@@ -171,7 +171,7 @@ func getConfig(context *gin.Context) {
 		log.Fatal("missing environment variable: ARCHIVE_TARGET")
 	}
 	borgSupport := os.Getenv("BORG_ENDPOINT") != ""
-	context.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"deleteArchivedProcessesAfterDays": deleteArchivedProcessesAfterDays,
 		"appraisalLevel":                   appraisalLevel,
 		"supportsEmailNotifications":       supportsEmailNotifications,
@@ -180,123 +180,123 @@ func getConfig(context *gin.Context) {
 	})
 }
 
-func getProcessingErrors(context *gin.Context) {
-	processingErrors := db.FindProcessingErrors(context)
-	context.JSON(http.StatusOK, processingErrors)
+func getProcessingErrors(c *gin.Context) {
+	processingErrors := db.FindProcessingErrors(c)
+	c.JSON(http.StatusOK, processingErrors)
 }
 
-func resolveProcessingError(context *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(context.Param("id"))
+func resolveProcessingError(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	processingError, found := db.FindProcessingError(context, id)
+	processingError, found := db.FindProcessingError(c, id)
 	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	body, err := io.ReadAll(context.Request.Body)
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	xdomea.Resolve(processingError, db.ProcessingErrorResolution(body))
-	context.Status(http.StatusAccepted)
+	c.Status(http.StatusAccepted)
 }
 
-func getProcessData(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func getProcessData(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	process, found := db.FindProcess(context, processID)
+	process, found := db.FindProcess(c, processID)
 	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	processingErrors := db.FindProcessingErrorsForProcess(context, processID)
+	processingErrors := db.FindProcessingErrorsForProcess(c, processID)
 	if processingErrors == nil {
 		processingErrors = make([]db.ProcessingError, 0)
 	}
-	context.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"process":          process,
 		"processingErrors": processingErrors,
 	})
 }
 
-func getMyProcesses(context *gin.Context) {
-	userID := context.MustGet("userId").(string)
-	processes := db.FindProcessesForUser(context, userID)
-	context.JSON(http.StatusOK, processes)
+func getMyProcesses(c *gin.Context) {
+	userID := c.MustGet("userId").(string)
+	processes := db.FindProcessesForUser(c, userID)
+	c.JSON(http.StatusOK, processes)
 }
 
-func getProcesses(context *gin.Context) {
-	processes := db.FindProcesses(context)
-	context.JSON(http.StatusOK, processes)
+func getProcesses(c *gin.Context) {
+	processes := db.FindProcesses(c)
+	c.JSON(http.StatusOK, processes)
 }
 
-func deleteProcess(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func deleteProcess(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	if found := xdomea.DeleteProcess(processID); found {
-		context.Status(http.StatusAccepted)
+		c.Status(http.StatusAccepted)
 	} else {
-		context.Status(http.StatusNotFound)
+		c.Status(http.StatusNotFound)
 	}
 }
 
-func getMessage(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func getMessage(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	messageType := context.Param("messageType")
-	message, found := db.FindMessage(context, processID, db.MessageType(messageType))
+	messageType := c.Param("messageType")
+	message, found := db.FindMessage(c, processID, db.MessageType(messageType))
 	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.JSON(http.StatusOK, message)
+	c.JSON(http.StatusOK, message)
 }
 
-func getRootRecords(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func getRootRecords(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	messageType := context.Param("messageType")
-	rootRecords := db.FindRootRecords(context, processID, db.MessageType(messageType))
-	context.JSON(http.StatusOK, rootRecords)
+	messageType := c.Param("messageType")
+	rootRecords := db.FindRootRecords(c, processID, db.MessageType(messageType))
+	c.JSON(http.StatusOK, rootRecords)
 }
 
-func getAppraisals(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func getAppraisals(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(context, processID)
-	context.JSON(http.StatusOK, appraisals)
+	appraisals := db.FindAppraisalsForProcess(c, processID)
+	c.JSON(http.StatusOK, appraisals)
 }
 
-func setAppraisalDecision(context *gin.Context) {
-	processID, err := uuid.Parse(context.Query("processId"))
+func setAppraisalDecision(c *gin.Context) {
+	processID, err := uuid.Parse(c.Query("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	recordID, err := uuid.Parse(context.Query("recordId"))
+	recordID, err := uuid.Parse(c.Query("recordId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisalDecision, err := io.ReadAll(context.Request.Body)
+	appraisalDecision, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
@@ -304,35 +304,35 @@ func setAppraisalDecision(context *gin.Context) {
 		recordID,
 		db.AppraisalDecisionOption((appraisalDecision)))
 	if err != nil {
-		context.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(context, processID)
-	context.JSON(http.StatusAccepted, appraisals)
+	appraisals := db.FindAppraisalsForProcess(c, processID)
+	c.JSON(http.StatusAccepted, appraisals)
 }
 
-func setAppraisalNote(context *gin.Context) {
-	processID, err := uuid.Parse(context.Query("processId"))
+func setAppraisalNote(c *gin.Context) {
+	processID, err := uuid.Parse(c.Query("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	recordID, err := uuid.Parse(context.Query("recordId"))
+	recordID, err := uuid.Parse(c.Query("recordId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisalNote, err := io.ReadAll(context.Request.Body)
+	appraisalNote, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	err = xdomea.SetAppraisalInternalNote(processID, recordID, string(appraisalNote))
 	if err != nil {
-		context.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(context, processID)
-	context.JSON(http.StatusAccepted, appraisals)
+	appraisals := db.FindAppraisalsForProcess(c, processID)
+	c.JSON(http.StatusAccepted, appraisals)
 }
 
 type MultiAppraisalBody struct {
@@ -342,16 +342,16 @@ type MultiAppraisalBody struct {
 	InternalNote    string                     `json:"internalNote"`
 }
 
-func setAppraisals(context *gin.Context) {
-	jsonBody, err := io.ReadAll(context.Request.Body)
+func setAppraisals(c *gin.Context) {
+	jsonBody, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	var parsedBody MultiAppraisalBody
 	err = json.Unmarshal(jsonBody, &parsedBody)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	err = xdomea.SetAppraisals(
@@ -361,11 +361,11 @@ func setAppraisals(context *gin.Context) {
 		parsedBody.InternalNote,
 	)
 	if err != nil {
-		context.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to set appraisals: %v", err))
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to set appraisals: %v", err))
 		return
 	}
-	appraisals := db.FindAppraisalsForProcess(context, parsedBody.ProcessID)
-	context.JSON(http.StatusAccepted, appraisals)
+	appraisals := db.FindAppraisalsForProcess(c, parsedBody.ProcessID)
+	c.JSON(http.StatusAccepted, appraisals)
 }
 
 func finalizeMessageAppraisal(ctx *gin.Context) {
@@ -395,74 +395,74 @@ func finalizeMessageAppraisal(ctx *gin.Context) {
 	db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0502, messagePath)
 }
 
-func areAllRecordObjectsAppraised(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func areAllRecordObjectsAppraised(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(context, processID)
-	context.JSON(http.StatusOK, appraisalComplete)
+	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(c, processID)
+	c.JSON(http.StatusOK, appraisalComplete)
 }
 
-func setProcessNote(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func setProcessNote(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	note, err := io.ReadAll(context.Request.Body)
+	note, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	ok := db.UpdateProcessNote(processID, string(note))
 	if !ok {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 	}
 }
 
-func getPrimaryDocument(context *gin.Context) {
-	processID, err := uuid.Parse(context.Query("processID"))
+func getPrimaryDocument(c *gin.Context) {
+	processID, err := uuid.Parse(c.Query("processID"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	filename := context.Query("filename")
-	message, ok := db.FindMessage(context, processID, db.MessageType0503)
+	filename := c.Query("filename")
+	message, ok := db.FindMessage(c, processID, db.MessageType0503)
 	if !ok {
-		context.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 	path := filepath.Join(message.StoreDir, filename)
-	context.Header("Content-Transfer-Encoding", "binary")
-	context.Header("Content-Disposition", "attachment; filename="+filename)
-	context.Header("Content-Type", "application/octet-stream")
-	context.FileAttachment(path, filename)
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Header("Content-Type", "application/octet-stream")
+	c.FileAttachment(path, filename)
 }
 
-func getPrimaryDocumentsData(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func getPrimaryDocumentsData(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	primaryDocuments := db.FindPrimaryDocumentsDataForProcess(context, processID)
-	context.JSON(http.StatusOK, primaryDocuments)
+	primaryDocuments := db.FindPrimaryDocumentsDataForProcess(c, processID)
+	c.JSON(http.StatusOK, primaryDocuments)
 }
 
-func getReport(context *gin.Context) {
-	processID, err := uuid.Parse(context.Param("processId"))
+func getReport(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	process, found := db.FindProcess(context, processID)
+	process, found := db.FindProcess(c, processID)
 	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	contentLength, contentType, body := report.GetReport(context, process)
-	context.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
+	contentLength, contentType, body := report.GetReport(c, process)
+	c.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
 }
 
 // archive0503Message archives all metadata and primary files in the digital archive.
@@ -562,171 +562,171 @@ func Users(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-func getUserInformation(context *gin.Context) {
-	userID := context.MustGet("userId").(string)
-	agencies := db.FindAgenciesForUser(context, userID)
-	preferences := db.TryFindUserPreferences(context, userID)
-	context.JSON(http.StatusOK, gin.H{
+func getUserInformation(c *gin.Context) {
+	userID := c.MustGet("userId").(string)
+	agencies := db.FindAgenciesForUser(c, userID)
+	preferences := db.TryFindUserPreferences(c, userID)
+	c.JSON(http.StatusOK, gin.H{
 		"agencies":    agencies,
 		"preferences": preferences,
 	})
 }
 
-func setUserPreferences(context *gin.Context) {
-	userID := context.MustGet("userId").(string)
-	body, err := io.ReadAll(context.Request.Body)
+func setUserPreferences(c *gin.Context) {
+	userID := c.MustGet("userId").(string)
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	var userPreferences db.UserPreferences
 	err = json.Unmarshal(body, &userPreferences)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	userPreferences.UserID = userID
 	db.UpsertUserPreferences(userPreferences)
 }
 
-func getAgencies(context *gin.Context) {
+func getAgencies(c *gin.Context) {
 	var agencies []db.Agency
-	if collectionIDString, hasCollectionID := context.GetQuery("collectionId"); hasCollectionID {
+	if collectionIDString, hasCollectionID := c.GetQuery("collectionId"); hasCollectionID {
 		collectionID, err := primitive.ObjectIDFromHex(collectionIDString)
 		if err != nil {
-			context.AbortWithError(http.StatusUnprocessableEntity, err)
+			c.AbortWithError(http.StatusUnprocessableEntity, err)
 			return
 		}
-		agencies = db.FindAgenciesForCollection(context, collectionID)
+		agencies = db.FindAgenciesForCollection(c, collectionID)
 	} else {
-		agencies = db.FindAgencies(context)
+		agencies = db.FindAgencies(c)
 	}
-	context.JSON(http.StatusOK, agencies)
+	c.JSON(http.StatusOK, agencies)
 }
 
-func putAgency(context *gin.Context) {
-	body, err := io.ReadAll(context.Request.Body)
+func putAgency(c *gin.Context) {
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	var agency db.Agency
 	err = json.Unmarshal(body, &agency)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	id := db.InsertAgency(agency)
-	context.String(http.StatusAccepted, id.String())
+	c.String(http.StatusAccepted, id.String())
 }
 
-func postAgency(context *gin.Context) {
-	body, err := io.ReadAll(context.Request.Body)
+func postAgency(c *gin.Context) {
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	var agency db.Agency
 	err = json.Unmarshal(body, &agency)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	ok := db.ReplaceAgency(agency)
 	if !ok {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.Status(http.StatusAccepted)
+	c.Status(http.StatusAccepted)
 }
 
-func deleteAgency(context *gin.Context) {
-	idParam := context.Param("id")
+func deleteAgency(c *gin.Context) {
+	idParam := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	ok := db.DeleteAgency(id)
 	if !ok {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.Status(http.StatusAccepted)
+	c.Status(http.StatusAccepted)
 }
 
-func getCollections(context *gin.Context) {
-	Collections := db.FindArchiveCollections(context)
-	context.JSON(http.StatusOK, Collections)
+func getCollections(c *gin.Context) {
+	Collections := db.FindArchiveCollections(c)
+	c.JSON(http.StatusOK, Collections)
 }
 
-func putCollection(context *gin.Context) {
-	body, err := io.ReadAll(context.Request.Body)
+func putCollection(c *gin.Context) {
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	var Collection db.ArchiveCollection
 	err = json.Unmarshal(body, &Collection)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	id := db.InsertArchiveCollection(Collection)
-	context.JSON(http.StatusAccepted, gin.H{
+	c.JSON(http.StatusAccepted, gin.H{
 		"id": id.Hex(),
 	})
 }
 
-func postCollection(context *gin.Context) {
-	body, err := io.ReadAll(context.Request.Body)
+func postCollection(c *gin.Context) {
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	var collection db.ArchiveCollection
 	err = json.Unmarshal(body, &collection)
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	ok := db.ReplaceArchiveCollection(collection)
 	if !ok {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.Status(http.StatusAccepted)
+	c.Status(http.StatusAccepted)
 }
 
-func deleteCollection(context *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(context.Param("id"))
+func deleteCollection(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
-		context.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	found := db.DeleteArchiveCollection(id)
 	if !found {
-		context.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	context.Status(http.StatusAccepted)
+	c.Status(http.StatusAccepted)
 }
 
-func testTransferDir(context *gin.Context) {
-	body, err := io.ReadAll(context.Request.Body)
+func testTransferDir(c *gin.Context) {
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
 	}
 	success := xdomea.TestTransferDir(string(body))
 	if success {
-		context.JSON(http.StatusOK, gin.H{"result": "success"})
+		c.JSON(http.StatusOK, gin.H{"result": "success"})
 	} else {
-		context.JSON(http.StatusOK, gin.H{"result": "failed"})
+		c.JSON(http.StatusOK, gin.H{"result": "failed"})
 	}
 }
 
-func getTasks(context *gin.Context) {
-	tasks := db.FindTasks(context)
-	context.JSON(http.StatusOK, tasks)
+func getTasks(c *gin.Context) {
+	tasks := db.FindTasks(c)
+	c.JSON(http.StatusOK, tasks)
 }
 
-func getCollectionDimagIDs(context *gin.Context) {
+func getCollectionDimagIDs(c *gin.Context) {
 	ids := dimag.GetCollectionIDs()
-	context.JSON(http.StatusOK, ids)
+	c.JSON(http.StatusOK, ids)
 }
 
 func handleRecovery(c *gin.Context, err any) {
