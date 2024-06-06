@@ -15,7 +15,7 @@ export interface Update {
   providedIn: 'root',
 })
 export class UpdatesService {
-  private readonly updatesSubject = new Subject<Update | 'connect'>();
+  private readonly updatesSubject = new Subject<Update | 'reconnect'>();
   private eventSource?: EventSource;
   private keepAliveTimer?: number;
 
@@ -38,7 +38,7 @@ export class UpdatesService {
   // 200ms.
   observeCollection(collection: Update['collection']): Observable<void> {
     return this.updatesSubject.pipe(
-      filter((update) => update === 'connect' || update.collection === collection),
+      filter((update) => update === 'reconnect' || update.collection === collection),
       map(() => void 0),
       startWith(void 0),
       throttleTime(200, undefined, { leading: true, trailing: true }),
@@ -54,7 +54,7 @@ export class UpdatesService {
     return this.updatesSubject.pipe(
       filter(
         (update) =>
-          update === 'connect' ||
+          update === 'reconnect' ||
           update.processId === processId ||
           (update.collection === 'submission_processes' && update.processId === NIL_UUID),
       ),
@@ -97,7 +97,12 @@ export class UpdatesService {
         }, 10000);
       }
     });
-    this.eventSource.addEventListener('open', () => this.updatesSubject.next('connect'));
+    this.eventSource.addEventListener('open', () => {
+      // Emit a `reconnect` event on `open`, except for the first time.
+      if (this.keepAliveTimer) {
+        this.updatesSubject.next('reconnect');
+      }
+    });
     this.eventSource.addEventListener('heartbeat', () => this.renewKeepAliveTimer());
   }
 
