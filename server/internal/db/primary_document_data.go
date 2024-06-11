@@ -118,7 +118,7 @@ func CalculateTotalFileSize(ctx context.Context, processID uuid.UUID, filenames 
 		panic(err)
 	}
 	var results []bson.M
-	if err = cursor.All(context.TODO(), &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		panic(err)
 	}
 	r := results[0]["total_file_size"]

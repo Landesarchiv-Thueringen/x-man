@@ -38,7 +38,7 @@ func Init() {
 		ApplyURI("mongodb://mongo:27017").
 		SetAuth(credential).
 		SetTimeout(10 * time.Second)
-	client, err := mongo.Connect(context.TODO(), clientOpts)
+	client, err := mongo.Connect(context.Background(), clientOpts)
 	if err != nil {
 		panic(err)
 	}
