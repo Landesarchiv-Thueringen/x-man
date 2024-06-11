@@ -21,6 +21,12 @@ mat-expansion-panel {
   }
 }
 
+mat-list-item.solved {
+  ::ng-deep .mat-mdc-list-item-title {
+    text-decoration: line-through;
+  }
+}
+
 .open-details-button {
   position: absolute;
   top: 0;

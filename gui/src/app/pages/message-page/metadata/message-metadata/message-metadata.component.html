@@ -40,7 +40,7 @@
         </mat-expansion-panel-header>
         <mat-list>
           @for (item of stateItems; track $index) {
-            <mat-list-item>
+            <mat-list-item [ngClass]="item.class">
               @if (item.icon === "spinner") {
                 <mat-spinner matListItemIcon diameter="24"></mat-spinner>
               } @else {

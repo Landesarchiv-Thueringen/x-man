@@ -27,6 +27,7 @@ interface StateItem {
   title: string;
   date: string;
   message?: string;
+  class?: string;
   onClick?: () => void;
 }
 
@@ -221,6 +222,7 @@ export class MessageMetadataComponent {
         items.push({
           title: 'Gelöst: ' + processingError.title,
           icon: 'check_circle',
+          class: 'solved',
           date: processingError.createdAt,
           onClick,
         });
