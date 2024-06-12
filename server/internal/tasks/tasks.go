@@ -48,6 +48,7 @@ var handlers = make(map[db.ProcessStepType]TaskHandler)
 var guards = make(map[db.ProcessStepType]guard)
 var options = make(map[db.ProcessStepType]Options)
 var activeTasks = make(map[primitive.ObjectID]*db.Task)
+var pauseSignals = make(map[primitive.ObjectID]chan struct{})
 
 func Action(taskID primitive.ObjectID, action db.TaskAction) error {
 	t := activeTasks[taskID]
@@ -56,8 +57,7 @@ func Action(taskID primitive.ObjectID, action db.TaskAction) error {
 		if t == nil {
 			return fmt.Errorf("task not running")
 		}
-		t.State = db.TaskStatePausing
-		updateProgress(t)
+		pause(t)
 	case db.TaskActionRun:
 		if t != nil {
 			return fmt.Errorf("task already running")
@@ -125,17 +125,38 @@ func retry(t *db.Task) {
 	Run(t)
 }
 
+func pause(t *db.Task) {
+	select {
+	case pauseSignals[t.ID] <- struct{}{}:
+		// ok
+	default:
+		// No more pending tasks. Pause is a no-op at this point.
+		//
+		// Mark as "pausing" anyway, so the UI reflects the action.
+	}
+	t.State = db.TaskStatePausing
+	updateProgress(t)
+}
+
 // run starts or resumes a task.
 //
 // Don't call directly. Instead use `Run` or `retry`.
 func run(t *db.Task) {
 	activeTasks[t.ID] = t
 	defer delete(activeTasks, t.ID)
+	pauseSignals[t.ID] = make(chan struct{})
+	defer delete(pauseSignals, t.ID)
 	t.State = db.TaskStatePending
 	updateProgress(t)
 	if g := guards[t.Type].Task; g != nil {
-		g <- struct{}{}
-		defer func() { <-g }()
+		select {
+		case g <- struct{}{}:
+			defer func() { <-g }()
+		case <-pauseSignals[t.ID]:
+			t.State = db.TaskStatePaused
+			updateProgress(t)
+			return
+		}
 	}
 	t.State = db.TaskStateRunning
 	updateProgress(t)
@@ -156,10 +177,11 @@ ItemLoop:
 			hasFailedItems = true
 		case db.TaskStatePending:
 			wg.Add(1)
-			guards[t.Type].Item <- struct{}{}
-			if t.State == db.TaskStatePausing {
+			select {
+			case guards[t.Type].Item <- struct{}{}:
+				// continue
+			case <-pauseSignals[t.ID]:
 				wg.Done()
-				<-guards[t.Type].Item
 				break ItemLoop
 			}
 			t.Items[i].State = db.TaskStateRunning
@@ -185,10 +207,9 @@ ItemLoop:
 		default:
 			panic("encountered item with unexpected state '" + item.State + "'")
 		}
-		updateProgress(t)
 	}
 	wg.Wait()
-	if t.State == db.TaskStatePausing {
+	if t.State == db.TaskStatePausing && t.Progress.Done < t.Progress.Total {
 		t.State = db.TaskStatePaused
 		updateProgress(t)
 	} else if hasFailedItems {

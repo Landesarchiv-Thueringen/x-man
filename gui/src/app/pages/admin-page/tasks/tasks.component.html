@@ -60,7 +60,7 @@
   <ng-container matColumnDef="updatedAt">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Beendet</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      @if (element.state !== "running") {
+      @if (element.state === "done" || element.state === "failed") {
         {{ element.updatedAt | date: "short" }}
       }
     </mat-cell>

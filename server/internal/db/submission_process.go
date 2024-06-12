@@ -229,7 +229,7 @@ func MustUpdateProcessStepError(
 		{"process_state." + string(step) + ".updated_at", time.Now()},
 		{"process_state." + string(step) + ".complete", false},
 		{"process_state." + string(step) + ".has_error", true},
-		{"process_state." + string(step) + ".progress", ""},
+		{"process_state." + string(step) + ".progress", nil},
 		{"process_state." + string(step) + ".task_state", ""},
 	}}}
 	ok := updateProcess(processID, update)
