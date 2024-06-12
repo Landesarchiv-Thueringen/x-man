@@ -247,7 +247,10 @@ func ResumeAfterAppRestart() {
 	defer errors.HandlePanic("tryRestartRunningTasks", nil)
 	ts := db.FindTasks(context.Background())
 	for _, t := range ts {
-		if t.State == db.TaskStateRunning {
+		switch t.State {
+		case db.TaskStatePending:
+			Run(&t)
+		case db.TaskStateRunning, db.TaskStatePausing:
 			if options[t.Type].RetrySafe {
 				for i, item := range t.Items {
 					if item.State == db.TaskStateRunning {
