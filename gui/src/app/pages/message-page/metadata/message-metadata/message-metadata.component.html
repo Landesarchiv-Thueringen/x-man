@@ -19,11 +19,11 @@
               } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
               } @else if (process.processState.archiving.taskState) {
-                Archivierung läuft... ({{ process.processState.archiving | processStepProgressPipe }})
+                Archivierung läuft... ({{ process.processState.archiving | processStepProgress }})
               } @else if (process.processState.formatVerification.complete) {
                 Formatverifikation abgeschlossen
               } @else if (process.processState.formatVerification.taskState) {
-                Formatverifikation läuft... ({{ process.processState.formatVerification | processStepProgressPipe }})
+                Formatverifikation läuft... ({{ process.processState.formatVerification | processStepProgress }})
               } @else if (process.processState.receive0503.complete) {
                 Abgabe erhalten
               } @else if (process.processState.receive0505.complete) {
@@ -31,7 +31,7 @@
               } @else if (process.processState.appraisal.complete) {
                 Bewertung abgeschlossen
               } @else if (process.processState.appraisal.progress) {
-                Bewertung ({{ process.processState.appraisal.progress }})
+                Bewertung ({{ process.processState.appraisal | processStepProgress }})
               } @else if (process.processState.receive0501.complete) {
                 Anbietung erhalten
               }
@@ -62,7 +62,7 @@
                 }
               </div>
               @if (item.progress) {
-                <div matListItemLine>{{ item | processStepProgressPipe }}</div>
+                <div matListItemLine>{{ item | processStepProgress }}</div>
               } @else {
                 <div matListItemLine>{{ item.date | date: "medium" }}</div>
               }

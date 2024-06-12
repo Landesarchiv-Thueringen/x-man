@@ -108,40 +108,6 @@ func RegisterTaskHandler(taskType db.ProcessStepType, h TaskHandler, o Options) 
 // At the time `Run` is called, items are expected to have the state 'pending',
 // 'failed', or 'done'.
 func Run(t *db.Task) {
-	log.Printf("Running %s for process %v...\n", t.Type, t.ProcessID)
-	run(t)
-}
-
-func retry(t *db.Task) {
-	log.Printf("Retrying %s for process %v...\n", t.Type, t.ProcessID)
-	t.Error = ""
-	for i, item := range t.Items {
-		switch item.State {
-		case db.TaskStateRunning, db.TaskStateFailed:
-			t.Items[i].State = db.TaskStatePending
-			t.Items[i].Error = ""
-		}
-	}
-	Run(t)
-}
-
-func pause(t *db.Task) {
-	select {
-	case pauseSignals[t.ID] <- struct{}{}:
-		// ok
-	default:
-		// No more pending tasks. Pause is a no-op at this point.
-		//
-		// Mark as "pausing" anyway, so the UI reflects the action.
-	}
-	t.State = db.TaskStatePausing
-	updateProgress(t)
-}
-
-// run starts or resumes a task.
-//
-// Don't call directly. Instead use `Run` or `retry`.
-func run(t *db.Task) {
 	activeTasks[t.ID] = t
 	defer delete(activeTasks, t.ID)
 	pauseSignals[t.ID] = make(chan struct{})
@@ -185,6 +151,7 @@ ItemLoop:
 				break ItemLoop
 			}
 			t.Items[i].State = db.TaskStateRunning
+			db.MustReplaceTask(*t)
 			go func() {
 				defer errors.HandlePanic("process item for task "+string(t.Type), &db.ProcessingError{
 					ProcessID:   t.ProcessID,
@@ -222,6 +189,32 @@ ItemLoop:
 		markDone(t, userName)
 		h.AfterDone()
 	}
+}
+
+func retry(t *db.Task) {
+	log.Printf("Retrying %s for process %v...\n", t.Type, t.ProcessID)
+	t.Error = ""
+	for i, item := range t.Items {
+		switch item.State {
+		case db.TaskStateRunning, db.TaskStateFailed:
+			t.Items[i].State = db.TaskStatePending
+			t.Items[i].Error = ""
+		}
+	}
+	Run(t)
+}
+
+func pause(t *db.Task) {
+	select {
+	case pauseSignals[t.ID] <- struct{}{}:
+		// ok
+	default:
+		// No more pending tasks. Pause is a no-op at this point.
+		//
+		// Mark as "pausing" anyway, so the UI reflects the action.
+	}
+	t.State = db.TaskStatePausing
+	updateProgress(t)
 }
 
 // updateProgress updates the database entries for the task and the process step
@@ -273,7 +266,6 @@ func ResumeAfterAppRestart() {
 
 // markDone marks the task and its associated process step completed successfully.
 func markDone(t *db.Task, completedBy string) {
-	log.Printf("Task %s for process %v done\n", t.Type, t.ProcessID)
 	t.State = db.TaskStateDone
 	t.Progress.Done = len(t.Items)
 	updateProgress(t)

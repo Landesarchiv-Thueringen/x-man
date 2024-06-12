@@ -116,7 +116,7 @@
             </div>
           } @else {
             <div class="task-cell">
-              <span>{{ process.processState.appraisal.progress }}</span>
+              <span>{{ process.processState.appraisal | processStepProgress }}</span>
             </div>
           }
         </mat-cell>
@@ -190,7 +190,7 @@
                 [state]="process.processState.formatVerification.taskState"
                 [progress]="process.processState.formatVerification.progress"
               ></app-task-state-icon>
-              {{ process.processState.formatVerification | processStepProgressPipe }}
+              {{ process.processState.formatVerification | processStepProgress }}
             </div>
           } @else if (config()!.borgSupport === false) {
             <div class="task-cell"><em>nicht verfügbar</em></div>
@@ -222,7 +222,7 @@
                 [state]="process.processState.archiving.taskState"
                 [progress]="process.processState.archiving.progress"
               ></app-task-state-icon>
-              {{ process.processState.archiving | processStepProgressPipe }}
+              {{ process.processState.archiving | processStepProgress }}
             </div>
           }
         </mat-cell>

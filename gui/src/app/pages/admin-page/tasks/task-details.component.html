@@ -1,0 +1,106 @@
+@if (task(); as task) {
+  <h2 mat-dialog-title>
+    {{ task | taskTitle: { showProgress: false } }} ({{ task.progress.done }} / {{ task.progress.total }})
+  </h2>
+  <div mat-dialog-content>
+    <div role="table">
+      <div role="row" class="strong">
+        <div role="cell">Status</div>
+        <div role="cell">
+          @switch (task.state) {
+            @case ("pending") {
+              wartet auf Ausführung
+            }
+            @case ("done") {
+              abgeschlossen
+            }
+            @case ("failed") {
+              fehlgeschlagen
+            }
+            @case ("paused") {
+              pausiert
+            }
+            @case ("pausing") {
+              wird pausiert...
+            }
+            @case ("running") {
+              läuft...
+            }
+          }
+        </div>
+      </div>
+      <div role="row">
+        <div role="cell">Gestartet</div>
+        <div role="cell">{{ task.createdAt | date: "medium" }}</div>
+      </div>
+      @if (task.state === "done" || task.state === "failed") {
+        <div role="row">
+          <div role="cell">Beendet</div>
+          <div role="cell">{{ task.createdAt | date: "medium" }}</div>
+        </div>
+      }
+      <div role="row">
+        <div role="cell">Aussonderung</div>
+        <div role="cell">
+          <a mat-button [routerLink]="['/nachricht', task.processId]" target="_blank">
+            {{ task.processId }}
+            <mat-icon iconPositionEnd>open_in_new</mat-icon>
+          </a>
+        </div>
+      </div>
+      @if (task.error) {
+        <div role="row">
+          <div role="cell">Fehler</div>
+          <div role="cell">{{ task.error }}</div>
+        </div>
+      }
+    </div>
+
+    <mat-list>
+      @for (item of task.items; track $index) {
+        <mat-list-item>
+          @if (item.state === "pending") {
+            <mat-icon matListItemIcon>schedule</mat-icon>
+          } @else if (item.state === "running") {
+            <mat-spinner matListItemIcon diameter="24"></mat-spinner>
+          } @else if (item.state === "done") {
+            <mat-icon matListItemIcon>check</mat-icon>
+          } @else if (item.state === "failed") {
+            <mat-icon matListItemIcon>close</mat-icon>
+          }
+          <h3 matListItemTitle>{{ item.label }}</h3>
+          <p matListItemLine>
+            @switch (item.state) {
+              @case ("pending") {
+                <span>wartet auf Ausführung</span>
+              }
+              @case ("running") {
+                <span>läuft...</span>
+              }
+              @case ("done") {
+                <span>abgeschlossen</span>
+              }
+              @case ("failed") {
+                @if (item.error) {
+                  <span>{{ item.error }}</span>
+                } @else {
+                  <span>fehlgeschlagen</span>
+                }
+              }
+            }
+          </p>
+        </mat-list-item>
+      }
+    </mat-list>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button mat-dialog-close>Schließen</button>
+    @if (task.state === "pending" || task.state === "running" || task.state === "pausing") {
+      <button mat-flat-button [disabled]="task.state === 'pausing'" (click)="pause(task)">Pausieren</button>
+    } @else if (task.state === "paused") {
+      <button mat-flat-button (click)="run(task)">Fortsetzen</button>
+    } @else if (task.state === "failed") {
+      <button mat-flat-button (click)="retry(task)">Wiederholen</button>
+    }
+  </div>
+}

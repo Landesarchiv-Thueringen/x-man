@@ -3,7 +3,7 @@ import { ItemProgress, TaskState } from '../../../../services/tasks.service';
 import { getTaskProgressString } from '../../../admin-page/tasks/task-title.pipe';
 
 @Pipe({
-  name: 'processStepProgressPipe',
+  name: 'processStepProgress',
   standalone: true,
 })
 export class ProcessStepProgressPipe implements PipeTransform {

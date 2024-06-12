@@ -10,6 +10,12 @@ export interface ItemProgress {
   total: number;
 }
 
+export interface TaskItem {
+  label: string;
+  state: TaskState;
+  error: string;
+}
+
 export type TaskState = 'pending' | 'running' | 'pausing' | 'paused' | 'failed' | 'done';
 export type TaskAction = 'run' | 'retry' | 'pause';
 export type TaskType = 'format_verification' | 'archiving';
@@ -23,6 +29,7 @@ export interface Task {
   state: TaskState;
   progress: ItemProgress;
   error: string;
+  items: TaskItem[];
 }
 
 @Injectable({

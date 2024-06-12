@@ -11,8 +11,11 @@ const titleMap: { [key in TaskType]: string } = {
   standalone: true,
 })
 export class TaskTitlePipe implements PipeTransform {
-  transform(task: Task): string {
+  transform(task: Task, { showProgress = true } = {}): string {
     const title = titleMap[task.type];
+    if (!showProgress) {
+      return title;
+    }
     const progress = getTaskProgressString(task.progress, task.state);
     if (task.progress) {
       return `${title} (${progress})`;

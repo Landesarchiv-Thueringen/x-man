@@ -4,9 +4,21 @@ mat-table {
   @include tableBorder;
 }
 
+.mat-mdc-row {
+  position: relative;
+}
+
+.open-details-button {
+  @include overlayButton;
+  border-radius: 0;
+}
+
 .cdk-column-actions {
   box-sizing: content-box;
   flex: 0 0 24px;
+  button {
+    z-index: 1;
+  }
 }
 
 .cdk-column-state {

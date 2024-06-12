@@ -1,0 +1,41 @@
+:host.failed h2 {
+  background-color: rgba(255, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+:host.done h2 {
+  background-color: rgba(0, 128, 0, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.strong {
+  font-weight: 550;
+}
+
+[mat-dialog-content] {
+  display: flex;
+  flex-direction: column;
+}
+
+[role="table"] {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: column;
+  color: black;
+}
+
+[role="row"] {
+  display: flex;
+}
+
+[role="cell"] {
+  flex: 1 0 0;
+  min-width: 0;
+  padding: 0.5em;
+  &:first-child {
+    flex: 0 0 12em;
+  }
+}
+
+a {
+  margin: -6px -8px -10px;
+}

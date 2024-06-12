@@ -34,6 +34,12 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>Prozess</mat-header-cell>
     <mat-cell *matCellDef="let element">
       {{ element | taskTitle }}
+      <button
+        mat-button
+        class="open-details-button"
+        (click)="openDetails(element)"
+        aria-label="Details anzeigen"
+      ></button>
     </mat-cell>
   </ng-container>
 
