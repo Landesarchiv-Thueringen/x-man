@@ -184,10 +184,13 @@
                 {{ process.processState.formatVerification.completedAt | date: "short" }}
               </span>
             </div>
-          } @else if (process.processState.formatVerification.running) {
+          } @else if (process.processState.formatVerification.taskState) {
             <div class="progress-cell">
-              <mat-spinner diameter="24"></mat-spinner>
-              {{ process.processState.formatVerification.progress }}
+              <app-task-state-icon
+                [state]="process.processState.formatVerification.taskState"
+                [progress]="process.processState.formatVerification.progress"
+              ></app-task-state-icon>
+              {{ process.processState.formatVerification | processStepProgressPipe }}
             </div>
           } @else if (config()!.borgSupport === false) {
             <div class="task-cell"><em>nicht verfügbar</em></div>
@@ -213,10 +216,13 @@
                 {{ process.processState.archiving.completedAt | date: "short" }}
               </span>
             </div>
-          } @else if (process.processState.archiving.running) {
+          } @else if (process.processState.archiving.taskState) {
             <div class="progress-cell">
-              <mat-spinner diameter="24"></mat-spinner>
-              {{ process.processState.archiving.progress }}
+              <app-task-state-icon
+                [state]="process.processState.archiving.taskState"
+                [progress]="process.processState.archiving.progress"
+              ></app-task-state-icon>
+              {{ process.processState.archiving | processStepProgressPipe }}
             </div>
           }
         </mat-cell>

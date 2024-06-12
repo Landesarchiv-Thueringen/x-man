@@ -405,9 +405,6 @@ export class MessageTreeComponent implements AfterViewInit {
         .pipe(
           filter((formResult) => !!formResult),
           switchMap((formResult) => {
-            // marks archiving process as started
-            // hides the button to start the process
-            this.process!.processState.archiving.running = true;
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
             return this.messageService.archive0503Message(this.message!.messageHead.processID, formResult.collectionId);

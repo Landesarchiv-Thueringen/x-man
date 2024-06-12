@@ -5,6 +5,7 @@ import { first, map, shareReplay, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Agency } from './agencies.service';
 import { ProcessingError } from './clearing.service';
+import { ItemProgress, TaskState } from './tasks.service';
 import { UpdatesService } from './updates.service';
 
 export interface ProcessData {
@@ -34,8 +35,8 @@ export interface ProcessStep {
   updatedAt: string;
   complete: boolean;
   completedAt: string;
-  progress: string;
-  running: boolean;
+  progress: ItemProgress;
+  taskState: TaskState;
   hasError: boolean;
 }
 

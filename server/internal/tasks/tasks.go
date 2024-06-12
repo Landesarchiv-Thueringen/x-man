@@ -56,7 +56,7 @@ func Action(taskID primitive.ObjectID, action db.TaskAction) error {
 		if t == nil {
 			return fmt.Errorf("task not running")
 		}
-		t.Action = db.TaskActionPause
+		t.State = db.TaskStatePausing
 		updateProgress(t)
 	case db.TaskActionRun:
 		if t != nil {
@@ -109,14 +109,12 @@ func RegisterTaskHandler(taskType db.ProcessStepType, h TaskHandler, o Options) 
 // 'failed', or 'done'.
 func Run(t *db.Task) {
 	log.Printf("Running %s for process %v...\n", t.Type, t.ProcessID)
-	t.Action = db.TaskActionRun
 	run(t)
 }
 
 func retry(t *db.Task) {
 	log.Printf("Retrying %s for process %v...\n", t.Type, t.ProcessID)
 	t.Error = ""
-	t.Action = db.TaskActionRetry
 	for i, item := range t.Items {
 		switch item.State {
 		case db.TaskStateRunning, db.TaskStateFailed:
@@ -133,14 +131,14 @@ func retry(t *db.Task) {
 func run(t *db.Task) {
 	activeTasks[t.ID] = t
 	defer delete(activeTasks, t.ID)
-	db.MustReplaceTask(*t)
+	t.State = db.TaskStatePending
+	updateProgress(t)
 	if g := guards[t.Type].Task; g != nil {
 		g <- struct{}{}
 		defer func() { <-g }()
 	}
 	t.State = db.TaskStateRunning
-	t.Progress = "startet..."
-	db.MustReplaceTask(*t)
+	updateProgress(t)
 	h, err := handlers[t.Type](t)
 	if err != nil {
 		markFailed(t, err.Error())
@@ -159,7 +157,7 @@ ItemLoop:
 		case db.TaskStatePending:
 			wg.Add(1)
 			guards[t.Type].Item <- struct{}{}
-			if t.Action == db.TaskActionPause {
+			if t.State == db.TaskStatePausing {
 				wg.Done()
 				<-guards[t.Type].Item
 				break ItemLoop
@@ -190,8 +188,7 @@ ItemLoop:
 		updateProgress(t)
 	}
 	wg.Wait()
-	if t.Action == db.TaskActionPause {
-		t.Action = ""
+	if t.State == db.TaskStatePausing {
 		t.State = db.TaskStatePaused
 		updateProgress(t)
 	} else if hasFailedItems {
@@ -216,13 +213,11 @@ func updateProgress(t *db.Task) {
 			itemsDone++
 		}
 	}
-	t.Progress = fmt.Sprintf("%d / %d", itemsDone, len(t.Items))
-	if t.Action == db.TaskActionPause {
-		t.Progress += " wird pausiert..."
-	}
-	log.Printf("%s for process %v: %s\n", t.Type, t.ProcessID, t.Progress)
+	t.Progress.Total = len(t.Items)
+	t.Progress.Done = itemsDone
+	log.Printf("%s for process %v: %s (%v)\n", t.Type, t.ProcessID, t.State, t.Progress)
 	db.MustReplaceTask(*t)
-	db.MustUpdateProcessStepProgress(t.ProcessID, t.Type, t.Progress, t.State == db.TaskStateRunning)
+	db.MustUpdateProcessStepProgress(t.ProcessID, t.Type, &t.Progress, t.State)
 }
 
 // ResumeAfterAppRestart searches for tasks that are marked 'running' and tries
@@ -255,9 +250,8 @@ func ResumeAfterAppRestart() {
 // markDone marks the task and its associated process step completed successfully.
 func markDone(t *db.Task, completedBy string) {
 	log.Printf("Task %s for process %v done\n", t.Type, t.ProcessID)
-	t.Action = ""
 	t.State = db.TaskStateDone
-	t.Progress = fmt.Sprintf("%d / %d", len(t.Items), len(t.Items))
+	t.Progress.Done = len(t.Items)
 	updateProgress(t)
 	db.MustUpdateProcessStepCompletion(t.ProcessID, t.Type, true, completedBy)
 	if e, ok := db.FindUnresolvedProcessingErrorForTask(context.Background(), t.ID); ok {
@@ -269,7 +263,6 @@ func markDone(t *db.Task, completedBy string) {
 // markFailed marks the task and its associated process step failed and creates
 // a processing error.
 func markFailed(t *db.Task, errMsg string) {
-	t.Action = ""
 	t.State = db.TaskStateFailed
 	if errMsg == "" {
 		itemsFailed := 0
@@ -279,12 +272,12 @@ func markFailed(t *db.Task, errMsg string) {
 	}
 	t.Error = errMsg
 	updateProgress(t)
+	db.MustUpdateProcessStepError(t.ProcessID, t.Type)
 	e, ok := db.FindUnresolvedProcessingErrorForTask(context.Background(), t.ID)
 	if ok {
 		e.Info = t.Error
 		db.MustReplaceProcessingError(e)
 	} else {
-		db.MustUpdateProcessStepError(t.ProcessID, t.Type, errMsg)
 		e := db.ProcessingError{
 			ProcessID:   t.ProcessID,
 			ProcessStep: t.Type,

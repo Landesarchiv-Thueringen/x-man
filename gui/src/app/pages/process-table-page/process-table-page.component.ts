@@ -20,6 +20,8 @@ import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
 import { ProcessService, ProcessStep, SubmissionProcess } from '../../services/process.service';
 import { UpdatesService } from '../../services/updates.service';
+import { TaskStateIconComponent } from '../../shared/task-state-icon.component';
+import { ProcessStepProgressPipe } from '../message-page/metadata/message-metadata/process-step-progress.pipe';
 
 @Component({
   selector: 'app-process-table-page',
@@ -45,8 +47,10 @@ import { UpdatesService } from '../../services/updates.service';
     MatSlideToggleModule,
     MatSortModule,
     MatTableModule,
+    ProcessStepProgressPipe,
     ReactiveFormsModule,
     RouterModule,
+    TaskStateIconComponent,
   ],
 })
 export class ProcessTablePageComponent implements AfterViewInit {

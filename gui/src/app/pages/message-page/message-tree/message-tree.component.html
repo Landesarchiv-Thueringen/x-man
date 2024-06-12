@@ -174,7 +174,7 @@
       *ngIf="
         message.messageType === '0503' &&
         (config()?.borgSupport === false || process.processState.formatVerification.complete) &&
-        !process.processState.archiving.running &&
+        !process.processState.archiving.taskState &&
         !process.processState.archiving.complete
       "
       (click)="archive0503Message()"

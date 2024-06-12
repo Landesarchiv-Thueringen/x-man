@@ -17,6 +17,7 @@ const (
 	TaskStatePending TaskState = "pending"
 	TaskStateRunning TaskState = "running"
 	TaskStatePaused  TaskState = "paused"
+	TaskStatePausing TaskState = "pausing"
 	TaskStateFailed  TaskState = "failed"
 	TaskStateDone    TaskState = "done"
 )
@@ -36,6 +37,15 @@ type TaskItem struct {
 	Error string      `json:"error"`
 }
 
+type ItemProgress struct {
+	Done  int `json:"done"`
+	Total int `json:"total"`
+}
+
+func (p ItemProgress) String() string {
+	return fmt.Sprintf("%d / %d", p.Done, p.Total)
+}
+
 type Task struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	CreatedAt time.Time          `bson:"created_at" json:"createdAt"`
@@ -46,14 +56,9 @@ type Task struct {
 	Type ProcessStepType `json:"type"`
 	// State describes the current condition of the task.
 	State TaskState `json:"state"`
-	// Action is what should happen next with the task. E.g., when the task's
-	// state is "running" and it's action is "retry", it should continue
-	// running, retrying failed items. When it is done executing the action, the
-	// action is set to the empty string.
-	Action TaskAction `json:"action"`
-	// Progress is a short notice that indicates the state of the task, e.g.,
-	// "3 / 4".
-	Progress string `json:"progress"`
+	// Progress indicates how many items are already processed and how many
+	// items there are in total.
+	Progress ItemProgress `json:"progress"`
 	// Error describes an error if `State == "failed"`.
 	Error string `bson:"error" json:"error"`
 	// UserID is the LDAP user ID of the user who initiated the task, if any.
@@ -95,7 +100,6 @@ func InsertTask(task Task) Task {
 	coll := mongoDatabase.Collection("tasks")
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = time.Now()
-	task.State = TaskStateRunning
 	result, err := coll.InsertOne(context.Background(), task)
 	if err != nil {
 		panic(err)

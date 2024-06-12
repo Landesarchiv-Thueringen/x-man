@@ -12,12 +12,6 @@ mat-table {
 .cdk-column-state {
   box-sizing: content-box;
   flex: 0 0 24px;
-  .done {
-    color: green;
-  }
-  .failed {
-    color: red;
-  }
 }
 
 .cdk-column-createdAt {

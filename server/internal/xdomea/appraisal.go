@@ -260,6 +260,10 @@ func updateAppraisalProcessStep(processID uuid.UUID) {
 			numberAppraisalComplete++
 		}
 	}
-	processStepMessage := fmt.Sprintf("%d / %d", numberAppraisalComplete, len(appraisableRootRecordIDs))
-	db.MustUpdateProcessStepProgress(process.ProcessID, db.ProcessStepAppraisal, processStepMessage, false)
+	db.MustUpdateProcessStepProgress(
+		process.ProcessID,
+		db.ProcessStepAppraisal,
+		&db.ItemProgress{Done: numberAppraisalComplete, Total: len(appraisableRootRecordIDs)},
+		"",
+	)
 }

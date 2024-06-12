@@ -5,7 +5,12 @@ import { environment } from '../../environments/environment';
 import { ProcessStep } from './process.service';
 import { UpdatesService } from './updates.service';
 
-export type TaskState = 'pending' | 'running' | 'failed' | 'done';
+export interface ItemProgress {
+  done: number;
+  total: number;
+}
+
+export type TaskState = 'pending' | 'running' | 'pausing' | 'paused' | 'failed' | 'done';
 export type TaskAction = 'run' | 'retry' | 'pause';
 export type TaskType = 'format_verification' | 'archiving';
 export interface Task {
@@ -16,8 +21,7 @@ export interface Task {
   processStep: ProcessStep;
   type: TaskType;
   state: TaskState;
-  action: TaskAction;
-  progress: string;
+  progress: ItemProgress;
   error: string;
 }
 

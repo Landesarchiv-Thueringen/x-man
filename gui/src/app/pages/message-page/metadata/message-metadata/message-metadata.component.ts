@@ -18,16 +18,20 @@ import { ConfigService } from '../../../../services/config.service';
 import { Message } from '../../../../services/message.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { ProcessService, SubmissionProcess } from '../../../../services/process.service';
+import { ItemProgress, TaskState } from '../../../../services/tasks.service';
+import { TaskStateIconComponent } from '../../../../shared/task-state-icon.component';
 import { ClearingDetailsComponent } from '../../../clearing-page/clearing-details.component';
 import { MessagePageService } from '../../message-page.service';
 import { InstitutMetadataComponent } from '../institution-metadata/institution-metadata.component';
+import { ProcessStepProgressPipe } from './process-step-progress.pipe';
 
 interface StateItem {
   icon: string;
   title: string;
   date: string;
-  message?: string;
   class?: string;
+  taskState?: TaskState;
+  progress?: ItemProgress;
   onClick?: () => void;
 }
 
@@ -47,6 +51,8 @@ interface StateItem {
     MatInputModule,
     MatListModule,
     MatProgressSpinnerModule,
+    TaskStateIconComponent,
+    ProcessStepProgressPipe,
     ReactiveFormsModule,
   ],
 })
@@ -171,7 +177,7 @@ export class MessageMetadataComponent {
       items.push({
         title: 'Bewertung',
         icon: 'edit_note',
-        message: state.appraisal.progress,
+        progress: state.appraisal.progress,
         date: state.appraisal.updatedAt!,
       });
     }
@@ -187,12 +193,13 @@ export class MessageMetadataComponent {
         icon: 'check',
         date: state.formatVerification.completedAt!,
       });
-    } else if (state.formatVerification.running) {
+    } else if (state.formatVerification.taskState) {
       items.push({
         title: 'Formatverifikation läuft...',
-        icon: 'spinner',
+        icon: this.getTaskIcon(state.formatVerification.taskState),
         date: state.formatVerification.updatedAt,
-        message: state.formatVerification.progress,
+        taskState: state.formatVerification.taskState,
+        progress: state.formatVerification.progress,
       });
     }
     if (state.archiving.complete) {
@@ -201,12 +208,13 @@ export class MessageMetadataComponent {
         icon: 'check',
         date: state.archiving.completedAt!,
       });
-    } else if (state.archiving.running) {
+    } else if (state.archiving.taskState) {
       items.push({
         title: 'Archivierung läuft...',
-        icon: 'spinner',
+        icon: this.getTaskIcon(state.archiving.taskState),
         date: state.archiving.updatedAt,
-        message: state.archiving.progress,
+        taskState: state.archiving.taskState,
+        progress: state.archiving.progress,
       });
     }
     for (const processingError of this.processingErrors) {
@@ -249,6 +257,20 @@ export class MessageMetadataComponent {
       );
     } else {
       return of(null);
+    }
+  }
+
+  private getTaskIcon(state: TaskState): string {
+    switch (state) {
+      case 'pending':
+        return 'schedule';
+      case 'running':
+      case 'pausing':
+        return 'spinner';
+      case 'paused':
+        return 'spinner-stopped';
+      default:
+        return '';
     }
   }
 }

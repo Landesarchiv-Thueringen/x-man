@@ -18,12 +18,12 @@
                 }
               } @else if (process.processState.archiving.complete) {
                 Abgabe archiviert
-              } @else if (process.processState.archiving.running) {
-                Archivierung läuft... ({{ process.processState.archiving.progress }})
+              } @else if (process.processState.archiving.taskState) {
+                Archivierung läuft... ({{ process.processState.archiving | processStepProgressPipe }})
               } @else if (process.processState.formatVerification.complete) {
                 Formatverifikation abgeschlossen
-              } @else if (process.processState.formatVerification.running) {
-                Formatverifikation läuft... ({{ process.processState.formatVerification.progress }})
+              } @else if (process.processState.formatVerification.taskState) {
+                Formatverifikation läuft... ({{ process.processState.formatVerification | processStepProgressPipe }})
               } @else if (process.processState.receive0503.complete) {
                 Abgabe erhalten
               } @else if (process.processState.receive0505.complete) {
@@ -41,8 +41,12 @@
         <mat-list>
           @for (item of stateItems; track $index) {
             <mat-list-item [ngClass]="item.class">
-              @if (item.icon === "spinner") {
-                <mat-spinner matListItemIcon diameter="24"></mat-spinner>
+              @if (item.taskState) {
+                <app-task-state-icon
+                  matListItemIcon
+                  [state]="item.taskState"
+                  [progress]="item.progress!"
+                ></app-task-state-icon>
               } @else {
                 <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               }
@@ -57,8 +61,8 @@
                   ></button>
                 }
               </div>
-              @if (item.message) {
-                <div matListItemLine>{{ item.message }}</div>
+              @if (item.progress) {
+                <div matListItemLine>{{ item | processStepProgressPipe }}</div>
               } @else {
                 <div matListItemLine>{{ item.date | date: "medium" }}</div>
               }

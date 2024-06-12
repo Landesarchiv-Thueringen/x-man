@@ -55,12 +55,13 @@ type ProcessStep struct {
 	CompletedAt time.Time `bson:"completed_at" json:"completedAt"`
 	// CompletedBy is the name of the user who performed the process step.
 	CompletedBy string `bson:"completed_by" json:"completedBy"`
-	// Progress is a short notice that indicates the state of a not yet completed
-	// process step, e.g., "3 / 4"
-	Progress string `json:"progress"`
-	// Running indicates that there is a task being currently executed for the
-	// process step.
-	Running bool `json:"running"`
+	// If the process step consists of separate steps, Progress indicates how
+	// many items are already processed and how many items there are in total.
+	Progress *ItemProgress `json:"progress"`
+	// If the process step is associated to a task, TaskState represents its
+	// current state. This field is set to the empty string when the process
+	// step is completed, has errors, or is not associated to a task.
+	TaskState TaskState `bson:"task_state" json:"taskState"`
 	// HasError indicates whether there is one or more unresolved processing
 	// error associated with the process step. True indicates a failed state.
 	HasError bool `bson:"has_error" json:"hasError"`
@@ -192,7 +193,7 @@ func MustUpdateProcessStepCompletion(
 		{"process_state." + string(step) + ".complete", complete},
 		{"process_state." + string(step) + ".completed_at", time.Now()},
 		{"process_state." + string(step) + ".completed_by", completedBy},
-		{"process_state." + string(step) + ".running", false},
+		{"process_state." + string(step) + ".task_state", ""},
 		{"process_state." + string(step) + ".has_error", false},
 	}}}
 	ok := updateProcess(processID, update)
@@ -204,13 +205,13 @@ func MustUpdateProcessStepCompletion(
 func MustUpdateProcessStepProgress(
 	processID uuid.UUID,
 	step ProcessStepType,
-	progress string,
-	running bool,
+	progress *ItemProgress,
+	taskState TaskState,
 ) {
 	update := bson.D{{"$set", bson.D{
 		{"process_state." + string(step) + ".updated_at", time.Now()},
 		{"process_state." + string(step) + ".progress", progress},
-		{"process_state." + string(step) + ".running", running},
+		{"process_state." + string(step) + ".task_state", taskState},
 		{"process_state." + string(step) + ".complete", false},
 		{"process_state." + string(step) + ".has_error", false},
 	}}}
@@ -223,14 +224,13 @@ func MustUpdateProcessStepProgress(
 func MustUpdateProcessStepError(
 	processID uuid.UUID,
 	step ProcessStepType,
-	progress string,
 ) {
 	update := bson.D{{"$set", bson.D{
 		{"process_state." + string(step) + ".updated_at", time.Now()},
-		{"process_state." + string(step) + ".progress", progress},
 		{"process_state." + string(step) + ".complete", false},
-		{"process_state." + string(step) + ".running", false},
 		{"process_state." + string(step) + ".has_error", true},
+		{"process_state." + string(step) + ".progress", ""},
+		{"process_state." + string(step) + ".task_state", ""},
 	}}}
 	ok := updateProcess(processID, update)
 	if !ok {

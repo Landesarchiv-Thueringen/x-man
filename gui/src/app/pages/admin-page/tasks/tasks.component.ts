@@ -8,6 +8,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { Task, TasksService } from '../../../services/tasks.service';
+import { TaskStateIconComponent } from '../../../shared/task-state-icon.component';
 import { TaskTitlePipe } from './task-title.pipe';
 
 @Component({
@@ -21,6 +22,7 @@ import { TaskTitlePipe } from './task-title.pipe';
     MatProgressSpinnerModule,
     MatSortModule,
     TaskTitlePipe,
+    TaskStateIconComponent,
     RouterModule,
   ],
   templateUrl: './tasks.component.html',
