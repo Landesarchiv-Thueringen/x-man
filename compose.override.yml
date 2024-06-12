@@ -18,6 +18,9 @@ services:
       - TRANSFER_DIR_SCAN_INTERVAL_SECONDS=1
     ports:
       - 3000:80
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
   report:
     environment:
       - GIN_MODE=debug
