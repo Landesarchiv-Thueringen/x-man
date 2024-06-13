@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, shareReplay } from 'rxjs';
+import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface Message {
@@ -209,5 +209,15 @@ export class MessageService {
       }
     }
     return null;
+  }
+
+  reimportMessage(processId: string, type: MessageType): Observable<void> {
+    return this.httpClient
+      .post(this.apiEndpoint + '/message/' + processId + '/' + type + '/reimport', null)
+      .pipe(map(() => void 0));
+  }
+
+  deleteMessage(processId: string, type: MessageType): Observable<void> {
+    return this.httpClient.delete(this.apiEndpoint + '/message/' + processId + '/' + type).pipe(map(() => void 0));
   }
 }

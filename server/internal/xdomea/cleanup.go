@@ -44,10 +44,10 @@ func DeleteProcess(processID uuid.UUID) bool {
 	return true
 }
 
-func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransferFile bool) {
+func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransferFile bool) error {
 	message, ok := db.FindMessage(context.Background(), processID, messageType)
 	if !ok {
-		panic(fmt.Sprintf("%s message not found for process %s", messageType, processID))
+		return fmt.Errorf("%s message not found for process %s", messageType, processID)
 	}
 	storeDir := message.StoreDir
 	transferFile := message.TransferDirPath
@@ -89,6 +89,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 		cleanupEmptyProcess(message.MessageHead.ProcessID)
 	}
 	db.DeleteProcessingErrorsForMessage(processID, message.MessageType)
+	return nil
 }
 
 // cleanupEmptyProcess deletes the given process if if does not have any

@@ -135,20 +135,57 @@
           <mat-expansion-panel-header>
             <mat-panel-title>Administration</mat-panel-title>
           </mat-expansion-panel-header>
-          <button mat-flat-button class="error-button delete-button" (click)="deleteProcess()" type="button">
-            <mat-icon>delete</mat-icon>
-            <span>Aussonderung löschen</span>
-          </button>
+          <div class="admin-buttons">
+            <button mat-flat-button (click)="reimportMessage()" type="button">
+              <mat-icon>replay</mat-icon>
+              <span>Nachricht erneut einlesen</span>
+            </button>
+            <button mat-flat-button class="error-button" (click)="deleteMessage()" type="button">
+              <mat-icon>delete</mat-icon>
+              <span>Nachricht löschen</span>
+            </button>
+            <button mat-flat-button class="error-button" (click)="deleteProcess()" type="button">
+              <mat-icon>delete</mat-icon>
+              <span>Aussonderung löschen</span>
+            </button>
+          </div>
         </mat-expansion-panel>
       }
     </mat-accordion>
   </form>
 </div>
 
-<ng-template #deleteDialog>
+<ng-template #reimportMessageDialog>
+  <h3 mat-dialog-title>Nachricht neu einlesen?</h3>
+  <div mat-dialog-content>
+    <p>Möchten Sie die Daten der Transfernachricht aus x-man entfernen und die Nachricht erneut einlesen?</p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button [mat-dialog-close]="true" cdkFocusInitial>Neu einlesen</button>
+  </div>
+</ng-template>
+
+<ng-template #deleteMessageDialog>
+  <h3 mat-dialog-title>Nachricht löschen?</h3>
+  <div mat-dialog-content>
+    <p>Möchten Sie die Transfernachricht löschen?</p>
+    <p>Es werden alle zugehörigen Daten aus x-man und die Transferdatei aus dem Transferverzeichnis entfernt.</p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
+  </div>
+</ng-template>
+
+<ng-template #deleteSubmissionProcessDialog>
   <h3 mat-dialog-title>Aussonderung löschen?</h3>
   <div mat-dialog-content>
     <p>Möchten Sie die Aussonderung und alle zugehörigen Transfernachrichten löschen?</p>
+    <p>
+      Es werden alle zugehörigen Daten aus x-man und alle zugehörigen Transferdateien aus dem Transferverzeichnis
+      entfernt.
+    </p>
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>

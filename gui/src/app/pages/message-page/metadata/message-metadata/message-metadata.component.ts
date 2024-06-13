@@ -15,7 +15,7 @@ import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, 
 import { AuthService } from '../../../../services/auth.service';
 import { ProcessingError } from '../../../../services/clearing.service';
 import { ConfigService } from '../../../../services/config.service';
-import { Message } from '../../../../services/message.service';
+import { Message, MessageService } from '../../../../services/message.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { ProcessService, SubmissionProcess } from '../../../../services/process.service';
 import { ItemProgress, TaskState } from '../../../../services/tasks.service';
@@ -57,7 +57,9 @@ interface StateItem {
   ],
 })
 export class MessageMetadataComponent {
-  @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
+  @ViewChild('reimportMessageDialog') reimportMessageDialogTemplate!: TemplateRef<unknown>;
+  @ViewChild('deleteMessageDialog') deleteMessageDialogTemplate!: TemplateRef<unknown>;
+  @ViewChild('deleteSubmissionProcessDialog') deleteSubmissionProcessDialogTemplate!: TemplateRef<unknown>;
 
   form = this.formBuilder.group({
     processID: new FormControl<string | null>(null),
@@ -83,6 +85,7 @@ export class MessageMetadataComponent {
     private processService: ProcessService,
     private router: Router,
     private messagePage: MessagePageService,
+    private messageService: MessageService,
   ) {
     this.messagePage
       .observeProcessData()
@@ -133,9 +136,40 @@ export class MessageMetadataComponent {
     }
   }
 
+  reimportMessage() {
+    this.dialog
+      .open(this.reimportMessageDialogTemplate)
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.messageService.reimportMessage(this.process!.processId, this.message!.messageType).subscribe(() => {
+            this.notification.show('Nachricht wird neu eingelesen...');
+          });
+        }
+      });
+  }
+
+  deleteMessage() {
+    this.dialog
+      .open(this.deleteMessageDialogTemplate)
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.messageService.deleteMessage(this.process!.processId, this.message!.messageType).subscribe(() => {
+            this.notification.show('Nachricht gelöscht');
+            const processHasOtherMessage =
+              this.process?.processState?.receive0501?.complete && this.process?.processState?.receive0503?.complete;
+            if (!processHasOtherMessage) {
+              this.router.navigate(['/']);
+            }
+          });
+        }
+      });
+  }
+
   deleteProcess() {
     this.dialog
-      .open(this.deleteDialogTemplate)
+      .open(this.deleteSubmissionProcessDialogTemplate)
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {

@@ -71,6 +71,8 @@ func main() {
 	admin.Use(auth.AdminRequired())
 	admin.GET("api/processes", getProcesses)
 	admin.DELETE("api/process/:processId", deleteProcess)
+	admin.POST("api/message/:processId/:messageType/reimport", reimportMessage)
+	admin.DELETE("api/message/:processId/:messageType", deleteMessage)
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.POST("api/processing-errors/resolve/:id", resolveProcessingError)
 	admin.GET("api/users", Users)
@@ -247,6 +249,34 @@ func deleteProcess(c *gin.Context) {
 		c.Status(http.StatusAccepted)
 	} else {
 		c.Status(http.StatusNotFound)
+	}
+}
+
+func reimportMessage(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	messageType := c.Param("messageType")
+	err = xdomea.DeleteMessage(processID, db.MessageType(messageType), true)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+}
+
+func deleteMessage(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	messageType := c.Param("messageType")
+	err = xdomea.DeleteMessage(processID, db.MessageType(messageType), false)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 }
 
