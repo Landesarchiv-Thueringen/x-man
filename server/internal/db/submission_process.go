@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -58,6 +59,8 @@ type ProcessStep struct {
 	// If the process step consists of separate steps, Progress indicates how
 	// many items are already processed and how many items there are in total.
 	Progress *ItemProgress `json:"progress"`
+	// If the process step is associated to a task, TaskID is its ID.
+	TaskID primitive.ObjectID `bson:"task_id" json:"taskId"`
 	// If the process step is associated to a task, TaskState represents its
 	// current state. This field is set to the empty string when the process
 	// step is completed, has errors, or is not associated to a task.
@@ -206,11 +209,13 @@ func MustUpdateProcessStepProgress(
 	processID uuid.UUID,
 	step ProcessStepType,
 	progress *ItemProgress,
+	taskID primitive.ObjectID,
 	taskState TaskState,
 ) {
 	update := bson.D{{"$set", bson.D{
 		{"process_state." + string(step) + ".updated_at", time.Now()},
 		{"process_state." + string(step) + ".progress", progress},
+		{"process_state." + string(step) + ".task_id", taskID},
 		{"process_state." + string(step) + ".task_state", taskState},
 		{"process_state." + string(step) + ".complete", false},
 		{"process_state." + string(step) + ".has_error", false},

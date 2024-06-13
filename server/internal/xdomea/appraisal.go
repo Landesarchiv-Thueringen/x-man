@@ -6,6 +6,7 @@ import (
 	"lath/xman/internal/db"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AppraisableRecordRelations struct {
@@ -264,6 +265,7 @@ func updateAppraisalProcessStep(processID uuid.UUID) {
 		process.ProcessID,
 		db.ProcessStepAppraisal,
 		&db.ItemProgress{Done: numberAppraisalComplete, Total: len(appraisableRootRecordIDs)},
+		primitive.NilObjectID,
 		"",
 	)
 }

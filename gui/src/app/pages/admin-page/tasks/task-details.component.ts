@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 import { Task, TasksService } from '../../../services/tasks.service';
 import { TaskStateIconComponent } from '../../../shared/task-state-icon.component';
 import { TaskTitlePipe } from './task-title.pipe';
@@ -29,13 +30,15 @@ import { TaskTitlePipe } from './task-title.pipe';
   styleUrl: './task-details.component.scss',
 })
 export class TaskDetailsComponent {
-  task: Signal<Task | undefined>;
   @HostBinding('class.done') resolved = false;
   @HostBinding('class.failed') failed = false;
+  task: Signal<Task | undefined>;
+  isAdmin = this.auth.isAdmin();
 
   constructor(
     private dialogRef: MatDialogRef<TaskDetailsComponent>,
     @Inject(MAT_DIALOG_DATA) private taskId: string,
+    private auth: AuthService,
     private tasksService: TasksService,
   ) {
     const task = this.tasksService.observeTask(this.taskId);

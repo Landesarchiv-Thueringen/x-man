@@ -272,7 +272,7 @@ func updateProgress(t *db.Task) {
 	t.Progress.Done = itemsDone
 	log.Printf("%s for process %v: %s (%v)\n", t.Type, t.ProcessID, t.State, t.Progress)
 	db.MustReplaceTask(*t)
-	db.MustUpdateProcessStepProgress(t.ProcessID, t.Type, &t.Progress, t.State)
+	db.MustUpdateProcessStepProgress(t.ProcessID, t.Type, &t.Progress, t.ID, t.State)
 }
 
 // ResumeAfterAppRestart searches for tasks that are marked 'running' and tries

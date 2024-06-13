@@ -20,6 +20,7 @@ import { NotificationService } from '../../../../services/notification.service';
 import { ProcessService, SubmissionProcess } from '../../../../services/process.service';
 import { ItemProgress, TaskState } from '../../../../services/tasks.service';
 import { TaskStateIconComponent } from '../../../../shared/task-state-icon.component';
+import { TaskDetailsComponent } from '../../../admin-page/tasks/task-details.component';
 import { ClearingDetailsComponent } from '../../../clearing-page/clearing-details.component';
 import { MessagePageService } from '../../message-page.service';
 import { InstitutMetadataComponent } from '../institution-metadata/institution-metadata.component';
@@ -221,11 +222,18 @@ export class MessageMetadataComponent {
     if (state.receive0503.complete) {
       items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completedAt! });
     }
+    let onClick = () =>
+      this.dialog.open(TaskDetailsComponent, {
+        data: state.formatVerification.taskId,
+        width: '1000px',
+        maxWidth: '80vw',
+      });
     if (state.formatVerification.complete) {
       items.push({
         title: 'Formatverifikation abgeschlossen',
         icon: 'check',
         date: state.formatVerification.completedAt!,
+        onClick,
       });
     } else if (state.formatVerification.taskState) {
       items.push({
@@ -234,13 +242,17 @@ export class MessageMetadataComponent {
         date: state.formatVerification.updatedAt,
         taskState: state.formatVerification.taskState,
         progress: state.formatVerification.progress,
+        onClick,
       });
     }
+    onClick = () =>
+      this.dialog.open(TaskDetailsComponent, { data: state.archiving.taskId, width: '1000px', maxWidth: '80vw' });
     if (state.archiving.complete) {
       items.push({
         title: 'Abgabe archiviert',
         icon: 'check',
         date: state.archiving.completedAt!,
+        onClick,
       });
     } else if (state.archiving.taskState) {
       items.push({
@@ -249,6 +261,7 @@ export class MessageMetadataComponent {
         date: state.archiving.updatedAt,
         taskState: state.archiving.taskState,
         progress: state.archiving.progress,
+        onClick,
       });
     }
     for (const processingError of this.processingErrors) {

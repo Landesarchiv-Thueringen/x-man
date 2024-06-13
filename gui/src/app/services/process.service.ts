@@ -36,6 +36,7 @@ export interface ProcessStep {
   complete: boolean;
   completedAt: string;
   progress: ItemProgress;
+  taskId: string;
   taskState: TaskState;
   hasError: boolean;
 }
