@@ -1,3 +1,4 @@
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
 import { Component, HostBinding, Inject, Signal, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -22,9 +23,10 @@ import { TaskTitlePipe } from './task-title.pipe';
     MatIconModule,
     MatListModule,
     MatProgressSpinnerModule,
+    RouterModule,
+    ScrollingModule,
     TaskStateIconComponent,
     TaskTitlePipe,
-    RouterModule,
   ],
   templateUrl: './task-details.component.html',
   styleUrl: './task-details.component.scss',

@@ -57,8 +57,8 @@
     </div>
 
     <mat-list>
-      @for (item of task.items; track $index) {
-        <mat-list-item>
+      <cdk-virtual-scroll-viewport itemSize="64">
+        <mat-list-item *cdkVirtualFor="let item of task.items">
           @if (item.state === "pending") {
             <mat-icon matListItemIcon>schedule</mat-icon>
           } @else if (item.state === "running") {
@@ -90,7 +90,7 @@
             }
           </p>
         </mat-list-item>
-      }
+      </cdk-virtual-scroll-viewport>
     </mat-list>
   </div>
   <div mat-dialog-actions>

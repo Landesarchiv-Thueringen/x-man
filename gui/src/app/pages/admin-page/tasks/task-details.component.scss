@@ -14,6 +14,7 @@
 [mat-dialog-content] {
   display: flex;
   flex-direction: column;
+  height: 100vh;
 }
 
 [role="table"] {
@@ -38,6 +39,17 @@
 
 a {
   margin: -6px -8px -10px;
+}
+
+mat-list {
+  flex-grow: 1;
+}
+
+cdk-virtual-scroll-viewport {
+  height: 100%;
+  ::ng-deep .cdk-virtual-scroll-content-wrapper {
+    max-width: 100%;
+  }
 }
 
 .left-button {
