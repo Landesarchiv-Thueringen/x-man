@@ -18,8 +18,6 @@ type PrimaryDocumentData struct {
 }
 
 type FormatVerification struct {
-	ProcessID                 uuid.UUID          `bson:"process_id" json:"-"`
-	Filename                  string             `json:"-"`
 	Summary                   map[string]Feature `json:"summary"`
 	FileIdentificationResults []ToolResponse     `bson:"file_identification_results" json:"fileIdentificationResults"`
 	FileValidationResults     []ToolResponse     `bson:"file_validation_results" json:"fileValidationResults"`

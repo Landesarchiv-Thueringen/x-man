@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
+	"lath/xman/internal/errors"
 	"lath/xman/internal/tasks"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -50,14 +52,25 @@ func VerifyFileFormats(process db.SubmissionProcess, message db.Message) {
 }
 
 type VerificationHandler struct {
-	message db.Message
+	message      db.Message
+	invalidFiles []string
 }
 
 func (h *VerificationHandler) HandleItem(itemData interface{}) error {
-	return verifyDocument(h.message, itemData.(string))
+	return verifyDocument(h, itemData.(string))
 }
-func (h *VerificationHandler) Finish()    {}
-func (h *VerificationHandler) AfterDone() {}
+func (h *VerificationHandler) Finish() {}
+func (h *VerificationHandler) AfterDone() {
+	if len(h.invalidFiles) > 0 {
+		errors.AddProcessingError(db.ProcessingError{
+			Title:       "Die Formatverifikation hat Probleme mit Primärdateien festgestellt",
+			Info:        strings.Join(h.invalidFiles, "\n"),
+			ProcessID:   h.message.MessageHead.ProcessID,
+			MessageType: h.message.MessageType,
+			ProcessStep: db.ProcessStepFormatVerification,
+		})
+	}
+}
 
 func initVerificationHandler(t *db.Task) (tasks.ItemHandler, error) {
 	message, ok := db.FindMessage(context.Background(), t.ProcessID, db.MessageType0503)
@@ -76,8 +89,8 @@ func initVerificationHandler(t *db.Task) (tasks.ItemHandler, error) {
 
 // verifyDocument runs format verification on the given document using the
 // remote BORG service and saves the result to the document object.
-func verifyDocument(message db.Message, filename string) error {
-	filePath := path.Join(message.StoreDir, filename)
+func verifyDocument(h *VerificationHandler, filename string) error {
+	filePath := path.Join(h.message.StoreDir, filename)
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return err
@@ -116,9 +129,32 @@ func verifyDocument(message db.Message, filename string) error {
 		return err
 	}
 	db.UpdatePrimaryDocumentFormatVerification(
-		message.MessageHead.ProcessID,
+		h.message.MessageHead.ProcessID,
 		filename,
 		&parsedResponse,
 	)
+	if isInvalid(parsedResponse) || hasError(parsedResponse) {
+		h.invalidFiles = append(h.invalidFiles, filename)
+	}
 	return nil
+}
+
+func isInvalid(f db.FormatVerification) bool {
+	valid, ok := f.Summary["valid"]
+	return ok && valid.Values[0].Value == "false" &&
+		valid.Values[0].Score > 0.75
+}
+
+func hasError(f db.FormatVerification) bool {
+	for _, r := range f.FileIdentificationResults {
+		if r.Error != "" {
+			return true
+		}
+	}
+	for _, r := range f.FileValidationResults {
+		if r.Error != "" {
+			return true
+		}
+	}
+	return false
 }
