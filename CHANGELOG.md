@@ -2,6 +2,7 @@
 
 ## v0.10.0
 
+- Feature: Formatverifikation und Archivierung können pausiert und abgebrochen werden
 - Intern: Migration von PostgreSQL nach MongoDB
 - Intern: Fehlerbehandlung überarbeitet
 - Intern: Automatische Seitenaktualisierung optimiert
