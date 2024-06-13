@@ -62,7 +62,7 @@ export class UsersComponent implements AfterViewInit {
 
   async openDetails(user: User) {
     let agencies = await firstValueFrom(this.agenciesService.observeAgencies());
-    agencies = agencies.filter((a) => a.users.includes(user.id));
+    agencies = agencies.filter((a) => a.users?.includes(user.id));
     this.dialog.open(UserDetailsComponent, { data: { user, agencies } });
   }
 }
