@@ -25,9 +25,10 @@ const (
 type TaskAction string
 
 const (
-	TaskActionRun   TaskAction = "run"
-	TaskActionRetry TaskAction = "retry"
-	TaskActionPause TaskAction = "pause"
+	TaskActionResume TaskAction = "resume"
+	TaskActionRetry  TaskAction = "retry"
+	TaskActionPause  TaskAction = "pause"
+	TaskActionCancel TaskAction = "cancel"
 )
 
 type TaskItem struct {

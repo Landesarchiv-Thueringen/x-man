@@ -9,22 +9,22 @@
         <div role="cell">
           @switch (task.state) {
             @case ("pending") {
-              wartet auf Ausführung
+              Wartet auf Ausführung
             }
             @case ("done") {
-              abgeschlossen
+              Abgeschlossen
             }
             @case ("failed") {
-              fehlgeschlagen
+              Fehlgeschlagen
             }
             @case ("paused") {
-              pausiert
+              Pausiert
             }
             @case ("pausing") {
-              wird pausiert...
+              Wird pausiert...
             }
             @case ("running") {
-              läuft...
+              Läuft...
             }
           }
         </div>
@@ -94,11 +94,14 @@
     </mat-list>
   </div>
   <div mat-dialog-actions>
+    @if (task.state === "pending" || task.state === "running" || task.state === "pausing") {
+      <button mat-flat-button class="left-button error-button" (click)="cancel(task)">Stoppen</button>
+    }
     <button mat-button mat-dialog-close>Schließen</button>
     @if (task.state === "pending" || task.state === "running" || task.state === "pausing") {
       <button mat-flat-button [disabled]="task.state === 'pausing'" (click)="pause(task)">Pausieren</button>
     } @else if (task.state === "paused") {
-      <button mat-flat-button (click)="run(task)">Fortsetzen</button>
+      <button mat-flat-button (click)="resume(task)">Fortsetzen</button>
     } @else if (task.state === "failed") {
       <button mat-flat-button (click)="retry(task)">Wiederholen</button>
     }

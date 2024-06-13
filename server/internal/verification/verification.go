@@ -21,7 +21,7 @@ func init() {
 	tasks.RegisterTaskHandler(
 		db.ProcessStepFormatVerification,
 		initVerificationHandler,
-		tasks.Options{ConcurrentItems: 3, RetrySafe: true},
+		tasks.Options{ConcurrentItems: 3, SafeRepeat: true},
 	)
 }
 
@@ -56,40 +56,10 @@ type VerificationHandler struct {
 	invalidFiles []string
 }
 
-func (h *VerificationHandler) HandleItem(itemData interface{}) error {
-	return verifyDocument(h, itemData.(string))
-}
-func (h *VerificationHandler) Finish() {}
-func (h *VerificationHandler) AfterDone() {
-	if len(h.invalidFiles) > 0 {
-		errors.AddProcessingError(db.ProcessingError{
-			Title:       "Die Formatverifikation hat Probleme mit Primärdateien festgestellt",
-			Info:        strings.Join(h.invalidFiles, "\n"),
-			ProcessID:   h.message.MessageHead.ProcessID,
-			MessageType: h.message.MessageType,
-			ProcessStep: db.ProcessStepFormatVerification,
-		})
-	}
-}
-
-func initVerificationHandler(t *db.Task) (tasks.ItemHandler, error) {
-	message, ok := db.FindMessage(context.Background(), t.ProcessID, db.MessageType0503)
-	if !ok {
-		return nil, fmt.Errorf("failed to find 0503 message for process %v", t.ProcessID)
-	}
-	resp, err := http.Head(borgURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to reach BORG: %w", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to reach BORG: HEAD \"%s\": %d", borgURL, resp.StatusCode)
-	}
-	return &VerificationHandler{message: message}, nil
-}
-
-// verifyDocument runs format verification on the given document using the
+// HandleItem runs format verification on the given document using the
 // remote BORG service and saves the result to the document object.
-func verifyDocument(h *VerificationHandler, filename string) error {
+func (h *VerificationHandler) HandleItem(ctx context.Context, itemData interface{}) error {
+	filename := itemData.(string)
 	filePath := path.Join(h.message.StoreDir, filename)
 	_, err := os.Stat(filePath)
 	if err != nil {
@@ -111,7 +81,7 @@ func verifyDocument(h *VerificationHandler, filename string) error {
 	}
 	writer.Close()
 	url := borgURL + "/analyze-file"
-	request, err := http.NewRequest("POST", url, bytes.NewReader(body.Bytes()))
+	request, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return err
 	}
@@ -137,6 +107,35 @@ func verifyDocument(h *VerificationHandler, filename string) error {
 		h.invalidFiles = append(h.invalidFiles, filename)
 	}
 	return nil
+}
+
+func (h *VerificationHandler) Finish() {}
+
+func (h *VerificationHandler) AfterDone() {
+	if len(h.invalidFiles) > 0 {
+		errors.AddProcessingError(db.ProcessingError{
+			Title:       "Die Formatverifikation hat Probleme mit Primärdateien festgestellt",
+			Info:        strings.Join(h.invalidFiles, "\n"),
+			ProcessID:   h.message.MessageHead.ProcessID,
+			MessageType: h.message.MessageType,
+			ProcessStep: db.ProcessStepFormatVerification,
+		})
+	}
+}
+
+func initVerificationHandler(t *db.Task) (tasks.ItemHandler, error) {
+	message, ok := db.FindMessage(context.Background(), t.ProcessID, db.MessageType0503)
+	if !ok {
+		return nil, fmt.Errorf("failed to find 0503 message for process %v", t.ProcessID)
+	}
+	resp, err := http.Head(borgURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reach BORG: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to reach BORG: HEAD \"%s\": %d", borgURL, resp.StatusCode)
+	}
+	return &VerificationHandler{message: message}, nil
 }
 
 func isInvalid(f db.FormatVerification) bool {

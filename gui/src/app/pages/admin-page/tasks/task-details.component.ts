@@ -52,11 +52,15 @@ export class TaskDetailsComponent {
     this.tasksService.pauseTask(element.id).subscribe();
   }
 
-  run(element: Task): void {
-    this.tasksService.runTask(element.id).subscribe();
+  resume(element: Task): void {
+    this.tasksService.resumeTask(element.id).subscribe();
   }
 
   retry(element: Task): void {
     this.tasksService.retryTask(element.id).subscribe();
+  }
+
+  cancel(element: Task): void {
+    this.tasksService.cancelTask(element.id).subscribe();
   }
 }

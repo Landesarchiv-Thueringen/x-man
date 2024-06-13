@@ -9,14 +9,15 @@ import (
 	"log"
 	"sync"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type TaskHandler func(t *db.Task) (ItemHandler, error)
+type HandlerTemplate func(t *db.Task) (ItemHandler, error)
 
 type ItemHandler interface {
 	// HandleItem processes a single item of the task.
-	HandleItem(itemData interface{}) error
+	HandleItem(ctx context.Context, itemData interface{}) error
 	// Finish handles cleanup work after all items of the task are handled or
 	// the task is paused. The task is considered running until Finish returned.
 	Finish()
@@ -32,75 +33,77 @@ type Options struct {
 	// ConcurrentItems is the total number of task items of the given task type
 	// that may be handled concurrently across all running tasks.
 	ConcurrentItems int
-	// RetrySafe indicates whether failed items or the entire task can safely be
+	// SafeRepeat indicates whether failed items or the entire task can safely be
 	// rerun without risk of damage. When `true`, interrupted tasks will be
 	// resumed automatically. In either case administrators have the possibility
 	// to retry tasks manually.
-	RetrySafe bool
+	SafeRepeat bool
 }
 
-type guard struct {
-	Task chan struct{}
-	Item chan struct{}
+type taskHandler struct {
+	HandlerTemplate
+	Options
+	TaskGuard chan struct{}
+	ItemGuard chan struct{}
 }
 
-var handlers = make(map[db.ProcessStepType]TaskHandler)
-var guards = make(map[db.ProcessStepType]guard)
-var options = make(map[db.ProcessStepType]Options)
-var activeTasks = make(map[primitive.ObjectID]*db.Task)
-var pauseSignals = make(map[primitive.ObjectID]chan struct{})
+type runningTask struct {
+	Task        *db.Task
+	PauseSignal chan struct{}
+	Cancel      func()
+	Done        chan struct{}
+}
+
+var handlers = make(map[db.ProcessStepType]taskHandler)
+var runningTasks = make(map[primitive.ObjectID]runningTask)
 
 func Action(taskID primitive.ObjectID, action db.TaskAction) error {
-	t := activeTasks[taskID]
+	r, ok := runningTasks[taskID]
 	switch action {
 	case db.TaskActionPause:
-		if t == nil {
+		if !ok {
 			return fmt.Errorf("task not running")
 		}
-		pause(t)
-	case db.TaskActionRun:
-		if t != nil {
+		pause(r)
+	case db.TaskActionCancel:
+		if !ok {
+			return fmt.Errorf("task not running")
+		}
+		cancel(r)
+	case db.TaskActionResume:
+		if ok {
 			return fmt.Errorf("task already running")
 		}
 		t, ok := db.FindTask(context.Background(), taskID)
 		if !ok {
 			return fmt.Errorf("task not found")
 		}
-		go func() {
-			defer errors.HandlePanic("run task "+string(t.Type), &db.ProcessingError{
-				ProcessID:   t.ProcessID,
-				ProcessStep: t.Type,
-			})
-			Run(&t)
-		}()
+		resume(&t)
 	case db.TaskActionRetry:
-		if t != nil {
+		if ok {
 			return fmt.Errorf("task already running")
 		}
 		t, ok := db.FindTask(context.Background(), taskID)
 		if !ok {
 			return fmt.Errorf("task not found")
 		}
-		go func() {
-			defer errors.HandlePanic("retry task "+string(t.Type), &db.ProcessingError{
-				ProcessID:   t.ProcessID,
-				ProcessStep: t.Type,
-			})
-			retry(&t)
-		}()
+		retry(&t)
+	default:
+		return fmt.Errorf("unknown action: %s", action)
 	}
 	return nil
 }
 
-func RegisterTaskHandler(taskType db.ProcessStepType, h TaskHandler, o Options) {
-	handlers[taskType] = h
-	options[taskType] = o
-	g := guard{}
-	if o.ConcurrentTasks != 0 {
-		g.Task = make(chan struct{}, o.ConcurrentTasks)
+func RegisterTaskHandler(taskType db.ProcessStepType, h HandlerTemplate, o Options) {
+	t := taskHandler{
+		HandlerTemplate: h,
+		Options:         o,
 	}
-	g.Item = make(chan struct{}, o.ConcurrentItems)
-	guards[taskType] = g
+	if o.ConcurrentTasks != 0 {
+		t.TaskGuard = make(chan struct{}, o.ConcurrentTasks)
+	}
+	t.ItemGuard = make(chan struct{}, o.ConcurrentItems)
+	handlers[taskType] = t
 }
 
 // Run starts or resumes a task.
@@ -108,17 +111,76 @@ func RegisterTaskHandler(taskType db.ProcessStepType, h TaskHandler, o Options) 
 // At the time `Run` is called, items are expected to have the state 'pending',
 // 'failed', or 'done'.
 func Run(t *db.Task) {
-	activeTasks[t.ID] = t
-	defer delete(activeTasks, t.ID)
-	pauseSignals[t.ID] = make(chan struct{})
-	defer delete(pauseSignals, t.ID)
+	go func() {
+		defer errors.HandlePanic("run task "+string(t.Type), &db.ProcessingError{
+			ProcessID:   t.ProcessID,
+			ProcessStep: t.Type,
+		})
+		run(t)
+	}()
+}
+
+func resume(t *db.Task) {
+	log.Printf("Resuming %s for process %v...\n", t.Type, t.ProcessID)
+	Run(t)
+}
+
+func retry(t *db.Task) {
+	log.Printf("Retrying %s for process %v...\n", t.Type, t.ProcessID)
+	t.Error = ""
+	for i, item := range t.Items {
+		switch item.State {
+		case db.TaskStateRunning, db.TaskStateFailed:
+			t.Items[i].State = db.TaskStatePending
+			t.Items[i].Error = ""
+		}
+	}
+	Run(t)
+}
+
+func pause(r runningTask) {
+	log.Printf("Pausing %s for process %v...\n", r.Task.Type, r.Task.ProcessID)
+	select {
+	case r.PauseSignal <- struct{}{}:
+		// ok
+	default:
+		// No more pending tasks. Pause is a no-op at this point.
+		//
+		// Mark as "pausing" anyway, so the UI reflects the action.
+	}
+	r.Task.State = db.TaskStatePausing
+	updateProgress(r.Task)
+}
+
+func cancel(r runningTask) {
+	log.Printf("Canceling %s for process %v...\n", r.Task.Type, r.Task.ProcessID)
+	r.Cancel()
+	<-r.Done
+}
+
+// Run starts or resumes a task.
+//
+// Don't call directly but use `Run`.
+func run(t *db.Task) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	r := runningTask{
+		Task:        t,
+		PauseSignal: make(chan struct{}),
+		Cancel:      cancel,
+		Done:        make(chan struct{}),
+	}
+	defer close(r.Done)
+	runningTasks[t.ID] = r
+	defer delete(runningTasks, t.ID)
+	th := handlers[t.Type]
 	t.State = db.TaskStatePending
 	updateProgress(t)
-	if g := guards[t.Type].Task; g != nil {
+	if g := th.TaskGuard; g != nil {
 		select {
 		case g <- struct{}{}:
 			defer func() { <-g }()
-		case <-pauseSignals[t.ID]:
+		case <-r.PauseSignal:
 			t.State = db.TaskStatePaused
 			updateProgress(t)
 			return
@@ -126,7 +188,7 @@ func Run(t *db.Task) {
 	}
 	t.State = db.TaskStateRunning
 	updateProgress(t)
-	h, err := handlers[t.Type](t)
+	h, err := th.HandlerTemplate(t)
 	if err != nil {
 		markFailed(t, err.Error())
 		return
@@ -144,11 +206,14 @@ ItemLoop:
 		case db.TaskStatePending:
 			wg.Add(1)
 			select {
-			case guards[t.Type].Item <- struct{}{}:
-				// continue
-			case <-pauseSignals[t.ID]:
+			case <-ctx.Done():
 				wg.Done()
 				break ItemLoop
+			case <-r.PauseSignal:
+				wg.Done()
+				break ItemLoop
+			case th.ItemGuard <- struct{}{}:
+				// continue
 			}
 			t.Items[i].State = db.TaskStateRunning
 			db.MustReplaceTask(*t)
@@ -159,9 +224,9 @@ ItemLoop:
 				})
 				defer func() {
 					wg.Done()
-					<-guards[t.Type].Item
+					<-th.ItemGuard
 				}()
-				err := h.HandleItem(item.Data)
+				err := h.HandleItem(ctx, item.Data)
 				if err != nil {
 					t.Items[i].State = db.TaskStateFailed
 					t.Items[i].Error = err.Error()
@@ -179,6 +244,8 @@ ItemLoop:
 	if t.State == db.TaskStatePausing && t.Progress.Done < t.Progress.Total {
 		t.State = db.TaskStatePaused
 		updateProgress(t)
+	} else if ctx.Err() != nil {
+		markFailed(t, "abgebrochen")
 	} else if hasFailedItems {
 		markFailed(t, "")
 	} else {
@@ -189,32 +256,6 @@ ItemLoop:
 		markDone(t, userName)
 		h.AfterDone()
 	}
-}
-
-func retry(t *db.Task) {
-	log.Printf("Retrying %s for process %v...\n", t.Type, t.ProcessID)
-	t.Error = ""
-	for i, item := range t.Items {
-		switch item.State {
-		case db.TaskStateRunning, db.TaskStateFailed:
-			t.Items[i].State = db.TaskStatePending
-			t.Items[i].Error = ""
-		}
-	}
-	Run(t)
-}
-
-func pause(t *db.Task) {
-	select {
-	case pauseSignals[t.ID] <- struct{}{}:
-		// ok
-	default:
-		// No more pending tasks. Pause is a no-op at this point.
-		//
-		// Mark as "pausing" anyway, so the UI reflects the action.
-	}
-	t.State = db.TaskStatePausing
-	updateProgress(t)
 }
 
 // updateProgress updates the database entries for the task and the process step
@@ -244,7 +285,7 @@ func ResumeAfterAppRestart() {
 		case db.TaskStatePending:
 			Run(&t)
 		case db.TaskStateRunning, db.TaskStatePausing:
-			if options[t.Type].RetrySafe {
+			if handlers[t.Type].SafeRepeat {
 				for i, item := range t.Items {
 					if item.State == db.TaskStateRunning {
 						t.Items[i].State = db.TaskStatePending
@@ -282,6 +323,12 @@ func markFailed(t *db.Task, errMsg string) {
 	t.State = db.TaskStateFailed
 	if errMsg == "" {
 		itemsFailed := 0
+		for _, item := range t.Items {
+			switch item.State {
+			case db.TaskStateFailed:
+				itemsFailed++
+			}
+		}
 		if itemsFailed > 0 {
 			errMsg = fmt.Sprintf("%d / %d fehlgeschlagen", itemsFailed, len(t.Items))
 		}
@@ -313,5 +360,15 @@ func getDisplayName(taskType db.ProcessStepType) string {
 		return "Formatverifikation"
 	default:
 		return string(taskType)
+	}
+}
+
+func CancelTasksForProcess(processID uuid.UUID, types map[db.ProcessStepType]bool) {
+	for _, r := range runningTasks {
+		if r.Task.ProcessID == processID {
+			if types == nil || types[r.Task.Type] {
+				cancel(r)
+			}
+		}
 	}
 }

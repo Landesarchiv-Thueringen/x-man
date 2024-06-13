@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lath/xman/internal/db"
+	"lath/xman/internal/tasks"
 	"log"
 	"os"
 
@@ -25,6 +26,8 @@ func DeleteProcess(processID uuid.UUID) bool {
 	storeDir := process.StoreDir
 	transferFiles := getAllTransferFilesOfProcess(process)
 	log.Println("Deleting process", processID)
+	// Cancel running tasks
+	tasks.CancelTasksForProcess(processID, nil)
 	// Delete database entries
 	db.DeleteProcess(processID)
 	db.DeleteMessagesForProcess(processID)
@@ -56,6 +59,14 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 	} else {
 		log.Printf("Deleting %s message for process %s", messageType, processID)
 	}
+	// Cancel running tasks
+	taskTypes := make(map[db.ProcessStepType]bool)
+	switch messageType {
+	case db.MessageType0503:
+		taskTypes[db.ProcessStepFormatVerification] = true
+		taskTypes[db.ProcessStepArchiving] = true
+	}
+	tasks.CancelTasksForProcess(processID, taskTypes)
 	// Delete database entries
 	db.DeleteMessage(message)
 	db.DeleteRecordsForMessage(message.MessageHead.ProcessID, message.MessageType)

@@ -27,7 +27,7 @@ func init() {
 		tasks.Options{
 			ConcurrentTasks: 1,
 			ConcurrentItems: 1,
-			RetrySafe:       false,
+			SafeRepeat:      false,
 		},
 	)
 }
@@ -149,13 +149,7 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 	}, nil
 }
 
-func (h *ArchiveHandler) HandleItem(itemData interface{}) error {
-	// defer errors.HandlePanic("archive0503Message", &db.ProcessingError{
-	// 	Agency:      &process.Agency,
-	// 	ProcessID:   process.ProcessID,
-	// 	MessageType: db.MessageType0503,
-	// 	ProcessStep: db.ProcessStepArchiving,
-	// }, &task)
+func (h *ArchiveHandler) HandleItem(ctx context.Context, itemData interface{}) error {
 	d := unmarshalData[ArchiveItemData](itemData)
 	var aip db.ArchivePackage
 	switch d.RecordType {
@@ -167,17 +161,17 @@ func (h *ArchiveHandler) HandleItem(itemData interface{}) error {
 		aip = createAipFromDocumentRecords(h.process, h.rootRecords.Documents, h.collection.ID)
 	}
 	db.InsertArchivePackage(aip)
+	var err error
 	switch h.archiveTarget {
 	case "filesystem":
 		filesystem.StoreArchivePackage(h.process, h.message, aip)
 	case "dimag":
 		targetData := h.targetData.(DimagData)
-		dimag.ImportArchivePackage(h.process, h.message, &aip, targetData.Connection)
-
+		err = dimag.ImportArchivePackage(ctx, h.process, h.message, &aip, targetData.Connection)
 	default:
 		panic("unknown archive target: " + h.archiveTarget)
 	}
-	return nil
+	return err
 }
 
 func (h *ArchiveHandler) Finish() {

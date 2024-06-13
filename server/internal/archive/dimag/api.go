@@ -1,6 +1,7 @@
 package dimag
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -18,12 +19,13 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 
 // ImportArchivePackage archives a file record object in DIMAG.
 func ImportArchivePackage(
+	ctx context.Context,
 	process db.SubmissionProcess,
 	message db.Message,
 	aip *db.ArchivePackage,
 	c Connection,
-) {
-	importDir := uploadArchivePackage(c, process, message, *aip)
+) error {
+	importDir := uploadArchivePackage(ctx, c, process, message, *aip)
 	requestMetadata := ImportDoc{
 		UserName:        DimagApiUser,
 		Password:        DimagApiPassword,
@@ -42,19 +44,20 @@ func ImportArchivePackage(
 		panic(err)
 	}
 	requestString := string(xmlBytes)
-	req, err := http.NewRequest("POST", DimagApiEndpoint, strings.NewReader(requestString))
+	req, err := http.NewRequestWithContext(ctx, "POST", DimagApiEndpoint, strings.NewReader(requestString))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	req.Header.Set("Content-Type", "text/xml;charset=UTF-8")
 	req.Header.Set("SOAPAction", "importDoc")
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer response.Body.Close()
 	processImportResponse(response, aip)
+	return nil
 }
 
 func processImportResponse(response *http.Response, archivePackageData *db.ArchivePackage) {

@@ -75,8 +75,8 @@ export class TasksComponent implements AfterViewInit {
     this.tasksService.pauseTask(element.id).subscribe();
   }
 
-  run(element: Task): void {
-    this.tasksService.runTask(element.id).subscribe();
+  resume(element: Task): void {
+    this.tasksService.resumeTask(element.id).subscribe();
   }
 
   retry(element: Task): void {

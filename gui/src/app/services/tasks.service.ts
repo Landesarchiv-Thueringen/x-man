@@ -17,7 +17,6 @@ export interface TaskItem {
 }
 
 export type TaskState = 'pending' | 'running' | 'pausing' | 'paused' | 'failed' | 'done';
-export type TaskAction = 'run' | 'retry' | 'pause';
 export type TaskType = 'format_verification' | 'archiving';
 export interface Task {
   id: string;
@@ -51,11 +50,15 @@ export class TasksService {
     return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'pause');
   }
 
-  runTask(id: string) {
-    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'run');
+  resumeTask(id: string) {
+    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'resume');
   }
 
   retryTask(id: string) {
     return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'retry');
+  }
+
+  cancelTask(id: string) {
+    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'cancel');
   }
 }

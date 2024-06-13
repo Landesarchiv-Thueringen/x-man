@@ -719,10 +719,6 @@ func taskAction(c *gin.Context) {
 		panic(err)
 	}
 	action := db.TaskAction(body)
-	if action != db.TaskActionPause && action != db.TaskActionRetry && action != db.TaskActionRun {
-		c.Status(http.StatusBadRequest)
-		return
-	}
 	err = tasks.Action(id, action)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())

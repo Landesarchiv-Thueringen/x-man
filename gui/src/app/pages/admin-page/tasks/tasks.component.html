@@ -18,7 +18,7 @@
           <mat-icon>pause</mat-icon>
         </button>
       } @else if (element.state === "paused") {
-        <button mat-icon-button (click)="run(element)">
+        <button mat-icon-button (click)="resume(element)">
           <mat-icon>play_arrow</mat-icon>
         </button>
       } @else if (element.state === "failed") {

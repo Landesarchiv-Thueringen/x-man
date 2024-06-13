@@ -1,6 +1,7 @@
 package dimag
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -90,6 +91,7 @@ func CloseConnection(c Connection) {
 }
 
 func uploadArchivePackage(
+	ctx context.Context,
 	c Connection,
 	process db.SubmissionProcess,
 	message db.Message,
@@ -102,8 +104,8 @@ func uploadArchivePackage(
 	if err != nil {
 		panic(err)
 	}
-	uploadXdomeaMessageFile(c.sftpClient, message, importPath, archivePackage)
-	uploadProtocol(c.sftpClient, process, importPath)
+	uploadXdomeaMessageFile(ctx, c.sftpClient, message, importPath, archivePackage)
+	uploadProtocol(ctx, c.sftpClient, process, importPath)
 	for _, primaryDocument := range archivePackage.PrimaryDocuments {
 		filePath := filepath.Join(message.StoreDir, primaryDocument.Filename)
 		_, err := os.Stat(filePath)
@@ -111,13 +113,14 @@ func uploadArchivePackage(
 			panic(err)
 		}
 		remotePath := filepath.Join(importPath, primaryDocument.Filename)
-		uploadFile(c.sftpClient, filePath, remotePath)
+		uploadFile(ctx, c.sftpClient, filePath, remotePath)
 	}
-	uploadControlFile(c.sftpClient, message, archivePackage, importPath, importDir)
+	uploadControlFile(ctx, c.sftpClient, message, archivePackage, importPath, importDir)
 	return importDir
 }
 
 func uploadXdomeaMessageFile(
+	ctx context.Context,
 	sftpClient *sftp.Client,
 	message db.Message,
 	importPath string,
@@ -128,16 +131,22 @@ func uploadXdomeaMessageFile(
 	if err != nil {
 		panic(err)
 	}
-	createRemoteTextFile(sftpClient, prunedMessage, remotePath)
+	createRemoteTextFile(ctx, sftpClient, prunedMessage, remotePath)
 }
 
-func uploadProtocol(sftpClient *sftp.Client, process db.SubmissionProcess, importPath string) {
+func uploadProtocol(
+	ctx context.Context,
+	sftpClient *sftp.Client,
+	process db.SubmissionProcess,
+	importPath string,
+) {
 	remotePath := filepath.Join(importPath, shared.ProtocolFilename)
 	protocol := shared.GenerateProtocol(process)
-	createRemoteTextFile(sftpClient, protocol, remotePath)
+	createRemoteTextFile(ctx, sftpClient, protocol, remotePath)
 }
 
 func uploadControlFile(
+	ctx context.Context,
 	sftpClient *sftp.Client,
 	message db.Message,
 	archivePackageData db.ArchivePackage,
@@ -146,10 +155,10 @@ func uploadControlFile(
 ) {
 	remotePath := filepath.Join(importPath, ControlFileName)
 	controlFileXml := GenerateControlFile(message, archivePackageData, importDir)
-	createRemoteTextFile(sftpClient, controlFileXml, remotePath)
+	createRemoteTextFile(ctx, sftpClient, controlFileXml, remotePath)
 }
 
-func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) {
+func uploadFile(ctx context.Context, sftpClient *sftp.Client, localPath string, remotePath string) {
 	srcFile, err := os.Open(localPath)
 	if err != nil {
 		panic(err)
@@ -161,13 +170,13 @@ func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) {
 		panic(fmt.Sprintf("sftp: open %s: %v", remotePath, err))
 	}
 	defer dstFile.Close()
-	_, err = io.Copy(dstFile, srcFile)
+	_, err = copy(ctx, dstFile, srcFile)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func createRemoteTextFile(sftpClient *sftp.Client, fileContent string, remotePath string) {
+func createRemoteTextFile(ctx context.Context, sftpClient *sftp.Client, fileContent string, remotePath string) {
 	stringReader := strings.NewReader(fileContent)
 	// the remote path must already exist
 	dstFile, err := sftpClient.OpenFile(remotePath, (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
@@ -175,9 +184,24 @@ func createRemoteTextFile(sftpClient *sftp.Client, fileContent string, remotePat
 		panic(err)
 	}
 	defer dstFile.Close()
-	_, err = io.Copy(dstFile, stringReader)
+	_, err = copy(ctx, dstFile, stringReader)
 	if err != nil {
 		panic(err)
 	}
-	return
+}
+
+// Adapted from https://gist.github.com/dillonstreator/3e9162e6e0d0929a6543a64f4564b604
+type readerFunc func(p []byte) (n int, err error)
+
+func (rf readerFunc) Read(p []byte) (n int, err error) { return rf(p) }
+func copy(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
+	n, err := io.Copy(dst, readerFunc(func(p []byte) (int, error) {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+			return src.Read(p)
+		}
+	}))
+	return n, err
 }
