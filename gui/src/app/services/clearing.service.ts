@@ -8,6 +8,7 @@ import { UpdatesService } from './updates.service';
 
 type ProcessingErrorResolution =
   | 'mark-solved'
+  | 'mark-done'
   | 'reimport-message'
   | 'delete-message'
   | 'delete-transfer-file'
@@ -25,6 +26,7 @@ export interface ProcessingError {
   agency?: Agency;
   processId: string;
   messageType: MessageType;
+  processStep: string;
   transferPath: string;
   taskId: string;
 }

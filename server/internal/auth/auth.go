@@ -41,6 +41,7 @@ func AdminRequired() gin.HandlerFunc {
 		} else if !result.Permissions.Admin {
 			c.AbortWithStatus(http.StatusForbidden)
 		}
+		c.Set("userId", result.UserID)
 	}
 }
 

@@ -15,6 +15,7 @@ type ProcessingErrorResolution string
 
 const (
 	ErrorResolutionMarkSolved         ProcessingErrorResolution = "mark-solved"
+	ErrorResolutionMarkDone           ProcessingErrorResolution = "mark-done"
 	ErrorResolutionReimportMessage    ProcessingErrorResolution = "reimport-message"
 	ErrorResolutionDeleteMessage      ProcessingErrorResolution = "delete-message"
 	ErrorResolutionDeleteTransferFile ProcessingErrorResolution = "delete-transfer-file"
@@ -40,7 +41,7 @@ type ProcessingError struct {
 	Agency       *Agency                   `json:"agency"` // Copy, needs to be kept in sync
 	ProcessID    uuid.UUID                 `bson:"process_id" json:"processId"`
 	MessageType  MessageType               `bson:"message_type" json:"messageType"`
-	ProcessStep  ProcessStepType           `bson:"process_step" json:"-"`
+	ProcessStep  ProcessStepType           `bson:"process_step" json:"processStep"`
 	TransferPath string                    `bson:"transfer_path" json:"transferPath"`
 	TaskID       primitive.ObjectID        `bson:"task_id" json:"taskId"`
 }

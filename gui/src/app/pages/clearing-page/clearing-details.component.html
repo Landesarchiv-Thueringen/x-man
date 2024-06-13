@@ -14,6 +14,9 @@
             @case ("mark-solved") {
               Als gelöst markiert
             }
+            @case ("mark-done") {
+              Als abgeschlossen markiert
+            }
             @case ("reimport-message") {
               Nachricht neu eingelesen
             }
@@ -105,22 +108,29 @@
 </div>
 
 <mat-menu #menu="matMenu">
-  @if (data.taskId !== "000000000000000000000000") {
-    <button mat-menu-item (click)="retryTask()">
-      <mat-icon>restart_alt</mat-icon>
-      <span>Prozess wiederholen</span>
-    </button>
-  }
   @if (data.agency?.contactEmail) {
     <button mat-menu-item (click)="sendEmail()">
       <mat-icon>outgoing_mail</mat-icon>
       <span>E-Mail an Abgebende Stelle</span>
     </button>
   }
-  <button mat-menu-item (click)="markSolved()">
-    <mat-icon>done</mat-icon>
-    <span>Als gelöst markieren</span>
-  </button>
+  @if (data.processStep === "format_verification") {
+    <button mat-menu-item (click)="markDone()">
+      <mat-icon>done</mat-icon>
+      <span>Als abgeschlossen markieren</span>
+    </button>
+  } @else {
+    <button mat-menu-item (click)="markSolved()">
+      <mat-icon>done</mat-icon>
+      <span>Als gelöst markieren</span>
+    </button>
+  }
+  @if (data.taskId !== "000000000000000000000000") {
+    <button mat-menu-item (click)="retryTask()">
+      <mat-icon>restart_alt</mat-icon>
+      <span>Erneut versuchen</span>
+    </button>
+  }
   @if (data.messageType) {
     <button mat-menu-item (click)="reimportMessage()">
       <mat-icon>replay</mat-icon>

@@ -204,7 +204,9 @@ func resolveProcessingError(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	xdomea.Resolve(processingError, db.ProcessingErrorResolution(body))
+	userID := c.MustGet("userId").(string)
+	userName := auth.GetDisplayName(userID)
+	xdomea.Resolve(processingError, db.ProcessingErrorResolution(body), userName)
 	c.Status(http.StatusAccepted)
 }
 

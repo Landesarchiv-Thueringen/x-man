@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -185,12 +186,12 @@ func MustUpdateProcessMessagePath(processID uuid.UUID, messageType MessageType, 
 	}
 }
 
-func MustUpdateProcessStepCompletion(
+func UpdateProcessStepCompletion(
 	processID uuid.UUID,
 	step ProcessStepType,
 	complete bool,
 	completedBy string,
-) {
+) error {
 	update := bson.D{{"$set", bson.D{
 		{"process_state." + string(step) + ".updated_at", time.Now()},
 		{"process_state." + string(step) + ".complete", complete},
@@ -201,7 +202,20 @@ func MustUpdateProcessStepCompletion(
 	}}}
 	ok := updateProcess(processID, update)
 	if !ok {
-		panic("failed to update process step for process " + processID.String() + ": not found")
+		return fmt.Errorf("failed to update process step for process %v: not found", processID)
+	}
+	return nil
+}
+
+func MustUpdateProcessStepCompletion(
+	processID uuid.UUID,
+	step ProcessStepType,
+	complete bool,
+	completedBy string,
+) {
+	err := UpdateProcessStepCompletion(processID, step, complete, completedBy)
+	if err != nil {
+		panic(err)
 	}
 }
 

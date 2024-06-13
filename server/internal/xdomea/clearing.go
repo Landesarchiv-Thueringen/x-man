@@ -9,22 +9,24 @@ import (
 //
 // If successful, it marks the processing error as resolved. Otherwise, it
 // returns an error.
-func Resolve(processingError db.ProcessingError, resolution db.ProcessingErrorResolution) {
+func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) {
 	var err error
-	switch resolution {
+	switch r {
 	case db.ErrorResolutionMarkSolved:
 		// Do nothing
+	case db.ErrorResolutionMarkDone:
+		err = db.UpdateProcessStepCompletion(e.ProcessID, e.ProcessStep, true, user)
 	case db.ErrorResolutionReimportMessage:
-		err = DeleteMessage(processingError.ProcessID, processingError.MessageType, true)
+		err = DeleteMessage(e.ProcessID, e.MessageType, true)
 	case db.ErrorResolutionDeleteMessage:
-		err = DeleteMessage(processingError.ProcessID, processingError.MessageType, false)
+		err = DeleteMessage(e.ProcessID, e.MessageType, false)
 	case db.ErrorResolutionDeleteTransferFile:
-		RemoveFileFromTransferDir(*processingError.Agency, processingError.TransferPath)
+		RemoveFileFromTransferDir(*e.Agency, e.TransferPath)
 	default:
-		panic(fmt.Sprintf("unknown resolution: %s", resolution))
+		panic(fmt.Sprintf("unknown resolution: %s", r))
 	}
 	if err != nil {
 		panic(err)
 	}
-	db.UpdateProcessingErrorResolve(processingError, resolution)
+	db.UpdateProcessingErrorResolve(e, r)
 }

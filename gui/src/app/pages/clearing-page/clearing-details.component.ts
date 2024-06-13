@@ -82,6 +82,12 @@ export class ClearingDetailsComponent {
     });
   }
 
+  markDone() {
+    this.clearingService.resolveError(this.data.id, 'mark-done').subscribe(() => {
+      this.dialogRef.close();
+    });
+  }
+
   reimportMessage() {
     this.clearingService.resolveError(this.data.id, 'reimport-message').subscribe(() => {
       this.notificationService.show('Nachricht wird neu eingelesen...');
