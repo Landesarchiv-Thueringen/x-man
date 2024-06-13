@@ -21,7 +21,7 @@ func init() {
 	tasks.RegisterTaskHandler(
 		db.ProcessStepFormatVerification,
 		initVerificationHandler,
-		tasks.Options{ConcurrentItems: 3, SafeRepeat: true},
+		tasks.Options{ConcurrentItems: 10, SafeRepeat: true},
 	)
 }
 

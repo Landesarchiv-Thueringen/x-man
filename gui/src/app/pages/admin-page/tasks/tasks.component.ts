@@ -8,7 +8,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
-import { map } from 'rxjs';
 import { Task, TasksService } from '../../../services/tasks.service';
 import { TaskStateIconComponent } from '../../../shared/task-state-icon.component';
 import { TaskDetailsComponent } from './task-details.component';
@@ -67,8 +66,7 @@ export class TasksComponent implements AfterViewInit {
   }
 
   openDetails(task: Task): void {
-    const taskSubject = this.dataSource.connect().pipe(map((tasks) => tasks.find((t) => t.id === task.id)));
-    const dialogRef = this.dialog.open(TaskDetailsComponent, { data: taskSubject, width: '1000px', maxWidth: '80vw' });
+    this.dialog.open(TaskDetailsComponent, { data: task.id, width: '1000px', maxWidth: '80vw' });
   }
 
   pause(element: Task): void {

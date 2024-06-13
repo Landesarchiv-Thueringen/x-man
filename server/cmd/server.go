@@ -84,6 +84,7 @@ func main() {
 	admin.POST("api/archive-collection", postCollection)
 	admin.DELETE("api/archive-collection/:id", deleteCollection)
 	admin.POST("api/test-transfer-dir", testTransferDir)
+	admin.GET("api/task/:id", getTask)
 	admin.GET("api/tasks", getTasks)
 	admin.POST("api/task/action/:id", taskAction)
 	admin.GET("api/dimag-collection-ids", getCollectionDimagIDs)
@@ -704,8 +705,23 @@ func testTransferDir(c *gin.Context) {
 	}
 }
 
+func getTask(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	task, ok := db.FindTask(c.Request.Context(), id)
+	if !ok {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, task)
+}
+
 func getTasks(c *gin.Context) {
-	tasks := db.FindTasks(c)
+	tasks := db.FindTasksMetadata(c.Request.Context())
 	c.JSON(http.StatusOK, tasks)
 }
 

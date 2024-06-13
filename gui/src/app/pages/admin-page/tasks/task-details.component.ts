@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, Inject, effect } from '@angular/core';
+import { Component, HostBinding, Inject, Signal, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -7,7 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
-import { Subject } from 'rxjs';
 import { Task, TasksService } from '../../../services/tasks.service';
 import { TaskStateIconComponent } from '../../../shared/task-state-icon.component';
 import { TaskTitlePipe } from './task-title.pipe';
@@ -30,21 +29,20 @@ import { TaskTitlePipe } from './task-title.pipe';
   styleUrl: './task-details.component.scss',
 })
 export class TaskDetailsComponent {
-  task = toSignal(this.taskSubject);
+  task: Signal<Task | undefined>;
   @HostBinding('class.done') resolved = false;
   @HostBinding('class.failed') failed = false;
 
   constructor(
     private dialogRef: MatDialogRef<TaskDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) private taskSubject: Subject<Task | undefined>,
+    @Inject(MAT_DIALOG_DATA) private taskId: string,
     private tasksService: TasksService,
   ) {
+    const task = this.tasksService.observeTask(this.taskId);
+    this.task = toSignal(task);
     effect(() => {
       this.resolved = this.task()?.state === 'done';
       this.failed = this.task()?.state === 'failed';
-      if (this.task() == null) {
-        this.dialogRef.close();
-      }
     });
   }
 

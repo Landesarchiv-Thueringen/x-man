@@ -245,7 +245,7 @@ ItemLoop:
 		t.State = db.TaskStatePaused
 		updateProgress(t)
 	} else if ctx.Err() != nil {
-		markFailed(t, "abgebrochen")
+		markFailed(t, "Abgebrochen")
 	} else if hasFailedItems {
 		markFailed(t, "")
 	} else {
@@ -291,7 +291,12 @@ func ResumeAfterAppRestart() {
 						t.Items[i].State = db.TaskStatePending
 					}
 				}
-				Run(&t)
+				if t.State == db.TaskStateRunning {
+					Run(&t)
+				} else {
+					t.State = db.TaskStatePaused
+					updateProgress(&t)
+				}
 			} else {
 				for i, item := range t.Items {
 					if item.State == db.TaskStateRunning {

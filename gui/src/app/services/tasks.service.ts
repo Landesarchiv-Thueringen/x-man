@@ -46,6 +46,12 @@ export class TasksService {
       .pipe(switchMap(() => this.httpClient.get<Task[]>(environment.endpoint + '/tasks')));
   }
 
+  observeTask(id: string): Observable<Task> {
+    return this.updates
+      .observeCollection('tasks')
+      .pipe(switchMap(() => this.httpClient.get<Task>(environment.endpoint + '/task/' + id)));
+  }
+
   pauseTask(id: string) {
     return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'pause');
   }

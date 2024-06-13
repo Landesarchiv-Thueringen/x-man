@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TaskState string
@@ -67,7 +68,23 @@ type Task struct {
 	// Items are the elements the task has to process.
 	Items []TaskItem `json:"items"`
 	// Data is additional data that is specific to the task type.
-	Data interface{} `json:"data"`
+	Data interface{} `json:"-"`
+}
+
+func FindTasksMetadata(ctx context.Context) []Task {
+	coll := mongoDatabase.Collection("tasks")
+	filter := bson.D{}
+	opts := options.Find().SetProjection(bson.D{{"items", 0}})
+	var tasks []Task
+	cursor, err := coll.Find(ctx, filter, opts)
+	if err != nil {
+		panic(err)
+	}
+	err = cursor.All(ctx, &tasks)
+	if err != nil {
+		panic(err)
+	}
+	return tasks
 }
 
 func FindTasks(ctx context.Context) []Task {
