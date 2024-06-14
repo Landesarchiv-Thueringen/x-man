@@ -194,7 +194,7 @@ export class MessagePageService {
 
   observeAppraisalComplete(): Observable<boolean> {
     return this.observeProcessData().pipe(
-      map(({ process }) => process.processState.appraisal.complete),
+      map(({ process }) => process.processState.appraisal.complete || process.processState.receive0503.complete),
       distinctUntilChanged(),
     );
   }
