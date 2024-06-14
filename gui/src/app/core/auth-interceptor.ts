@@ -1,7 +1,6 @@
-import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpErrorResponse, HttpHandlerFn, HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../services/auth.service';
@@ -16,46 +15,39 @@ import { LoginService } from '../services/login.service';
  * - Redirects to the error page when the server responds with any other error
  *   code.
  */
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  constructor(
-    private router: Router,
-    private auth: AuthService,
-    private login: LoginService,
-  ) {}
-
-  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    if (!this.isApiRequest(req)) {
-      return next.handle(req);
-    }
-    const token = this.auth.getToken();
-    if (token) {
-      req = req.clone({
-        headers: req.headers.set('Authorization', `Bearer ${token}`),
-      });
-    }
-    return next.handle(req).pipe(
-      tap({
-        error: (event) => {
-          if (event instanceof HttpErrorResponse) {
-            if (event.status === 401) {
-              // On the login page, 401 means invalid credentials.
-              if (this.router.url !== '/login') {
-                // On any other page, it means our token is invalid. We delete
-                // it and let the user log back in again.
-                this.login.afterLoginUrl = this.router.url;
-                this.auth.logout();
-              }
-            } else {
-              this.router.navigate(['fehler', event.status], { skipLocationChange: true });
+export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
+  if (!isApiRequest(req)) {
+    return next(req);
+  }
+  const auth = inject(AuthService);
+  const token = auth.getToken();
+  if (token) {
+    req = req.clone({
+      headers: req.headers.set('Authorization', `Bearer ${token}`),
+    });
+  }
+  return next(req).pipe(
+    tap({
+      error: (event) => {
+        if (event instanceof HttpErrorResponse) {
+          const router = inject(Router);
+          if (event.status === 401) {
+            // On the login page, 401 means invalid credentials.
+            if (router.url !== '/login') {
+              // On any other page, it means our token is invalid. We delete
+              // it and let the user log back in again.
+              inject(LoginService).afterLoginUrl = router.url;
+              auth.logout();
             }
+          } else {
+            router.navigate(['fehler', event.status], { skipLocationChange: true });
           }
-        },
-      }),
-    );
-  }
+        }
+      },
+    }),
+  );
+}
 
-  private isApiRequest(req: HttpRequest<unknown>): boolean {
-    return req.url.startsWith(environment.endpoint + '/');
-  }
+function isApiRequest(req: HttpRequest<unknown>): boolean {
+  return req.url.startsWith(environment.endpoint + '/');
 }
