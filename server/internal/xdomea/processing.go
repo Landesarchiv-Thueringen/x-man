@@ -346,35 +346,44 @@ func checkRecordsOfMessage0503(
 //
 // Only values that are set in `agency` are checked.
 func compareAgencyFields(agency db.Agency, message db.Message, process db.SubmissionProcess) error {
+	if agency.Prefix == "" && agency.Code == "" {
+		return nil
+	}
 	a := message.MessageHead.Sender.AgencyIdentification
-	if a == nil || agency.Prefix != a.Prefix || agency.Code != a.Code {
-		info := ""
-		if a != nil && a.Prefix != "" {
-			info += fmt.Sprintf("Präfix der Nachricht: %s\n", a.Prefix)
-		} else {
-			info += fmt.Sprintf("Präfix der Nachricht: (kein Wert)\n")
-		}
-		if a != nil && a.Code != "" {
-			info += fmt.Sprintf("Behördenschlüssel der Nachricht: %s\n\n", a.Code)
-		} else {
-			info += fmt.Sprintf("Behördenschlüssel der Nachricht: (kein Wert)\n\n")
-		}
-		if agency.Prefix != "" {
-			info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: %s\n", agency.Prefix)
-		} else {
-			info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: (kein Wert)\n")
-		}
-		if agency.Code != "" {
-			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: %s", agency.Code)
-		} else {
-			info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
-		}
+	if a == nil {
 		return &db.ProcessingError{
 			Title: "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
-			Info:  info,
+			Info:  "Die Nachricht gibt keine Behördenkennung an",
 		}
 	}
-	return nil
+	if (agency.Prefix == "" || agency.Prefix == a.Prefix) && (agency.Code == "" || agency.Code == a.Code) {
+		return nil
+	}
+	info := ""
+	if a.Prefix != "" {
+		info += fmt.Sprintf("Präfix der Nachricht: %s\n", a.Prefix)
+	} else {
+		info += fmt.Sprintf("Präfix der Nachricht: (kein Wert)\n")
+	}
+	if a.Code != "" {
+		info += fmt.Sprintf("Behördenschlüssel der Nachricht: %s\n\n", a.Code)
+	} else {
+		info += fmt.Sprintf("Behördenschlüssel der Nachricht: (kein Wert)\n\n")
+	}
+	if agency.Prefix != "" {
+		info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: %s\n", agency.Prefix)
+	} else {
+		info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: (kein Wert)\n")
+	}
+	if agency.Code != "" {
+		info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: %s", agency.Code)
+	} else {
+		info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
+	}
+	return &db.ProcessingError{
+		Title: "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
+		Info:  info,
+	}
 }
 
 // checkMaxRecordObjectDepth checks if the configured maximal depth of record objects in the message
