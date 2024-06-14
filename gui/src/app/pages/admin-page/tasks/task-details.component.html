@@ -94,8 +94,11 @@
     </mat-list>
   </div>
   <div mat-dialog-actions>
-    @if (isAdmin && (task.state === "pending" || task.state === "running" || task.state === "pausing")) {
-      <button mat-flat-button class="left-button error-button" (click)="cancel(task)">Stoppen</button>
+    @if (
+      isAdmin &&
+      (task.state === "pending" || task.state === "running" || task.state === "pausing" || task.state === "paused")
+    ) {
+      <button mat-flat-button class="left-button error-button" (click)="cancel(task)">Abbrechen</button>
     }
     <button mat-button mat-dialog-close>Schließen</button>
     @if (isAdmin) {

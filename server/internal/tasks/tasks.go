@@ -65,11 +65,6 @@ func Action(taskID primitive.ObjectID, action db.TaskAction) error {
 			return fmt.Errorf("task not running")
 		}
 		pause(r)
-	case db.TaskActionCancel:
-		if !ok {
-			return fmt.Errorf("task not running")
-		}
-		cancel(r)
 	case db.TaskActionResume:
 		if ok {
 			return fmt.Errorf("task already running")
@@ -88,6 +83,20 @@ func Action(taskID primitive.ObjectID, action db.TaskAction) error {
 			return fmt.Errorf("task not found")
 		}
 		retry(&t)
+	case db.TaskActionCancel:
+		if ok {
+			cancelRunning(r)
+		} else {
+			t, ok := db.FindTask(context.Background(), taskID)
+			if !ok {
+				return fmt.Errorf("task not found")
+			}
+			if t.State == db.TaskStatePaused {
+				cancelPaused(&t)
+			} else {
+				return fmt.Errorf("cannot cancel task with state %s", t.State)
+			}
+		}
 	default:
 		return fmt.Errorf("unknown action: %s", action)
 	}
@@ -152,10 +161,15 @@ func pause(r runningTask) {
 	updateProgress(r.Task)
 }
 
-func cancel(r runningTask) {
+func cancelRunning(r runningTask) {
 	log.Printf("Canceling %s for process %v...\n", r.Task.Type, r.Task.ProcessID)
 	r.Cancel()
 	<-r.Done
+}
+
+func cancelPaused(t *db.Task) {
+	log.Printf("Canceling %s for process %v...\n", t.Type, t.ProcessID)
+	markFailed(t, "Abgebrochen")
 }
 
 // Run starts or resumes a task.
@@ -372,7 +386,7 @@ func CancelTasksForProcess(processID uuid.UUID, types map[db.ProcessStepType]boo
 	for _, r := range runningTasks {
 		if r.Task.ProcessID == processID {
 			if types == nil || types[r.Task.Type] {
-				cancel(r)
+				cancelRunning(r)
 			}
 		}
 	}
