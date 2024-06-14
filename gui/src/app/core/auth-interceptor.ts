@@ -20,6 +20,8 @@ export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) 
     return next(req);
   }
   const auth = inject(AuthService);
+  const router = inject(Router);
+  const login = inject(LoginService);
   const token = auth.getToken();
   if (token) {
     req = req.clone({
@@ -30,13 +32,12 @@ export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) 
     tap({
       error: (event) => {
         if (event instanceof HttpErrorResponse) {
-          const router = inject(Router);
           if (event.status === 401) {
             // On the login page, 401 means invalid credentials.
             if (router.url !== '/login') {
               // On any other page, it means our token is invalid. We delete
               // it and let the user log back in again.
-              inject(LoginService).afterLoginUrl = router.url;
+              login.afterLoginUrl = router.url;
               auth.logout();
             }
           } else {
