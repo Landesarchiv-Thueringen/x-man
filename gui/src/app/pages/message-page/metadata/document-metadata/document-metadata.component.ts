@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -27,7 +27,7 @@ import { media } from '../medium.pipe';
     ReactiveFormsModule,
   ],
 })
-export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
+export class DocumentMetadataComponent {
   urlParameterSubscription?: Subscription;
   documentRecordObject?: DocumentRecord;
   messageTypeCode?: string;
@@ -51,40 +51,31 @@ export class DocumentMetadataComponent implements AfterViewInit, OnDestroy {
       confidentiality: new FormControl<string | null>(null),
       medium: new FormControl<string | null>(null),
     });
+    this.route.params
+      .pipe(switchMap((params: Params) => this.messagePage.getDocumentRecord(params['id'])))
+      .subscribe((record) => this.setRecord(record));
   }
 
-  ngAfterViewInit(): void {
-    this.urlParameterSubscription = this.route.params
-      .pipe(
-        switchMap((params: Params) => {
-          return this.messagePage.getDocumentRecord(params['id']);
-        }),
-      )
-      .subscribe((recordObject: DocumentRecord) => {
-        this.documentRecordObject = recordObject;
-        let confidentiality: string | undefined;
-        if (recordObject.generalMetadata?.confidentialityLevel) {
-          confidentiality = confidentialityLevels[recordObject.generalMetadata?.confidentialityLevel].shortDesc;
-        }
-        let medium: string | undefined;
-        if (recordObject.generalMetadata?.medium) {
-          medium = media[recordObject.generalMetadata?.medium].shortDesc;
-        }
-        this.form.patchValue({
-          recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.filePlanNumber,
-          fileId: this.documentRecordObject!.generalMetadata?.recordNumber,
-          subject: this.documentRecordObject!.generalMetadata?.subject,
-          documentType: this.documentRecordObject!.type,
-          incomingDate: this.messageService.getDateText(this.documentRecordObject!.incomingDate),
-          outgoingDate: this.messageService.getDateText(this.documentRecordObject!.outgoingDate),
-          documentDate: this.messageService.getDateText(this.documentRecordObject!.documentDate),
-          confidentiality,
-          medium,
-        });
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.urlParameterSubscription?.unsubscribe;
+  private setRecord(record: DocumentRecord): void {
+    this.documentRecordObject = record;
+    let confidentiality: string | undefined;
+    if (record.generalMetadata?.confidentialityLevel) {
+      confidentiality = confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
+    }
+    let medium: string | undefined;
+    if (record.generalMetadata?.medium) {
+      medium = media[record.generalMetadata?.medium].shortDesc;
+    }
+    this.form.patchValue({
+      recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.filePlanNumber,
+      fileId: this.documentRecordObject!.generalMetadata?.recordNumber,
+      subject: this.documentRecordObject!.generalMetadata?.subject,
+      documentType: this.documentRecordObject!.type,
+      incomingDate: this.messageService.getDateText(this.documentRecordObject!.incomingDate),
+      outgoingDate: this.messageService.getDateText(this.documentRecordObject!.outgoingDate),
+      documentDate: this.messageService.getDateText(this.documentRecordObject!.documentDate),
+      confidentiality,
+      medium,
+    });
   }
 }
