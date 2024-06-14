@@ -3,7 +3,6 @@ package shared
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"lath/xman/internal/db"
 	"slices"
 
@@ -33,14 +32,14 @@ func GenerateProtocol(process db.SubmissionProcess) string {
 
 // PruneMessage removes all records from message which are no part of the
 // archive package.
-func PruneMessage(message db.Message, aip db.ArchivePackage) (string, error) {
+func PruneMessage(message db.Message, aip db.ArchivePackage) string {
 	rootRecordIDs := make([]string, len(aip.RootRecordIDs))
 	for i, id := range aip.RootRecordIDs {
 		rootRecordIDs[i] = id.String()
 	}
 	doc := etree.NewDocument()
 	if err := doc.ReadFromFile(message.MessagePath); err != nil {
-		return "", err
+		panic(err)
 	}
 	root := doc.Root()
 	genericRecords := root.SelectElements("Schriftgutobjekt")
@@ -59,11 +58,15 @@ func PruneMessage(message db.Message, aip db.ArchivePackage) (string, error) {
 					removedChild := root.RemoveChild(genericRecord)
 					// Should never happen unless the xdomea specification changes.
 					if removedChild == nil {
-						return "", errors.New("")
+						panic("removedChild == nil")
 					}
 				}
 			}
 		}
 	}
-	return doc.WriteToString()
+	result, err := doc.WriteToString()
+	if err != nil {
+		panic(err)
+	}
+	return result
 }

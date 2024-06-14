@@ -25,7 +25,10 @@ func ImportArchivePackage(
 	aip *db.ArchivePackage,
 	c Connection,
 ) error {
-	importDir := uploadArchivePackage(ctx, c, process, message, *aip)
+	importDir, err := uploadArchivePackage(ctx, c, process, message, *aip)
+	if err != nil {
+		return err
+	}
 	requestMetadata := ImportDoc{
 		UserName:        DimagApiUser,
 		Password:        DimagApiPassword,

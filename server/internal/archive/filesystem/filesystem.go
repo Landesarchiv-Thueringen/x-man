@@ -33,10 +33,7 @@ func StoreArchivePackage(
 			panic(err)
 		}
 	}
-	prunedMessage, err := shared.PruneMessage(message, archivePackage)
-	if err != nil {
-		panic(err)
-	}
+	prunedMessage := shared.PruneMessage(message, archivePackage)
 	messageFileName := filepath.Base(message.MessagePath)
 	err = writeTextFile(archivePackagePath, messageFileName, prunedMessage)
 	if err != nil {
