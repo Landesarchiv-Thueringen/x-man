@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
-import { saveAs } from 'file-saver';
 import { MessageService } from '../../../../services/message.service';
 import { DocumentRecord } from '../../../../services/records.service';
 import { MessagePageService } from '../../message-page.service';
@@ -109,14 +108,16 @@ export class DocumentVersionMetadataComponent {
 
   downloadPrimaryFile(node: FlatNode): void {
     if (this.documentRecord) {
-      this.messageService.getPrimaryDocument(this.message()!.messageHead.processID, node.filename!).subscribe({
-        error: (error) => {
-          console.error(error);
-        },
-        next: (file: Blob) => {
-          saveAs(file, node.filename);
-        },
-      });
+      this.messageService
+        .getPrimaryDocument(this.message()!.messageHead.processID, node.filename!)
+        .subscribe((file) => {
+          const a = document.createElement('a');
+          document.body.appendChild(a);
+          a.download = node.filename!;
+          a.href = window.URL.createObjectURL(file);
+          a.click();
+          document.body.removeChild(a);
+        });
     }
   }
 }
