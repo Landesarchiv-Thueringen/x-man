@@ -233,10 +233,10 @@
     }
     @if (showSelection() && node.selectable) {
       <mat-checkbox
-        [ngModel]="selectedNodes.has(node.id)"
+        [checked]="selectedNodes.has(node.id)"
         [indeterminate]="intermediateNodes.has(node.id)"
         (click)="$event.stopPropagation()"
-        (ngModelChange)="selectItem($event, node.id)"
+        (change)="selectItem($event.checked, node.id)"
         [aria-label]="node.title"
       ></mat-checkbox>
     }
