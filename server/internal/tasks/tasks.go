@@ -210,6 +210,7 @@ func run(t *db.Task) {
 	defer h.Finish()
 	var wg sync.WaitGroup
 	hasFailedItems := false
+	hasUnexpectedError := false
 ItemLoop:
 	for i, item := range t.Items {
 		switch item.State {
@@ -229,17 +230,27 @@ ItemLoop:
 			case th.ItemGuard <- struct{}{}:
 				// continue
 			}
+			if hasUnexpectedError {
+				wg.Done()
+				<-th.ItemGuard
+				break ItemLoop
+			}
 			t.Items[i].State = db.TaskStateRunning
 			db.MustReplaceTask(*t)
 			go func() {
-				defer errors.HandlePanic("process item for task "+string(t.Type), &db.ProcessingError{
-					ProcessID:   t.ProcessID,
-					ProcessStep: t.Type,
-				})
 				defer func() {
 					wg.Done()
 					<-th.ItemGuard
 				}()
+				defer errors.HandlePanic("process item for task "+string(t.Type), &db.ProcessingError{
+					ProcessID:   t.ProcessID,
+					ProcessStep: t.Type,
+				}, func(e interface{}) {
+					t.Items[i].State = db.TaskStateFailed
+					t.Items[i].Error = fmt.Sprintf("%v", e)
+					hasFailedItems = true
+					hasUnexpectedError = true
+				})
 				err := h.HandleItem(ctx, item.Data)
 				if err != nil {
 					t.Items[i].State = db.TaskStateFailed

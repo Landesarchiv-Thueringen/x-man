@@ -72,7 +72,7 @@ func AddProcessingError(e db.ProcessingError) {
 // there is a chance of panics caused by runtime conditions like a broken
 // network connection or a failure of an external service. For panics indicating
 // fatal misconfiguration, handling is not required.
-func HandlePanic(taskDescription string, data *db.ProcessingError) {
+func HandlePanic(taskDescription string, data *db.ProcessingError, cb ...func(r interface{})) {
 	if r := recover(); r != nil {
 		e := db.ProcessingError{
 			Title:     "Anwendungsfehler",
@@ -85,6 +85,9 @@ func HandlePanic(taskDescription string, data *db.ProcessingError) {
 			e = withData(&e, *data)
 		}
 		AddProcessingError(e)
+		for _, f := range cb {
+			f(r)
+		}
 	}
 }
 

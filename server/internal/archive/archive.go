@@ -135,7 +135,10 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
 	var targetData interface{}
 	if archiveTarget == "dimag" {
-		c := dimag.InitConnection()
+		c, err := dimag.InitConnection()
+		if err != nil {
+			return nil, err
+		}
 		targetData = interface{}(DimagData{Connection: c})
 	}
 	return &ArchiveHandler{

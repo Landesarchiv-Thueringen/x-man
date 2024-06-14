@@ -25,18 +25,18 @@ type Connection struct {
 	sftpClient *sftp.Client
 }
 
-func InitConnection() Connection {
+func InitConnection() (Connection, error) {
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
-		panic("missing env variable DIMAG_SFTP_SERVER_URL")
+		return Connection{}, fmt.Errorf("missing env variable DIMAG_SFTP_SERVER_URL")
 	}
 	url, err := url.Parse(urlString)
 	if err != nil {
-		panic("failed to parse DIMAG SFTP server URL")
+		return Connection{}, fmt.Errorf("failed to parse DIMAG SFTP server URL")
 	}
 	sftpUser := os.Getenv("DIMAG_SFTP_USER")
 	if sftpUser == "" {
-		panic("missing env variable DIMAG_SFTP_USER")
+		return Connection{}, fmt.Errorf("missing env variable DIMAG_SFTP_USER")
 	}
 	// empty password is possible
 	sftpPassword := os.Getenv("DIMAG_SFTP_PASSWORD")
@@ -66,17 +66,33 @@ func InitConnection() Connection {
 	addr := fmt.Sprintf("%s:%d", url.Host, PortSFTP)
 	sshClient, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
-		panic(err)
+		return Connection{}, err
 	}
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
 		sshClient.Close()
-		panic(err)
+		return Connection{}, err
+	}
+	err = testUploadDir(sftpClient)
+	if err != nil {
+		return Connection{}, err
 	}
 	return Connection{
 		sshClient:  sshClient,
 		sftpClient: sftpClient,
+	}, nil
+}
+
+func testUploadDir(c *sftp.Client) error {
+	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
+	if uploadDir == "" {
+		return fmt.Errorf("missing env variable DIMAG_SFTP_UPLOAD_DIR")
 	}
+	_, err := c.Stat(uploadDir)
+	if err != nil {
+		return fmt.Errorf("failed to access DIMAG_SFTP_UPLOAD_DIR: sftp stat %s: %w", uploadDir, err)
+	}
+	return nil
 }
 
 func CloseConnection(c Connection) {
