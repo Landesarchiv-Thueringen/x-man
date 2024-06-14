@@ -112,12 +112,12 @@ mat-tree-node {
 }
 
 .message-icon {
-  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  color: mat.m2-get-color-from-palette(mat.$m2-indigo-palette, 500);
   margin-right: 0.5em;
 }
 
 .file-icon {
-  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  color: mat.m2-get-color-from-palette(mat.$m2-indigo-palette, 500);
   margin-right: 0.5em;
 }
 
@@ -136,7 +136,7 @@ mat-tree-node {
 }
 
 .primary-documents-icon {
-  color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  color: mat.m2-get-color-from-palette(mat.$m2-indigo-palette, 500);
   margin-right: 0.5em;
 }
 
