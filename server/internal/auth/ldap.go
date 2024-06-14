@@ -61,19 +61,18 @@ func GetDisplayName(userID string) string {
 	return getDisplayName(user)
 }
 
-func GetMailAddress(userID string) string {
+func GetMailAddress(userID string) (string, bool) {
 	l := connectReadonly()
 	defer l.Close()
 	user := getLdapUserEntryWithAttributes(l, getIDFilter(userID), []string{"dn", "mail"})
 	if user == nil {
-		panic("could not find user with ID " + string(userID))
+		return "", false
 	}
 	mail := user.GetAttributeValue("mail")
 	if mail == "" {
-		dn := user.GetAttributeValue("DN")
-		panic("user " + dn + " has no mail address configured")
+		return "", false
 	}
-	return mail
+	return mail, true
 }
 
 // authorizeUser connects to the LDAP server and checks the given users
