@@ -189,7 +189,7 @@ func (h *ArchiveHandler) AfterDone() {
 		return
 	}
 	xdomea.Send0506Message(h.process, h.message)
-	preferences := db.TryFindUserPreferences(context.Background(), h.t.UserID)
+	preferences := db.FindUserPreferencesWithDefault(context.Background(), h.t.UserID)
 	if preferences.ReportByEmail {
 		defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
 			ProcessID: h.process.ProcessID,

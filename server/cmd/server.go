@@ -553,7 +553,7 @@ func Users(c *gin.Context) {
 func getUserInformation(c *gin.Context) {
 	userID := c.MustGet("userId").(string)
 	agencies := db.FindAgenciesForUser(c.Request.Context(), userID)
-	preferences := db.TryFindUserPreferences(c.Request.Context(), userID)
+	preferences := db.FindUserPreferencesWithDefault(c.Request.Context(), userID)
 	c.JSON(http.StatusOK, gin.H{
 		"agencies":    agencies,
 		"preferences": preferences,

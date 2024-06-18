@@ -28,9 +28,9 @@ var defaultUserPreferences = UserPreferences{
 	ErrorEmailNotifications:   false,
 }
 
-// TryFindUserPreferences returns the preferences for the given user or the default
+// FindUserPreferencesWithDefault returns the preferences for the given user or the default
 // preferences if no entry could be found for this user.
-func TryFindUserPreferences(ctx context.Context, userID string) UserPreferences {
+func FindUserPreferencesWithDefault(ctx context.Context, userID string) UserPreferences {
 	coll := mongoDatabase.Collection("user_preferences")
 	filter := bson.D{{"user_id", userID}}
 	var p UserPreferences

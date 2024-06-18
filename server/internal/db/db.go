@@ -8,7 +8,7 @@
 //     to indicate whether the document could be found.
 //   - `MustFind`, `MustUpdate`, ... functions can be provided that panic when
 //     the document could not be found.
-//   - `TryFind` functions return a default value when the document could not
+//   - `FindWithDefault` functions return a default value when the document could not
 //     be found.
 //   - `Upsert` functions either insert a new document or update an existing
 //     one.

@@ -179,7 +179,7 @@ func sendEmailNotifications(e db.ProcessingError) {
 	users := auth.ListUsers()
 	for _, user := range users {
 		if user.Permissions.Admin {
-			preferences := db.TryFindUserPreferences(context.Background(), user.ID)
+			preferences := db.FindUserPreferencesWithDefault(context.Background(), user.ID)
 			if preferences.ErrorEmailNotifications {
 				mailAddr := auth.GetMailAddress(user.ID)
 				mail.SendMailProcessingError(mailAddr, e)
