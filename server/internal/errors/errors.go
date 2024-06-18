@@ -196,15 +196,20 @@ func sendEmailNotifications(e db.ProcessingError) {
 			preferences := db.FindUserPreferencesWithDefault(context.Background(), user.ID)
 			if preferences.ErrorEmailNotifications {
 				mailAddr, err := auth.GetMailAddress(user.ID)
+				errorData := db.ProcessingError{
+					Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
+					Info:      err.Error(),
+					CreatedAt: time.Now(),
+					Stack:     string(debug.Stack()),
+				}
 				if err != nil {
-					db.InsertProcessingErrorFailsafe(db.ProcessingError{
-						Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
-						Info:      err.Error(),
-						CreatedAt: time.Now(),
-						Stack:     string(debug.Stack()),
-					})
+					db.InsertProcessingErrorFailsafe(errorData)
 				} else {
-					mail.SendMailProcessingError(mailAddr, e)
+					err = mail.SendMailProcessingError(mailAddr, e)
+					if err != nil {
+						errorData.Info = err.Error()
+						db.InsertProcessingErrorFailsafe(errorData)
+					}
 				}
 			}
 		}

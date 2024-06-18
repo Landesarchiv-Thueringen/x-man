@@ -25,7 +25,7 @@ type Attachment struct {
 	Body        []byte
 }
 
-func SendMailNewMessage(to string, agencyName string, message db.Message) {
+func SendMailNewMessage(to string, agencyName string, message db.Message) error {
 	var messageType string
 	switch message.MessageType {
 	case "0501":
@@ -45,19 +45,19 @@ func SendMailNewMessage(to string, agencyName string, message db.Message) {
 	}
 	body += "<p>Sie bekommen diese E-Mail, weil Sie der abgebenden Stelle als zuständige(r) Archivar(in) zugeordnet sind.<br>\n" +
 		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
-	sendMail(to, "Neue "+messageType+" von "+agencyName, body, []Attachment{})
+	return sendMail(to, "Neue "+messageType+" von "+agencyName, body, []Attachment{})
 }
 
-func SendMailReport(to string, process db.SubmissionProcess, report Attachment) {
+func SendMailReport(to string, process db.SubmissionProcess, report Attachment) error {
 	agencyName := process.Agency.Name
 	body := "<p>Die Abgabe von " + agencyName + " wurde erfolgreich archiviert.</p>"
 	origin := os.Getenv("ORIGIN")
 	body += "<p>Sie bekommen diese E-Mail, weil Sie die Archivierung der Aussonderung abgeschlossen haben.<br>\n" +
 		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
-	sendMail(to, "Übernahmebericht für Abgabe von "+agencyName, body, []Attachment{report})
+	return sendMail(to, "Übernahmebericht für Abgabe von "+agencyName, body, []Attachment{report})
 }
 
-func SendMailProcessingError(to string, e db.ProcessingError) {
+func SendMailProcessingError(to string, e db.ProcessingError) error {
 	origin := os.Getenv("ORIGIN")
 	message := "<p>Ein Fehler wurde in der Steuerungsstelle eingetragen.</p>\n"
 	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Title)
@@ -72,14 +72,14 @@ func SendMailProcessingError(to string, e db.ProcessingError) {
 		"Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>",
 		origin, origin,
 	)
-	sendMail(to, "Fehler in Steuerungsstelle: "+e.Title, message, []Attachment{})
+	return sendMail(to, "Fehler in Steuerungsstelle: "+e.Title, message, []Attachment{})
 }
 
-func sendMail(to, subject, body string, attachments []Attachment) {
+func sendMail(to, subject, body string, attachments []Attachment) error {
 	addr := os.Getenv("SMTP_SERVER")
 	if addr == "" {
 		log.Println("Not sending e-mail since SMTP_SERVER is not configured")
-		return
+		return nil
 	} else {
 		log.Println("Sending e-mail to " + to)
 	}
@@ -90,8 +90,9 @@ func sendMail(to, subject, body string, attachments []Attachment) {
 	password := os.Getenv("SMTP_PASSWORD")
 	err := sendMailInner(addr, from, to, content, tlsMode, username, password)
 	if err != nil {
-		log.Printf("Error sending e-mail: %v\n", err)
+		return fmt.Errorf("failed to send mail to %s: %w", to, err)
 	}
+	return nil
 }
 
 func getContent(to, from, subject, body string, attachments []Attachment) []byte {

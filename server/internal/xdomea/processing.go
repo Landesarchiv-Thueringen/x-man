@@ -88,6 +88,8 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		}
 	}
 	// if no error occurred while processing the message
+	//
+	// FIXME: This only considers the last operation.
 	if err == nil {
 		// send the confirmation message that the 0501 message was received
 		if messageType == "0501" {
@@ -95,18 +97,18 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 			db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0504, messagePath)
 		}
 		// send e-mail notification to users
+		errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
 		for _, user := range agency.Users {
 			address, err := auth.GetMailAddress(user)
 			if err != nil {
-				errors.AddProcessingErrorWithData(err, db.ProcessingError{
-					Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
-					ProcessID: processID,
-					Agency:    &agency,
-				})
-			} else {
-				preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
-				if preferences.MessageEmailNotifications {
-					mail.SendMailNewMessage(address, agency.Name, message)
+				errors.AddProcessingErrorWithData(err, errorData)
+				continue
+			}
+			preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
+			if preferences.MessageEmailNotifications {
+				err = mail.SendMailNewMessage(address, agency.Name, message)
+				if err != nil {
+					errors.AddProcessingErrorWithData(err, errorData)
 				}
 			}
 		}

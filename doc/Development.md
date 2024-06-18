@@ -25,8 +25,10 @@ Its web UI is available on http://localhost:8081.
 ### Error Handling
 
 **Error and panic.**
-In the server, we use a combination of go `error` return values and `panic`. In general, expected problems should be returned as `error` while unexpected problems due to programming errors can `panic`.
+In the server, we use a combination of go `error` return values and `panic`. In general, expected problems—such as connection issues or invalid files—should be returned as `error` while unexpected problems due to programming errors can `panic`.
 When returning an `error`, take care to provide enough context, so the problem can be clearly identified.
+
+Also consider wether operation can continue after the error. For example, for an error sending a notification email, it might be better not to `panic` to not abort any subsequent steps.
 
 **ProcessingError.**
 Either is turned in a `ProcessingError` and displayed in the administration UI.
