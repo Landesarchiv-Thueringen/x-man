@@ -96,18 +96,37 @@ func FindMessage(
 	processID uuid.UUID,
 	messageType MessageType,
 ) (message Message, found bool) {
-	coll := mongoDatabase.Collection("messages")
-	filter := bson.D{
-		{"message_head.process_id", processID},
-		{"message_type", messageType},
-	}
-	err := coll.FindOne(ctx, filter).Decode(&message)
+	message, err := findMessage(ctx, processID, messageType)
 	if err == mongo.ErrNoDocuments {
 		return message, false
 	} else if err != nil {
 		panic(err)
 	}
 	return message, true
+}
+
+// TryFindMessage is like FindMessage, but doesn't panic.
+func TryFindMessage(
+	ctx context.Context,
+	processID uuid.UUID,
+	messageType MessageType,
+) (message Message, found bool) {
+	message, err := findMessage(ctx, processID, messageType)
+	return message, err == nil
+}
+
+func findMessage(
+	ctx context.Context,
+	processID uuid.UUID,
+	messageType MessageType,
+) (message Message, err error) {
+	coll := mongoDatabase.Collection("messages")
+	filter := bson.D{
+		{"message_head.process_id", processID},
+		{"message_type", messageType},
+	}
+	err = coll.FindOne(ctx, filter).Decode(&message)
+	return message, err
 }
 
 // DeleteMessage deletes the given message.

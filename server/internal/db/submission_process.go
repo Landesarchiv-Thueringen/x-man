@@ -106,16 +106,26 @@ func FindOrInsertProcess(
 }
 
 func FindProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, bool) {
-	coll := mongoDatabase.Collection("submission_processes")
-	var process SubmissionProcess
-	filter := bson.D{{"process_id", processID}}
-	err := coll.FindOne(ctx, filter).Decode(&process)
+	process, err := findProcess(ctx, processID)
 	if err == mongo.ErrNoDocuments {
 		return process, false
 	} else if err != nil {
 		panic(err)
 	}
 	return process, true
+}
+
+func TryFindProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, bool) {
+	process, err := findProcess(ctx, processID)
+	return process, err == nil
+}
+
+func findProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, error) {
+	coll := mongoDatabase.Collection("submission_processes")
+	var process SubmissionProcess
+	filter := bson.D{{"process_id", processID}}
+	err := coll.FindOne(ctx, filter).Decode(&process)
+	return process, err
 }
 
 func insertProcess(

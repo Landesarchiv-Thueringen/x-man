@@ -96,10 +96,12 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		}
 		// send e-mail notification to users
 		for _, user := range agency.Users {
-			address := auth.GetMailAddress(user)
-			preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
-			if preferences.MessageEmailNotifications {
-				mail.SendMailNewMessage(address, agency.Name, message)
+			address, ok := auth.GetMailAddress(user)
+			if ok {
+				preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
+				if preferences.MessageEmailNotifications {
+					mail.SendMailNewMessage(address, agency.Name, message)
+				}
 			}
 		}
 	}

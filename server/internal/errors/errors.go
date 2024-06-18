@@ -153,13 +153,13 @@ func withData(err error, data db.ProcessingError) db.ProcessingError {
 // possible.
 func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
 	if e.Agency == nil && e.ProcessID != uuid.Nil {
-		process, found := db.FindProcess(context.Background(), e.ProcessID)
+		process, found := db.TryFindProcess(context.Background(), e.ProcessID)
 		if found {
 			e.Agency = &process.Agency
 		}
 	}
 	if e.TransferPath == "" && e.ProcessID != uuid.Nil && e.MessageType != "" {
-		message, found := db.FindMessage(context.Background(), e.ProcessID, e.MessageType)
+		message, found := db.TryFindMessage(context.Background(), e.ProcessID, e.MessageType)
 		if found {
 			e.TransferPath = message.TransferDirPath
 		}
@@ -195,8 +195,10 @@ func sendEmailNotifications(e db.ProcessingError) {
 		if user.Permissions.Admin {
 			preferences := db.FindUserPreferencesWithDefault(context.Background(), user.ID)
 			if preferences.ErrorEmailNotifications {
-				mailAddr := auth.GetMailAddress(user.ID)
-				mail.SendMailProcessingError(mailAddr, e)
+				mailAddr, ok := auth.GetMailAddress(user.ID)
+				if ok {
+					mail.SendMailProcessingError(mailAddr, e)
+				}
 			}
 		}
 	}
