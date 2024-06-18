@@ -195,8 +195,15 @@ func sendEmailNotifications(e db.ProcessingError) {
 		if user.Permissions.Admin {
 			preferences := db.FindUserPreferencesWithDefault(context.Background(), user.ID)
 			if preferences.ErrorEmailNotifications {
-				mailAddr, ok := auth.GetMailAddress(user.ID)
-				if ok {
+				mailAddr, err := auth.GetMailAddress(user.ID)
+				if err != nil {
+					db.InsertProcessingErrorFailsafe(db.ProcessingError{
+						Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
+						Info:      err.Error(),
+						CreatedAt: time.Now(),
+						Stack:     string(debug.Stack()),
+					})
+				} else {
 					mail.SendMailProcessingError(mailAddr, e)
 				}
 			}

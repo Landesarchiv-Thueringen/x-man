@@ -96,8 +96,14 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		}
 		// send e-mail notification to users
 		for _, user := range agency.Users {
-			address, ok := auth.GetMailAddress(user)
-			if ok {
+			address, err := auth.GetMailAddress(user)
+			if err != nil {
+				errors.AddProcessingErrorWithData(err, db.ProcessingError{
+					Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
+					ProcessID: processID,
+					Agency:    &agency,
+				})
+			} else {
 				preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
 				if preferences.MessageEmailNotifications {
 					mail.SendMailNewMessage(address, agency.Name, message)

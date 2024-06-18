@@ -203,12 +203,19 @@ func (h *ArchiveHandler) AfterDone() {
 		if err != nil {
 			panic(err)
 		}
-		address := auth.GetMailAddress(h.t.UserID)
-		filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
-		mail.SendMailReport(
-			address, process,
-			mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
-		)
+		address, err := auth.GetMailAddress(h.t.UserID)
+		if err != nil {
+			errors.AddProcessingErrorWithData(err, db.ProcessingError{
+				Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
+				ProcessID: h.process.ProcessID,
+			})
+		} else {
+			filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
+			mail.SendMailReport(
+				address, process,
+				mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
+			)
+		}
 	}
 }
 
