@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type StoragePaths struct {
@@ -80,13 +79,9 @@ func FindMessagesForProcess(ctx context.Context, processID uuid.UUID) []Message 
 	filter := bson.D{{"message_head.process_id", processID}}
 	var messages []Message
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	err = cursor.All(ctx, &messages)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return messages
 }
 
@@ -97,12 +92,7 @@ func FindMessage(
 	messageType MessageType,
 ) (message Message, found bool) {
 	message, err := findMessage(ctx, processID, messageType)
-	if err == mongo.ErrNoDocuments {
-		return message, false
-	} else if err != nil {
-		panic(err)
-	}
-	return message, true
+	return message, handleError(ctx, err)
 }
 
 // TryFindMessage is like FindMessage, but doesn't panic.

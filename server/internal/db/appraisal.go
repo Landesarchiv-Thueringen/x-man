@@ -29,14 +29,10 @@ func FindAppraisalsForProcess(ctx context.Context, processID uuid.UUID) (apprais
 	coll := mongoDatabase.Collection("appraisals")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	var a []Appraisal
 	err = cursor.All(ctx, &a)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return a
 }
 

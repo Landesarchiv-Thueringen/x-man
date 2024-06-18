@@ -40,14 +40,10 @@ func FindArchivePackagesForProcess(ctx context.Context, processID uuid.UUID) []A
 	coll := mongoDatabase.Collection("archive_packages")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	var aips []ArchivePackage
 	err = cursor.All(ctx, &aips)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return aips
 }
 

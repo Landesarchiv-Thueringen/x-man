@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ProcessingErrorResolution string
@@ -120,14 +119,10 @@ func FindResolvedProcessingErrorsOlderThan(ctx context.Context, t time.Time) []P
 func findProcessingErrors(ctx context.Context, filter interface{}) []ProcessingError {
 	coll := mongoDatabase.Collection("processing_errors")
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	var e []ProcessingError
 	err = cursor.All(ctx, &e)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return e
 }
 
@@ -150,12 +145,7 @@ func FindUnresolvedProcessingErrorForTask(
 func findProcessingError(ctx context.Context, filter interface{}) (e ProcessingError, ok bool) {
 	coll := mongoDatabase.Collection("processing_errors")
 	err := coll.FindOne(ctx, filter).Decode(&e)
-	if err == mongo.ErrNoDocuments {
-		return e, false
-	} else if err != nil {
-		panic(err)
-	}
-	return e, true
+	return e, handleError(ctx, err)
 }
 
 // UpdateProcessingErrorResolve marks the given processing error as resolved.

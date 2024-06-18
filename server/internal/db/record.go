@@ -299,10 +299,8 @@ func FindRootRecords(
 		{"process_id", processID},
 		{"message_type", messageType},
 	}
-	cursor, err := coll.Find(context.Background(), filter)
-	if err != nil {
-		panic(err)
-	}
+	cursor, err := coll.Find(ctx, filter)
+	handleError(ctx, err)
 	var r RootRecords
 	for cursor.Next(ctx) {
 		recordType := cursor.Current.Lookup("record_type").StringValue()
@@ -326,11 +324,7 @@ func FindRootRecords(
 			panic(err)
 		}
 	}
-	if ctx.Err() != nil {
-		return r
-	} else if cursor.Err() != nil {
-		panic(cursor.Err())
-	}
+	handleError(ctx, err)
 	return r
 }
 
@@ -354,10 +348,9 @@ func FindRootRecord(
 	var r RootRecords
 	result := coll.FindOne(ctx, filter)
 	raw, err := result.Raw()
-	if err == mongo.ErrNoDocuments {
+	ok := handleError(ctx, err)
+	if !ok {
 		return r, false
-	} else if err != nil {
-		panic(err)
 	}
 	recordType := raw.Lookup("record_type").StringValue()
 	switch RecordType(recordType) {

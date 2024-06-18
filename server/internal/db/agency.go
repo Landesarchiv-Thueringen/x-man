@@ -49,13 +49,9 @@ func findAgencies(ctx context.Context, filter bson.D) []Agency {
 	coll := mongoDatabase.Collection("agencies")
 	var agencies []Agency
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	err = cursor.All(ctx, &agencies)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return agencies
 }
 

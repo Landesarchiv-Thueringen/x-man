@@ -5,7 +5,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // ArchiveCollection refers to an archive collection within DIMAG.
@@ -19,14 +18,10 @@ func FindArchiveCollections(ctx context.Context) []ArchiveCollection {
 	coll := mongoDatabase.Collection("archive_collections")
 	filter := bson.D{}
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	var c []ArchiveCollection
 	err = cursor.All(ctx, &c)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return c
 }
 
@@ -34,12 +29,7 @@ func FindArchiveCollection(ctx context.Context, id primitive.ObjectID) (c Archiv
 	coll := mongoDatabase.Collection("archive_collections")
 	filter := bson.D{{"_id", id}}
 	err := coll.FindOne(ctx, filter).Decode(&c)
-	if err == mongo.ErrNoDocuments {
-		return c, false
-	} else if err != nil {
-		panic(err)
-	}
-	return c, true
+	return c, handleError(ctx, err)
 }
 
 func InsertArchiveCollection(c ArchiveCollection) (id primitive.ObjectID) {

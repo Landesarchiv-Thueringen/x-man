@@ -83,13 +83,9 @@ func findProcesses(ctx context.Context, filter interface{}) []SubmissionProcess 
 	coll := mongoDatabase.Collection("submission_processes")
 	var processes []SubmissionProcess
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	err = cursor.All(ctx, &processes)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return processes
 }
 
@@ -107,12 +103,7 @@ func FindOrInsertProcess(
 
 func FindProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, bool) {
 	process, err := findProcess(ctx, processID)
-	if err == mongo.ErrNoDocuments {
-		return process, false
-	} else if err != nil {
-		panic(err)
-	}
-	return process, true
+	return process, handleError(ctx, err)
 }
 
 func TryFindProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, bool) {

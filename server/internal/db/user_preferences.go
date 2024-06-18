@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -35,10 +34,9 @@ func FindUserPreferencesWithDefault(ctx context.Context, userID string) UserPref
 	filter := bson.D{{"user_id", userID}}
 	var p UserPreferences
 	err := coll.FindOne(ctx, filter).Decode(&p)
-	if err == mongo.ErrNoDocuments {
+	ok := handleError(ctx, err)
+	if !ok {
 		return defaultUserPreferences
-	} else if err != nil {
-		panic(err)
 	}
 	return p
 }

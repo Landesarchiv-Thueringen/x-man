@@ -128,3 +128,24 @@ func createIndex(collectionName string, model mongo.IndexModel) {
 		panic(err)
 	}
 }
+
+// handleError handles an error returned by a mongo function.
+//
+// It
+//   - returns true if the function call succeeded,
+//   - returns false if it was canceled by the context or didn't find any results,
+//   - panics if there was any other error.
+//
+// The return value of this function might not be relevant to callers. For
+// example, if values read from the database are discarded anyway when the
+// context is canceled, this information is not needed anymore.
+func handleError(ctx context.Context, err error) bool {
+	if ctx.Err() != nil {
+		return false
+	} else if err == mongo.ErrNoDocuments {
+		return false
+	} else if err != nil {
+		panic(err)
+	}
+	return true
+}

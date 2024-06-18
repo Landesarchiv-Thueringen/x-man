@@ -81,13 +81,9 @@ func FindPrimaryDocumentsDataForProcess(ctx context.Context, processID uuid.UUID
 	filter := bson.D{{"process_id", processID}}
 	var data []PrimaryDocumentData
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	err = cursor.All(ctx, &data)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return data
 }
 
@@ -112,13 +108,10 @@ func CalculateTotalFileSize(ctx context.Context, processID uuid.UUID, filenames 
 			{"total_file_size", bson.D{{"$sum", "$file_size"}}},
 		}}}
 	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{matchStage, groupStage})
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	var results []bson.M
-	if err = cursor.All(ctx, &results); err != nil {
-		panic(err)
-	}
+	err = cursor.All(ctx, &results)
+	handleError(ctx, err)
 	r := results[0]["total_file_size"]
 	return r.(int64)
 }

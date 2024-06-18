@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -77,13 +76,9 @@ func FindTasksMetadata(ctx context.Context) []Task {
 	opts := options.Find().SetProjection(bson.D{{"items", 0}})
 	var tasks []Task
 	cursor, err := coll.Find(ctx, filter, opts)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	err = cursor.All(ctx, &tasks)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return tasks
 }
 
@@ -92,13 +87,9 @@ func FindTasks(ctx context.Context) []Task {
 	filter := bson.D{}
 	var tasks []Task
 	cursor, err := coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	err = cursor.All(ctx, &tasks)
-	if err != nil {
-		panic(err)
-	}
+	handleError(ctx, err)
 	return tasks
 }
 
@@ -106,12 +97,7 @@ func FindTask(ctx context.Context, taskID primitive.ObjectID) (t Task, ok bool) 
 	coll := mongoDatabase.Collection("tasks")
 	filter := bson.D{{"_id", taskID}}
 	err := coll.FindOne(ctx, filter).Decode(&t)
-	if err == mongo.ErrNoDocuments {
-		return t, false
-	} else if err != nil {
-		panic(err)
-	}
-	return t, true
+	return t, handleError(ctx, err)
 }
 
 func InsertTask(task Task) Task {
