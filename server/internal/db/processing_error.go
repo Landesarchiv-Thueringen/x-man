@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -62,6 +63,26 @@ func InsertProcessingError(e ProcessingError) {
 	// Update submission process
 	if e.ProcessID != uuid.Nil {
 		refreshUnresolvedErrorsForProcess(e.ProcessID)
+	}
+	broadcastUpdate(Update{
+		Collection: "processing_errors",
+		ProcessID:  e.ProcessID,
+		Operation:  UpdateOperationInsert,
+	})
+}
+
+// InsertProcessingErrorFailsafe saves a processing error to the database
+// without panicking on errors.
+//
+// It doesn't handle the field ProcessID.
+//
+// Use as a last resort when even `InsertProcessingError` caused a panic.
+func InsertProcessingErrorFailsafe(e ProcessingError) {
+	coll := mongoDatabase.Collection("processing_errors")
+	_, err := coll.InsertOne(context.Background(), e)
+	if err != nil {
+		// At this point, we can't do anything anymore to record the error.
+		log.Println("Failed to insert processing error", e)
 	}
 	broadcastUpdate(Update{
 		Collection: "processing_errors",

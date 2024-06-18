@@ -84,6 +84,20 @@ func HandlePanic(taskDescription string, data *db.ProcessingError, cb ...func(r 
 		if data != nil {
 			e = withData(&e, *data)
 		}
+		// AddProcessingError (called below) could still panic. Prevent an
+		// application crash and try to record panic.
+		defer func() {
+			if r2 := recover(); r != nil {
+				e2 := db.ProcessingError{
+					Title:     "Anwendungsfehler",
+					ErrorType: "application-error",
+					Info:      fmt.Sprintf("%s\n\n%v", "HandlePanic", r2),
+					CreatedAt: time.Now(),
+					Stack:     string(debug.Stack()),
+				}
+				db.InsertProcessingErrorFailsafe(e2)
+			}
+		}()
 		AddProcessingError(e)
 		for _, f := range cb {
 			f(r)
