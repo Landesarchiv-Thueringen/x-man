@@ -295,48 +295,41 @@ func FindRootRecords(
 	messageType MessageType,
 ) RootRecords {
 	coll := mongoDatabase.Collection("root_records")
-	// Find file records
 	filter := bson.D{
 		{"process_id", processID},
 		{"message_type", messageType},
-		{"record_type", RecordTypeFile},
 	}
-	cursor, err := coll.Find(ctx, filter)
+	cursor, err := coll.Find(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
 	var r RootRecords
-	err = cursor.All(ctx, &r.Files)
-	if err != nil {
-		panic(err)
+	for cursor.Next(ctx) {
+		recordType := cursor.Current.Lookup("record_type").StringValue()
+		switch recordType {
+		case "file":
+			var f FileRecord
+			err = cursor.Decode(&f)
+			r.Files = append(r.Files, f)
+		case "process":
+			var p ProcessRecord
+			err = cursor.Decode(&p)
+			r.Processes = append(r.Processes, p)
+		case "document":
+			var d DocumentRecord
+			err = cursor.Decode(&d)
+			r.Documents = append(r.Documents, d)
+		default:
+			panic("unknown record type: " + recordType)
+		}
+		if err != nil {
+			panic(err)
+		}
 	}
-	// Find process records
-	filter = bson.D{
-		{"process_id", processID},
-		{"message_type", messageType},
-		{"record_type", RecordTypeProcess},
-	}
-	cursor, err = coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
-	err = cursor.All(ctx, &r.Processes)
-	if err != nil {
-		panic(err)
-	}
-	// Find document records
-	filter = bson.D{
-		{"process_id", processID},
-		{"message_type", messageType},
-		{"record_type", RecordTypeDocument},
-	}
-	cursor, err = coll.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
-	err = cursor.All(ctx, &r.Documents)
-	if err != nil {
-		panic(err)
+	if ctx.Err() != nil {
+		return r
+	} else if cursor.Err() != nil {
+		panic(cursor.Err())
 	}
 	return r
 }
