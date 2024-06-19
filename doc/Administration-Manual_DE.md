@@ -2,7 +2,9 @@
 
 ## Betrieb
 
-Der xdomea-Aussonderungsmanager (kurz x-man) wird in einer Docker-Umgebung auf einem Linux-System betrieben und mit Umgebungsvariablen konfiguriert. Siehe [Installation (en)](./Installation.md) für weitere Informationen.
+Die Server-Komponente des xdomea-Aussonderungsmanagers (kurz x-man) wird in einer Docker-Umgebung auf einem Linux-System betrieben und mit Umgebungsvariablen konfiguriert. Siehe [Installation (en)](./Installation.md) für weitere Informationen. Sie ist für den Betrieb in einem Rechenzentrum durch IT-Fachleute vorgesehen.
+
+Die Web-Anwendung (GUI-Komponente) wird durch den Server ausgeliefert und kann von Endnutzern über den Web-Browser aufgerufen werden.
 
 ## Funktionsweise
 
@@ -10,12 +12,14 @@ Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](..
 
 ## Nachrichtenaustausch mit xdomea
 
-**Transferverzeichnisse.** Der Austausch von Nachrichten geschieht über konfigurierte Transferverzeichnisse (siehe [Administration](#administration)). Ein Transferverzeichnis kann entweder über das lokale Dateisystem oder als WebDAV-Freigabe eingebunden werden. Konfigurierte Transferverzeichnisse werden von x-man automatisch regelmäßig auf neue Nachrichten überprüft. Wird eine Nachricht gefunden, wird sie automatisch eingelesen und verarbeitet. Auf der anderen Seite erstellt x-man selbst Nachrichten, die im Aussonderungsverfahren von xdomea vorgesehen sind (Bewertungsnachricht, diverse Empfangs- bzw. Importbestätigungen), und überträgt diese in die Transferverzeichnisse.
+**Nachrichten in xdomea.** Nachrichten nach dem xdomea-Standard sind Zip-Dateien, deren Dateiname und Inhalt nach einem festgelegten Schema aufgebaut sind. Ein valider Dateiname ist z. B. `e25cf421-d7e2-4df0-ae8f-e8cd764cd2cc_Aussonderung.Anbieteverzeichnis.0501.zip`. Es gibt verschiedene Nachrichten mit festgelegten Funktionen, die anhand von vierstelligen Nummern unterschieden werden (im Beispiel 0501). Nachrichten werden automatisiert durch Fachanwendungen zwischen einer abgebenden Stelle und dem zuständigen Archiv ausgetauscht. x-man stellt diese Fachanwendung auf Archivseite dar.
+
+**Transferverzeichnisse.** Der Austausch von Nachrichten geschieht über konfigurierte Transferverzeichnisse (siehe [Administration](#administration)). Ein Transferverzeichnis kann entweder über das lokale Dateisystem oder als WebDAV-Freigabe eingebunden werden. Um eine Nachricht zu senden, legt die abgebende Stelle eine Datei, die dem xdomea-Standard entspricht, im Transferverzeichnis ab. Konfigurierte Transferverzeichnisse werden von x-man automatisch regelmäßig auf neue Nachrichten überprüft. Wird eine Nachricht gefunden, wird sie automatisch eingelesen und verarbeitet. Auf der anderen Seite erstellt x-man selbst Nachrichten, die im Aussonderungsverfahren von xdomea vorgesehen sind (Bewertungsnachricht, diverse Empfangs- bzw. Importbestätigungen), und überträgt diese in die Transferverzeichnisse.
 
 **Datenhaltung.** Nach dem Auffinden einer neuen Nachricht verarbeitet x-man diese für die weitere Verwendung. Daten zur Nachricht befinden sich an verschiedenen Stellen und sollten synchron gehalten werden um Fehler zu vermeiden (z.B. beim Wiederherstellen eines Backups gemeinsam wiederhergestellt werden). Alle Daten werden von x-man selbst verwaltet und erfordern im normalen Betrieb keinen manuellen Zugriff.
 
 - Transferverzeichnis: Nach dem initialen Einlesen greift x-man zunächst nicht mehr auf die eingelesene Datei im Transferverzeichnis zu, jedoch löscht es Nachrichten nach der erfolgreichen Archivierung und dem Ablaufen einer Frist aus der Anwendung und entfernt dabei auch die zugehörigen Dateien aus dem Transferverzeichnis.
-- Datenbank: x-mans interne Datenhaltung erfolgt durch eine Postgres-Datenbank. Neben dem Inhalt von xdomea-Nachrichten wird hier auch die Konfiguration der Anwendung und der Bearbeitungszustand von Aussonderungen gespeichert. Die zugehörigen Daten werden in der vorgeschlagenen Docker-Compose-Konfiguration in einem Docker-Volume abgelegt.
+- Datenbank: x-mans interne Datenhaltung erfolgt durch eine MongoDB-Datenbank. Neben dem Inhalt von xdomea-Nachrichten wird hier auch die Konfiguration der Anwendung und der Bearbeitungszustand von Aussonderungen gespeichert. Die zugehörigen Daten werden in der vorgeschlagenen Docker-Compose-Konfiguration in einem Docker-Volume abgelegt.
 - Message-Store: Primärdaten werden von x-man direkt in einem Dateisystem verwaltet. Auch der Message-Store wird in der der vorgeschlagenen Docker-Compose-Konfiguration als Docker-Volume angelegt.
 
 **Validitätsprüfung.** Empfangene Nachrichten werden von x-man auf Validität und Korrektheit geprüft. Bei gefundenen Fehlern wird ein Problem-Eintrag für die Steuerungsstelle angelegt (siehe [Fehlerbehandlung](#fehlerbehebung)). Geprüft wird:
@@ -65,7 +69,7 @@ E-Mail-Adressen werden den Nutzereinträgen aus LDAP entnommen und sind nicht ko
 
 ## Formatverifikation
 
-x-man unterstützt die automatische Formatverifikation mit dem Tool [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg). Die Konfiguration geschieht über die Umgebungsvariable `BORG_URL`. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)).
+x-man unterstützt die automatische Formatverifikation mit dem Tool [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg). Hierfür ist eine separate Installation von Borg auf einem Server nötig, der vom x-man-Server erreichbar ist. Die Konfiguration geschieht über die Umgebungsvariable `BORG_URL`. Ggf. ist das Hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)).
 
 Im Fall von negativen Ergebnissen wird für die Abgabe ein Fehler in der Steuerungsstelle erzeugt (siehe [Fehlerbehandlung](#fehlerbehebung)).
 
