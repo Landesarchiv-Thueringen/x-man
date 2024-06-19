@@ -7,6 +7,7 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -326,10 +327,10 @@ func ResumeAfterAppRestart() {
 				for i, item := range t.Items {
 					if item.State == db.TaskStateRunning {
 						t.Items[i].State = db.TaskStateFailed
-						t.Items[i].Error = "Unterbrochen durch Neustart von X-Man"
+						t.Items[i].Error = "Unterbrochen durch Neustart von x-man"
 					}
 				}
-				markFailed(&t, "Unterbrochen durch Neustart von X-Man")
+				markFailed(&t, "Unterbrochen durch Neustart von x-man")
 			}
 		}
 	}
@@ -351,24 +352,28 @@ func markDone(t *db.Task, completedBy string) {
 // a processing error.
 func markFailed(t *db.Task, errMsg string) {
 	t.State = db.TaskStateFailed
+	t.Error = errMsg
 	if errMsg == "" {
-		itemsFailed := 0
+		var itemErrs []string
 		for _, item := range t.Items {
 			switch item.State {
 			case db.TaskStateFailed:
-				itemsFailed++
+				itemErrs = append(itemErrs, item.Error)
 			}
 		}
-		if itemsFailed > 0 {
-			errMsg = fmt.Sprintf("%d / %d fehlgeschlagen", itemsFailed, len(t.Items))
+		if len(itemErrs) > 0 {
+			t.Error = fmt.Sprintf("%d / %d fehlgeschlagen", len(itemErrs), len(t.Items))
+			errMsg = fmt.Sprintf(
+				"%d / %d fehlgeschlagen\n\n%s",
+				len(itemErrs), len(t.Items), strings.Join(itemErrs, "\n"),
+			)
 		}
 	}
-	t.Error = errMsg
 	updateProgress(t)
 	db.MustUpdateProcessStepError(t.ProcessID, t.Type)
 	e, ok := db.FindUnresolvedProcessingErrorForTask(context.Background(), t.ID)
 	if ok {
-		e.Info = t.Error
+		e.Info = errMsg
 		db.MustReplaceProcessingError(e)
 	} else {
 		e := db.ProcessingError{
