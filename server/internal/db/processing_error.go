@@ -14,12 +14,14 @@ import (
 type ProcessingErrorResolution string
 
 const (
-	ErrorResolutionMarkSolved         ProcessingErrorResolution = "mark-solved"
-	ErrorResolutionMarkDone           ProcessingErrorResolution = "mark-done"
-	ErrorResolutionReimportMessage    ProcessingErrorResolution = "reimport-message"
-	ErrorResolutionDeleteMessage      ProcessingErrorResolution = "delete-message"
-	ErrorResolutionDeleteTransferFile ProcessingErrorResolution = "delete-transfer-file"
-	ErrorResolutionObsolete           ProcessingErrorResolution = "obsolete"
+	ErrorResolutionMarkSolved          ProcessingErrorResolution = "mark-solved"
+	ErrorResolutionMarkDone            ProcessingErrorResolution = "mark-done"
+	ErrorResolutionReimportMessage     ProcessingErrorResolution = "reimport-message"
+	ErrorResolutionDeleteMessage       ProcessingErrorResolution = "delete-message"
+	ErrorResolutionDeleteTransferFile  ProcessingErrorResolution = "delete-transfer-file"
+	ErrorResolutionIgnoreTransferFile  ProcessingErrorResolution = "ignore-transfer-files"
+	ErrorResolutionDeleteTransferFiles ProcessingErrorResolution = "delete-transfer-files"
+	ErrorResolutionObsolete            ProcessingErrorResolution = "obsolete"
 )
 
 // ProcessingError represents any problem that should be communicated to
@@ -36,7 +38,8 @@ type ProcessingError struct {
 	Resolution   ProcessingErrorResolution `json:"resolution"`
 	Title        string                    `json:"title"`
 	Info         string                    `bson:"info" json:"info"`
-	ErrorType    string                    `bson:"error_type" json:"-"`
+	Data         interface{}               `json:"data"`
+	ErrorType    string                    `bson:"error_type" json:"errorType"`
 	Stack        string                    `json:"stack"`
 	Agency       *Agency                   `json:"agency"` // Copy, needs to be kept in sync
 	ProcessID    uuid.UUID                 `bson:"process_id" json:"processId"`

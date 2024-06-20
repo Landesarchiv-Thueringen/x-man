@@ -18,10 +18,13 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -78,7 +81,7 @@ func createIndexes() {
 		Keys: bson.D{
 			{"process_id", 1},
 			{"message_type", 1},
-			{"record_type", 1},
+			{"contained_records", 1},
 		},
 	})
 	createIndex("appraisals", mongo.IndexModel{
@@ -148,4 +151,34 @@ func handleError(ctx context.Context, err error) bool {
 		panic(err)
 	}
 	return true
+}
+
+func UnmarshalData[T any](d interface{}) T {
+	t := reflect.TypeOf([0]T{}).Elem()
+	if t.Kind() == reflect.Slice {
+		return unmarshalData[struct{ A T }](struct{ A interface{} }{A: d}).A
+	}
+	return unmarshalData[T](d)
+}
+
+func unmarshalData[T any](d interface{}) T {
+	var t T
+	b, err := bson.Marshal(d)
+	if err != nil {
+		panic(fmt.Errorf("failed to marshal data: %w", err))
+	}
+	err = bson.Unmarshal(b, &t)
+	if err != nil {
+		panic(fmt.Errorf("failed to unmarshal data: %w", err))
+	}
+	return t
+}
+
+func UnmarshalArray[T any](a interface{}) []T {
+	arr := a.(primitive.A)
+	result := make([]T, len(arr))
+	for i, d := range a.(primitive.A) {
+		result[i] = UnmarshalData[T](d)
+	}
+	return result
 }

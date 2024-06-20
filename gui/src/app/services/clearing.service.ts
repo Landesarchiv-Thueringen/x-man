@@ -12,6 +12,8 @@ type ProcessingErrorResolution =
   | 'reimport-message'
   | 'delete-message'
   | 'delete-transfer-file'
+  | 'ignore-transfer-files'
+  | 'delete-transfer-files'
   | 'obsolete';
 
 export interface ProcessingError {
@@ -22,6 +24,8 @@ export interface ProcessingError {
   resolution: ProcessingErrorResolution;
   title: string;
   info: string;
+  data: any;
+  errorType: string;
   stack: string;
   agency?: Agency;
   processId: string;
@@ -48,9 +52,12 @@ export class ClearingService {
     }
   }
 
-  /** Fetches processing errors every `updateInterval` milliseconds. */
   observeProcessingErrors(): Observable<ProcessingError[]> {
     return this.processingErrors;
+  }
+
+  observeProcessingError(id: string): Observable<ProcessingError | undefined> {
+    return this.processingErrors.pipe(map((processingErrors) => processingErrors.find((e) => e.id === id)));
   }
 
   private getProcessingErrorsObservable(): Observable<ProcessingError[]> {

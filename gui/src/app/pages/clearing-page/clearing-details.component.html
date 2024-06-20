@@ -1,16 +1,16 @@
 <h2 mat-dialog-title>
-  @if (data.resolution) {
+  @if (processingError.resolution) {
     <ng-container>Gelöst: </ng-container>
   }
-  <ng-container>{{ data.title }}</ng-container>
+  <ng-container>{{ processingError.title }}</ng-container>
 </h2>
 <div mat-dialog-content>
   <div role="table">
-    @if (data.resolution) {
+    @if (processingError.resolution) {
       <div role="row" class="strong">
         <div role="cell">Lösung</div>
         <div role="cell">
-          @switch (data.resolution) {
+          @switch (processingError.resolution) {
             @case ("mark-solved") {
               Als gelöst markiert
             }
@@ -26,73 +26,91 @@
             @case ("delete-transfer-file") {
               Transferdatei gelöscht
             }
+            @case ("ignore-transfer-files") {
+              Dateien ignoriert
+            }
+            @case ("delete-transfer-files") {
+              Dateien gelöscht
+            }
             @case ("obsolete") {
               Fehler nicht mehr vorhanden
             }
             @default {
-              {{ data.resolution }}
+              {{ processingError.resolution }}
             }
           }
         </div>
       </div>
       <div role="row">
         <div role="cell">Gelöst am</div>
-        <div role="cell">{{ data.resolvedAt | date: "medium" }}</div>
+        <div role="cell">{{ processingError.resolvedAt | date: "medium" }}</div>
       </div>
     }
     <div role="row">
       <div role="cell">Festgestellt am</div>
-      <div role="cell">{{ data.createdAt | date: "medium" }}</div>
+      <div role="cell">{{ processingError.createdAt | date: "medium" }}</div>
     </div>
-    @if (data.agency) {
+    @if (processingError.agency) {
       <div role="row">
         <div role="cell">Abgebende Stelle</div>
-        <div role="cell">{{ data.agency.name }}</div>
+        <div role="cell">{{ processingError.agency.name }}</div>
       </div>
     }
-    @if (data.transferPath) {
+    @if (processingError.transferPath) {
       <div role="row">
         <div role="cell">Transfer-Datei</div>
-        <div role="cell" [innerHtml]="data.transferPath | breakOpportunities"></div>
+        <div role="cell" [innerHtml]="processingError.transferPath | breakOpportunities"></div>
       </div>
     }
-    @if (data.processId != "00000000-0000-0000-0000-000000000000") {
+    @if (processingError.processId != "00000000-0000-0000-0000-000000000000") {
       <div role="row">
         <div role="cell">Aussonderung</div>
         <div role="cell">
-          <a mat-button [routerLink]="['/nachricht', data.processId]" target="_blank">
-            {{ data.processId }}
+          <a mat-button [routerLink]="['/nachricht', processingError.processId]" target="_blank">
+            {{ processingError.processId }}
             <mat-icon iconPositionEnd>open_in_new</mat-icon>
           </a>
         </div>
       </div>
     }
-    @if (data.messageType) {
+    @if (processingError.messageType) {
       <div role="row">
         <div role="cell">Nachricht</div>
         <div role="cell">
-          <a mat-button [routerLink]="['/nachricht', data.processId, data.messageType]" target="_blank">
-            {{ data.messageType }}
+          <a
+            mat-button
+            [routerLink]="['/nachricht', processingError.processId, processingError.messageType]"
+            target="_blank"
+          >
+            {{ processingError.messageType }}
             <mat-icon iconPositionEnd>open_in_new</mat-icon>
           </a>
         </div>
       </div>
     }
   </div>
-  @if (data.info) {
+  @if (processingError.info) {
     <mat-form-field>
       <mat-label>Fehler-Informationen</mat-label>
-      <textarea matInput readonly [value]="data.info" rows="6"></textarea>
+      <textarea matInput readonly [value]="processingError.info" rows="6"></textarea>
     </mat-form-field>
   }
 
   <mat-accordion>
-    @if (data.stack) {
+    @if (processingError.data) {
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Daten</mat-panel-title>
+        </mat-expansion-panel-header>
+        <pre>{{ processingError.data | json }}</pre>
+      </mat-expansion-panel>
+    }
+    @if (processingError.stack) {
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>Stack</mat-panel-title>
         </mat-expansion-panel-header>
-        <pre>{{ data.stack }}</pre>
+        <pre>{{ processingError.stack }}</pre>
       </mat-expansion-panel>
     }
   </mat-accordion>
@@ -100,7 +118,7 @@
 
 <div mat-dialog-actions>
   <button mat-button mat-dialog-close>Schließen</button>
-  @if (!data.resolved) {
+  @if (!processingError.resolved) {
     <button mat-flat-button [matMenuTriggerFor]="menu">
       Lösen <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
     </button>
@@ -108,13 +126,13 @@
 </div>
 
 <mat-menu #menu="matMenu">
-  @if (data.agency?.contactEmail) {
+  @if (processingError.agency?.contactEmail) {
     <button mat-menu-item (click)="sendEmail()">
       <mat-icon>outgoing_mail</mat-icon>
       <span>E-Mail an Abgebende Stelle</span>
     </button>
   }
-  @if (data.processStep === "format_verification" && data.taskId !== "000000000000000000000000") {
+  @if (processingError.processStep === "format_verification" && processingError.taskId !== "000000000000000000000000") {
     <button mat-menu-item (click)="markDone()">
       <mat-icon>done</mat-icon>
       <span>Als abgeschlossen markieren</span>
@@ -125,13 +143,13 @@
       <span>Als gelöst markieren</span>
     </button>
   }
-  @if (data.taskId !== "000000000000000000000000") {
+  @if (processingError.taskId !== "000000000000000000000000") {
     <button mat-menu-item (click)="retryTask()">
       <mat-icon>restart_alt</mat-icon>
       <span>Erneut versuchen</span>
     </button>
   }
-  @if (data.messageType) {
+  @if (processingError.messageType) {
     <button mat-menu-item (click)="reimportMessage()">
       <mat-icon>replay</mat-icon>
       <span>Nachricht erneut einlesen</span>
@@ -141,10 +159,20 @@
       <span>Nachricht löschen</span>
     </button>
   }
-  @if (data.transferPath && data.agency && !data.messageType) {
+  @if (processingError.transferPath && processingError.agency && !processingError.messageType) {
     <button mat-menu-item class="danger" (click)="deleteTransferFile()">
       <mat-icon>delete</mat-icon>
       <span>Transferdatei löschen</span>
+    </button>
+  }
+  @if (processingError.errorType === "unknown-files-in-transfer-dir") {
+    <button mat-menu-item (click)="ignoreTransferFiles()">
+      <mat-icon>check_circle</mat-icon>
+      <span>Dateien ignorieren</span>
+    </button>
+    <button mat-menu-item class="danger" (click)="deleteTransferFiles()">
+      <mat-icon>delete</mat-icon>
+      <span>Dateien löschen</span>
     </button>
   }
 </mat-menu>

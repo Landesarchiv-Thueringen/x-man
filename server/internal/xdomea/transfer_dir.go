@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -29,6 +30,12 @@ const (
 // control of the watch loop for the transfer directories
 var ticker time.Ticker
 var stop chan bool
+
+type unknownFilesError []string
+
+func (err unknownFilesError) Error() string {
+	return "unknown files"
+}
 
 // TestTransferDir checks if an transfer directory configuration is works.
 func TestTransferDir(testURL string) bool {
@@ -84,7 +91,8 @@ func MonitorTransferDirs() {
 		// accessErrors maps agency IDs to known errors, so we won't add
 		// existing errors again and we can mark errors as resolved when they stop
 		// occurring.
-		accessErrors := getAccessTransferDirErrors()
+		unknownFilesErrors := getUnknownFilesErrors()
+		accessErrors := getAccessErrors()
 		agencies := db.FindAgencies(context.Background())
 		for _, agency := range agencies {
 			errorData.Agency = &agency
@@ -94,13 +102,14 @@ func MonitorTransferDirs() {
 			}
 			switch transferDirURL.Scheme {
 			case string(Local):
-				readMessagesFromFilesystem(agency, transferDirURL)
+				err = readMessagesFromFilesystem(agency, transferDirURL)
 			case string(WebDAV), string(WebDAVSec):
 				err = readMessagesFromWebDAV(agency, transferDirURL)
 			default:
 				panic("unknown transfer directory scheme")
 			}
-			if knownError, hasKnownError := accessErrors[agency.ID]; !hasKnownError && err != nil {
+			hasUnknownFiles := updateUnknownFilesError(agency, unknownFilesErrors, err)
+			if knownError, hasKnownError := accessErrors[agency.ID]; !hasUnknownFiles && !hasKnownError && err != nil {
 				errors.AddProcessingErrorWithData(err, errorData)
 			} else if hasKnownError && err == nil {
 				db.UpdateProcessingErrorResolve(knownError, db.ErrorResolutionObsolete)
@@ -109,8 +118,48 @@ func MonitorTransferDirs() {
 	}
 }
 
-func getAccessTransferDirErrors() map[primitive.ObjectID]db.ProcessingError {
+// updateUnknownFilesError takes the returned error from a readMessage function
+// and updates or creates a processing error according to what the returned
+// error indicates.
+func updateUnknownFilesError(
+	agency db.Agency,
+	unknownFilesErrors map[primitive.ObjectID]db.ProcessingError,
+	err error,
+) bool {
+	unknownFiles, hasUnknownFiles := err.(unknownFilesError)
+	e, hasProcessingError := unknownFilesErrors[agency.ID]
+	if hasProcessingError && hasUnknownFiles {
+		// Update existing processing error if unknown files changed.
+		if !reflect.DeepEqual(db.UnmarshalData[unknownFilesError](e.Data), unknownFiles) {
+			e.Data = unknownFiles
+			db.MustReplaceProcessingError(e)
+		}
+	} else if hasProcessingError && err == nil {
+		// Unknown files have disappeared. Mark the processing error as solved.
+		db.UpdateProcessingErrorResolve(e, db.ErrorResolutionObsolete)
+	} else if !hasProcessingError && hasUnknownFiles {
+		// Unknown files appeared. Created a processing error.
+		errors.AddProcessingError(db.ProcessingError{
+			Title:     "Unbekannte Dateien oder Ordner in Transferverzeichnis",
+			ErrorType: "unknown-files-in-transfer-dir",
+			Agency:    &agency,
+			Data:      unknownFiles,
+		})
+	}
+	return hasUnknownFiles
+}
+
+func getAccessErrors() map[primitive.ObjectID]db.ProcessingError {
 	errors := db.FindUnresolvedProcessingErrorsByType(context.Background(), "access-transfer-dir")
+	m := make(map[primitive.ObjectID]db.ProcessingError)
+	for _, e := range errors {
+		m[e.Agency.ID] = e
+	}
+	return m
+}
+
+func getUnknownFilesErrors() map[primitive.ObjectID]db.ProcessingError {
+	errors := db.FindUnresolvedProcessingErrorsByType(context.Background(), "unknown-files-in-transfer-dir")
 	m := make(map[primitive.ObjectID]db.ProcessingError)
 	for _, e := range errors {
 		m[e.Agency.ID] = e
@@ -126,18 +175,27 @@ func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error
 		return err
 	}
 	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
+	var unknownFiles []string
 	for _, file := range files {
-		if !file.IsDir() && isMessage(file.Name()) && !processedPaths[file.Name()] {
-			db.InsertProcessedTransferDirFile(agency.ID, file.Name())
-			go func() {
-				defer errors.HandlePanic("readMessagesFromFilesystem", &db.ProcessingError{
-					Agency:       &agency,
-					TransferPath: file.Name(),
-				})
-				waitUntilStable(file)
-				ProcessNewMessage(agency, file.Name())
-			}()
+		if processedPaths[file.Name()] || file.Name() == ".gitkeep" {
+			continue
 		}
+		if file.IsDir() || !isMessage(file.Name()) {
+			unknownFiles = append(unknownFiles, file.Name())
+			continue
+		}
+		db.InsertProcessedTransferDirFile(agency.ID, file.Name())
+		go func() {
+			defer errors.HandlePanic("readMessagesFromFilesystem", &db.ProcessingError{
+				Agency:       &agency,
+				TransferPath: file.Name(),
+			})
+			waitUntilStable(file)
+			ProcessNewMessage(agency, file.Name())
+		}()
+	}
+	if len(unknownFiles) > 0 {
+		return unknownFilesError(unknownFiles)
 	}
 	return nil
 }
@@ -171,18 +229,27 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
 		return err
 	}
 	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
+	var unknownFiles []string
 	for _, file := range files {
-		if !processedPaths[file.Name()] && !file.IsDir() && isMessage(file.Name()) {
-			db.InsertProcessedTransferDirFile(agency.ID, file.Name())
-			go func() {
-				defer errors.HandlePanic("readMessagesFromWebDAV", &db.ProcessingError{
-					Agency:       &agency,
-					TransferPath: file.Name(),
-				})
-				waitUntilStableWebDav(client, file)
-				ProcessNewMessage(agency, file.Name())
-			}()
+		if processedPaths[file.Name()] {
+			continue
 		}
+		if file.IsDir() || !isMessage(file.Name()) {
+			unknownFiles = append(unknownFiles, file.Name())
+			continue
+		}
+		db.InsertProcessedTransferDirFile(agency.ID, file.Name())
+		go func() {
+			defer errors.HandlePanic("readMessagesFromWebDAV", &db.ProcessingError{
+				Agency:       &agency,
+				TransferPath: file.Name(),
+			})
+			waitUntilStableWebDav(client, file)
+			ProcessNewMessage(agency, file.Name())
+		}()
+	}
+	if len(unknownFiles) > 0 {
+		return unknownFilesError(unknownFiles)
 	}
 	return nil
 }
@@ -209,6 +276,7 @@ func CopyMessageToTransferDirectory(agency db.Agency, messagePath string) string
 	if err != nil {
 		panic(err)
 	}
+	db.InsertProcessedTransferDirFile(agency.ID, messagePath)
 	switch transferDirURL.Scheme {
 	case string(Local):
 		return copyMessageToLocalFilesystem(transferDirURL, messagePath)

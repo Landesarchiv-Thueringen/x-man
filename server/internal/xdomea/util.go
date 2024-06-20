@@ -16,13 +16,10 @@ var Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
 var Message0504MessageSuffix = "_Aussonderung.AnbietungEmpfangBestaetigen.0504"
 var Message0505MessageSuffix = "_Aussonderung.BewertungEmpfangBestaetigen.0505"
 var Message0506MessageSuffix = "_Aussonderung.AussonderungImportBestaetigen.0506"
-var message0501RegexString = uuidRegexString + Message0501MessageSuffix + ".zip"
-var message0503RegexString = uuidRegexString + Message0503MessageSuffix + ".zip"
-var message0505RegexString = uuidRegexString + Message0505MessageSuffix + ".zip"
 var uuidRegex = regexp.MustCompile(uuidRegexString)
-var message0501Regex = regexp.MustCompile(message0501RegexString)
-var message0503Regex = regexp.MustCompile(message0503RegexString)
-var message0505Regex = regexp.MustCompile(message0505RegexString)
+var message0501Regex = regexp.MustCompile(uuidRegexString + Message0501MessageSuffix + ".zip")
+var message0503Regex = regexp.MustCompile(uuidRegexString + Message0503MessageSuffix + ".zip")
+var message0505Regex = regexp.MustCompile(uuidRegexString + Message0505MessageSuffix + ".zip")
 var namespaceRegex = regexp.MustCompile("^urn:xoev-de:xdomea:schema:([0-9].[0-9].[0=9])$")
 
 func isMessage(path string) bool {

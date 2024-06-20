@@ -3,6 +3,8 @@ package xdomea
 import (
 	"fmt"
 	"lath/xman/internal/db"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Resolve resolves the given processing error with the given resolution.
@@ -22,6 +24,14 @@ func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) 
 		err = DeleteMessage(e.ProcessID, e.MessageType, false)
 	case db.ErrorResolutionDeleteTransferFile:
 		RemoveFileFromTransferDir(*e.Agency, e.TransferPath)
+	case db.ErrorResolutionIgnoreTransferFile:
+		for _, f := range e.Data.(primitive.A) {
+			db.InsertProcessedTransferDirFile(e.Agency.ID, f.(string))
+		}
+	case db.ErrorResolutionDeleteTransferFiles:
+		for _, f := range e.Data.(primitive.A) {
+			RemoveFileFromTransferDir(*e.Agency, f.(string))
+		}
 	default:
 		panic(fmt.Sprintf("unknown resolution: %s", r))
 	}

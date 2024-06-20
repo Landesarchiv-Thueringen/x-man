@@ -16,7 +16,6 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -123,7 +122,7 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 	if !ok {
 		panic("failed to find 0503 message for process " + t.ProcessID.String())
 	}
-	d := unmarshalData[ArchiveTaskData](t.Data)
+	d := db.UnmarshalData[ArchiveTaskData](t.Data)
 	var collection db.ArchiveCollection
 	if d.CollectionID != primitive.NilObjectID {
 		collection, ok = db.FindArchiveCollection(context.Background(), d.CollectionID)
@@ -153,7 +152,7 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 }
 
 func (h *ArchiveHandler) HandleItem(ctx context.Context, itemData interface{}) error {
-	d := unmarshalData[ArchiveItemData](itemData)
+	d := db.UnmarshalData[ArchiveItemData](itemData)
 	var aip db.ArchivePackage
 	switch d.RecordType {
 	case db.RecordTypeFile:
@@ -236,19 +235,6 @@ func makeRootRecordsMap(r db.RootRecords) rootRecordsMap {
 		m.Processes[p.RecordID] = p
 	}
 	return m
-}
-
-func unmarshalData[T any](d interface{}) T {
-	var t T
-	b, err := bson.Marshal(d)
-	if err != nil {
-		panic(fmt.Errorf("failed to marshal item data: %w", err))
-	}
-	err = bson.Unmarshal(b, &t)
-	if err != nil {
-		panic(fmt.Errorf("failed to unmarshal item data: %w", err))
-	}
-	return t
 }
 
 // createAipFromFileRecord creates the archive package metadata from a file record object.
