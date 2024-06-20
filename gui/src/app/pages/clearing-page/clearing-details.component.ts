@@ -60,6 +60,19 @@ export class ClearingDetailsComponent {
     }
   }
 
+  downloadInfo() {
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.download = 'processing_error_' + this.processingError.createdAt + '.json';
+    a.href = window.URL.createObjectURL(
+      new Blob([JSON.stringify(this.processingError, null, 2)], {
+        type: 'application/json',
+      }),
+    );
+    a.click();
+    document.body.removeChild(a);
+  }
+
   retryTask() {
     this.tasksService.retryTask(this.processingError.taskId).subscribe(() => {
       this.dialogRef.close();
@@ -85,7 +98,7 @@ export class ClearingDetailsComponent {
     let body = 'Beim Einlesen einer xdomea-Nachricht ist ein Fehler aufgetreten: ' + this.processingError.title;
     if (this.processingError.info || this.processingError.data) {
       body += '\n\nFehlerausgabe vom System:';
-    if (this.processingError.info) {
+      if (this.processingError.info) {
         body += '\n' + this.processingError.info;
       }
       if (this.processingError.data) {

@@ -117,6 +117,8 @@
 </div>
 
 <div mat-dialog-actions>
+  <button mat-button class="left-button" (click)="downloadInfo()">Fehlerinformationen herunterladen</button>
+
   <button mat-button mat-dialog-close>Schließen</button>
   @if (!processingError.resolved) {
     <button mat-flat-button [matMenuTriggerFor]="menu">
