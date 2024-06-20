@@ -51,7 +51,7 @@ export class CollectionsService {
 
   updateCollection(id: string, collection: Omit<ArchiveCollection, 'id'>) {
     const newCollection = { ...collection, id };
-    this.httpClient.post<string>(environment.endpoint + '/archive-collection', newCollection).subscribe(() => {
+    this.httpClient.post<void>(environment.endpoint + '/archive-collection', newCollection).subscribe(() => {
       const collections = [...(this.collections.value ?? [])];
       const index = collections.findIndex((c) => c.id === id);
       if (index >= 0) {

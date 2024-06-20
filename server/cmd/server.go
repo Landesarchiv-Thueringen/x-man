@@ -603,7 +603,7 @@ func putAgency(c *gin.Context) {
 		return
 	}
 	id := db.InsertAgency(agency)
-	c.String(http.StatusAccepted, id.String())
+	c.JSON(http.StatusAccepted, gin.H{"id": id.Hex()})
 }
 
 func postAgency(c *gin.Context) {
