@@ -87,7 +87,7 @@ func HandlePanic(taskDescription string, data *db.ProcessingError, cb ...func(r 
 		// AddProcessingError (called below) could still panic. Prevent an
 		// application crash and try to record panic.
 		defer func() {
-			if r2 := recover(); r != nil {
+			if r2 := recover(); r2 != nil {
 				e2 := db.ProcessingError{
 					Title:     "Anwendungsfehler",
 					ErrorType: "application-error",
