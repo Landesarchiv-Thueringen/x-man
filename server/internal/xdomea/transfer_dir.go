@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/studio-b12/gowebdav"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -167,6 +168,15 @@ func getUnknownFilesErrors() map[primitive.ObjectID]db.ProcessingError {
 	return m
 }
 
+func getProcessedTransferFiles(agencyID primitive.ObjectID) map[string]bool {
+	files := db.FindTransferDirFilesForAgency(agencyID)
+	m := make(map[string]bool)
+	for _, file := range files {
+		m[file.Path] = true
+	}
+	return m
+}
+
 // readMessagesFromFilesystem checks if new messages exist for a local filesystem.
 func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error {
 	rootDir := filepath.Join(transferDirURL.Path)
@@ -174,7 +184,7 @@ func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error
 	if err != nil {
 		return err
 	}
-	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
+	processedPaths := getProcessedTransferFiles(agency.ID)
 	var unknownFiles []string
 	for _, file := range files {
 		if processedPaths[file.Name()] || file.Name() == ".gitkeep" {
@@ -184,7 +194,7 @@ func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error
 			unknownFiles = append(unknownFiles, file.Name())
 			continue
 		}
-		db.InsertProcessedTransferDirFile(agency.ID, file.Name())
+		db.InsertTransferFile(agency.ID, getProcessID(file.Name()), file.Name())
 		go func() {
 			defer errors.HandlePanic("readMessagesFromFilesystem", &db.ProcessingError{
 				Agency:       &agency,
@@ -228,7 +238,7 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
 	if err != nil {
 		return err
 	}
-	processedPaths := db.FindProcessedTransferDirFiles(agency.ID)
+	processedPaths := getProcessedTransferFiles(agency.ID)
 	var unknownFiles []string
 	for _, file := range files {
 		if processedPaths[file.Name()] {
@@ -238,7 +248,7 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
 			unknownFiles = append(unknownFiles, file.Name())
 			continue
 		}
-		db.InsertProcessedTransferDirFile(agency.ID, file.Name())
+		db.InsertTransferFile(agency.ID, getProcessID(file.Name()), file.Name())
 		go func() {
 			defer errors.HandlePanic("readMessagesFromWebDAV", &db.ProcessingError{
 				Agency:       &agency,
@@ -271,12 +281,12 @@ func waitUntilStableWebDav(client *gowebdav.Client, file fs.FileInfo) {
 }
 
 // CopyMessageToTransferDirectory copies a file from the local filesystem to a transfer directory.
-func CopyMessageToTransferDirectory(agency db.Agency, messagePath string) string {
+func CopyMessageToTransferDirectory(agency db.Agency, processID uuid.UUID, messagePath string) string {
 	transferDirURL, err := url.Parse(agency.TransferDirURL)
 	if err != nil {
 		panic(err)
 	}
-	db.InsertProcessedTransferDirFile(agency.ID, messagePath)
+	db.InsertTransferFile(agency.ID, processID, filepath.Base(messagePath))
 	switch transferDirURL.Scheme {
 	case string(Local):
 		return copyMessageToLocalFilesystem(transferDirURL, messagePath)
@@ -385,10 +395,7 @@ func copMessageFromWebDAV(transferDirURL *url.URL, webDAVFilePath string) string
 //
 // Returns the local path of the copied file.
 func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) string {
-	processID, err := getProcessID(messagePath)
-	if err != nil {
-		panic(err)
-	}
+	processID := getProcessID(messagePath)
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory contains the message ID.
 	tempDir, err := os.MkdirTemp("", processID.String())
@@ -431,7 +438,7 @@ func RemoveFileFromTransferDir(agency db.Agency, path string) {
 	default:
 		panic("unknown transfer directory scheme")
 	}
-	db.DeleteProcessedTransferDirFile(agency.ID, path)
+	db.DeleteTransferFile(agency.ID, path)
 }
 
 // RemoveFileFromLocalFilesystem deletes a file on a local filesystem.

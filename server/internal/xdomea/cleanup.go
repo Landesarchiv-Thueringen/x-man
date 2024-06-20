@@ -94,7 +94,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 	}
 	// Delete transfer file
 	if keepTransferFile {
-		db.DeleteProcessedTransferDirFile(process.Agency.ID, transferFile)
+		db.DeleteTransferFile(process.Agency.ID, transferFile)
 	} else {
 		RemoveFileFromTransferDir(process.Agency, transferFile)
 		cleanupEmptyProcess(message.MessageHead.ProcessID)
@@ -121,19 +121,10 @@ func cleanupEmptyProcess(processID uuid.UUID) {
 // getAllTransferFilesOfProcess returns the transfer paths of all messages that
 // belong to the given process.
 func getAllTransferFilesOfProcess(p db.SubmissionProcess) []string {
-	transferDirPaths := make([]string, 0)
-	if p.Message0502Path != "" {
-		transferDirPaths = append(transferDirPaths, p.Message0502Path)
+	files := db.FindTransferDirFilesForProcess(p.ProcessID)
+	filenames := make([]string, len(files))
+	for i, f := range files {
+		filenames[i] = f.Path
 	}
-	if p.Message0504Path != "" {
-		transferDirPaths = append(transferDirPaths, p.Message0504Path)
-	}
-	if p.Message0506Path != "" {
-		transferDirPaths = append(transferDirPaths, p.Message0506Path)
-	}
-	messages := db.FindMessagesForProcess(context.Background(), p.ProcessID)
-	for _, m := range messages {
-		transferDirPaths = append(transferDirPaths, m.TransferDirPath)
-	}
-	return transferDirPaths
+	return filenames
 }

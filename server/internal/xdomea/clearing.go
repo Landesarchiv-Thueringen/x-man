@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"lath/xman/internal/db"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -26,7 +27,7 @@ func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) 
 		RemoveFileFromTransferDir(*e.Agency, e.TransferPath)
 	case db.ErrorResolutionIgnoreTransferFile:
 		for _, f := range e.Data.(primitive.A) {
-			db.InsertProcessedTransferDirFile(e.Agency.ID, f.(string))
+			db.InsertTransferFile(e.Agency.ID, uuid.Nil, f.(string))
 		}
 	case db.ErrorResolutionDeleteTransferFiles:
 		for _, f := range e.Data.(primitive.A) {

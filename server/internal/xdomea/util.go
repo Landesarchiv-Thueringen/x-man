@@ -41,14 +41,14 @@ func getMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	return "", errors.New("unknown message type: " + path)
 }
 
-func getProcessID(path string) (uuid.UUID, error) {
+func getProcessID(path string) uuid.UUID {
 	fileName := filepath.Base(path)
 	s := uuidRegex.FindString(fileName)
 	processID, err := uuid.Parse(s)
 	if err != nil {
-		return processID, errors.New("failed to parse process id: " + err.Error())
+		panic("failed to parse process id: " + err.Error())
 	}
-	return processID, nil
+	return processID
 }
 
 func getMessageName(id uuid.UUID, messageType db.MessageType) string {

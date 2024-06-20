@@ -50,12 +50,17 @@ func Init() {
 }
 
 func createIndexes() {
-	createIndex("transfer_dir_files", mongo.IndexModel{
+	createIndex("transfer_files", mongo.IndexModel{
 		Keys: bson.D{
 			{"agency_id", 1},
-			{"transfer_dir_path", 1},
+			{"path", 1},
 		},
 		Options: options.Index().SetUnique(true),
+	})
+	createIndex("transfer_files", mongo.IndexModel{
+		Keys: bson.D{
+			{"process_id", 1},
+		},
 	})
 	// We use an additional field because mongo express doesn't like UUIDs for
 	// _id.

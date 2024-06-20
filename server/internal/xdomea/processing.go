@@ -27,10 +27,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		TransferPath: transferDirMessagePath,
 	}
 	// extract process ID from message filename
-	processID, err := getProcessID(transferDirMessagePath)
-	if err != nil {
-		panic(err)
-	}
+	processID := getProcessID(transferDirMessagePath)
 	// extract message type from message filename
 	messageType, err := getMessageTypeImpliedByPath(transferDirMessagePath)
 	if err != nil {
@@ -489,7 +486,7 @@ func sendMessage(
 	// important close zip writer and message archive so it can be written on disk
 	zipWriter.Close()
 	messageArchive.Close()
-	return CopyMessageToTransferDirectory(agency, messagePath)
+	return CopyMessageToTransferDirectory(agency, processID, messagePath)
 }
 
 // getMaxRecordDepth returns the nesting level of the deepest nesting within the

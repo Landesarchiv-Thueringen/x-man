@@ -13,15 +13,12 @@ import (
 
 type SubmissionProcess struct {
 	// ProcessID is the process ID as parsed from an Xdomea message (ProzessID).
-	ProcessID       uuid.UUID    `bson:"process_id" json:"processId"`
-	CreatedAt       time.Time    `bson:"created_at" json:"createdAt"`
-	Agency          Agency       `json:"agency"` // Copy, needs to be kept in sync
-	StoreDir        string       `json:"-"`
-	Message0502Path string       `bson:"message_0502_path" json:"-"`
-	Message0504Path string       `bson:"message_0504_path" json:"-"`
-	Message0506Path string       `bson:"message_0506_path" json:"-"`
-	Note            string       `json:"note"`
-	ProcessState    ProcessState `bson:"process_state" json:"processState"`
+	ProcessID    uuid.UUID    `bson:"process_id" json:"processId"`
+	CreatedAt    time.Time    `bson:"created_at" json:"createdAt"`
+	Agency       Agency       `json:"agency"` // Copy, needs to be kept in sync
+	StoreDir     string       `json:"-"`
+	Note         string       `json:"note"`
+	ProcessState ProcessState `bson:"process_state" json:"processState"`
 	// UnresolvedErrors is the number of unresolved processing errors associated
 	// with the submission process. A number greater than 0 indicates a failed
 	// state.
