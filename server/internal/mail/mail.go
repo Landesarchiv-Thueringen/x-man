@@ -78,11 +78,9 @@ func SendMailProcessingError(to string, e db.ProcessingError) error {
 func sendMail(to, subject, body string, attachments []Attachment) error {
 	addr := os.Getenv("SMTP_SERVER")
 	if addr == "" {
-		log.Println("Not sending e-mail since SMTP_SERVER is not configured")
 		return nil
-	} else {
-		log.Println("Sending e-mail to " + to)
 	}
+	log.Println("Sending e-mail to " + to)
 	from := os.Getenv("SMTP_FROM_EMAIL")
 	content := getContent(to, from, subject, body, attachments)
 	tlsMode := os.Getenv("SMTP_TLS_MODE")
@@ -146,50 +144,11 @@ func sendMailInner(
 	tlsMode string,
 	username, password string,
 ) error {
-	var c *smtp.Client
-	host, _, _ := net.SplitHostPort(addr)
-
-	// Connect to the remote SMTP server.
-	if tlsMode == "tls" {
-		tlsConfig := &tls.Config{
-			ServerName: host,
-		}
-		tlsConn, err := tls.Dial("tcp", addr, tlsConfig)
-		if err != nil {
-			return err
-		}
-		c, err = smtp.NewClient(tlsConn, host)
-		if err != nil {
-			return err
-		}
-	} else {
-		var err error
-		c, err = smtp.Dial(addr)
-		if err != nil {
-			return err
-		}
+	c, err := connect(addr, tlsMode, username, password)
+	if err != nil {
+		return err
 	}
-
-	if tlsMode == "starttls" {
-		if ok, _ := c.Extension("STARTTLS"); ok {
-			config := &tls.Config{ServerName: host}
-			if err := c.StartTLS(config); err != nil {
-				return err
-			}
-		} else {
-			return errors.New("server doesn't support STARTTLS")
-		}
-	}
-
-	if username != "" {
-		auth := smtp.PlainAuth("", username, password, host)
-		if ok, _ := c.Extension("AUTH"); !ok {
-			return errors.New("server doesn't support AUTH")
-		}
-		if err := c.Auth(auth); err != nil {
-			return err
-		}
-	}
+	defer c.Close()
 
 	// Set the sender and recipient first
 	if err := c.Mail(from); err != nil {
@@ -214,9 +173,82 @@ func sendMailInner(
 	}
 
 	// Send the QUIT command and close the connection.
-	err = c.Quit()
+	return c.Quit()
+}
+
+// TestConnection tries to connect with the configured SMTP server.
+func TestConnection() error {
+	addr := os.Getenv("SMTP_SERVER")
+	tlsMode := os.Getenv("SMTP_TLS_MODE")
+	if tlsMode == "" {
+		return errors.New("SMTP_TLS_MODE not set")
+	} else if tlsMode != "off" && tlsMode != "tls" && tlsMode != "starttls" {
+		return fmt.Errorf("invalid value for SMTP_TLS_MODE: %s", tlsMode)
+	}
+	username := os.Getenv("SMTP_USER")
+	password := os.Getenv("SMTP_PASSWORD")
+
+	c, err := connect(addr, tlsMode, username, password)
 	if err != nil {
 		return err
 	}
-	return nil
+	defer c.Close()
+	err = c.Quit()
+	return err
+}
+
+func connect(
+	addr string,
+	tlsMode string,
+	username, password string,
+) (*smtp.Client, error) {
+	var c *smtp.Client
+	host, _, _ := net.SplitHostPort(addr)
+
+	// Connect to the remote SMTP server.
+	if tlsMode == "tls" {
+		tlsConfig := &tls.Config{
+			ServerName: host,
+		}
+		tlsConn, err := tls.Dial("tcp", addr, tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+		c, err = smtp.NewClient(tlsConn, host)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		c, err = smtp.Dial(addr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if tlsMode == "starttls" {
+		if ok, _ := c.Extension("STARTTLS"); ok {
+			config := &tls.Config{ServerName: host}
+			if err := c.StartTLS(config); err != nil {
+				c.Close()
+				return nil, err
+			}
+		} else {
+			c.Close()
+			return nil, errors.New("server doesn't support STARTTLS")
+		}
+	}
+
+	if username != "" {
+		auth := smtp.PlainAuth("", username, password, host)
+		if ok, _ := c.Extension("AUTH"); !ok {
+			c.Close()
+			return nil, errors.New("server doesn't support AUTH")
+		}
+		if err := c.Auth(auth); err != nil {
+			c.Close()
+			return nil, err
+		}
+	}
+	return c, nil
 }

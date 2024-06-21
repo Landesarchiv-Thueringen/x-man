@@ -11,6 +11,7 @@ graph TD;
 	main-->auth
 	main-->db
 	main-->errors
+	main-->mail
 	main-->report
 	main-->routines
 	main-->tasks

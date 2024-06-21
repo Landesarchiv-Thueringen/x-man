@@ -10,9 +10,11 @@ import (
 	"lath/xman/internal/auth"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
+	"lath/xman/internal/mail"
 	"lath/xman/internal/report"
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
+	"lath/xman/internal/verification"
 	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
@@ -76,7 +78,8 @@ func main() {
 	admin.DELETE("api/message/:processId/:messageType", deleteMessage)
 	admin.GET("api/processing-errors", getProcessingErrors)
 	admin.POST("api/processing-errors/resolve/:id", resolveProcessingError)
-	admin.GET("api/users", Users)
+	admin.GET("api/admin-config", getAdminConfig)
+	admin.GET("api/users", users)
 	admin.GET("api/agencies", getAgencies)
 	admin.PUT("api/agency", putAgency)
 	admin.POST("api/agency", postAgency)
@@ -95,11 +98,12 @@ func main() {
 func initServer() {
 	log.Println(defaultResponse)
 	db.Init()
-	MigrateData()
+	migrateData()
+	testConfiguration()
 	go xdomea.MonitorTransferDirs()
 }
 
-func MigrateData() {
+func migrateData() {
 	_, ok := db.FindServerStateXman()
 	if !ok {
 		if os.Getenv("INIT_TEST_SETUP") == "true" {
@@ -111,6 +115,37 @@ func MigrateData() {
 		log.Printf("Database is up do date with X-Man version %s\n", XMAN_VERSION)
 	}
 	db.UpsertServerStateXmanVersion(XMAN_VERSION)
+}
+
+func testConfiguration() {
+	log.Println("Testing connection to LDAP server...")
+	auth.TestConnection()
+	log.Println("Connection to LDAP server successful")
+	if os.Getenv("SMTP_SERVER") != "" {
+		log.Println("Testing connection to SMTP server...")
+		err := mail.TestConnection()
+		if err != nil {
+			log.Fatal("Failed to connect to SMTP server: ", err)
+		}
+		log.Println("Connection to SMTP server successful")
+	}
+	if os.Getenv("BORG_URL") != "" {
+		log.Println("Testing connection to BORG...")
+		err := verification.TestConnection()
+		if err != nil {
+			log.Fatal("Failed to connect to BORG: ", err)
+		}
+		log.Println("Connection to BORG successful")
+	}
+	archiveTarget := os.Getenv("ARCHIVE_TARGET")
+	if archiveTarget == "dimag" {
+		log.Println("Testing connection to DIMAG...")
+		err := dimag.TestConnection()
+		if err != nil {
+			log.Fatal("Failed to connect to DIMAG: ", err)
+		}
+		log.Println("Connection to DIMAG successful")
+	}
 }
 
 func getDefaultResponse(c *gin.Context) {
@@ -545,7 +580,17 @@ func archive0503Message(c *gin.Context) {
 	archive.ArchiveSubmission(process, collection, userID)
 }
 
-func Users(c *gin.Context) {
+func getAdminConfig(c *gin.Context) {
+	smtpServer := os.Getenv("SMTP_SERVER")
+	smtpTlsMode := os.Getenv("SMTP_TLS_MODE")
+
+	c.JSON(http.StatusOK, gin.H{
+		"smtpServer":  smtpServer,
+		"smtpTlsMode": smtpTlsMode,
+	})
+}
+
+func users(c *gin.Context) {
 	users := auth.ListUsers()
 	c.JSON(http.StatusOK, users)
 }

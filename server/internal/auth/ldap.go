@@ -54,6 +54,12 @@ type authorizationResult struct {
 	UserEntry *userEntry
 }
 
+func TestConnection() {
+	l := connectReadonly()
+	defer l.Close()
+	getLdapUserEntries(l)
+}
+
 func GetDisplayName(userID string) string {
 	l := connectReadonly()
 	defer l.Close()

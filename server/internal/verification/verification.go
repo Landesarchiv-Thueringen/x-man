@@ -128,14 +128,23 @@ func initVerificationHandler(t *db.Task) (tasks.ItemHandler, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to find 0503 message for process %v", t.ProcessID)
 	}
-	resp, err := http.Head(borgURL)
+	err := TestConnection()
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach BORG: %w", err)
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to reach BORG: HEAD \"%s\": %d", borgURL, resp.StatusCode)
-	}
+
 	return &VerificationHandler{message: message}, nil
+}
+
+func TestConnection() error {
+	resp, err := http.Head(borgURL)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HEAD \"%s\": %d", borgURL, resp.StatusCode)
+	}
+	return nil
 }
 
 func isInvalid(f db.FormatVerification) bool {

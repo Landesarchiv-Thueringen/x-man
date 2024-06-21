@@ -25,6 +25,20 @@ type Connection struct {
 	sftpClient *sftp.Client
 }
 
+func TestConnection() error {
+	c, err := InitConnection()
+	if err != nil {
+		return err
+	}
+	defer CloseConnection(c)
+	err = testUploadDir(c.sftpClient)
+	if err != nil {
+		return err
+	}
+	GetCollectionIDs()
+	return nil
+}
+
 func InitConnection() (Connection, error) {
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
