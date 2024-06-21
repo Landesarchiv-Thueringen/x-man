@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"lath/xman/internal/db"
 	"os"
 	"strconv"
 	"time"
@@ -16,7 +18,27 @@ type validationResult struct {
 	Permissions *permissions
 }
 
+var tokenSecret []byte
+
+func Init() {
+	s, ok := db.FindServerStateXman()
+	if !ok || len(s.TokenSecret) == 0 {
+		fmt.Println("Generating new token secret")
+		tokenSecret = make([]byte, 40)
+		_, err := rand.Read(tokenSecret)
+		if err != nil {
+			panic(err)
+		}
+		db.UpsertServerStateXmanTokenSecret(tokenSecret)
+	} else {
+		tokenSecret = s.TokenSecret
+	}
+}
+
 func createToken(user userEntry) string {
+	if len(tokenSecret) == 0 {
+		panic("token secret not initialized")
+	}
 	token_lifespan, err := strconv.Atoi(os.Getenv("TOKEN_DAY_LIFESPAN"))
 	if err != nil {
 		panic(err)
@@ -27,7 +49,7 @@ func createToken(user userEntry) string {
 		"exp":    time.Now().Add(time.Hour * 24 * time.Duration(token_lifespan)).Unix(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(getTokenSecret())
+	tokenString, err := token.SignedString(tokenSecret)
 	if err != nil {
 		panic(err)
 	}
@@ -35,12 +57,15 @@ func createToken(user userEntry) string {
 }
 
 func validateToken(tokenString string) (validationResult, error) {
+	if len(tokenSecret) == 0 {
+		panic("token secret not initialized")
+	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return getTokenSecret(), nil
+		return tokenSecret, nil
 	})
 	if err != nil {
 		return validationResult{}, err
@@ -61,12 +86,4 @@ func validateToken(tokenString string) (validationResult, error) {
 		UserID:      userID,
 		Permissions: &perms,
 	}, nil
-}
-
-func getTokenSecret() []byte {
-	signingKey := []byte(os.Getenv("TOKEN_SECRET"))
-	if len(signingKey) == 0 {
-		panic("missing env variable: TOKEN_SECRET")
-	}
-	return signingKey
 }

@@ -98,6 +98,7 @@ func main() {
 func initServer() {
 	log.Println(defaultResponse)
 	db.Init()
+	auth.Init()
 	migrateData()
 	testConfiguration()
 	go xdomea.MonitorTransferDirs()

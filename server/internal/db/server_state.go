@@ -9,14 +9,8 @@ import (
 )
 
 type ServerStateXman struct {
-	Version string
-}
-
-func UpsertServerStateXmanVersion(version string) {
-	coll := mongoDatabase.Collection("server_state")
-	update := bson.D{{"$set", bson.D{{"version", version}}}}
-	opts := options.Update().SetUpsert(true)
-	coll.UpdateByID(context.Background(), "xman", update, opts)
+	Version     string
+	TokenSecret []byte `bson:"token_secret"`
 }
 
 func FindServerStateXman() (ServerStateXman, bool) {
@@ -30,4 +24,18 @@ func FindServerStateXman() (ServerStateXman, bool) {
 		panic(err)
 	}
 	return s, true
+}
+
+func UpsertServerStateXmanVersion(version string) {
+	coll := mongoDatabase.Collection("server_state")
+	update := bson.D{{"$set", bson.D{{"version", version}}}}
+	opts := options.Update().SetUpsert(true)
+	coll.UpdateByID(context.Background(), "xman", update, opts)
+}
+
+func UpsertServerStateXmanTokenSecret(tokenSecret []byte) {
+	coll := mongoDatabase.Collection("server_state")
+	update := bson.D{{"$set", bson.D{{"token_secret", tokenSecret}}}}
+	opts := options.Update().SetUpsert(true)
+	coll.UpdateByID(context.Background(), "xman", update, opts)
 }
