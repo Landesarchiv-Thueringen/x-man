@@ -396,14 +396,14 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Submis
 // checkMaxRecordObjectDepth checks if the configured maximal depth of record objects in the message
 // comply with the configuration. The xdomea specification allows a maximal depth of 5.
 func checkMaxRecordObjectDepth(agency db.Agency, process db.SubmissionProcess, message db.Message) error {
-	maxDepthConfig := os.Getenv("XDOMEA_MAX_RECORD_OBJECT_DEPTH")
+	maxDepthConfig := os.Getenv("MAX_RECORD_DEPTH")
 	// This configuration does not need to be set.
 	if maxDepthConfig == "" {
 		return nil
 	}
 	maxDepth, err := strconv.Atoi(maxDepthConfig)
 	if err != nil {
-		panic("failed to read XDOMEA_MAX_RECORD_OBJECT_DEPTH")
+		panic("invalid value for MAX_RECORD_DEPTH: " + maxDepthConfig)
 	}
 	if maxDepth < message.MaxRecordDepth {
 		info := fmt.Sprintf(

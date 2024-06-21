@@ -13,9 +13,9 @@ services:
       - DEBUG_MODE=true
       - GIN_MODE=debug
       - INIT_TEST_SETUP=true
+      - TRANSFER_DIR_SCAN_INTERVAL_SECONDS=1
       - WEBDAV_USERNAME=${WEBDAV_USERNAME}
       - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
-      - TRANSFER_DIR_SCAN_INTERVAL_SECONDS=1
     ports:
       - 3000:80
     extra_hosts:

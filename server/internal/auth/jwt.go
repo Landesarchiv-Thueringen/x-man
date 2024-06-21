@@ -39,14 +39,14 @@ func createToken(user userEntry) string {
 	if len(tokenSecret) == 0 {
 		panic("token secret not initialized")
 	}
-	token_lifespan, err := strconv.Atoi(os.Getenv("TOKEN_DAY_LIFESPAN"))
+	tokenLifetime, err := strconv.Atoi(os.Getenv("LOGIN_TOKEN_LIFETIME_DAYS"))
 	if err != nil {
 		panic(err)
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": user.ID,
 		"perms":  user.Permissions,
-		"exp":    time.Now().Add(time.Hour * 24 * time.Duration(token_lifespan)).Unix(),
+		"exp":    time.Now().Add(time.Hour * 24 * time.Duration(tokenLifetime)).Unix(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(tokenSecret)

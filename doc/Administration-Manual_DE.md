@@ -26,7 +26,7 @@ Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](..
 
 - Validität der Nachricht nach dem xdomea-Standard durch eine XML-Schemaprüfung
 - Inhalt der Nachricht im Kontext eines laufenden Aussonderungsprozesses, insbesondere Abgaben bei vorangegangener Bewertung einer Anbietung
-- Maximale Verschachtlungstiefe nach Einstellung von `XDOMEA_MAX_RECORD_OBJECT_DEPTH`. In der aktuellen Version sieht xdomea eine maximale Verschachtlungstiefe von 5 Ebenen vor, jedoch darf der Wert in Absprache zwischen Archiven und abgebenden Stellen verändert werden.
+- Maximale Verschachtlungstiefe nach Einstellung von `MAX_RECORD_DEPTH`. In der aktuellen Version sieht xdomea eine maximale Verschachtlungstiefe von 5 Ebenen vor, jedoch darf der Wert in Absprache zwischen Archiven und abgebenden Stellen verändert werden.
 
 ## Bewertung von Anbietungen
 
