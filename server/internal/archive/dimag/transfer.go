@@ -7,6 +7,7 @@ import (
 	"io"
 	"lath/xman/internal/archive/shared"
 	"lath/xman/internal/db"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -58,23 +59,30 @@ func InitConnection() (Connection, error) {
 	if sftpPassword != "" {
 		auths = append(auths, ssh.Password(sftpPassword))
 	}
+	var sftpHostKey string
+	serverState, ok := db.FindServerStateDIMAG()
+	if ok {
+		sftpHostKey = serverState.SFTPHostKey
+	}
 	config := ssh.ClientConfig{
 		User: sftpUser,
 		Auth: auths,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			hostKeyString := os.Getenv("DIMAG_SFTP_HOST_KEY")
-			splitHostKey := strings.Split(hostKeyString, " ")
+			// Save the host key to the database when connecting for the first time.
+			if len(sftpHostKey) == 0 {
+				log.Println("Saving SFTP host key for DIMAG")
+				sftpHostKey = fmt.Sprintf("%s %s", key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
+				db.UpsertServerStateDimagSFTPHostKey(sftpHostKey)
+			}
+			splitHostKey := strings.Split(sftpHostKey, " ")
 			if len(splitHostKey) == 2 &&
 				splitHostKey[0] == key.Type() &&
 				splitHostKey[1] == base64.StdEncoding.EncodeToString(key.Marshal()) {
 				return nil
 			}
-			return fmt.Errorf("failed to verify host key.\n\n"+
-				"If you have connected to %s in the past, this could mean that someone is messing with your connection and tries to steal secrets!\n\n"+
-				"If you are trying to connect to %s for the first time or changed the server's SSH keys, add the following line to your .env file and run the action again:\n\n"+
-				"DIMAG_SFTP_HOST_KEY=\"%s %s\"",
-				hostname, hostname,
-				key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
+			return fmt.Errorf("failed to verify host key.\n\n" +
+				"This could mean that someone is messing with your connection and tries to steal secrets!\n\n" +
+				"If the server's SSH keys were changed, manually reset the \"dimag\" entry in the xman database in collection server_state")
 		},
 	}
 	addr := fmt.Sprintf("%s:%d", url.Host, PortSFTP)
