@@ -198,11 +198,11 @@ func sendEmailNotifications(e db.ProcessingError) {
 				mailAddr, err := auth.GetMailAddress(user.ID)
 				errorData := db.ProcessingError{
 					Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
-					Info:      err.Error(),
 					CreatedAt: time.Now(),
 					Stack:     string(debug.Stack()),
 				}
 				if err != nil {
+					errorData.Info = err.Error()
 					db.InsertProcessingErrorFailsafe(errorData)
 				} else {
 					err = mail.SendMailProcessingError(mailAddr, e)
