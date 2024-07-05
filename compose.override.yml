@@ -68,5 +68,3 @@ services:
     volumes:
       - ./data/tls/mailhog-tls.crt:/etc/stunnel/stunnel.pem:ro
       - ./data/tls/mailhog-tls.key:/etc/stunnel/stunnel.key:ro
-    ports:
-      - 465:465 # smtp tls
