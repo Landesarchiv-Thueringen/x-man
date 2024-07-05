@@ -105,8 +105,8 @@ func initServer() {
 }
 
 func migrateData() {
-	_, ok := db.FindServerStateXman()
-	if !ok {
+	s, _ := db.FindServerStateXman()
+	if s.Version == "" {
 		if os.Getenv("INIT_TEST_SETUP") == "true" {
 			log.Println("Initializing database with test data...")
 			xdomea.InitTestSetup()
