@@ -16,6 +16,7 @@ services:
       - TRANSFER_DIR_SCAN_INTERVAL_SECONDS=1
       - WEBDAV_USERNAME=${WEBDAV_USERNAME}
       - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
+      - NO_PROXY=${NO_PROXY},webdav
     ports:
       - 3000:80
     extra_hosts:
