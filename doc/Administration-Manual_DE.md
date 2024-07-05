@@ -63,7 +63,7 @@ Bei der verschlüsselten Kommunikation mit externen Diensten (z.B. LDAP, DIMAG, 
 
 ## E-Mail-Benachrichtigungen
 
-x-man erlaubt die Benachrichtigung von Nutzern bei neuen xdomea-Nachrichten oder abgeschlossenen Prozessen, sowie von Administratoren bei neuen Fehlern. Dazu muss ein SMTP-Server konfiguriert werden. Dies geschieht über Umgebungsvariablen mit dem Präfix `SMTP`. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)).
+x-man erlaubt die Benachrichtigung von Nutzern bei neuen xdomea-Nachrichten oder abgeschlossenen Aufgaben, sowie von Administratoren bei neuen Fehlern. Dazu muss ein SMTP-Server konfiguriert werden. Dies geschieht über Umgebungsvariablen mit dem Präfix `SMTP`. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)).
 
 E-Mail-Adressen werden den Nutzereinträgen aus LDAP entnommen und sind nicht konfigurierbar. Nutzer und Administratoren haben jedoch die Möglichkeit in der Anwendung, E-Mail-Benachrichtigungen für sich selbst zu aktivieren und deaktivieren.
 
@@ -75,7 +75,7 @@ Im Fall von negativen Ergebnissen wird für die Abgabe ein Fehler in der Steueru
 
 ## Administration
 
-Nutzer, die der Gruppe für Administratoren angehören (siehe [Nutzerverwaltung mit LDAP](#nutzerverwaltung-mit-ldap)), können über die Weboberfläche von x-man auf das Administrations-Panel zugreifen. Hier stehen verschiedene Ansichten für die Anpassung von Laufzeit-Konfiguration und die Einsicht in den laufende Prozesse der Anwendung zur Verfügung. Konfiguration, die mit Umgebungsvariablen gesteuert wird, kann hier jedoch nicht angepasst werden.
+Nutzer, die der Gruppe für Administratoren angehören (siehe [Nutzerverwaltung mit LDAP](#nutzerverwaltung-mit-ldap)), können über die Weboberfläche von x-man auf das Administrations-Panel zugreifen. Hier stehen verschiedene Ansichten für die Anpassung von Laufzeit-Konfiguration und die Einsicht in den laufende Aufgaben der Anwendung zur Verfügung. Konfiguration, die mit Umgebungsvariablen gesteuert wird, kann hier jedoch nicht angepasst werden.
 
 ### Abgebende Stellen
 
@@ -102,11 +102,11 @@ Hier werden die DIMAG-Bestände eingetragen, in die Abgaben archiviert werden. D
 
 Hier können die Nutzer, die vom LDAP-System abgerufen werden, eingesehen werden. x-man erlaubt keine eigene Nutzerverwaltung und zeigt lediglich die vom LDAP-System vorgegebenen Daten. In der Liste sind nur Nutzer aufgeführt, die durch ihre Gruppenzugehörigkeit Zugriffsrechte auf das System haben (sieh [Nutzerverwaltung mit LDAP](#nutzerverwaltung-mit-ldap)).
 
-### Prozesse
+### Aufgaben
 
-![Administrations-Panel Prozesse](./img/admin-tasks.png)
+![Administrations-Panel Aufgaben](./img/admin-tasks.png)
 
-Hier werden laufende Prozesse des x-man Servers angezeigt. Die Ansicht erlaubt zur Zeit kein Einflussnahme auf laufende oder abgeschlossene Prozesse und dient nur der Nachvollziehbarkeit.
+Hier werden länger laufende Aufgaben des x-man Servers angezeigt. Aufgaben können pausiert, abgebrochen und neu gestartet werden. Es gibt die Aufgabenarten "Formatverifikation" und "Archivierung".
 
 ## Fehlerbehebung
 

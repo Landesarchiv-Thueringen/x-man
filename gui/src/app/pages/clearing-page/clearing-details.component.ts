@@ -76,7 +76,7 @@ export class ClearingDetailsComponent {
   retryTask() {
     this.tasksService.retryTask(this.processingError.taskId).subscribe(() => {
       this.dialogRef.close();
-      this.notificationService.show('Prozess wird wiederholt...');
+      this.notificationService.show('Aufgabe wird wiederholt...');
     });
   }
 

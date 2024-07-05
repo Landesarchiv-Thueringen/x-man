@@ -51,7 +51,7 @@ export const routes: Routes = [
       { path: 'abgebende-stellen', component: AgenciesComponent },
       { path: 'bestände', component: CollectionsComponent },
       { path: 'mitarbeiter', component: UsersComponent },
-      { path: 'prozesse', component: TasksComponent },
+      { path: 'aufgaben', component: TasksComponent },
     ],
   },
   {

@@ -1,4 +1,4 @@
-<h1>Prozesse ({{ dataSource.data.length }})</h1>
+<h1>Aufgaben ({{ dataSource.data.length }})</h1>
 
 <mat-table
   [dataSource]="dataSource"
@@ -38,7 +38,7 @@
 
   <!-- Type Column -->
   <ng-container matColumnDef="type">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>Prozess</mat-header-cell>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Aufgabe</mat-header-cell>
     <mat-cell *matCellDef="let element">
       {{ element | taskTitle }}
       <button
