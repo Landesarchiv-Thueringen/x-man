@@ -51,9 +51,23 @@ func AddProcessingError(e db.ProcessingError) {
 	e.CreatedAt = time.Now()
 	e.Stack = string(debug.Stack())
 	e = augmentProcessingError(e)
-	log.Printf("processing error: %s\n", e.Title)
+	log.Printf("New processing error: %s\n", printableErrorInfo(e))
 	db.InsertProcessingError(e)
 	sendEmailNotifications(e)
+}
+
+func printableErrorInfo(e db.ProcessingError) string {
+	i := e.Title
+	if e.Agency != nil {
+		i += "\n\tAgency: " + e.Agency.Name
+	}
+	if e.ProcessID != uuid.Nil {
+		i += "\n\tProcess ID: " + e.ProcessID.String()
+	}
+	if e.Info != "" {
+		i += "\n\t" + e.Info
+	}
+	return i
 }
 
 // HandlePanic checks for a panic in the current go routine and recovers from

@@ -257,12 +257,15 @@ ItemLoop:
 					hasFailedItems = true
 					hasUnexpectedError = true
 				})
+				log.Printf("Processing item %s...\n", item.Label)
 				err := h.HandleItem(ctx, item.Data)
 				if err != nil {
+					log.Printf("Error when processing item %s: %s\n", item.Label, err.Error())
 					t.Items[i].State = db.TaskStateFailed
 					t.Items[i].Error = err.Error()
 					hasFailedItems = true
 				} else {
+					log.Printf("%s done\n", item.Label)
 					t.Items[i].State = db.TaskStateDone
 				}
 				updateProgress(t)

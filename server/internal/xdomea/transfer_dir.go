@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
+	"log"
 	"net/url"
 	"os"
 	"path"
@@ -426,6 +427,7 @@ func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) st
 
 // RemoveFileFromTransferDir deletes a file on a transfer directory.
 func RemoveFileFromTransferDir(agency db.Agency, path string) {
+	log.Printf("Removing file from transfer dir for %s: %s\n", agency.Name, path)
 	transferDirURL, err := url.Parse(agency.TransferDirURL)
 	if err != nil {
 		panic(err)
