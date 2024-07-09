@@ -73,13 +73,6 @@ export class ClearingDetailsComponent {
     document.body.removeChild(a);
   }
 
-  retryTask() {
-    this.tasksService.retryTask(this.processingError.taskId).subscribe(() => {
-      this.dialogRef.close();
-      this.notificationService.show('Aufgabe wird wiederholt...');
-    });
-  }
-
   sendEmail() {
     let subject: string;
     switch (this.processingError.messageType) {
@@ -122,6 +115,13 @@ export class ClearingDetailsComponent {
   markDone() {
     this.clearingService.resolveError(this.processingError.id, 'mark-done').subscribe(() => {
       this.dialogRef.close();
+    });
+  }
+
+  retryTask() {
+    this.clearingService.resolveError(this.processingError.id, 'retry-task').subscribe(() => {
+      this.dialogRef.close();
+      this.notificationService.show('Aufgabe wird wiederholt...');
     });
   }
 

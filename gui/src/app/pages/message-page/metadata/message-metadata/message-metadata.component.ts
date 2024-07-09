@@ -235,7 +235,11 @@ export class MessageMetadataComponent {
         date: state.formatVerification.completedAt!,
         onClick,
       });
-    } else if (state.formatVerification.taskState) {
+    } else if (
+      state.formatVerification.taskState &&
+      state.formatVerification.taskState !== 'failed'
+      // The failed state is already displayed by a processing error.
+    ) {
       items.push({
         title: 'Formatverifikation läuft...',
         icon: this.getTaskIcon(state.formatVerification.taskState),

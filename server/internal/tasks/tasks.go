@@ -1,3 +1,5 @@
+// Package tasks handles time-consuming tasks handled by the backend. Tasks can
+// be paused, resumed, and aborted by the user.
 package tasks
 
 import (
@@ -137,6 +139,9 @@ func resume(t *db.Task) {
 
 func retry(t *db.Task) {
 	log.Printf("Retrying %s for process %v...\n", t.Type, t.ProcessID)
+	if e, ok := db.FindUnresolvedProcessingErrorForTask(context.Background(), t.ID); ok {
+		db.UpdateProcessingErrorResolve(e, db.ErrorResolutionRetryTask)
+	}
 	t.Error = ""
 	for i, item := range t.Items {
 		switch item.State {
@@ -358,7 +363,7 @@ func markFailed(t *db.Task, errMsg string) {
 		for _, item := range t.Items {
 			switch item.State {
 			case db.TaskStateFailed:
-				itemErrs = append(itemErrs, item.Error)
+				itemErrs = append(itemErrs, item.Label+":\n\t"+item.Error)
 			}
 		}
 		if len(itemErrs) > 0 {
@@ -370,21 +375,14 @@ func markFailed(t *db.Task, errMsg string) {
 		}
 	}
 	updateProgress(t)
-	db.MustUpdateProcessStepError(t.ProcessID, t.Type)
-	e, ok := db.FindUnresolvedProcessingErrorForTask(context.Background(), t.ID)
-	if ok {
-		e.Info = errMsg
-		db.MustReplaceProcessingError(e)
-	} else {
-		e := db.ProcessingError{
-			ProcessID:   t.ProcessID,
-			ProcessStep: t.Type,
-			Title:       getDisplayName(t.Type) + " fehlgeschlagen",
-			Info:        t.Error,
-			TaskID:      t.ID,
-		}
-		errors.AddProcessingError(e)
+	e := db.ProcessingError{
+		ProcessID:   t.ProcessID,
+		ProcessStep: t.Type,
+		Title:       getDisplayName(t.Type) + " fehlgeschlagen",
+		Info:        errMsg,
+		TaskID:      t.ID,
 	}
+	errors.AddProcessingError(e)
 }
 
 func getDisplayName(taskType db.ProcessStepType) string {

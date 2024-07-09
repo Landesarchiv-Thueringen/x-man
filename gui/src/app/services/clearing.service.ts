@@ -9,6 +9,7 @@ import { UpdatesService } from './updates.service';
 type ProcessingErrorResolution =
   | 'mark-solved'
   | 'mark-done'
+  | 'retry-task'
   | 'reimport-message'
   | 'delete-message'
   | 'delete-transfer-file'

@@ -3,6 +3,7 @@ package xdomea
 import (
 	"fmt"
 	"lath/xman/internal/db"
+	"lath/xman/internal/tasks"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,6 +20,8 @@ func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) 
 		// Do nothing
 	case db.ErrorResolutionMarkDone:
 		err = db.UpdateProcessStepCompletion(e.ProcessID, e.ProcessStep, true, user)
+	case db.ErrorResolutionRetryTask:
+		err = tasks.Action(e.TaskID, db.TaskActionRetry)
 	case db.ErrorResolutionReimportMessage:
 		err = DeleteMessage(e.ProcessID, e.MessageType, true)
 	case db.ErrorResolutionDeleteMessage:

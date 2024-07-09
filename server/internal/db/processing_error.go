@@ -16,6 +16,7 @@ type ProcessingErrorResolution string
 const (
 	ErrorResolutionMarkSolved          ProcessingErrorResolution = "mark-solved"
 	ErrorResolutionMarkDone            ProcessingErrorResolution = "mark-done"
+	ErrorResolutionRetryTask           ProcessingErrorResolution = "retry-task"
 	ErrorResolutionReimportMessage     ProcessingErrorResolution = "reimport-message"
 	ErrorResolutionDeleteMessage       ProcessingErrorResolution = "delete-message"
 	ErrorResolutionDeleteTransferFile  ProcessingErrorResolution = "delete-transfer-file"
