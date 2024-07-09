@@ -19,6 +19,8 @@ services:
       - NO_PROXY=${NO_PROXY},webdav
     ports:
       - 3000:80
+    # This is only needed in case you want to connect to a service via a port
+    # exposed on the host, e.g., to Borg.
     extra_hosts:
       - host.docker.internal:host-gateway
 
