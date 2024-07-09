@@ -27,7 +27,7 @@ services:
       - GIN_MODE=debug
 
   mongo-express:
-    image: mongo-express
+    image: docker.io/mongo-express
     ports:
       - 8081:8081
     environment:
@@ -35,7 +35,7 @@ services:
       ME_CONFIG_BASICAUTH: false
 
   webdav:
-    image: bytemark/webdav
+    image: docker.io/bytemark/webdav
     environment:
       USERNAME: ${WEBDAV_USERNAME}
       PASSWORD: ${WEBDAV_PASSWORD}
@@ -55,13 +55,13 @@ services:
 
   # SMTP test server with a web UI to inspect received e-mails
   mailhog:
-    image: mailhog/mailhog
+    image: docker.io/mailhog/mailhog
     ports:
       - 8025:8025 # web ui
 
   # TLS wrapper for Mailhog
   mailhog-tls:
-    image: dweomer/stunnel
+    image: docker.io/dweomer/stunnel
     environment:
       - STUNNEL_SERVICE=smtps
       - STUNNEL_ACCEPT=465

@@ -11,7 +11,7 @@ services:
       - ${PORT}:80
 
   mongo:
-    image: mongo
+    image: docker.io/mongo
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 1s
