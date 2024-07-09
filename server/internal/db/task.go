@@ -83,8 +83,17 @@ func FindTasksMetadata(ctx context.Context) []Task {
 }
 
 func FindTasks(ctx context.Context) []Task {
-	coll := mongoDatabase.Collection("tasks")
 	filter := bson.D{}
+	return findTasks(ctx, filter)
+}
+
+func FindTasksForProcess(ctx context.Context, processID uuid.UUID) []Task {
+	filter := bson.D{{"process_id", processID}}
+	return findTasks(ctx, filter)
+}
+
+func findTasks(ctx context.Context, filter interface{}) []Task {
+	coll := mongoDatabase.Collection("tasks")
 	var tasks []Task
 	cursor, err := coll.Find(ctx, filter)
 	handleError(ctx, err)
@@ -152,13 +161,12 @@ func mustUpdateTask(id primitive.ObjectID, update interface{}) {
 	})
 }
 
-func DeleteCompletedTasksOlderThan(t time.Time) (deletedCount int64) {
+func DeleteTask(ID primitive.ObjectID) {
 	coll := mongoDatabase.Collection("tasks")
 	filter := bson.D{
-		{"state", bson.D{{"$ne", "running"}}},
-		{"updated_at", bson.D{{"$lt", t}}},
+		{"_id", ID},
 	}
-	result, err := coll.DeleteMany(context.Background(), filter)
+	result, err := coll.DeleteOne(context.Background(), filter)
 	if err != nil {
 		panic(err)
 	}
@@ -168,5 +176,4 @@ func DeleteCompletedTasksOlderThan(t time.Time) (deletedCount int64) {
 			Operation:  UpdateOperationDelete,
 		})
 	}
-	return result.DeletedCount
 }

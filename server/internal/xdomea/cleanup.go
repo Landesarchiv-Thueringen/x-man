@@ -27,7 +27,7 @@ func DeleteProcess(processID uuid.UUID) bool {
 	transferFiles := getAllTransferFilesOfProcess(process)
 	log.Println("Deleting process", processID)
 	// Cancel running tasks
-	tasks.CancelTasksForProcess(processID, nil)
+	tasks.CancelAndDeleteTasksForProcess(processID, nil)
 	// Delete database entries
 	db.DeleteProcess(processID)
 	db.DeleteMessagesForProcess(processID)
@@ -66,7 +66,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 		taskTypes[db.ProcessStepFormatVerification] = true
 		taskTypes[db.ProcessStepArchiving] = true
 	}
-	tasks.CancelTasksForProcess(processID, taskTypes)
+	tasks.CancelAndDeleteTasksForProcess(processID, taskTypes)
 	// Delete database entries
 	db.DeleteMessage(message)
 	db.DeleteRecordsForMessage(message.MessageHead.ProcessID, message.MessageType)
@@ -109,7 +109,6 @@ func cleanupEmptyProcess(processID uuid.UUID) {
 	if processID == uuid.Nil {
 		panic("called cleanupEmptyProcess with empty string")
 	}
-	log.Println("cleanupEmptyProcess", processID)
 	messages := db.FindMessagesForProcess(context.Background(), processID)
 	if len(messages) == 0 {
 		if found := DeleteProcess(processID); !found {

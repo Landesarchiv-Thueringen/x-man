@@ -25,7 +25,7 @@ func Init() {
 		for {
 			log.Println("Starting cleanup routines...")
 			cleanupArchivedProcesses()
-			cleanupTasksAndErrors()
+			cleanupErrors()
 			log.Println("Cleanup routines done")
 			time.Sleep(interval)
 		}
@@ -53,19 +53,19 @@ func cleanupArchivedProcesses() {
 	}
 }
 
-// cleanupTasksAndErrors deletes solved processing errors, that are not
-// associated with a still existing submission process, and completed tasks.
+// cleanupErrors deletes solved processing errors that are not associated with a
+// still existing submission process.
 //
 // Processing errors that _are_ associated with a submission process will be
 // deleted with the submission process (except application errors).
 //
-// The time after which tasks and errors are deleted can be configured with the
-// environment variable `DELETE_TASKS_AND_ERRORS_AFTER_DAYS`
-func cleanupTasksAndErrors() {
-	defer errors.HandlePanic("cleanupTasksAndErrors", nil)
-	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_TASKS_AND_ERRORS_AFTER_DAYS"))
+// The time after which errors are deleted can be configured with the
+// environment variable `DELETE_ERRORS_AFTER_DAYS`
+func cleanupErrors() {
+	defer errors.HandlePanic("cleanupErrors", nil)
+	deleteDeltaDays, err := strconv.Atoi(os.Getenv("DELETE_ERRORS_AFTER_DAYS"))
 	if err != nil {
-		panic("missing or improper env variable DELETE_TASKS_AND_ERRORS_AFTER_DAYS")
+		panic("missing or improper env variable DELETE_ERRORS_AFTER_DAYS")
 	}
 	deleteBeforeTime := time.Now().Add(-1 * time.Hour * 24 * time.Duration(deleteDeltaDays))
 	// Delete resolved process errors, that are not associated with a still
@@ -79,11 +79,6 @@ func cleanupTasksAndErrors() {
 			log.Println("Deleting processing error", e.Title)
 			db.DeleteProcessingError(e.ID)
 		}
-	}
-	// Delete completed tasks
-	deletedCount := db.DeleteCompletedTasksOlderThan(deleteBeforeTime)
-	if deletedCount > 0 {
-		log.Println("Deleted", deletedCount, "tasks")
 	}
 }
 

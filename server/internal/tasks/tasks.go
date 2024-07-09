@@ -396,12 +396,23 @@ func getDisplayName(taskType db.ProcessStepType) string {
 	}
 }
 
-func CancelTasksForProcess(processID uuid.UUID, types map[db.ProcessStepType]bool) {
+// CancelAndDeleteTasksForProcess cancels all running tasks for and deletes all
+// tasks for the given process ID.
+//
+// If types is given, it cancels and deletes only the tasks matching the type.
+// Otherwise, it cancels and deletes all tasks for the process.
+func CancelAndDeleteTasksForProcess(processID uuid.UUID, types map[db.ProcessStepType]bool) {
 	for _, r := range runningTasks {
 		if r.Task.ProcessID == processID {
 			if types == nil || types[r.Task.Type] {
 				cancelRunning(r)
+				db.DeleteTask(r.Task.ID)
 			}
+		}
+	}
+	for _, t := range db.FindTasksForProcess(context.Background(), processID) {
+		if types == nil || types[t.Type] {
+			db.DeleteTask(t.ID)
 		}
 	}
 }
