@@ -140,7 +140,7 @@ test.describe('Fry', () => {
     await page.goto('http://localhost:8080/nachricht/9a75050f-323a-4e84-94c9-a889aa2b4fe8');
     await expect(page).toHaveURL('http://localhost:8080/nachricht/9a75050f-323a-4e84-94c9-a889aa2b4fe8/0503/details');
     await page.getByRole('button', { name: 'Abgabe archivieren' }).click();
-    await page.getByRole('button', { name: 'Archivierungsprozess starten' }).click();
+    await page.getByRole('button', { name: 'Archivierung starten' }).click();
     await expect(page.getByText('Archivierung gestartet')).toBeVisible();
     await expect(page.locator('mat-panel-description')).toContainText('Abgabe archiviert');
   });
