@@ -94,3 +94,24 @@ to remove the `TLS_INSECURE_SKIP_VERIFY` option for URLs that you provided
 certificates for.
 
 Remember to remove the generated `Test-RootCA.crt` for production use.
+
+## Logging
+
+X-man and its services use Docker's [logging mechanism](https://docs.docker.com/config/containers/logging/). View logs via `docker` or `docker compose`, for example
+
+```sh
+docker compose logs -f server
+```
+
+> [!CAUTION]
+> By default, the size of log files is not limited and log files can quickly become very large!
+
+To enable Docker's recommended logging mechanism with a default of 5 rotating files and a maximum of 20 MB, add the following to `/etc/docker/daemon.json`:
+
+```json
+{
+  "log-driver": "local"
+}
+```
+
+See https://docs.docker.com/config/containers/logging/configure/ for further information.
