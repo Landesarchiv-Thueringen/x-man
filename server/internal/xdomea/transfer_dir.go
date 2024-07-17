@@ -111,9 +111,11 @@ func MonitorTransferDirs() {
 				panic("unknown transfer directory scheme")
 			}
 			hasUnknownFiles := updateUnknownFilesError(agency, unknownFilesErrors, err)
-			if knownError, hasKnownError := accessErrors[agency.ID]; !hasUnknownFiles && !hasKnownError && err != nil {
+			// Handle errors other than unknown files.
+			hasError := err != nil && !hasUnknownFiles
+			if knownError, hasKnownError := accessErrors[agency.ID]; hasError && !hasKnownError {
 				errors.AddProcessingErrorWithData(err, errorData)
-			} else if hasKnownError && err == nil {
+			} else if hasKnownError && !hasError {
 				db.UpdateProcessingErrorResolve(knownError, db.ErrorResolutionObsolete)
 			}
 		}
@@ -234,8 +236,7 @@ func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
 	if err != nil {
 		return err
 	}
-	path := transferDirURL.Path
-	files, err := client.ReadDir(path)
+	files, err := client.ReadDir("/")
 	if err != nil {
 		return err
 	}
