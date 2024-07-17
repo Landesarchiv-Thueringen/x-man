@@ -4,6 +4,7 @@
 
 - Feature: Formatverifikation und Archivierung können pausiert und abgebrochen werden
 - Feature: Server-Konfiguration wird beim Programm-Start getestet
+- Fix: Zugriff auf WebDav mit nicht-leerem Wurzel-Pfad
 - Intern: Migration von PostgreSQL nach MongoDB
 - Intern: Fehlerbehandlung überarbeitet
 - Intern: Automatische Seitenaktualisierung optimiert
