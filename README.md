@@ -50,3 +50,5 @@ Siehe
 ## Lizenz
 
 Dieses Projekt wird unter der [GNU General Public License Version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.de.html) veröffentlicht.
+
+Von der Lizenz ausgenommen sind xdomea-Schemadateien (.xsd), deren Verwendung vom Rechteinhaber im Rahmen dieses Projekts uneingeschränkt erlaubt wurde.
