@@ -1,47 +1,5 @@
-<div class="file-analysis-table">
-  <div class="table-content">
-    <mat-table [dataSource]="dataSource">
-      <ng-container *ngFor="let tableColumn of generatedTableColumnList" matColumnDef="{{ tableColumn }}">
-        <mat-header-cell *matHeaderCellDef>{{ tableColumn | fileFeature }}</mat-header-cell>
-        <mat-cell *matCellDef="let fileInfo">
-          <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'true'">check</mat-icon>
-          <mat-icon *ngIf="fileInfo[tableColumn]?.value === 'false'">close</mat-icon>
-          <div
-            *ngIf="fileInfo[tableColumn] && !['true', 'false'].includes(fileInfo[tableColumn].value)"
-            innerHtml="{{ fileInfo[tableColumn].value | breakOpportunities }}"
-          ></div>
-        </mat-cell>
-      </ng-container>
-
-      <!-- status-icons column -->
-      <ng-container matColumnDef="status">
-        <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
-        <mat-cell *matCellDef="let fileInfo">
-          <mat-icon *ngIf="fileInfo.icons.uncertain" class="uncertain-icon">warning</mat-icon>
-          <mat-icon *ngIf="fileInfo.icons.valid" class="valid-icon">check</mat-icon>
-          <mat-icon *ngIf="fileInfo.icons.invalid" class="invalid-icon">close</mat-icon>
-          <mat-icon *ngIf="fileInfo.icons.error" class="error-icon">error</mat-icon>
-          <button
-            mat-button
-            class="open-details-button"
-            (click)="openDetails(fileInfo)"
-            aria-label="Details anzeigen"
-          ></button>
-        </mat-cell>
-      </ng-container>
-
-      <mat-header-row *matHeaderRowDef="tableColumnList; sticky: true"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: tableColumnList"></mat-row>
-    </mat-table>
-  </div>
-
-  <div class="table-toolbar">
-    <span class="spacer"></span>
-    <mat-paginator
-      [pageSize]="10"
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      showFirstLastButtons
-      (page)="onPaginate($event)"
-    ></mat-paginator>
-  </div>
-</div>
+<app-file-analysis-table
+  [results]="results"
+  [getResult]="getResult"
+  [properties]="properties"
+></app-file-analysis-table>

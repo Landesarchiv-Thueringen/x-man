@@ -24,7 +24,7 @@ func GenerateControlFile(
 	for _, primaryDocument := range primaryDocuments {
 		fileIndexItems = append(
 			fileIndexItems,
-			GetIndexItemForPrimaryDocument(primaryDocument, importDir),
+			GetIndexItemForPrimaryDocument(primaryDocument.PrimaryDocument, importDir),
 		)
 	}
 	xmlIndexItem := IndexItem{

@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ToolResults } from '../pages/message-page/metadata/primary-documents-table/file-analysis/results';
 
 export interface Message {
   messageType: MessageType;
@@ -35,11 +36,7 @@ export interface Institution {
   abbreviation: string;
 }
 
-export interface FormatVerification {
-  fileIdentificationResults: ToolResult[];
-  fileValidationResults: ToolResult[];
-  summary: Summary;
-}
+export type FormatVerification = ToolResults;
 
 export interface ToolResult {
   toolName: string;
@@ -71,6 +68,7 @@ export interface ToolConfidence {
 }
 
 export interface PrimaryDocumentData {
+  recordId: string;
   filename: string;
   filenameOriginal: string;
   creatorName: string;

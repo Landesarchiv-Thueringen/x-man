@@ -1,157 +1,71 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { v4 as uuidv4 } from 'uuid';
+import { Component } from '@angular/core';
 
-import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { switchMap } from 'rxjs';
-import { Feature, MessageService, PrimaryDocumentData } from '../../../../services/message.service';
-import { PrimaryDocument } from '../../../../services/records.service';
-import { BreakOpportunitiesPipe } from '../../../../shared/break-opportunities.pipe';
+import { switchMap, tap } from 'rxjs';
+import { MessageService, PrimaryDocumentData } from '../../../../services/message.service';
+import { notNull } from '../../../../utils/predicates';
 import { MessagePageService } from '../../message-page.service';
-import { FileOverviewComponent } from '../primary-document/primary-document-metadata.component';
-import { FileFeaturePipe } from '../tool-output/file-attribut-de.pipe';
-import { StatusIcons, StatusIconsService } from './status-icons.service';
-
-const OVERVIEW_FEATURES = [
-  'relativePath',
-  'fileName',
-  'fileSize',
-  'puid',
-  'mimeType',
-  'formatVersion',
-  'valid',
-] as const;
-export type OverviewFeature = (typeof OVERVIEW_FEATURES)[number];
-
-type FileOverview = {
-  [key in OverviewFeature]?: FileFeature;
-} & {
-  id: FileFeature;
-  icons: StatusIcons;
-};
-
-interface FileFeature {
-  value: string;
-  confidence?: number;
-  feature?: Feature;
-  tooltip?: string;
-}
+import {
+  FileAnalysisTableComponent,
+  FilePropertyDefinition,
+} from './file-analysis/file-analysis-table/file-analysis-table.component';
+import { FileResult } from './file-analysis/results';
 
 @Component({
   selector: 'app-primary-documents-table',
   templateUrl: './primary-documents-table.component.html',
   styleUrls: ['./primary-documents-table.component.scss'],
   standalone: true,
-  imports: [
-    BreakOpportunitiesPipe,
-    CommonModule,
-    FileFeaturePipe,
-    MatButtonModule,
-    MatIconModule,
-    MatPaginatorModule,
-    MatTableModule,
-    MatToolbarModule,
-  ],
+  imports: [FileAnalysisTableComponent],
 })
-export class PrimaryDocumentsTableComponent implements AfterViewInit {
-  dataSource: MatTableDataSource<FileOverview>;
-  generatedTableColumnList: string[];
-  tableColumnList: string[];
-  primaryDocuments: Map<string, PrimaryDocument>;
-
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+export class PrimaryDocumentsTableComponent {
+  results?: FileResult[];
+  getResult = async (id: string) => this.results?.find((result) => result.id === id);
+  properties: FilePropertyDefinition[] = [
+    { key: 'filenameComplete', label: 'Dateiname', inTable: false },
+    { key: 'recordId', label: 'Dokument', inTable: false },
+    { key: 'filename' },
+    { key: 'mimeType' },
+    { key: 'formatVersion' },
+    { key: 'status' },
+  ];
 
   constructor(
-    private dialog: MatDialog,
     private messageService: MessageService,
-    private statusIcons: StatusIconsService,
     private messagePage: MessagePageService,
   ) {
-    this.primaryDocuments = new Map<string, PrimaryDocument>();
-    this.dataSource = new MatTableDataSource<FileOverview>([]);
-    this.tableColumnList = [];
-    this.generatedTableColumnList = ['fileName'];
+    let processId: string;
     this.messagePage
       .observeMessage()
       .pipe(
         takeUntilDestroyed(),
+        tap((message) => (processId = message.messageHead.processID)),
         switchMap((message) => this.messageService.getPrimaryDocumentsData(message.messageHead.processID)),
       )
-      .subscribe((primaryDocuments) => this.processFileInformation(primaryDocuments));
-  }
-
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.paginator.pageSize = this.getPageSize();
-  }
-
-  processFileInformation(primaryDocuments: PrimaryDocumentData[]): void {
-    const featureKeys: string[] = ['fileName'];
-    const data: FileOverview[] = [];
-    for (let primaryDocument of primaryDocuments) {
-      if (!primaryDocument.formatVerification) {
-        continue;
-      }
-      const primaryDocumentID: string = uuidv4();
-
-      let fileOverview: FileOverview = {
-        id: { value: primaryDocumentID },
-        icons: this.statusIcons.getIcons(primaryDocument),
-      };
-      fileOverview['fileName'] = { value: primaryDocument.filename };
-      for (let featureKey in primaryDocument.formatVerification.summary) {
-        if (isOverviewFeature(featureKey) && featureKey !== 'valid') {
-          featureKeys.push(featureKey);
-          fileOverview[featureKey] = {
-            value: primaryDocument.formatVerification.summary[featureKey].values[0].value,
-            confidence: primaryDocument.formatVerification.summary[featureKey].values[0].score,
-            feature: primaryDocument.formatVerification.summary[featureKey],
-          };
-        }
-      }
-      this.primaryDocuments.set(primaryDocumentID, primaryDocument);
-      data.push(fileOverview);
-    }
-    this.dataSource.data = data;
-    const sortedFeatures = this.messageService.sortFeatures(featureKeys);
-    this.generatedTableColumnList = sortedFeatures;
-    this.tableColumnList = sortedFeatures.concat(['status']);
-  }
-
-  openDetails(fileOverview: FileOverview): void {
-    if (fileOverview) {
-      const id: string = fileOverview['id'].value;
-      const primaryDocument = this.primaryDocuments.get(id);
-      this.dialog.open(FileOverviewComponent, {
-        autoFocus: false,
-        maxWidth: '80vw',
-        data: {
-          primaryDocument: primaryDocument,
-        },
+      .subscribe((primaryDocuments) => {
+        const mapping = primaryDocumentToFileResult.bind(null, processId);
+        this.results = primaryDocuments.map(mapping).filter(notNull);
       });
-    }
-  }
-
-  onPaginate(event: PageEvent): void {
-    window.localStorage.setItem('format-verification-table-page-size', event.pageSize.toString());
-  }
-
-  private getPageSize(): number {
-    const savedPageSize = window.localStorage.getItem('format-verification-table-page-size');
-    if (savedPageSize) {
-      return parseInt(savedPageSize);
-    } else {
-      return 10;
-    }
   }
 }
 
-function isOverviewFeature(feature: string): feature is OverviewFeature {
-  return (OVERVIEW_FEATURES as readonly string[]).includes(feature);
+function primaryDocumentToFileResult(processId: string, primaryDocument: PrimaryDocumentData): FileResult | undefined {
+  if (!primaryDocument.formatVerification) {
+    return undefined;
+  }
+  return {
+    id: primaryDocument.filename,
+    filename:
+      primaryDocument.filenameOriginal ||
+      primaryDocument.filename.replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/, ''),
+    info: {
+      recordId: {
+        value: primaryDocument.recordId,
+        routerLink: ['nachricht', processId, '0503', 'dokument', primaryDocument.recordId],
+      },
+      filenameOriginal: { value: primaryDocument.filenameOriginal },
+      filenameComplete: { value: primaryDocument.filename },
+    },
+    toolResults: primaryDocument.formatVerification,
+  };
 }

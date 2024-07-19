@@ -233,7 +233,7 @@ func checkMessageValidity(agency db.Agency, messageType db.MessageType, storageP
 func collectPrimaryDocumentsData(
 	process db.SubmissionProcess,
 	message db.Message,
-	primaryDocuments []db.PrimaryDocument,
+	primaryDocuments []db.PrimaryDocumentContext,
 ) error {
 	var missingDocuments []string
 	var primaryDocumentsData []db.PrimaryDocumentData
@@ -245,7 +245,8 @@ func collectPrimaryDocumentsData(
 		} else {
 			primaryDocumentsData = append(primaryDocumentsData, db.PrimaryDocumentData{
 				ProcessID:       process.ProcessID,
-				PrimaryDocument: d,
+				RecordID:        d.RecordID,
+				PrimaryDocument: d.PrimaryDocument,
 				FileSize:        s.Size(),
 			})
 		}

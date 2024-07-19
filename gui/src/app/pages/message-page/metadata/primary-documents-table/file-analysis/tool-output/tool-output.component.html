@@ -7,18 +7,18 @@
         <mat-panel-title>Extrahierte Eigenschaften</mat-panel-title>
       </mat-expansion-panel-header>
 
-      <table mat-table [dataSource]="extractedFeatures | keyvalue">
+      <mat-table [dataSource]="extractedFeatures | keyvalue">
         <ng-container matColumnDef="key">
-          <th mat-header-cell *matHeaderCellDef>Eigenschaft</th>
-          <td mat-cell *matCellDef="let element">{{ element.key | fileFeature }}</td>
+          <mat-header-cell *matHeaderCellDef>Eigenschaft</mat-header-cell>
+          <mat-cell *matCellDef="let element">{{ element.key | fileFeature }}</mat-cell>
         </ng-container>
         <ng-container matColumnDef="value">
-          <th mat-header-cell *matHeaderCellDef>Wert</th>
-          <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+          <mat-header-cell *matHeaderCellDef>Wert</mat-header-cell>
+          <mat-cell *matCellDef="let element">{{ element.value }}</mat-cell>
         </ng-container>
-        <tr mat-header-row *matHeaderRowDef="['key', 'value']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['key', 'value']"></tr>
-      </table>
+        <mat-header-row *matHeaderRowDef="['key', 'value']"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: ['key', 'value']"></mat-row>
+      </mat-table>
     </mat-expansion-panel>
 
     <mat-expansion-panel *ngIf="toolResult.toolOutput">

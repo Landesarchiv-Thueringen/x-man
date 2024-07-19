@@ -1,0 +1,22 @@
+.mat-mdc-dialog-container :host mat-dialog-content {
+  // Make room for box shadows.
+  padding-top: 3px;
+  padding-bottom: 4px;
+  // Reserve space for the scrollbar.
+  //
+  // Otherwise, space for the scrollbar will be missing when determining the
+  // dialog's width and content will be scrolled horizontally.
+  scrollbar-gutter: stable;
+}
+
+.cdk-column-key {
+  flex-basis: 10em;
+}
+
+.cdk-column-value {
+  flex-grow: 5;
+}
+
+pre {
+  overflow: auto;
+}

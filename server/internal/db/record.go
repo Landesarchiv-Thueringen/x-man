@@ -148,6 +148,11 @@ type PrimaryDocument struct {
 	CreationTime     string `xml:"DatumUhrzeit" bson:"creation_time" json:"creationTime"`
 }
 
+type PrimaryDocumentContext struct {
+	PrimaryDocument `bson:"inline"`
+	RecordID        uuid.UUID `bson:"record_id" json:"recordId"`
+}
+
 type fileRecordObjectVersionDifferences struct {
 	RecordID        uuid.UUID        `xml:"Identifikation>ID"`
 	GeneralMetadata *GeneralMetadata `xml:"AllgemeineMetadaten"`
@@ -447,8 +452,8 @@ func getContainedRecordIds(n NestedRecords) []uuid.UUID {
 	return ids
 }
 
-func GetPrimaryDocuments(r *RootRecords) []PrimaryDocument {
-	var d []PrimaryDocument
+func GetPrimaryDocuments(r *RootRecords) []PrimaryDocumentContext {
+	var d []PrimaryDocumentContext
 	for _, c := range r.Files {
 		d = append(d, GetPrimaryDocumentsForFile(&c)...)
 	}
@@ -461,8 +466,8 @@ func GetPrimaryDocuments(r *RootRecords) []PrimaryDocument {
 	return d
 }
 
-func GetPrimaryDocumentsForFile(r *FileRecord) []PrimaryDocument {
-	var d []PrimaryDocument
+func GetPrimaryDocumentsForFile(r *FileRecord) []PrimaryDocumentContext {
+	var d []PrimaryDocumentContext
 	for _, c := range r.Subfiles {
 		d = append(d, GetPrimaryDocumentsForFile(&c)...)
 	}
@@ -475,8 +480,8 @@ func GetPrimaryDocumentsForFile(r *FileRecord) []PrimaryDocument {
 	return d
 }
 
-func GetPrimaryDocumentsForProcess(r *ProcessRecord) []PrimaryDocument {
-	var d []PrimaryDocument
+func GetPrimaryDocumentsForProcess(r *ProcessRecord) []PrimaryDocumentContext {
+	var d []PrimaryDocumentContext
 	for _, c := range r.Subprocesses {
 		d = append(d, GetPrimaryDocumentsForProcess(&c)...)
 	}
@@ -486,11 +491,14 @@ func GetPrimaryDocumentsForProcess(r *ProcessRecord) []PrimaryDocument {
 	return d
 }
 
-func GetPrimaryDocumentsForDocument(r *DocumentRecord) []PrimaryDocument {
-	var d []PrimaryDocument
+func GetPrimaryDocumentsForDocument(r *DocumentRecord) []PrimaryDocumentContext {
+	var d []PrimaryDocumentContext
 	for _, version := range r.Versions {
 		for _, format := range version.Formats {
-			d = append(d, format.PrimaryDocument)
+			d = append(d, PrimaryDocumentContext{
+				PrimaryDocument: format.PrimaryDocument,
+				RecordID:        r.RecordID,
+			})
 		}
 	}
 	for _, c := range r.Attachments {

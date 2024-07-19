@@ -23,7 +23,7 @@ type ArchivePackage struct {
 	RootRecordIDs []uuid.UUID `bson:"root_record_ids"`
 	// PrimaryDocuments are all primary documents contained in the archive
 	// package.
-	PrimaryDocuments []PrimaryDocument `bson:"primary_documents"`
+	PrimaryDocuments []PrimaryDocumentContext `bson:"primary_documents"`
 	// PackageID is the ID assigned by DIMAG when importing the package.
 	PackageID string `bson:"package_id"`
 }

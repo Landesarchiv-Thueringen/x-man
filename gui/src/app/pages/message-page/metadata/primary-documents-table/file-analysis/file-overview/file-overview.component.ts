@@ -4,20 +4,29 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import {
-  FeatureValue,
-  MessageService,
-  PrimaryDocumentData,
-  Summary,
-  ToolConfidence,
-  ToolResult,
-} from '../../../../services/message.service';
-import { StatusIconsService } from '../primary-documents-table/status-icons.service';
-import { FileFeaturePipe } from '../tool-output/file-attribut-de.pipe';
+import { RouterModule } from '@angular/router';
+import { FilePropertyDefinition } from '../file-analysis-table/file-analysis-table.component';
+import { FileFeaturePipe } from '../pipes/file-feature.pipe';
+import { FeatureValue, FileResult, Summary, ToolConfidence, ToolResult } from '../results';
+import { StatusIconsService } from '../status-icons.service';
 import { ToolOutputComponent } from '../tool-output/tool-output.component';
 
+const OVERVIEW_FEATURES = ['puid', 'mimeType', 'formatVersion', 'valid'] as const;
+type OverviewFeature = (typeof OVERVIEW_FEATURES)[number];
+
+const featureOrder = new Map<string, number>([
+  ['puid', 4],
+  ['mimeType', 5],
+  ['formatVersion', 6],
+  ['encoding', 7],
+  ['', 101],
+  ['wellFormed', 1001],
+  ['valid', 1002],
+]);
+
 interface DialogData {
-  primaryDocument: PrimaryDocumentData;
+  fileResult: FileResult;
+  properties: FilePropertyDefinition[];
 }
 
 interface FileFeature {
@@ -35,49 +44,64 @@ const ALWAYS_VISIBLE_COLUMNS = ['puid', 'mimeType'];
 
 @Component({
   selector: 'app-file-overview',
-  templateUrl: './primary-document-metadata.component.html',
-  styleUrls: ['./primary-document-metadata.component.scss'],
+  templateUrl: './file-overview.component.html',
+  styleUrls: ['./file-overview.component.scss'],
   standalone: true,
-  imports: [MatDialogModule, MatIconModule, CommonModule, MatTableModule, FileFeaturePipe, MatButtonModule],
+  imports: [
+    CommonModule,
+    FileFeaturePipe,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTableModule,
+    RouterModule,
+  ],
 })
 export class FileOverviewComponent {
-  readonly primaryDocument = this.data.primaryDocument;
-  readonly icons = this.statusIcons.getIcons(this.data.primaryDocument);
+  readonly fileResult: FileResult = this.data.fileResult;
+  readonly icons = this.statusIcons.getIcons(this.data.fileResult);
   dataSource = new MatTableDataSource<FileFeatures>();
   tableColumnList: string[] = [];
+  infoProperties = this.data.properties.filter(
+    (p) =>
+      p.key !== 'filename' &&
+      p.key !== 'status' &&
+      !OVERVIEW_FEATURES.includes(p.key as (typeof OVERVIEW_FEATURES)[number]),
+  );
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) private data: DialogData,
+    @Inject(MAT_DIALOG_DATA) public data: DialogData,
     private statusIcons: StatusIconsService,
     private dialog: MatDialog,
-    private messageService: MessageService,
   ) {
+    console.log('infoProperties', this.infoProperties);
     this.initTableData();
   }
 
   initTableData(): void {
-    if (this.primaryDocument?.formatVerification?.summary) {
-      const summary = this.primaryDocument.formatVerification.summary;
+    if (this.fileResult.toolResults.summary) {
+      const summary = this.fileResult.toolResults.summary;
       const toolNames: string[] = [];
-      let featureNames: string[] = [];
-      let toolResults: ToolResult[] = this.primaryDocument.formatVerification.fileIdentificationResults;
-      if (this.primaryDocument.formatVerification.fileValidationResults) {
-        toolResults = toolResults.concat(this.primaryDocument.formatVerification.fileValidationResults);
+      let featureNames: OverviewFeature[] = [];
+      let toolResults: ToolResult[] = this.fileResult.toolResults.fileIdentificationResults ?? [];
+      if (this.fileResult.toolResults.fileValidationResults) {
+        toolResults = toolResults.concat(this.fileResult.toolResults.fileValidationResults);
       }
       toolResults.forEach((toolResult: ToolResult) => {
         toolNames.push(toolResult.toolName);
       });
       for (let featureKey in summary) {
-        featureNames.push(featureKey);
+        if (isOverviewFeature(featureKey)) {
+          featureNames.push(featureKey);
+        }
       }
-      featureNames = this.messageService.selectOverviewFeatures(featureNames);
       this.dataSource.data = this.getTableRows(summary, toolNames, featureNames);
     }
   }
 
   getTableRows(summary: Summary, toolNames: string[], featureNames: string[]): FileFeatures[] {
     const rows: FileFeatures[] = [this.getCumulativeResult(summary, featureNames)];
-    const sortedFeatures: string[] = this.messageService.sortFeatures([...ALWAYS_VISIBLE_COLUMNS, ...featureNames]);
+    const sortedFeatures: string[] = sortFeatures([...ALWAYS_VISIBLE_COLUMNS, ...featureNames]);
     this.tableColumnList = ['tool', ...sortedFeatures];
     if (this.icons.error) {
       this.tableColumnList.push('error');
@@ -145,14 +169,49 @@ export class FileOverviewComponent {
           toolResult,
         },
         autoFocus: false,
+        maxWidth: '80vw',
       });
     }
   }
 
+  exportResult(): void {
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.download = 'borg-results.json';
+    a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.fileResult, null, 2));
+    a.click();
+    document.body.removeChild(a);
+  }
+
   private findToolResult(toolName: string): ToolResult | undefined {
     return [
-      ...(this.data.primaryDocument.formatVerification?.fileIdentificationResults ?? []),
-      ...(this.data.primaryDocument.formatVerification?.fileValidationResults ?? []),
+      ...(this.fileResult.toolResults.fileIdentificationResults ?? []),
+      ...(this.fileResult.toolResults.fileValidationResults ?? []),
     ].find((result) => result.toolName === toolName);
   }
+}
+
+function isOverviewFeature(feature: string): feature is OverviewFeature {
+  return (OVERVIEW_FEATURES as readonly string[]).includes(feature);
+}
+
+/** Sorts feature keys and removes duplicates. */
+function sortFeatures(features: string[]): string[] {
+  features = [...new Set(features)];
+  return features.sort((f1: string, f2: string) => {
+    let orderF1: number | undefined = featureOrder.get(f1);
+    if (!orderF1) {
+      orderF1 = featureOrder.get('');
+    }
+    let orderF2: number | undefined = featureOrder.get(f2);
+    if (!orderF2) {
+      orderF2 = featureOrder.get('');
+    }
+    if (orderF1! < orderF2!) {
+      return -1;
+    } else if (orderF1! > orderF2!) {
+      return 1;
+    }
+    return 0;
+  });
 }

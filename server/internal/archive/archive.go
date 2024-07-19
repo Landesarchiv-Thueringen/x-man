@@ -280,7 +280,7 @@ func createAipFromDocumentRecords(
 	collectionID primitive.ObjectID,
 
 ) db.ArchivePackage {
-	var primaryDocuments []db.PrimaryDocument
+	var primaryDocuments []db.PrimaryDocumentContext
 	for _, d := range documentRecords {
 		primaryDocuments = append(primaryDocuments, db.GetPrimaryDocumentsForDocument(&d)...)
 	}

@@ -12,6 +12,7 @@ import (
 // addition to the metadata given in an xdomea message.
 type PrimaryDocumentData struct {
 	ProcessID          uuid.UUID `bson:"process_id" json:"processId"`
+	RecordID           uuid.UUID `bson:"record_id" json:"recordId"`
 	PrimaryDocument    `bson:"inline"`
 	FileSize           int64               `bson:"file_size" json:"fileSize"`
 	FormatVerification *FormatVerification `bson:"format_verification" json:"formatVerification"`

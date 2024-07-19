@@ -1,6 +1,25 @@
-<h1 mat-dialog-title>Formatverifikation</h1>
+<h2 mat-dialog-title>{{ data.fileResult.filename }}</h2>
 
 <mat-dialog-content>
+  <div class="info-table" role="table">
+    @for (property of infoProperties; track property.key) {
+      <div role="row">
+        <div role="cell">{{ property.label }}</div>
+        @if (data.fileResult.info[property.key]; as row) {
+          <div role="cell">
+            @if (row.routerLink) {
+              <a mat-button [routerLink]="row.routerLink" target="_blank">
+                {{ row.displayString ?? row.value }}
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            } @else {
+              {{ row.displayString ?? row.value }}
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
   <div *ngIf="icons.uncertain" class="icon-explanation">
     <mat-icon class="uncertain-icon">warning</mat-icon>
     <div>
@@ -12,13 +31,13 @@
   <div *ngIf="icons.valid" class="icon-explanation">
     <mat-icon class="valid-icon">check</mat-icon>
     <div>
-      <p>Die Datei ist eine valide Datei ihres Typs.</p>
+      <p>Der Datei ist eine valide Datei ihres Typs.</p>
     </div>
   </div>
   <div *ngIf="icons.invalid" class="icon-explanation">
     <mat-icon class="invalid-icon">close</mat-icon>
     <div>
-      <p>Die Datei ist invalide.</p>
+      <p>Der Datei ist invalide.</p>
       <p>Die Ursache kann eine Erstellung mit ungeeigneten Werkzeugen oder eine Beschädigung der Datei sein.</p>
       <p>Dies bedeutet nicht automatisch, dass die Datei unbrauchbar ist.</p>
     </div>
@@ -68,10 +87,17 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="tableColumnList"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: tableColumnList"></mat-row>
+    <mat-row
+      *matRowDef="let row; columns: tableColumnList"
+      [class.summary-row]="row.tool.value === 'Gesamtergebnis'"
+    ></mat-row>
   </mat-table>
 </mat-dialog-content>
 
 <mat-dialog-actions>
+  <button mat-button class="button-left" (click)="exportResult()">
+    <mat-icon>summarize</mat-icon>
+    Datei-Ergebnis exportieren
+  </button>
   <button mat-button mat-dialog-close>Schließen</button>
 </mat-dialog-actions>
