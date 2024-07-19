@@ -80,7 +80,9 @@ export class ProcessService {
   }
 
   setNote(processId: string, note: string): Observable<void> {
-    return this.httpClient.patch(this.apiEndpoint + '/process-note/' + processId, note).pipe(map(() => void 0));
+    return this.httpClient
+      .patch(this.apiEndpoint + '/process-note/' + processId, note)
+      .pipe(map(() => void 0));
   }
 
   getReport(processId: string): Observable<Blob> {
@@ -88,6 +90,8 @@ export class ProcessService {
   }
 
   deleteProcess(processId: string): Observable<void> {
-    return this.httpClient.delete(this.apiEndpoint + '/process/' + processId).pipe(map(() => void 0));
+    return this.httpClient
+      .delete(this.apiEndpoint + '/process/' + processId)
+      .pipe(map(() => void 0));
   }
 }

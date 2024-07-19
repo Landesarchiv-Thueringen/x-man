@@ -30,9 +30,12 @@ import { ClearingDetailsComponent } from './clearing-details.component';
 export class ClearingPageComponent implements AfterViewInit {
   dataSource: MatTableDataSource<ProcessingError>;
   displayedColumns: string[];
-  showResolvedControl = new FormControl(window.localStorage.getItem('show-resolved-processing-errors') === 'true', {
-    nonNullable: true,
-  });
+  showResolvedControl = new FormControl(
+    window.localStorage.getItem('show-resolved-processing-errors') === 'true',
+    {
+      nonNullable: true,
+    },
+  );
   lastSeenTime = this.clearingService.getLastSeenTime();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -48,7 +51,9 @@ export class ClearingPageComponent implements AfterViewInit {
 
     this.showResolvedControl.valueChanges
       .pipe(
-        tap((showResolved) => window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString())),
+        tap((showResolved) =>
+          window.localStorage.setItem('show-resolved-processing-errors', showResolved.toString()),
+        ),
         startWith(this.showResolvedControl.value),
         switchMap(() => this.clearingService.observeProcessingErrors()),
         takeUntilDestroyed(),
@@ -80,7 +85,10 @@ export class ClearingPageComponent implements AfterViewInit {
   }
 
   openDetails(processingError: Partial<ProcessingError>) {
-    const dialogRef = this.dialog.open(ClearingDetailsComponent, { maxWidth: '80vw', data: processingError });
+    const dialogRef = this.dialog.open(ClearingDetailsComponent, {
+      maxWidth: '80vw',
+      data: processingError,
+    });
     dialogRef.afterClosed().subscribe((result) => {});
   }
 

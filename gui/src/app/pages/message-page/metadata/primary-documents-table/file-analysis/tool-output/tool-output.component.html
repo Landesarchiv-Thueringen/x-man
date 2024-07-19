@@ -26,8 +26,12 @@
         <mat-panel-title>Werkzeug-Ausgabe</mat-panel-title>
       </mat-expansion-panel-header>
 
-      <pre *ngIf="toolResult.outputFormat === 'csv'">{{ toolResult.toolOutput | prettyPrintCsv }}</pre>
-      <pre *ngIf="toolResult.outputFormat === 'json'">{{ toolResult.toolOutput | prettyPrintJson }}</pre>
+      <pre *ngIf="toolResult.outputFormat === 'csv'">{{
+        toolResult.toolOutput | prettyPrintCsv
+      }}</pre>
+      <pre *ngIf="toolResult.outputFormat === 'json'">{{
+        toolResult.toolOutput | prettyPrintJson
+      }}</pre>
       <pre *ngIf="toolResult.outputFormat === 'text'">{{ toolResult.toolOutput }}</pre>
     </mat-expansion-panel>
 

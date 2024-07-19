@@ -27,7 +27,14 @@ import { media } from '../medium.pipe';
   templateUrl: './file-metadata.component.html',
   styleUrls: ['./file-metadata.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatExpansionModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
 })
 export class FileMetadataComponent {
   metadataQuery?: Query;
@@ -64,8 +71,12 @@ export class FileMetadataComponent {
       switchMap((params: Params) => this.messagePage.getFileRecord(params['id'])),
       shareReplay(1),
     );
-    const structureNode = record.pipe(switchMap((record) => this.messageProcessor.getNodeWhenReady(record.recordId)));
-    const appraisal = record.pipe(switchMap((record) => this.messagePage.observeAppraisal(record.recordId)));
+    const structureNode = record.pipe(
+      switchMap((record) => this.messageProcessor.getNodeWhenReady(record.recordId)),
+    );
+    const appraisal = record.pipe(
+      switchMap((record) => this.messagePage.observeAppraisal(record.recordId)),
+    );
     // Update the form and local properties on changes.
     combineLatest([record, structureNode, appraisal, this.messagePage.observeAppraisalComplete()])
       .pipe(takeUntilDestroyed())
@@ -86,11 +97,13 @@ export class FileMetadataComponent {
   }
 
   registerAppraisalNoteChanges(): void {
-    this.form.controls['appraisalNote'].valueChanges.pipe(skip(1), debounceTime(400)).subscribe((value) => {
-      if (value !== this.appraisal?.note && this.appraisalComplete === false) {
-        this.setAppraisalNote(value);
-      }
-    });
+    this.form.controls['appraisalNote'].valueChanges
+      .pipe(skip(1), debounceTime(400))
+      .subscribe((value) => {
+        if (value !== this.appraisal?.note && this.appraisalComplete === false) {
+          this.setAppraisalNote(value);
+        }
+      });
   }
 
   setMetadata(
@@ -106,7 +119,8 @@ export class FileMetadataComponent {
     const appraisalRecomm = this.record.archiveMetadata?.appraisalRecommCode;
     let confidentiality: string | undefined;
     if (record.generalMetadata?.confidentialityLevel) {
-      confidentiality = confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
+      confidentiality =
+        confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
     }
     let medium: string | undefined;
     if (record.generalMetadata?.medium) {

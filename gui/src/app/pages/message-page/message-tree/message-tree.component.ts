@@ -1,7 +1,15 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, QueryList, ViewChild, ViewChildren, computed } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Inject,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+  computed,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -89,11 +97,16 @@ export class MessageTreeComponent implements AfterViewInit {
     {
       type: 'not-appraised',
       label: 'Noch nicht bewertet',
-      showIf: () => !this.process?.processState.appraisal.complete && !this.process?.processState.receive0503.complete,
+      showIf: () =>
+        !this.process?.processState.appraisal.complete &&
+        !this.process?.processState.receive0503.complete,
       predicate: (node) => {
         if (!node.canBeAppraised) {
           return 'propagate-recursive';
-        } else if (!this.appraisals[node.recordId!]?.decision || this.appraisals[node.recordId!].decision === 'B') {
+        } else if (
+          !this.appraisals[node.recordId!]?.decision ||
+          this.appraisals[node.recordId!].decision === 'B'
+        ) {
           return 'show';
         } else {
           return 'hide';
@@ -105,7 +118,9 @@ export class MessageTreeComponent implements AfterViewInit {
       label: 'Aktenplanschlüssel',
       value: '',
       predicate: (node, value) =>
-        node.generalMetadata?.filePlan?.filePlanNumber?.toString() === value ? 'show-recursive' : 'hide-recursive',
+        node.generalMetadata?.filePlan?.filePlanNumber?.toString() === value
+          ? 'show-recursive'
+          : 'hide-recursive',
     },
   ];
   activeFilters: Filter[] = [];
@@ -144,7 +159,10 @@ export class MessageTreeComponent implements AfterViewInit {
         this.currentRecordId = params['id'];
       });
     // Update the tree when `message` changes.
-    concat(processReady, combineLatest([this.messagePage.observeMessage(), this.messagePage.observeRootRecords()]))
+    concat(
+      processReady,
+      combineLatest([this.messagePage.observeMessage(), this.messagePage.observeRootRecords()]),
+    )
       .pipe(filter(notNull))
       .subscribe(async ([message, rootRecords]) => {
         this.message = message;
@@ -225,13 +243,19 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   private applyFilters(): void {
-    this.dataSource.filters = this.activeFilters.map((filter) => (node) => filter.predicate(node, filter.value));
+    this.dataSource.filters = this.activeFilters.map(
+      (filter) => (node) => filter.predicate(node, filter.value),
+    );
   }
 
   async initTree(): Promise<void> {
     if (this.message && this.process && this.rootRecords) {
       this.showAppraisal = this.message.messageType === '0501';
-      const rootNode = await this.messageProcessor.processMessage(this.process, this.message, this.rootRecords);
+      const rootNode = await this.messageProcessor.processMessage(
+        this.process,
+        this.message,
+        this.rootRecords,
+      );
       this.dataSource.data = rootNode;
     }
   }
@@ -407,7 +431,10 @@ export class MessageTreeComponent implements AfterViewInit {
           switchMap((formResult) => {
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
-            return this.messageService.archive0503Message(this.message!.messageHead.processID, formResult.collectionId);
+            return this.messageService.archive0503Message(
+              this.message!.messageHead.processID,
+              formResult.collectionId,
+            );
           }),
         )
         .subscribe({
@@ -434,6 +461,11 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   private goToRootNode() {
-    this.router.navigate(['nachricht', this.process?.processId, this.message?.messageType, 'details']);
+    this.router.navigate([
+      'nachricht',
+      this.process?.processId,
+      this.message?.messageType,
+      'details',
+    ]);
   }
 }

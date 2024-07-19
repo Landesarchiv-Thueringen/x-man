@@ -19,7 +19,11 @@ import { ItemProgress, TaskState } from '../services/tasks.service';
         <mat-spinner diameter="24"></mat-spinner>
       }
       @case ('paused') {
-        <mat-spinner diameter="24" mode="determinate" [value]="(progress.done * 100) / progress.total"></mat-spinner>
+        <mat-spinner
+          diameter="24"
+          mode="determinate"
+          [value]="(progress.done * 100) / progress.total"
+        ></mat-spinner>
       }
       @case ('done') {
         <mat-icon class="done">check</mat-icon>

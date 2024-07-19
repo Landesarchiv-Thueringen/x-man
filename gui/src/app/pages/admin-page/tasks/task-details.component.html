@@ -1,6 +1,7 @@
 @if (task(); as task) {
   <h2 mat-dialog-title>
-    {{ task | taskTitle: { showProgress: false } }} ({{ task.progress.done }} / {{ task.progress.total }})
+    {{ task | taskTitle: { showProgress: false } }} ({{ task.progress.done }} /
+    {{ task.progress.total }})
   </h2>
   <div mat-dialog-content>
     <div role="table">
@@ -96,14 +97,21 @@
   <div mat-dialog-actions>
     @if (
       isAdmin &&
-      (task.state === "pending" || task.state === "running" || task.state === "pausing" || task.state === "paused")
+      (task.state === "pending" ||
+        task.state === "running" ||
+        task.state === "pausing" ||
+        task.state === "paused")
     ) {
-      <button mat-flat-button class="left-button error-button" (click)="cancel(task)">Abbrechen</button>
+      <button mat-flat-button class="left-button error-button" (click)="cancel(task)">
+        Abbrechen
+      </button>
     }
     <button mat-button mat-dialog-close>Schließen</button>
     @if (isAdmin) {
       @if (task.state === "pending" || task.state === "running" || task.state === "pausing") {
-        <button mat-flat-button [disabled]="task.state === 'pausing'" (click)="pause(task)">Pausieren</button>
+        <button mat-flat-button [disabled]="task.state === 'pausing'" (click)="pause(task)">
+          Pausieren
+        </button>
       } @else if (task.state === "paused") {
         <button mat-flat-button (click)="resume(task)">Fortsetzen</button>
       } @else if (task.state === "failed") {

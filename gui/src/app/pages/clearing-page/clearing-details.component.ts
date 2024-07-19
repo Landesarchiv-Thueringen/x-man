@@ -88,7 +88,9 @@ export class ClearingDetailsComponent {
       default:
         subject = 'Fehler bei xdomea-Nachricht';
     }
-    let body = 'Beim Einlesen einer xdomea-Nachricht ist ein Fehler aufgetreten: ' + this.processingError.title;
+    let body =
+      'Beim Einlesen einer xdomea-Nachricht ist ein Fehler aufgetreten: ' +
+      this.processingError.title;
     if (this.processingError.info || this.processingError.data) {
       body += '\n\nFehlerausgabe vom System:';
       if (this.processingError.info) {
@@ -140,23 +142,29 @@ export class ClearingDetailsComponent {
   }
 
   deleteTransferFile() {
-    this.clearingService.resolveError(this.processingError.id, 'delete-transfer-file').subscribe(() => {
-      this.notificationService.show('Transferdatei gelöscht');
-      this.dialogRef.close();
-    });
+    this.clearingService
+      .resolveError(this.processingError.id, 'delete-transfer-file')
+      .subscribe(() => {
+        this.notificationService.show('Transferdatei gelöscht');
+        this.dialogRef.close();
+      });
   }
 
   ignoreTransferFiles() {
-    this.clearingService.resolveError(this.processingError.id, 'ignore-transfer-files').subscribe(() => {
-      this.notificationService.show('Dateien ignoriert');
-      this.dialogRef.close();
-    });
+    this.clearingService
+      .resolveError(this.processingError.id, 'ignore-transfer-files')
+      .subscribe(() => {
+        this.notificationService.show('Dateien ignoriert');
+        this.dialogRef.close();
+      });
   }
 
   deleteTransferFiles() {
-    this.clearingService.resolveError(this.processingError.id, 'delete-transfer-files').subscribe(() => {
-      this.notificationService.show('Dateien gelöscht');
-      this.dialogRef.close();
-    });
+    this.clearingService
+      .resolveError(this.processingError.id, 'delete-transfer-files')
+      .subscribe(() => {
+        this.notificationService.show('Dateien gelöscht');
+        this.dialogRef.close();
+      });
   }
 }

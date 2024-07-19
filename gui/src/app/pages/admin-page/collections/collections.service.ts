@@ -34,11 +34,15 @@ export class CollectionsService {
   }
 
   getCollectionById(id: string): Observable<ArchiveCollection | null> {
-    return this.getCollections().pipe(map((collections) => collections.find((c) => c.id === id) ?? null));
+    return this.getCollections().pipe(
+      map((collections) => collections.find((c) => c.id === id) ?? null),
+    );
   }
 
   getAgenciesForCollection(collectionId: string): Observable<Agency[]> {
-    return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', { params: { collectionId } });
+    return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', {
+      params: { collectionId },
+    });
   }
 
   createCollection(collection: Omit<ArchiveCollection, 'id'>) {
@@ -51,19 +55,23 @@ export class CollectionsService {
 
   updateCollection(id: string, collection: Omit<ArchiveCollection, 'id'>) {
     const newCollection = { ...collection, id };
-    this.httpClient.post<void>(environment.endpoint + '/archive-collection', newCollection).subscribe(() => {
-      const collections = [...(this.collections.value ?? [])];
-      const index = collections.findIndex((c) => c.id === id);
-      if (index >= 0) {
-        collections[index] = newCollection;
-      }
-      this.collections.next(collections);
-    });
+    this.httpClient
+      .post<void>(environment.endpoint + '/archive-collection', newCollection)
+      .subscribe(() => {
+        const collections = [...(this.collections.value ?? [])];
+        const index = collections.findIndex((c) => c.id === id);
+        if (index >= 0) {
+          collections[index] = newCollection;
+        }
+        this.collections.next(collections);
+      });
   }
 
   deleteCollection(collection: ArchiveCollection) {
     this.collections.next(this.collections.value!.filter((c) => c !== collection));
-    this.httpClient.delete(environment.endpoint + '/archive-collection/' + collection.id).subscribe();
+    this.httpClient
+      .delete(environment.endpoint + '/archive-collection/' + collection.id)
+      .subscribe();
   }
 
   getDimagIds(): Observable<string[]> {

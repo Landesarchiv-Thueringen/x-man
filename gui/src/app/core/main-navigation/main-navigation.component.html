@@ -13,7 +13,11 @@
         [matBadge]="(unseenProcessingErrors | async) || ''"
         >Steuerungsstelle
       </a>
-      <a *ngIf="login.user.permissions?.admin" mat-button routerLink="administration" [routerLinkActive]="['active']"
+      <a
+        *ngIf="login.user.permissions?.admin"
+        mat-button
+        routerLink="administration"
+        [routerLinkActive]="['active']"
         >Administration</a
       >
       <span class="spacer"></span>

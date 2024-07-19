@@ -18,6 +18,9 @@ export class TransferDirService {
    * reached and is successfully tested for read/write access.
    */
   testTransferDir(transferDir: string): Observable<TestResult> {
-    return this.httpClient.post<TestResult>(environment.endpoint + '/test-transfer-dir', transferDir);
+    return this.httpClient.post<TestResult>(
+      environment.endpoint + '/test-transfer-dir',
+      transferDir,
+    );
   }
 }

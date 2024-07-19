@@ -4,7 +4,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config, ConfigService } from '../../services/config.service';
 import { Message } from '../../services/message.service';
 import { SubmissionProcess } from '../../services/process.service';
-import { DocumentRecord, FileRecord, GeneralMetadata, ProcessRecord, Records } from '../../services/records.service';
+import {
+  DocumentRecord,
+  FileRecord,
+  GeneralMetadata,
+  ProcessRecord,
+  Records,
+} from '../../services/records.service';
 import { notNull } from '../../utils/predicates';
 
 export type StructureNodeType =
@@ -59,7 +65,11 @@ export class MessageProcessorService {
    * Also save's the generated tree in the service, so subsequent calls to
    * `getNode` will return nodes from the new tree.
    */
-  async processMessage(process: SubmissionProcess, message: Message, rootRecords: Records): Promise<StructureNode> {
+  async processMessage(
+    process: SubmissionProcess,
+    message: Message,
+    rootRecords: Records,
+  ): Promise<StructureNode> {
     this.config = await firstValueFrom(this.configService.config);
     this.nodes.clear();
     // Create message node
@@ -126,7 +136,11 @@ export class MessageProcessorService {
     }
   }
 
-  private getMessageNode(process: SubmissionProcess, message: Message, rootRecords: Records): StructureNode {
+  private getMessageNode(
+    process: SubmissionProcess,
+    message: Message,
+    rootRecords: Records,
+  ): StructureNode {
     let title: string;
     switch (message.messageType) {
       case '0501':
@@ -139,7 +153,9 @@ export class MessageProcessorService {
         throw new Error('unhandled message type');
     }
     const numberElements =
-      (rootRecords.files?.length ?? 0) + (rootRecords.documents?.length ?? 0) + (rootRecords.processes?.length ?? 0);
+      (rootRecords.files?.length ?? 0) +
+      (rootRecords.documents?.length ?? 0) +
+      (rootRecords.processes?.length ?? 0);
     title = `${title} (${numberElements} ${numberElements === 1 ? 'Element' : 'Elemente'})`;
     const messageNode: StructureNode = {
       id: message.messageHead.processID,
@@ -203,7 +219,10 @@ export class MessageProcessorService {
     return fileNode;
   }
 
-  private getProcessStructureNode(processRecord: ProcessRecord, parent: StructureNode): StructureNode {
+  private getProcessStructureNode(
+    processRecord: ProcessRecord,
+    parent: StructureNode,
+  ): StructureNode {
     const children: StructureNode[] = [];
     const routerLink: string = 'vorgang/' + processRecord.recordId;
     const type = parent.type.endsWith('process') ? 'subprocess' : 'process';
@@ -237,9 +256,13 @@ export class MessageProcessorService {
     return processNode;
   }
 
-  private getDocumentStructureNode(documentRecord: DocumentRecord, parent: StructureNode): StructureNode {
+  private getDocumentStructureNode(
+    documentRecord: DocumentRecord,
+    parent: StructureNode,
+  ): StructureNode {
     const children: StructureNode[] = [];
-    const type = parent.type === 'document' || parent.type === 'attachment' ? 'attachment' : 'document';
+    const type =
+      parent.type === 'document' || parent.type === 'attachment' ? 'attachment' : 'document';
     const nodeName = type === 'attachment' ? 'Anlage' : 'Dokument';
     const routerLink: string = 'dokument/' + documentRecord.recordId;
     const documentNode: StructureNode = {

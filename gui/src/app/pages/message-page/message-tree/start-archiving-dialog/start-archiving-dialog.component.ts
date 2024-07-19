@@ -19,7 +19,14 @@ export interface StartArchivingDialogData {
   templateUrl: './start-archiving-dialog.component.html',
   styleUrls: ['./start-archiving-dialog.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatSelectModule, MatFormFieldModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+  ],
 })
 export class StartArchivingDialogComponent {
   collectionControl = new FormControl(this.data.agency.collectionId, {

@@ -40,7 +40,12 @@ export type FilterPredicate = (node: StructureNode) => FilterResult;
  * - 'propagate-recursive': The node will assume the filter result of its parent
  *   and apply it to all of its children.
  */
-export type FilterResult = 'show' | 'show-recursive' | 'hide' | 'hide-recursive' | 'propagate-recursive';
+export type FilterResult =
+  | 'show'
+  | 'show-recursive'
+  | 'hide'
+  | 'hide-recursive'
+  | 'propagate-recursive';
 
 /**
  * MessageTreeDataSource has three data layers
@@ -70,7 +75,10 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
   );
 
   private readonly displayData = new BehaviorSubject<GroupedStructureNode | null>(null);
-  private readonly flatTreeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+  private readonly flatTreeDataSource = new MatTreeFlatDataSource(
+    this.treeControl,
+    this.treeFlattener,
+  );
   private nodesMap = new Map<string, GroupedStructureNode>();
 
   private _data?: StructureNode;
@@ -146,7 +154,10 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     if (!this._filters?.length) {
       return rootNode;
     } else {
-      const children = this.getFilteredChildren(rootNode, Array(this._filters!.length).fill('show'));
+      const children = this.getFilteredChildren(
+        rootNode,
+        Array(this._filters!.length).fill('show'),
+      );
       return { ...rootNode, children };
     }
   }
@@ -169,7 +180,10 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     }
   }
 
-  private getFilteredChildren(node: StructureNode, filterResults: FilterResult[]): StructureNode[] | undefined {
+  private getFilteredChildren(
+    node: StructureNode,
+    filterResults: FilterResult[],
+  ): StructureNode[] | undefined {
     const children = node.children?.map((child) => this.filterNode(child, filterResults));
     const filteredChildren = children?.filter(notNull);
     const numberFiltered = children?.filter((child) => child == null).length ?? 0;
@@ -194,7 +208,10 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     return filteredChildren;
   }
 
-  private getFilterResultsForNode(node: StructureNode, parentResults: FilterResult[]): FilterResult[] {
+  private getFilterResultsForNode(
+    node: StructureNode,
+    parentResults: FilterResult[],
+  ): FilterResult[] {
     const results = Array<FilterResult>(parentResults.length);
     for (const [i, parentResult] of parentResults.entries()) {
       switch (parentResult) {
@@ -224,7 +241,14 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     const shouldGroupChildren = (children?.length ?? 0) > GROUP_SIZE;
     if (shouldGroupChildren) {
       let groupedChildren: GroupedStructureNode[] = [];
-      for (const type of ['file', 'subfile', 'process', 'subprocess', 'document', 'attachment'] as const) {
+      for (const type of [
+        'file',
+        'subfile',
+        'process',
+        'subprocess',
+        'document',
+        'attachment',
+      ] as const) {
         groupedChildren = [...groupedChildren, ...this.getGroups(children!, type)];
       }
       return { ...node, selectable, children: groupedChildren };

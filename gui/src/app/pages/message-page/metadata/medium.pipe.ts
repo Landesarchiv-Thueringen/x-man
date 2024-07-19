@@ -10,7 +10,10 @@ export const media = {
     shortDesc: 'Hybrid',
     desc: 'Hybrid: Das Schriftgutobjekt liegt teilweise in elektronischer Form und teilweise als Papier vor.',
   },
-  '003': { shortDesc: 'Papier', desc: 'Papier: Das Schriftgutobjekt liegt ausschließlich als Papier vor.' },
+  '003': {
+    shortDesc: 'Papier',
+    desc: 'Papier: Das Schriftgutobjekt liegt ausschließlich als Papier vor.',
+  },
 } as const;
 
 @Pipe({

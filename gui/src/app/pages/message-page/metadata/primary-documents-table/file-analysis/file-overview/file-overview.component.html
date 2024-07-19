@@ -24,7 +24,10 @@
     <mat-icon class="uncertain-icon">warning</mat-icon>
     <div>
       <p>Der Typ der Datei konnte nicht zweifelsfrei ermittelt werden.</p>
-      <p>Die Ursache kann ein exotisches Dateiformat, fehlende Werkzeuge oder auch eine Beschädigung der Datei sein.</p>
+      <p>
+        Die Ursache kann ein exotisches Dateiformat, fehlende Werkzeuge oder auch eine Beschädigung
+        der Datei sein.
+      </p>
       <p>Eine aussagekräftige Validierung kann deshalb nicht vorgenommen werden.</p>
     </div>
   </div>
@@ -38,7 +41,10 @@
     <mat-icon class="invalid-icon">close</mat-icon>
     <div>
       <p>Der Datei ist invalide.</p>
-      <p>Die Ursache kann eine Erstellung mit ungeeigneten Werkzeugen oder eine Beschädigung der Datei sein.</p>
+      <p>
+        Die Ursache kann eine Erstellung mit ungeeigneten Werkzeugen oder eine Beschädigung der
+        Datei sein.
+      </p>
       <p>Dies bedeutet nicht automatisch, dass die Datei unbrauchbar ist.</p>
     </div>
   </div>
@@ -47,22 +53,32 @@
     <div>
       <p>Bei der Überprüfung der Datei trat ein Fehler bei einem oder mehreren Werkzeugen auf.</p>
       <p>
-        Die Ursache liegt in einem Programmierfehler des verwendeten Werkzeugs. Der Fehler kann jedoch durch ein Problem
-        mit der Datei ausgelöst worden sein.
+        Die Ursache liegt in einem Programmierfehler des verwendeten Werkzeugs. Der Fehler kann
+        jedoch durch ein Problem mit der Datei ausgelöst worden sein.
       </p>
-      <p>Es können unter Umständen weniger oder keine Aussagen zum Typ oder der Validität der Datei gemacht werden.</p>
+      <p>
+        Es können unter Umständen weniger oder keine Aussagen zum Typ oder der Validität der Datei
+        gemacht werden.
+      </p>
     </div>
   </div>
-  <div *ngIf="!icons.valid && !icons.invalid && !icons.uncertain && !icons.error" class="icon-explanation">
+  <div
+    *ngIf="!icons.valid && !icons.invalid && !icons.uncertain && !icons.error"
+    class="icon-explanation"
+  >
     <div>
       <p>
-        Die Validität der Datei konnte nicht geprüft werden, da kein geeignetes Werkzeug für diesen Dateityp vorliegt.
+        Die Validität der Datei konnte nicht geprüft werden, da kein geeignetes Werkzeug für diesen
+        Dateityp vorliegt.
       </p>
     </div>
   </div>
 
   <mat-table [dataSource]="dataSource">
-    <ng-container *ngFor="let tableColumn of tableColumnList; let first = first" matColumnDef="{{ tableColumn }}">
+    <ng-container
+      *ngFor="let tableColumn of tableColumnList; let first = first"
+      matColumnDef="{{ tableColumn }}"
+    >
       <mat-header-cell *matHeaderCellDef>{{ tableColumn | fileFeature }}</mat-header-cell>
       <mat-cell *matCellDef="let fileInfo">
         <div *ngIf="fileInfo[tableColumn]?.value as value" class="feature-info">
@@ -75,7 +91,9 @@
             ({{ fileInfo[tableColumn].confidence | percent }})
           </span>
         </div>
-        <mat-icon *ngIf="fileInfo[tableColumn]?.icon as icon" class="{{ icon }}-icon">{{ icon }}</mat-icon>
+        <mat-icon *ngIf="fileInfo[tableColumn]?.icon as icon" class="{{ icon }}-icon">{{
+          icon
+        }}</mat-icon>
         <button
           *ngIf="first && fileInfo.tool.value !== 'Gesamtergebnis'"
           mat-button

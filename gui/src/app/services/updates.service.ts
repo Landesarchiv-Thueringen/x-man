@@ -1,5 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, distinctUntilChanged, filter, map, startWith, throttleTime } from 'rxjs';
+import {
+  Observable,
+  Subject,
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  throttleTime,
+} from 'rxjs';
 import { environment } from '../../environments/environment';
 import { NIL_UUID } from '../utils/constants';
 import { notNull } from '../utils/predicates';

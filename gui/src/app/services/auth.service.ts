@@ -62,12 +62,14 @@ export class AuthService {
     const headers = new HttpHeaders({
       Authorization: 'Basic ' + btoa(`${username}:${password}`),
     });
-    const observable = this.httpClient.get<LoginInformation>(environment.endpoint + '/login', { headers }).pipe(
-      tap((loginInformation) => {
-        this.loginInformation.next(loginInformation);
-        localStorage.setItem('loginInformation', JSON.stringify(loginInformation));
-      }),
-    );
+    const observable = this.httpClient
+      .get<LoginInformation>(environment.endpoint + '/login', { headers })
+      .pipe(
+        tap((loginInformation) => {
+          this.loginInformation.next(loginInformation);
+          localStorage.setItem('loginInformation', JSON.stringify(loginInformation));
+        }),
+      );
     await firstValueFrom(observable);
   }
 

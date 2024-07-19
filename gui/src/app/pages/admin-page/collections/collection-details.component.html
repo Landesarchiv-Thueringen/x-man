@@ -9,7 +9,12 @@
   <form [formGroup]="form">
     <mat-form-field>
       <mat-label>Name</mat-label>
-      <input matInput formControlName="name" cdkFocusInitial (focus)="isNew && $any($event.target).select()" />
+      <input
+        matInput
+        formControlName="name"
+        cdkFocusInitial
+        (focus)="isNew && $any($event.target).select()"
+      />
     </mat-form-field>
     <mat-form-field>
       <mat-label>Dimag-ID</mat-label>
@@ -32,7 +37,9 @@
             <mat-list role="list">
               @for (agency of agencies; track agency) {
                 <mat-list-item>
-                  <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
+                  <mat-icon matListItemIcon class="material-symbols-rounded"
+                    >source_environment</mat-icon
+                  >
                   <div matListItemTitle>{{ agency.name }}</div>
                 </mat-list-item>
               }
@@ -47,10 +54,20 @@
 </div>
 <div mat-dialog-actions>
   @if (!isNew) {
-    <button class="delete-button error-button" mat-button (click)="deleteCollection()">Löschen</button>
+    <button class="delete-button error-button" mat-button (click)="deleteCollection()">
+      Löschen
+    </button>
   }
   <button mat-button mat-dialog-close>Abbrechen</button>
-  <button mat-flat-button mat-dialog-close cdkFocusInitial (click)="save()" [disabled]="!form.valid">Speichern</button>
+  <button
+    mat-flat-button
+    mat-dialog-close
+    cdkFocusInitial
+    (click)="save()"
+    [disabled]="!form.valid"
+  >
+    Speichern
+  </button>
 </div>
 
 <ng-template #deleteDialog>
@@ -60,6 +77,8 @@
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>
-    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>
+      Löschen
+    </button>
   </div>
 </ng-template>

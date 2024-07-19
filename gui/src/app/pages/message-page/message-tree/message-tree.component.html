@@ -15,7 +15,9 @@
           <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
           <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
         </div>
-        <ng-container *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"
+        ></ng-container>
       </div>
     </mat-tree-node>
 
@@ -56,7 +58,9 @@
             aria-label="Filter"
             [disabled]="isDisabled()"
           >
-            <mat-icon [class.material-icons-outlined]="activeFilters.length === 0">filter_alt</mat-icon>
+            <mat-icon [class.material-icons-outlined]="activeFilters.length === 0"
+              >filter_alt</mat-icon
+            >
           </button>
           <mat-menu #filterMenu="matMenu">
             @for (filter of availableFilters; track filter) {
@@ -68,7 +72,10 @@
             }
           </mat-menu>
           <button
-            *ngIf="process?.processState?.receive0501?.complete && process?.processState?.receive0503?.complete"
+            *ngIf="
+              process?.processState?.receive0501?.complete &&
+              process?.processState?.receive0503?.complete
+            "
             mat-icon-button
             [matMenuTriggerFor]="menu"
             (click)="$event.stopPropagation()"
@@ -105,7 +112,9 @@
             }
           </mat-menu>
         }
-        <ng-container *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"
+        ></ng-container>
       </div>
       @if (node.type === "message" && activeFilters.length > 0) {
         <div class="filters">
@@ -187,7 +196,11 @@
 
   <div *ngIf="process && message && showSelection()" class="actions appraisal-actions">
     <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
-    <button mat-flat-button (click)="setAppraisalForMultipleRecordObjects()" [disabled]="this.selectedNodes.size === 0">
+    <button
+      mat-flat-button
+      (click)="setAppraisalForMultipleRecordObjects()"
+      [disabled]="this.selectedNodes.size === 0"
+    >
       <mat-icon>checklist</mat-icon>
       Bewerten
     </button>
@@ -197,10 +210,18 @@
 <ng-template #nodeIcon let-node>
   <mat-icon *ngIf="node.type === 'message'" class="message-icon">assignment</mat-icon>
   <mat-icon *ngIf="node.type === 'file-group'" class="file-icon" svgIcon="folders"></mat-icon>
-  <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon">folder</mat-icon>
+  <mat-icon *ngIf="node.type === 'file' || node.type === 'subfile'" class="file-icon"
+    >folder</mat-icon
+  >
   <mat-icon *ngIf="node.type === 'process-group'" class="process-icon" svgIcon="folders"></mat-icon>
-  <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon">folder</mat-icon>
-  <mat-icon *ngIf="node.type === 'document-group'" class="document-icon" svgIcon="articles"></mat-icon>
+  <mat-icon *ngIf="node.type === 'process' || node.type === 'subprocess'" class="process-icon"
+    >folder</mat-icon
+  >
+  <mat-icon
+    *ngIf="node.type === 'document-group'"
+    class="document-icon"
+    svgIcon="articles"
+  ></mat-icon>
   <mat-icon *ngIf="node.type === 'document'" class="document-icon">article</mat-icon>
   <mat-icon *ngIf="node.type === 'attachment'" class="attachment-icon">attach_file</mat-icon>
 </ng-template>

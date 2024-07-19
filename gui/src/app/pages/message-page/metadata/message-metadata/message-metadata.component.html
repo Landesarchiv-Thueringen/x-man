@@ -23,7 +23,9 @@
               } @else if (process.processState.formatVerification.complete) {
                 Formatverifikation abgeschlossen
               } @else if (process.processState.formatVerification.taskState) {
-                Formatverifikation läuft... ({{ process.processState.formatVerification | processStepProgress }})
+                Formatverifikation läuft... ({{
+                  process.processState.formatVerification | processStepProgress
+                }})
               } @else if (process.processState.receive0503.complete) {
                 Abgabe erhalten
               } @else if (process.processState.receive0505.complete) {
@@ -78,8 +80,8 @@
         </mat-list>
         @if (hasUnresolvedError() && !isAdmin) {
           <p>
-            Die Bearbeitung der Aussonderung ist deaktiviert. Bitte warten Sie, bis das Problem durch die
-            Steuerungsstelle behoben wurde. Es ist kein Zutun Ihrerseits nötig.
+            Die Bearbeitung der Aussonderung ist deaktiviert. Bitte warten Sie, bis das Problem
+            durch die Steuerungsstelle behoben wurde. Es ist kein Zutun Ihrerseits nötig.
           </p>
         }
       </mat-expansion-panel>
@@ -121,14 +123,18 @@
         <mat-expansion-panel-header>
           <mat-panel-title> Sender </mat-panel-title>
         </mat-expansion-panel-header>
-        <app-institution-metadata [institution]="message.messageHead.sender.institution"></app-institution-metadata>
+        <app-institution-metadata
+          [institution]="message.messageHead.sender.institution"
+        ></app-institution-metadata>
       </mat-expansion-panel>
 
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title> Empfänger </mat-panel-title>
         </mat-expansion-panel-header>
-        <app-institution-metadata [institution]="message.messageHead.receiver.institution"></app-institution-metadata>
+        <app-institution-metadata
+          [institution]="message.messageHead.receiver.institution"
+        ></app-institution-metadata>
       </mat-expansion-panel>
       @if (isAdmin) {
         <mat-expansion-panel (opened)="scrollToBottom(panel)" #panel>
@@ -158,7 +164,10 @@
 <ng-template #reimportMessageDialog>
   <h3 mat-dialog-title>Nachricht neu einlesen?</h3>
   <div mat-dialog-content>
-    <p>Möchten Sie die Daten der Transfernachricht aus x-man entfernen und die Nachricht erneut einlesen?</p>
+    <p>
+      Möchten Sie die Daten der Transfernachricht aus x-man entfernen und die Nachricht erneut
+      einlesen?
+    </p>
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>
@@ -170,11 +179,16 @@
   <h3 mat-dialog-title>Nachricht löschen?</h3>
   <div mat-dialog-content>
     <p>Möchten Sie die Transfernachricht löschen?</p>
-    <p>Es werden alle zugehörigen Daten aus x-man und die Transferdatei aus dem Transferverzeichnis entfernt.</p>
+    <p>
+      Es werden alle zugehörigen Daten aus x-man und die Transferdatei aus dem Transferverzeichnis
+      entfernt.
+    </p>
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>
-    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>
+      Löschen
+    </button>
   </div>
 </ng-template>
 
@@ -183,12 +197,14 @@
   <div mat-dialog-content>
     <p>Möchten Sie die Aussonderung und alle zugehörigen Transfernachrichten löschen?</p>
     <p>
-      Es werden alle zugehörigen Daten aus x-man und alle zugehörigen Transferdateien aus dem Transferverzeichnis
-      entfernt.
+      Es werden alle zugehörigen Daten aus x-man und alle zugehörigen Transferdateien aus dem
+      Transferverzeichnis entfernt.
     </p>
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>
-    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>
+      Löschen
+    </button>
   </div>
 </ng-template>

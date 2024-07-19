@@ -27,7 +27,14 @@ import { media } from '../medium.pipe';
   templateUrl: './process-metadata.component.html',
   styleUrls: ['./process-metadata.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatExpansionModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
 })
 export class ProcessMetadataComponent {
   /** The pages process record object. Might update on page changes. */
@@ -70,7 +77,12 @@ export class ProcessMetadataComponent {
       switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.recordId)),
     );
     // Update the form and local properties on changes.
-    combineLatest([recordObject, structureNode, appraisal, this.messagePage.observeAppraisalComplete()])
+    combineLatest([
+      recordObject,
+      structureNode,
+      appraisal,
+      this.messagePage.observeAppraisalComplete(),
+    ])
       .pipe(takeUntilDestroyed())
       .subscribe(([recordObject, structureNode, appraisal, appraisalComplete]) =>
         this.setMetadata(recordObject, structureNode, appraisal, appraisalComplete),
@@ -90,11 +102,13 @@ export class ProcessMetadataComponent {
   }
 
   registerAppraisalNoteChanges(): void {
-    this.form.controls['appraisalNote'].valueChanges.pipe(skip(1), debounceTime(400)).subscribe((value) => {
-      if (value !== this.appraisal?.note && this.appraisalComplete === false) {
-        this.setAppraisalNote(value);
-      }
-    });
+    this.form.controls['appraisalNote'].valueChanges
+      .pipe(skip(1), debounceTime(400))
+      .subscribe((value) => {
+        if (value !== this.appraisal?.note && this.appraisalComplete === false) {
+          this.setAppraisalNote(value);
+        }
+      });
   }
 
   setMetadata(
@@ -110,7 +124,8 @@ export class ProcessMetadataComponent {
     const appraisalRecomm = recordObject.archiveMetadata?.appraisalRecommCode;
     let confidentiality: string | undefined;
     if (recordObject.generalMetadata?.confidentialityLevel) {
-      confidentiality = confidentialityLevels[recordObject.generalMetadata?.confidentialityLevel].shortDesc;
+      confidentiality =
+        confidentialityLevels[recordObject.generalMetadata?.confidentialityLevel].shortDesc;
     }
     let medium: string | undefined;
     if (recordObject.generalMetadata?.medium) {

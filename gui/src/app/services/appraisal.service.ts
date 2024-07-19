@@ -46,16 +46,32 @@ export class AppraisalService {
     return this.httpClient.get<Appraisal[]>(environment.endpoint + '/appraisals/' + processId);
   }
 
-  setDecision(processId: string, recordId: string, decision: AppraisalCode): Observable<Appraisal[]> {
-    return this.httpClient.post<Appraisal[]>(environment.endpoint + '/appraisal-decision', decision, {
-      params: { processId, recordId },
-    });
+  setDecision(
+    processId: string,
+    recordId: string,
+    decision: AppraisalCode,
+  ): Observable<Appraisal[]> {
+    return this.httpClient.post<Appraisal[]>(
+      environment.endpoint + '/appraisal-decision',
+      decision,
+      {
+        params: { processId, recordId },
+      },
+    );
   }
 
-  setInternalNote(processId: string, recordId: string, internalNote: string): Observable<Appraisal[]> {
-    return this.httpClient.post<Appraisal[]>(environment.endpoint + '/appraisal-note', internalNote, {
-      params: { processId, recordId },
-    });
+  setInternalNote(
+    processId: string,
+    recordId: string,
+    internalNote: string,
+  ): Observable<Appraisal[]> {
+    return this.httpClient.post<Appraisal[]>(
+      environment.endpoint + '/appraisal-note',
+      internalNote,
+      {
+        params: { processId, recordId },
+      },
+    );
   }
 
   setAppraisals(

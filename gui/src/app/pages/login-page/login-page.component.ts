@@ -13,11 +13,19 @@ import { LoginService } from '../../services/login.service';
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatCardModule, MatButtonModule, ReactiveFormsModule],
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatButtonModule,
+    ReactiveFormsModule,
+  ],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss',
   animations: [
-    trigger('slideIn', [transition(':enter', [style({ height: 0 }), animate('200ms', style({ height: '*' }))])]),
+    trigger('slideIn', [
+      transition(':enter', [style({ height: 0 }), animate('200ms', style({ height: '*' }))]),
+    ]),
   ],
 })
 export class LoginPageComponent implements OnInit {

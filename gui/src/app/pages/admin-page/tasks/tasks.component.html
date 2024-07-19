@@ -12,7 +12,10 @@
   <ng-container matColumnDef="state">
     <mat-header-cell *matHeaderCellDef mat-sort-header></mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <app-task-state-icon [state]="element.state" [progress]="element.progress"></app-task-state-icon>
+      <app-task-state-icon
+        [state]="element.state"
+        [progress]="element.progress"
+      ></app-task-state-icon>
     </mat-cell>
   </ng-container>
 
@@ -20,7 +23,9 @@
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
     <mat-cell *matCellDef="let element">
-      @if (element.state === "pending" || element.state === "running" || element.state === "pausing") {
+      @if (
+        element.state === "pending" || element.state === "running" || element.state === "pausing"
+      ) {
         <button mat-icon-button [disabled]="element.state === 'pausing'" (click)="pause(element)">
           <mat-icon>pause</mat-icon>
         </button>

@@ -96,7 +96,15 @@ export class MessageService {
     private httpClient: HttpClient,
   ) {
     this.apiEndpoint = environment.endpoint;
-    this.overviewFeatures = ['relativePath', 'fileName', 'fileSize', 'puid', 'mimeType', 'formatVersion', 'valid'];
+    this.overviewFeatures = [
+      'relativePath',
+      'fileName',
+      'fileSize',
+      'puid',
+      'mimeType',
+      'formatVersion',
+      'valid',
+    ];
     this.featureOrder = new Map<string, number>([
       ['relativePath', 1],
       ['fileName', 2],
@@ -115,7 +123,10 @@ export class MessageService {
     if (!processId || !messageType) {
       throw new Error('called getMessage with empty string');
     }
-    if (this.cachedMessageId?.processId !== processId || this.cachedMessageId?.messageType !== messageType) {
+    if (
+      this.cachedMessageId?.processId !== processId ||
+      this.cachedMessageId?.messageType !== messageType
+    ) {
       this.cachedMessageId = { processId, messageType };
       this.cachedMessage = this.httpClient
         .get<Message>(this.apiEndpoint + '/message/' + processId + '/' + messageType)
@@ -159,7 +170,9 @@ export class MessageService {
   }
 
   areAllRecordObjectsAppraised(processId: string): Observable<boolean> {
-    return this.httpClient.get<boolean>(this.apiEndpoint + '/all-record-objects-appraised/' + processId);
+    return this.httpClient.get<boolean>(
+      this.apiEndpoint + '/all-record-objects-appraised/' + processId,
+    );
   }
 
   sortFeatures(features: string[]): string[] {
@@ -216,6 +229,8 @@ export class MessageService {
   }
 
   deleteMessage(processId: string, type: MessageType): Observable<void> {
-    return this.httpClient.delete(this.apiEndpoint + '/message/' + processId + '/' + type).pipe(map(() => void 0));
+    return this.httpClient
+      .delete(this.apiEndpoint + '/message/' + processId + '/' + type)
+      .pipe(map(() => void 0));
   }
 }

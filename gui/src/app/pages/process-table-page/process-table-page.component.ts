@@ -29,8 +29,20 @@ import { ProcessStepProgressPipe } from '../message-page/metadata/message-metada
   styleUrls: ['./process-table-page.component.scss'],
   animations: [
     trigger('expand', [
-      state('false', style({ height: 0, paddingTop: 0, paddingBottom: 0, visibility: 'hidden', overflow: 'hidden' })),
-      transition('false => true', [style({ visibility: 'visible' }), animate(200, style({ height: '*' }))]),
+      state(
+        'false',
+        style({
+          height: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          visibility: 'hidden',
+          overflow: 'hidden',
+        }),
+      ),
+      transition('false => true', [
+        style({ visibility: 'visible' }),
+        animate(200, style({ height: '*' })),
+      ]),
       transition('true => false', [style({ overflow: 'hidden' }), animate(200)]),
     ]),
   ],
@@ -54,7 +66,8 @@ import { ProcessStepProgressPipe } from '../message-page/metadata/message-metada
   ],
 })
 export class ProcessTablePageComponent implements AfterViewInit {
-  readonly dataSource: MatTableDataSource<SubmissionProcess> = new MatTableDataSource<SubmissionProcess>();
+  readonly dataSource: MatTableDataSource<SubmissionProcess> =
+    new MatTableDataSource<SubmissionProcess>();
   readonly displayedColumns = [
     'agency',
     'note',
@@ -81,9 +94,12 @@ export class ProcessTablePageComponent implements AfterViewInit {
   /** All agencies for which there are processes. Used for agencies filter field. */
   agencies: Agency[] = [];
   isAdmin = this.authService.isAdmin();
-  allUsersControl = new FormControl(this.isAdmin && window.localStorage.getItem('show-all-user-processes') === 'true', {
-    nonNullable: true,
-  });
+  allUsersControl = new FormControl(
+    this.isAdmin && window.localStorage.getItem('show-all-user-processes') === 'true',
+    {
+      nonNullable: true,
+    },
+  );
   showFilters = window.localStorage.getItem('show-process-filters') === 'true';
   config = toSignal(this.configService.config);
 
@@ -122,12 +138,17 @@ export class ProcessTablePageComponent implements AfterViewInit {
     }) as (data: SubmissionProcess, sortHeaderId: string) => string;
     // We use object instead of string for filter. Hence we cast to the "wrong" types in both assignments below.
     this.filter.valueChanges.subscribe((filter) => (this.dataSource.filter = filter as string));
-    this.dataSource.filterPredicate = this.filterPredicate as (data: SubmissionProcess, filter: string) => boolean;
+    this.dataSource.filterPredicate = this.filterPredicate as (
+      data: SubmissionProcess,
+      filter: string,
+    ) => boolean;
 
     // refetch processes every `updateInterval` milliseconds
     this.allUsersControl.valueChanges
       .pipe(
-        tap((allUsers) => window.localStorage.setItem('show-all-user-processes', allUsers.toString())),
+        tap((allUsers) =>
+          window.localStorage.setItem('show-all-user-processes', allUsers.toString()),
+        ),
         startWith(this.allUsersControl.value),
         switchMap(() => this.updatesService.observeCollection('submission_processes')),
         switchMap(() => this.processService.getProcesses(this.allUsersControl.value)),
@@ -223,7 +244,10 @@ export class ProcessTablePageComponent implements AfterViewInit {
         return state;
       } else if (state === 'message0503' && process.processState.receive0503.complete) {
         return state;
-      } else if (state === 'formatVerification' && process.processState.formatVerification.complete) {
+      } else if (
+        state === 'formatVerification' &&
+        process.processState.formatVerification.complete
+      ) {
         return state;
       } else if (state === 'archivingComplete' && process.processState.archiving.complete) {
         return state;

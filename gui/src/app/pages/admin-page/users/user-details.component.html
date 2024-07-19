@@ -15,7 +15,9 @@
         <mat-list role="list">
           @for (agency of data.agencies; track agency) {
             <mat-list-item>
-              <mat-icon matListItemIcon class="material-symbols-rounded">source_environment</mat-icon>
+              <mat-icon matListItemIcon class="material-symbols-rounded"
+                >source_environment</mat-icon
+              >
               <div matListItemTitle>{{ agency.name }}</div>
             </mat-list-item>
           }
@@ -33,7 +35,9 @@
           <mat-slide-toggle formControlName="messageEmailNotifications"
             >E-Mail Benachrichtigung bei neuer Nachricht</mat-slide-toggle
           >
-          <mat-slide-toggle formControlName="reportByEmail">Übernahmebericht per E-Mail</mat-slide-toggle>
+          <mat-slide-toggle formControlName="reportByEmail"
+            >Übernahmebericht per E-Mail</mat-slide-toggle
+          >
           @if (isAdmin) {
             <mat-slide-toggle formControlName="errorEmailNotifications"
               >E-Mail Benachrichtigung bei neuem Fehler in der Steuerungsstellen</mat-slide-toggle

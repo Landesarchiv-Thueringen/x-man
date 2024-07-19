@@ -15,7 +15,13 @@ import {
 import { Appraisal, AppraisalCode, AppraisalService } from '../../services/appraisal.service';
 import { Message, MessageService } from '../../services/message.service';
 import { ProcessData, ProcessService, SubmissionProcess } from '../../services/process.service';
-import { DocumentRecord, FileRecord, ProcessRecord, Records, RecordsService } from '../../services/records.service';
+import {
+  DocumentRecord,
+  FileRecord,
+  ProcessRecord,
+  Records,
+  RecordsService,
+} from '../../services/records.service';
 import { notEmpty, notNull } from '../../utils/predicates';
 
 /**
@@ -83,7 +89,9 @@ export class MessagePageService {
     processId.subscribe((processId) => {
       this.registerMessage(processId);
       // Fetch appraisals once, will be updated when changed by other functions.
-      this.appraisalService.getAppraisals(processId).subscribe((appraisals) => this.appraisals.next(appraisals ?? []));
+      this.appraisalService
+        .getAppraisals(processId)
+        .subscribe((appraisals) => this.appraisals.next(appraisals ?? []));
       // Observe process until destroyed and update `this.process`.
       this.processService
         .observeProcessData(processId)
@@ -185,7 +193,9 @@ export class MessagePageService {
   }
 
   observeAppraisal(recordId: string): Observable<Appraisal | null> {
-    return this.observeAppraisals().pipe(map((appraisals) => appraisals.find((a) => a.recordId === recordId) ?? null));
+    return this.observeAppraisals().pipe(
+      map((appraisals) => appraisals.find((a) => a.recordId === recordId) ?? null),
+    );
   }
 
   observeAppraisals(): Observable<Appraisal[]> {
@@ -194,7 +204,10 @@ export class MessagePageService {
 
   observeAppraisalComplete(): Observable<boolean> {
     return this.observeProcessData().pipe(
-      map(({ process }) => process.processState.appraisal.complete || process.processState.receive0503.complete),
+      map(
+        ({ process }) =>
+          process.processState.appraisal.complete || process.processState.receive0503.complete,
+      ),
       distinctUntilChanged(),
     );
   }
@@ -215,16 +228,27 @@ export class MessagePageService {
     this.appraisals.next(appraisals);
   }
 
-  async setAppraisals(recordObjectIds: string[], decision: AppraisalCode, internalNote: string): Promise<void> {
+  async setAppraisals(
+    recordObjectIds: string[],
+    decision: AppraisalCode,
+    internalNote: string,
+  ): Promise<void> {
     const process = await firstValueFrom(this.getProcess());
     const appraisals = await firstValueFrom(
-      this.appraisalService.setAppraisals(process.processId, recordObjectIds, decision, internalNote),
+      this.appraisalService.setAppraisals(
+        process.processId,
+        recordObjectIds,
+        decision,
+        internalNote,
+      ),
     );
     this.appraisals.next(appraisals);
   }
 
   async finalizeAppraisals(): Promise<void> {
-    await firstValueFrom(this.messageService.finalizeMessageAppraisal(this.message.value!.messageHead.processID));
+    await firstValueFrom(
+      this.messageService.finalizeMessageAppraisal(this.message.value!.messageHead.processID),
+    );
     this.updateAppraisals();
     // FIXME: We should rather do a genuine update of the process object.
     this.processData.value!.process.processState.appraisal.complete = true;

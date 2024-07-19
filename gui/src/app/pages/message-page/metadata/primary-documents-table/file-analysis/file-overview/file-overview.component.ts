@@ -178,7 +178,9 @@ export class FileOverviewComponent {
     const a = document.createElement('a');
     document.body.appendChild(a);
     a.download = 'borg-results.json';
-    a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.fileResult, null, 2));
+    a.href =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(this.fileResult, null, 2));
     a.click();
     document.body.removeChild(a);
   }

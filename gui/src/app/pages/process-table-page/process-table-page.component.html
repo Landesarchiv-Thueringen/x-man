@@ -10,7 +10,9 @@
   </button>
   <div class="spacer"></div>
   @if (isAdmin) {
-    <mat-slide-toggle [formControl]="allUsersControl">Für alle Mitarbeiter anzeigen</mat-slide-toggle>
+    <mat-slide-toggle [formControl]="allUsersControl"
+      >Für alle Mitarbeiter anzeigen</mat-slide-toggle
+    >
   }
 </div>
 
@@ -124,7 +126,9 @@
 
       <!-- 0505 message column -->
       <ng-container matColumnDef="message0505">
-        <mat-header-cell *matHeaderCellDef mat-sort-header>Bewertung in DMS importiert</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef mat-sort-header
+          >Bewertung in DMS importiert</mat-header-cell
+        >
         <mat-cell *matCellDef="let process">
           @if (process.processState.receive0505.hasError) {
             <div class="task-cell failed">
@@ -168,7 +172,9 @@
 
       <!-- format verification column -->
       <ng-container matColumnDef="formatVerification">
-        <mat-header-cell *matHeaderCellDef mat-sort-header>Formatverifikation abgeschlossen</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef mat-sort-header
+          >Formatverifikation abgeschlossen</mat-header-cell
+        >
         <mat-cell *matCellDef="let process">
           @if (process.processState.formatVerification.hasError) {
             <div class="task-cell failed">

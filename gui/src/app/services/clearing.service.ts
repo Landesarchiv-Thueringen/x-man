@@ -58,7 +58,9 @@ export class ClearingService {
   }
 
   observeProcessingError(id: string): Observable<ProcessingError | undefined> {
-    return this.processingErrors.pipe(map((processingErrors) => processingErrors.find((e) => e.id === id)));
+    return this.processingErrors.pipe(
+      map((processingErrors) => processingErrors.find((e) => e.id === id)),
+    );
   }
 
   private getProcessingErrorsObservable(): Observable<ProcessingError[]> {
@@ -76,7 +78,8 @@ export class ClearingService {
   observeNumberUnseen(): Observable<number> {
     return combineLatest([this.observeProcessingErrors(), this.seenTime]).pipe(
       map(
-        ([errors, seenTime]) => errors?.filter((e) => !e.resolved && new Date(e.createdAt).valueOf() > seenTime).length,
+        ([errors, seenTime]) =>
+          errors?.filter((e) => !e.resolved && new Date(e.createdAt).valueOf() > seenTime).length,
       ),
     );
   }

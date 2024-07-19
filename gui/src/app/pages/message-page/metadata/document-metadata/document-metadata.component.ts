@@ -60,7 +60,8 @@ export class DocumentMetadataComponent {
     this.documentRecordObject = record;
     let confidentiality: string | undefined;
     if (record.generalMetadata?.confidentialityLevel) {
-      confidentiality = confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
+      confidentiality =
+        confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
     }
     let medium: string | undefined;
     if (record.generalMetadata?.medium) {

@@ -26,7 +26,9 @@ export interface UserPreferences {
   providedIn: 'root',
 })
 export class UsersService {
-  private readonly users = this.httpClient.get<User[]>(environment.endpoint + '/users').pipe(shareReplay(1));
+  private readonly users = this.httpClient
+    .get<User[]>(environment.endpoint + '/users')
+    .pipe(shareReplay(1));
 
   constructor(private httpClient: HttpClient) {}
 

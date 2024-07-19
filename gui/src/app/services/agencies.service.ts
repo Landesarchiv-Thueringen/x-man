@@ -36,9 +36,11 @@ export class AgenciesService {
   }
 
   createAgency(agency: Omit<Agency, 'id'>) {
-    this.httpClient.put<{ id: string }>(environment.endpoint + '/agency', agency).subscribe(({ id }) => {
-      this.agencies.next([...this.agencies.value, { ...agency, id }]);
-    });
+    this.httpClient
+      .put<{ id: string }>(environment.endpoint + '/agency', agency)
+      .subscribe(({ id }) => {
+        this.agencies.next([...this.agencies.value, { ...agency, id }]);
+      });
   }
 
   updateAgency(id: string, updatedValues: Omit<Agency, 'id'>) {

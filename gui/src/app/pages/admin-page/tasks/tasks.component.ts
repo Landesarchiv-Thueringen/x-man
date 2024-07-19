@@ -34,7 +34,15 @@ export class TasksComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   dataSource = new MatTableDataSource<Task>();
-  displayedColumns = ['actions', 'state', 'type', 'process', 'createdAt', 'updatedAt', 'error'] as const;
+  displayedColumns = [
+    'actions',
+    'state',
+    'type',
+    'process',
+    'createdAt',
+    'updatedAt',
+    'error',
+  ] as const;
 
   constructor(
     private tasksService: TasksService,
@@ -45,7 +53,10 @@ export class TasksComponent implements AfterViewInit {
       .pipe(takeUntilDestroyed())
       .subscribe((tasks) => (this.dataSource.data = tasks));
 
-    this.dataSource.sortingDataAccessor = ((task: Task, property: TasksComponent['displayedColumns'][number]) => {
+    this.dataSource.sortingDataAccessor = ((
+      task: Task,
+      property: TasksComponent['displayedColumns'][number],
+    ) => {
       switch (property) {
         case 'process':
           return task.processId;

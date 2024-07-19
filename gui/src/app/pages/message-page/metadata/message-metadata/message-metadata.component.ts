@@ -60,7 +60,8 @@ interface StateItem {
 export class MessageMetadataComponent {
   @ViewChild('reimportMessageDialog') reimportMessageDialogTemplate!: TemplateRef<unknown>;
   @ViewChild('deleteMessageDialog') deleteMessageDialogTemplate!: TemplateRef<unknown>;
-  @ViewChild('deleteSubmissionProcessDialog') deleteSubmissionProcessDialogTemplate!: TemplateRef<unknown>;
+  @ViewChild('deleteSubmissionProcessDialog')
+  deleteSubmissionProcessDialogTemplate!: TemplateRef<unknown>;
 
   form = this.formBuilder.group({
     processID: new FormControl<string | null>(null),
@@ -110,7 +111,10 @@ export class MessageMetadataComponent {
         this.message = message;
         this.form.patchValue({
           processID: message.messageHead.processID,
-          creationTime: this.datePipe.transform(new Date(message.messageHead.creationTime), 'short'),
+          creationTime: this.datePipe.transform(
+            new Date(message.messageHead.creationTime),
+            'short',
+          ),
           xdomeaVersion: message.xdomeaVersion,
         });
       });
@@ -143,9 +147,11 @@ export class MessageMetadataComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.messageService.reimportMessage(this.process!.processId, this.message!.messageType).subscribe(() => {
-            this.notification.show('Nachricht wird neu eingelesen...');
-          });
+          this.messageService
+            .reimportMessage(this.process!.processId, this.message!.messageType)
+            .subscribe(() => {
+              this.notification.show('Nachricht wird neu eingelesen...');
+            });
         }
       });
   }
@@ -156,14 +162,17 @@ export class MessageMetadataComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.messageService.deleteMessage(this.process!.processId, this.message!.messageType).subscribe(() => {
-            this.notification.show('Nachricht gelöscht');
-            const processHasOtherMessage =
-              this.process?.processState?.receive0501?.complete && this.process?.processState?.receive0503?.complete;
-            if (!processHasOtherMessage) {
-              this.router.navigate(['/']);
-            }
-          });
+          this.messageService
+            .deleteMessage(this.process!.processId, this.message!.messageType)
+            .subscribe(() => {
+              this.notification.show('Nachricht gelöscht');
+              const processHasOtherMessage =
+                this.process?.processState?.receive0501?.complete &&
+                this.process?.processState?.receive0503?.complete;
+              if (!processHasOtherMessage) {
+                this.router.navigate(['/']);
+              }
+            });
         }
       });
   }
@@ -204,10 +213,18 @@ export class MessageMetadataComponent {
     const state = this.process.processState;
     let items: StateItem[] = [];
     if (state.receive0501.complete) {
-      items.push({ title: 'Anbietung erhalten', icon: 'check', date: state.receive0501.completedAt! });
+      items.push({
+        title: 'Anbietung erhalten',
+        icon: 'check',
+        date: state.receive0501.completedAt!,
+      });
     }
     if (state.appraisal.complete) {
-      items.push({ title: 'Bewertung abgeschlossen', icon: 'check', date: state.appraisal.completedAt! });
+      items.push({
+        title: 'Bewertung abgeschlossen',
+        icon: 'check',
+        date: state.appraisal.completedAt!,
+      });
     } else if (state.appraisal.progress) {
       items.push({
         title: 'Bewertung',
@@ -217,7 +234,11 @@ export class MessageMetadataComponent {
       });
     }
     if (state.receive0505.complete) {
-      items.push({ title: 'Bewertung in DMS importiert', icon: 'check', date: state.receive0505.completedAt! });
+      items.push({
+        title: 'Bewertung in DMS importiert',
+        icon: 'check',
+        date: state.receive0505.completedAt!,
+      });
     }
     if (state.receive0503.complete) {
       items.push({ title: 'Abgabe erhalten', icon: 'check', date: state.receive0503.completedAt! });
@@ -250,7 +271,11 @@ export class MessageMetadataComponent {
       });
     }
     onClick = () =>
-      this.dialog.open(TaskDetailsComponent, { data: state.archiving.taskId, width: '1000px', maxWidth: '80vw' });
+      this.dialog.open(TaskDetailsComponent, {
+        data: state.archiving.taskId,
+        width: '1000px',
+        maxWidth: '80vw',
+      });
     if (state.archiving.complete) {
       items.push({
         title: 'Abgabe archiviert',

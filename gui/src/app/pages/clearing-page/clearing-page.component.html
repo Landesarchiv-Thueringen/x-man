@@ -14,7 +14,9 @@
     >
       <!-- detected at column -->
       <ng-container matColumnDef="createdAt">
-        <mat-header-cell *matHeaderCellDef mat-sort-header>Feststellungs&shy;zeitpunkt</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef mat-sort-header
+          >Feststellungs&shy;zeitpunkt</mat-header-cell
+        >
         <mat-cell *matCellDef="let error">{{ error.createdAt | date: "short" }}</mat-cell>
       </ng-container>
 

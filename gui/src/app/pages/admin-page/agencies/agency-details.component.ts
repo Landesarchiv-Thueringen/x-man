@@ -5,7 +5,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogContent, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogContent,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -201,7 +207,8 @@ export class AgencyDetailsComponent {
       map((archivists) =>
         archivists.filter(
           (a) =>
-            (filterStringLower == null || a.displayName.toLocaleLowerCase().includes(filterStringLower)) &&
+            (filterStringLower == null ||
+              a.displayName.toLocaleLowerCase().includes(filterStringLower)) &&
             // Filter archivists that are already assigned
             !this.form.getRawValue().userIds.includes(a.id),
         ),
@@ -239,7 +246,9 @@ export class AgencyDetailsComponent {
     const transferDir = this.form.get('transferDir')!.value;
     // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
     const dummyProtocol = transferDir.protocol?.startsWith('dav') ? 'http' : transferDir.protocol;
-    const transferDirURL = new URL(dummyProtocol + '://' + (transferDir.host ?? '') + '/' + transferDir.path);
+    const transferDirURL = new URL(
+      dummyProtocol + '://' + (transferDir.host ?? '') + '/' + transferDir.path,
+    );
     transferDirURL.username = transferDir.username ?? '';
     transferDirURL.password = transferDir.password ?? '';
     return transferDirURL.href.replace(/^http/, transferDir.protocol!);

@@ -17,7 +17,14 @@ import { AgencyDetailsComponent } from './agency-details.component';
 @Component({
   selector: 'app-agencies',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatDialogModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatSortModule,
+    MatTableModule,
+  ],
   templateUrl: './agencies.component.html',
   styleUrl: './agencies.component.scss',
 })
@@ -59,7 +66,9 @@ export class AgenciesComponent implements AfterViewInit {
     if (agency.collectionId == null) {
       return of('');
     }
-    return this.collectionsService.getCollectionById(agency.collectionId).pipe(map((c) => c?.name ?? ''));
+    return this.collectionsService
+      .getCollectionById(agency.collectionId)
+      .pipe(map((c) => c?.name ?? ''));
   }
 
   getUserNames(agency: Agency): Observable<string> {

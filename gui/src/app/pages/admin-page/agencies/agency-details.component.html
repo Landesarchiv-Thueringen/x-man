@@ -4,7 +4,12 @@
     <div class="row">
       <mat-form-field class="name-field">
         <mat-label>Name</mat-label>
-        <input matInput formControlName="name" cdkFocusInitial (focus)="isNew && $any($event.target).select()" />
+        <input
+          matInput
+          formControlName="name"
+          cdkFocusInitial
+          (focus)="isNew && $any($event.target).select()"
+        />
       </mat-form-field>
       <mat-form-field>
         <mat-label>Kürzel</mat-label>
@@ -150,12 +155,13 @@
         </button>
         @if (testResult === "success") {
           <p class="message message-success">
-            <mat-icon>check</mat-icon>Das Transferverzeichnis ist erreichbar und mit korrekten Rechten konfiguriert.
+            <mat-icon>check</mat-icon>Das Transferverzeichnis ist erreichbar und mit korrekten
+            Rechten konfiguriert.
           </p>
         } @else if (testResult === "failed") {
           <p class="message message-failed">
-            <mat-icon>error</mat-icon>Das Transferverzeichnis ist konnte nicht erreicht werden oder ist nicht korrekt
-            konfiguriert.
+            <mat-icon>error</mat-icon>Das Transferverzeichnis ist konnte nicht erreicht werden oder
+            ist nicht korrekt konfiguriert.
           </p>
         }
       </mat-expansion-panel>
@@ -163,9 +169,13 @@
   </form>
 </div>
 <div mat-dialog-actions>
-  <button *ngIf="!isNew" class="delete-button error-button" mat-button (click)="deleteAgency()">Löschen</button>
+  <button *ngIf="!isNew" class="delete-button error-button" mat-button (click)="deleteAgency()">
+    Löschen
+  </button>
   <button mat-button mat-dialog-close>Abbrechen</button>
-  <button mat-flat-button [disabled]="!form.valid || testResult === 'failed'" (click)="save()">Speichern</button>
+  <button mat-flat-button [disabled]="!form.valid || testResult === 'failed'" (click)="save()">
+    Speichern
+  </button>
 </div>
 
 <ng-template #deleteDialog>
@@ -175,6 +185,8 @@
   </div>
   <div mat-dialog-actions>
     <button mat-button mat-dialog-close>Abbrechen</button>
-    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>Löschen</button>
+    <button mat-flat-button class="error-button" [mat-dialog-close]="true" cdkFocusInitial>
+      Löschen
+    </button>
   </div>
 </ng-template>

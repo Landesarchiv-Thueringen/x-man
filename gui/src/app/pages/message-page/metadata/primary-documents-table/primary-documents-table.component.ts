@@ -40,7 +40,9 @@ export class PrimaryDocumentsTableComponent {
       .pipe(
         takeUntilDestroyed(),
         tap((message) => (processId = message.messageHead.processID)),
-        switchMap((message) => this.messageService.getPrimaryDocumentsData(message.messageHead.processID)),
+        switchMap((message) =>
+          this.messageService.getPrimaryDocumentsData(message.messageHead.processID),
+        ),
       )
       .subscribe((primaryDocuments) => {
         const mapping = primaryDocumentToFileResult.bind(null, processId);
@@ -49,7 +51,10 @@ export class PrimaryDocumentsTableComponent {
   }
 }
 
-function primaryDocumentToFileResult(processId: string, primaryDocument: PrimaryDocumentData): FileResult | undefined {
+function primaryDocumentToFileResult(
+  processId: string,
+  primaryDocument: PrimaryDocumentData,
+): FileResult | undefined {
   if (!primaryDocument.formatVerification) {
     return undefined;
   }
@@ -57,7 +62,10 @@ function primaryDocumentToFileResult(processId: string, primaryDocument: Primary
     id: primaryDocument.filename,
     filename:
       primaryDocument.filenameOriginal ||
-      primaryDocument.filename.replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/, ''),
+      primaryDocument.filename.replace(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/,
+        '',
+      ),
     info: {
       recordId: {
         value: primaryDocument.recordId,

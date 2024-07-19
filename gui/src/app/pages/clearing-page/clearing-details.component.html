@@ -120,7 +120,9 @@
 </div>
 
 <div mat-dialog-actions>
-  <button mat-button class="left-button" (click)="downloadInfo()">Fehlerinformationen herunterladen</button>
+  <button mat-button class="left-button" (click)="downloadInfo()">
+    Fehlerinformationen herunterladen
+  </button>
 
   <button mat-button mat-dialog-close>Schließen</button>
   @if (!processingError.resolved) {
@@ -137,7 +139,10 @@
       <span>E-Mail an Abgebende Stelle</span>
     </button>
   }
-  @if (processingError.processStep === "format_verification" && processingError.taskId !== "000000000000000000000000") {
+  @if (
+    processingError.processStep === "format_verification" &&
+    processingError.taskId !== "000000000000000000000000"
+  ) {
     <button mat-menu-item (click)="markDone()">
       <mat-icon>done</mat-icon>
       <span>Als abgeschlossen markieren</span>
