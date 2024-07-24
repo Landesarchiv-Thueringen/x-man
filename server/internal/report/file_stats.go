@@ -7,7 +7,6 @@ import (
 	"path"
 	"slices"
 	"sort"
-	"strconv"
 )
 
 type FileStats struct {
@@ -30,7 +29,7 @@ type DocumentsEntry struct {
 
 // processDocument adds the given document to the FileStats' PUIDEntries array.
 func (f *FileStats) processDocument(document db.PrimaryDocumentData) {
-	PUID := getFeature(document, "puid")
+	PUID := document.FormatVerification.Summary.PUID
 	idx := slices.IndexFunc(f.PUIDEntries, func(e PUIDEntry) bool { return e.PUID == PUID })
 	if idx == -1 {
 		PUIDEntry := PUIDEntry{PUID: PUID, Entries: make([]DocumentsEntry, 0)}
@@ -53,9 +52,14 @@ func (f *FileStats) sort() {
 
 // processDocument adds the given document to the PUIDEntry's Entries array.
 func (p *PUIDEntry) processDocument(document db.PrimaryDocumentData) {
-	mimeType := getFeature(document, "mimeType")
-	formatVersion := getFeature(document, "formatVersion")
-	valid := getFeature(document, "valid")
+	mimeType := document.FormatVerification.Summary.MimeType
+	formatVersion := document.FormatVerification.Summary.FormatVersion
+	var valid *bool
+	if document.FormatVerification.Summary.Valid {
+		*valid = true
+	} else if document.FormatVerification.Summary.Invalid {
+		*valid = false
+	}
 	idx := slices.IndexFunc(p.Entries, func(e DocumentsEntry) bool {
 		return e.MimeType == mimeType &&
 			e.FormatVersion == formatVersion &&
@@ -67,7 +71,7 @@ func (p *PUIDEntry) processDocument(document db.PrimaryDocumentData) {
 		p.Entries = append(p.Entries, DocumentsEntry{
 			MimeType:      mimeType,
 			FormatVersion: formatVersion,
-			Valid:         toBoolPointer(valid),
+			Valid:         valid,
 			NumberFiles:   1,
 		})
 	}
@@ -112,29 +116,10 @@ func getFileSize(path string) uint64 {
 	return uint64(fi.Size())
 }
 
-func getFeature(document db.PrimaryDocumentData, featureKey string) string {
-	if document.FormatVerification == nil {
-		return ""
-	}
-	if f, ok := document.FormatVerification.Summary[featureKey]; ok {
-		return f.Values[0].Value
-	}
-	return ""
-}
-
-func toBoolPointer(str string) *bool {
-	if str == "" {
-		return nil
+func boolPointerMatches(lhs, rhs *bool) bool {
+	if lhs == nil || rhs == nil {
+		return lhs == rhs
 	} else {
-		b := str == "true"
-		return &b
-	}
-}
-
-func boolPointerMatches(ptr *bool, str string) bool {
-	if ptr == nil {
-		return str == ""
-	} else {
-		return strconv.FormatBool(*ptr) == str
+		return *lhs == *rhs
 	}
 }

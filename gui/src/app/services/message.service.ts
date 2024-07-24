@@ -3,7 +3,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { ToolResults } from '../pages/message-page/metadata/primary-documents-table/file-analysis/results';
+import {
+  FileAnalysis,
+  Summary,
+} from '../pages/message-page/metadata/primary-documents-table/file-analysis/results';
 
 export interface Message {
   messageType: MessageType;
@@ -36,7 +39,7 @@ export interface Institution {
   abbreviation: string;
 }
 
-export type FormatVerification = ToolResults;
+export type FormatVerification = FileAnalysis;
 
 export interface ToolResult {
   toolName: string;
@@ -45,10 +48,6 @@ export interface ToolResult {
   outputFormat: 'text' | 'json' | 'csv';
   extractedFeatures: { [key: string]: string };
   error: string;
-}
-
-export interface Summary {
-  [key: string]: Feature;
 }
 
 export interface Feature {
@@ -65,6 +64,13 @@ export interface FeatureValue {
 export interface ToolConfidence {
   confidence: number;
   toolName: string;
+}
+
+export interface PrimaryDocumentInfo {
+  recordId: string;
+  filename: string;
+  filenameOriginal: string;
+  formatVerificationSummary?: Summary;
 }
 
 export interface PrimaryDocumentData {
@@ -144,12 +150,21 @@ export class MessageService {
     return this.httpClient.get<Blob>(url, options);
   }
 
-  getPrimaryDocumentsData(processId: string): Observable<PrimaryDocumentData[]> {
+  getPrimaryDocumentsInfo(processId: string): Observable<PrimaryDocumentInfo[]> {
     if (!processId) {
       throw new Error('called getPrimaryDocuments with null ID');
     }
-    const url = this.apiEndpoint + '/primary-documents-data/' + processId;
-    return this.httpClient.get<PrimaryDocumentData[]>(url);
+    const url = this.apiEndpoint + '/primary-documents-info/' + processId;
+    return this.httpClient.get<PrimaryDocumentInfo[]>(url);
+  }
+
+  getPrimaryDocumentData(processId: string, filename: string): Observable<PrimaryDocumentData> {
+    if (!processId) {
+      throw new Error('called getPrimaryDocuments with null ID');
+    }
+    const url =
+      this.apiEndpoint + '/primary-document-data/' + processId + '/' + encodeURIComponent(filename);
+    return this.httpClient.get<PrimaryDocumentData>(url);
   }
 
   finalizeMessageAppraisal(messageId: string): Observable<void> {

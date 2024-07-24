@@ -2,7 +2,7 @@ export interface FileResult {
   id: string;
   filename: string;
   info: { [key: string]: RowValue };
-  toolResults: ToolResults;
+  summary: Summary;
 }
 
 export interface RowValue {
@@ -18,37 +18,35 @@ export interface RowValue {
   routerLink?: any;
 }
 
-export interface ToolResults {
-  fileIdentificationResults: ToolResult[] | null;
-  fileValidationResults: ToolResult[] | null;
+export interface FileAnalysis {
   summary: Summary;
-}
-
-export interface ToolResult {
-  toolName: string;
-  toolVersion: string;
-  toolOutput: string;
-  outputFormat: 'text' | 'json' | 'csv';
-  extractedFeatures: { [key: string]: string };
-  error: string | null;
+  features: { [key: string]: FeatureValue[] };
+  toolResults: ToolResult[];
 }
 
 export interface Summary {
-  [key: string]: Feature;
-}
-
-export interface Feature {
-  key: string;
-  values: FeatureValue[];
+  valid: boolean;
+  invalid: boolean;
+  formatUncertain: boolean;
+  validityConflict: boolean;
+  error: boolean;
+  puid: string;
+  mimeType: string;
+  formatVersion: string;
 }
 
 export interface FeatureValue {
   value: string;
   score: number;
-  tools: ToolConfidence[];
+  supportingTools: { [key: string]: number };
 }
 
-export interface ToolConfidence {
-  confidence: number;
+export interface ToolResult {
   toolName: string;
+  toolType: 'identification' | 'validation';
+  toolVersion: string;
+  toolOutput: string;
+  outputFormat: 'text' | 'json' | 'csv';
+  features: { [key: string]: string };
+  error: string | null;
 }

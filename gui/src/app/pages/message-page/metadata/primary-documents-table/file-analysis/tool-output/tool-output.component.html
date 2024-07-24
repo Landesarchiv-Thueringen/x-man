@@ -1,13 +1,13 @@
-<h1 mat-dialog-title>{{ toolResult.toolName }} ({{ toolResult.toolVersion }})</h1>
+<h1 mat-dialog-title>{{ toolName }} ({{ toolResult.toolVersion }})</h1>
 
 <mat-dialog-content>
   <mat-accordion multi="true">
-    <mat-expansion-panel *ngIf="toolResult.extractedFeatures as extractedFeatures" expanded="true">
+    <mat-expansion-panel *ngIf="toolResult.features as features" expanded="true">
       <mat-expansion-panel-header>
         <mat-panel-title>Extrahierte Eigenschaften</mat-panel-title>
       </mat-expansion-panel-header>
 
-      <mat-table [dataSource]="extractedFeatures | keyvalue">
+      <mat-table [dataSource]="features | keyvalue">
         <ng-container matColumnDef="key">
           <mat-header-cell *matHeaderCellDef>Eigenschaft</mat-header-cell>
           <mat-cell *matCellDef="let element">{{ element.key | fileFeature }}</mat-cell>

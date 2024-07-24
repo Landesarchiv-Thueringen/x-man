@@ -7,8 +7,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { FilePropertyDefinition } from '../file-analysis-table/file-analysis-table.component';
 import { FileFeaturePipe } from '../pipes/file-feature.pipe';
-import { FeatureValue, FileResult, Summary, ToolConfidence, ToolResult } from '../results';
-import { StatusIconsService } from '../status-icons.service';
+import { FeatureValue, FileAnalysis, RowValue } from '../results';
 import { ToolOutputComponent } from '../tool-output/tool-output.component';
 
 const OVERVIEW_FEATURES = ['puid', 'mimeType', 'formatVersion', 'valid'] as const;
@@ -25,14 +24,15 @@ const featureOrder = new Map<string, number>([
 ]);
 
 interface DialogData {
-  fileResult: FileResult;
+  filename: string;
+  info: { [key: string]: RowValue };
+  analysis: FileAnalysis;
   properties: FilePropertyDefinition[];
 }
 
 interface FileFeature {
   value?: string;
   confidence?: number;
-  colorizeConfidence?: boolean;
   icon?: string;
 }
 
@@ -58,8 +58,7 @@ const ALWAYS_VISIBLE_COLUMNS = ['puid', 'mimeType'];
   ],
 })
 export class FileOverviewComponent {
-  readonly fileResult: FileResult = this.data.fileResult;
-  readonly icons = this.statusIcons.getIcons(this.data.fileResult);
+  readonly analysis: FileAnalysis = this.data.analysis;
   dataSource = new MatTableDataSource<FileFeatures>();
   tableColumnList: string[] = [];
   infoProperties = this.data.properties.filter(
@@ -71,101 +70,92 @@ export class FileOverviewComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
-    private statusIcons: StatusIconsService,
     private dialog: MatDialog,
   ) {
-    console.log('infoProperties', this.infoProperties);
     this.initTableData();
   }
 
   initTableData(): void {
-    if (this.fileResult.toolResults.summary) {
-      const summary = this.fileResult.toolResults.summary;
-      const toolNames: string[] = [];
-      let featureNames: OverviewFeature[] = [];
-      let toolResults: ToolResult[] = this.fileResult.toolResults.fileIdentificationResults ?? [];
-      if (this.fileResult.toolResults.fileValidationResults) {
-        toolResults = toolResults.concat(this.fileResult.toolResults.fileValidationResults);
-      }
-      toolResults.forEach((toolResult: ToolResult) => {
-        toolNames.push(toolResult.toolName);
-      });
-      for (let featureKey in summary) {
-        if (isOverviewFeature(featureKey)) {
-          featureNames.push(featureKey);
-        }
-      }
-      this.dataSource.data = this.getTableRows(summary, toolNames, featureNames);
+    const features = this.analysis.features;
+    if (!features) {
+      return;
     }
+    let featureNames: OverviewFeature[] = [];
+    const toolNames = this.analysis.toolResults.map((r) => r.toolName);
+    for (const featureKey in features) {
+      if (isOverviewFeature(featureKey)) {
+        featureNames.push(featureKey);
+      }
+    }
+    this.dataSource.data = this.getTableRows(toolNames, featureNames, this.analysis.features);
   }
 
-  getTableRows(summary: Summary, toolNames: string[], featureNames: string[]): FileFeatures[] {
-    const rows: FileFeatures[] = [this.getCumulativeResult(summary, featureNames)];
+  getTableRows(
+    toolNames: string[],
+    featureNames: string[],
+    featureValues: { [key: string]: FeatureValue[] },
+  ): FileFeatures[] {
+    const rows: FileFeatures[] = [this.getCumulativeResult(featureNames, featureValues)];
     const sortedFeatures: string[] = sortFeatures([...ALWAYS_VISIBLE_COLUMNS, ...featureNames]);
     this.tableColumnList = ['tool', ...sortedFeatures];
-    if (this.icons.error) {
+    if (this.analysis.summary.error) {
       this.tableColumnList.push('error');
     }
     for (let toolName of toolNames) {
-      const featureValues: FileFeatures = {};
-      featureValues['tool'] = {
+      const fileFeatures: FileFeatures = {};
+      fileFeatures['tool'] = {
         value: toolName,
       };
       for (let featureName of featureNames) {
-        for (let featureValue of summary[featureName].values) {
+        for (let featureValue of featureValues[featureName]) {
           if (this.featureOfTool(featureValue, toolName)) {
-            const toolInfo: ToolConfidence = featureValue.tools.find((toolInfo: ToolConfidence) => {
-              return toolInfo.toolName === toolName;
-            })!;
-            featureValues[featureName] = {
+            const toolConfidence = featureValue.supportingTools[toolName];
+            fileFeatures[featureName] = {
               value: featureValue.value,
-              confidence: toolInfo.confidence,
-              colorizeConfidence: false,
+              confidence: toolConfidence,
             };
           }
         }
       }
-      if (this.findToolResult(toolName)?.error) {
-        featureValues['error'] = {
+      if (this.analysis.toolResults.find((r) => r.toolName === toolName)?.error) {
+        fileFeatures['error'] = {
           icon: 'error',
         };
       }
-      rows.push(featureValues);
+      rows.push(fileFeatures);
     }
     return rows;
   }
 
-  getCumulativeResult(summary: Summary, featureNames: string[]): FileFeatures {
+  getCumulativeResult(
+    featureNames: string[],
+    featureValues: { [key: string]: FeatureValue[] },
+  ): FileFeatures {
     const features: FileFeatures = {};
     features['tool'] = {
       value: 'Gesamtergebnis',
     };
     for (let featureName of featureNames) {
       // result with highest confidence
-      const featureValue = summary[featureName].values[0];
+      const featureValue = featureValues[featureName][0];
       features[featureName] = {
         value: featureValue.value,
         confidence: featureValue.score,
-        colorizeConfidence: true,
       };
     }
     return features;
   }
 
   featureOfTool(featureValue: FeatureValue, toolName: string): boolean {
-    for (let tool of featureValue.tools) {
-      if (tool.toolName === toolName) {
-        return true;
-      }
-    }
-    return false;
+    return featureValue.supportingTools[toolName] != null;
   }
 
   showToolOutput(toolName: string): void {
-    const toolResult = this.findToolResult(toolName);
+    const toolResult = this.analysis.toolResults.find((r) => r.toolName === toolName);
     if (toolResult) {
       this.dialog.open(ToolOutputComponent, {
         data: {
+          toolName,
           toolResult,
         },
         autoFocus: false,
@@ -179,17 +169,9 @@ export class FileOverviewComponent {
     document.body.appendChild(a);
     a.download = 'borg-results.json';
     a.href =
-      'data:text/json;charset=utf-8,' +
-      encodeURIComponent(JSON.stringify(this.fileResult, null, 2));
+      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.analysis, null, 2));
     a.click();
     document.body.removeChild(a);
-  }
-
-  private findToolResult(toolName: string): ToolResult | undefined {
-    return [
-      ...(this.fileResult.toolResults.fileIdentificationResults ?? []),
-      ...(this.fileResult.toolResults.fileValidationResults ?? []),
-    ].find((result) => result.toolName === toolName);
   }
 }
 

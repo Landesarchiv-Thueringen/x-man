@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap, tap } from 'rxjs';
-import { MessageService, PrimaryDocumentData } from '../../../../services/message.service';
+import { firstValueFrom, switchMap, tap } from 'rxjs';
+import { MessageService, PrimaryDocumentInfo } from '../../../../services/message.service';
 import { notNull } from '../../../../utils/predicates';
 import { MessagePageService } from '../../message-page.service';
 import {
@@ -19,8 +19,14 @@ import { FileResult } from './file-analysis/results';
   imports: [FileAnalysisTableComponent],
 })
 export class PrimaryDocumentsTableComponent {
+  processId!: string;
   results?: FileResult[];
-  getResult = async (id: string) => this.results?.find((result) => result.id === id);
+  getDetails = async (id: string) => {
+    const data = await firstValueFrom(
+      this.messageService.getPrimaryDocumentData(this.processId, id),
+    );
+    return data.formatVerification;
+  };
   properties: FilePropertyDefinition[] = [
     { key: 'filenameComplete', label: 'Dateiname', inTable: false },
     { key: 'recordId', label: 'Dokument', inTable: false },
@@ -34,28 +40,27 @@ export class PrimaryDocumentsTableComponent {
     private messageService: MessageService,
     private messagePage: MessagePageService,
   ) {
-    let processId: string;
     this.messagePage
       .observeMessage()
       .pipe(
         takeUntilDestroyed(),
-        tap((message) => (processId = message.messageHead.processID)),
+        tap((message) => (this.processId = message.messageHead.processID)),
         switchMap((message) =>
-          this.messageService.getPrimaryDocumentsData(message.messageHead.processID),
+          this.messageService.getPrimaryDocumentsInfo(message.messageHead.processID),
         ),
       )
-      .subscribe((primaryDocuments) => {
-        const mapping = primaryDocumentToFileResult.bind(null, processId);
-        this.results = primaryDocuments.map(mapping).filter(notNull);
+      .subscribe((info) => {
+        const mapping = primaryDocumentToFileResult.bind(null, this.processId);
+        this.results = info.map(mapping).filter(notNull);
       });
   }
 }
 
 function primaryDocumentToFileResult(
   processId: string,
-  primaryDocument: PrimaryDocumentData,
+  primaryDocument: PrimaryDocumentInfo,
 ): FileResult | undefined {
-  if (!primaryDocument.formatVerification) {
+  if (!primaryDocument.formatVerificationSummary) {
     return undefined;
   }
   return {
@@ -74,6 +79,6 @@ function primaryDocumentToFileResult(
       filenameOriginal: { value: primaryDocument.filenameOriginal },
       filenameComplete: { value: primaryDocument.filename },
     },
-    toolResults: primaryDocument.formatVerification,
+    summary: primaryDocument.formatVerificationSummary,
   };
 }

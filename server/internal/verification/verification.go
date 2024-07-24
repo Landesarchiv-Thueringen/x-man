@@ -103,7 +103,7 @@ func (h *VerificationHandler) HandleItem(ctx context.Context, itemData interface
 		filename,
 		&parsedResponse,
 	)
-	if isInvalid(parsedResponse) || hasError(parsedResponse) {
+	if parsedResponse.Summary.Invalid || parsedResponse.Summary.Error {
 		h.invalidFiles = append(h.invalidFiles, filename)
 	}
 	return nil
@@ -145,24 +145,4 @@ func TestConnection() error {
 		return fmt.Errorf("HEAD \"%s\": %d", borgURL, resp.StatusCode)
 	}
 	return nil
-}
-
-func isInvalid(f db.FormatVerification) bool {
-	valid, ok := f.Summary["valid"]
-	return ok && valid.Values[0].Value == "false" &&
-		valid.Values[0].Score > 0.75
-}
-
-func hasError(f db.FormatVerification) bool {
-	for _, r := range f.FileIdentificationResults {
-		if r.Error != "" {
-			return true
-		}
-	}
-	for _, r := range f.FileValidationResults {
-		if r.Error != "" {
-			return true
-		}
-	}
-	return false
 }

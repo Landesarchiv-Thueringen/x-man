@@ -57,7 +57,8 @@ func main() {
 	authorized.GET("api/root-records/:processId/:messageType", getRootRecords)
 	authorized.GET("api/all-record-objects-appraised/:processId", areAllRecordObjectsAppraised)
 	authorized.GET("api/primary-document", getPrimaryDocument)
-	authorized.GET("api/primary-documents-data/:processId", getPrimaryDocumentsData)
+	authorized.GET("api/primary-documents-info/:processId", getPrimaryDocumentsInfo)
+	authorized.GET("api/primary-document-data/:processId/:filename", getPrimaryDocumentData)
 	authorized.GET("api/report/:processId", getReport)
 	authorized.GET("api/archive-collections", getCollections)
 	authorized.GET("api/user-info", getUserInformation)
@@ -510,14 +511,38 @@ func getPrimaryDocument(c *gin.Context) {
 	c.FileAttachment(path, filename)
 }
 
-func getPrimaryDocumentsData(c *gin.Context) {
+func getPrimaryDocumentsInfo(c *gin.Context) {
 	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
 	primaryDocuments := db.FindPrimaryDocumentsDataForProcess(c.Request.Context(), processID)
-	c.JSON(http.StatusOK, primaryDocuments)
+	data := make([]gin.H, len(primaryDocuments))
+	for i, d := range primaryDocuments {
+		data[i] = gin.H{
+			"filename":                  d.Filename,
+			"filenameOriginal":          d.FilenameOriginal,
+			"recordId":                  d.RecordID,
+			"formatVerificationSummary": d.FormatVerification.Summary,
+		}
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+func getPrimaryDocumentData(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	filename := c.Param("filename")
+	data, found := db.FindPrimaryDocumentData(c.Request.Context(), processID, filename)
+	if !found {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, data)
 }
 
 func getReport(c *gin.Context) {

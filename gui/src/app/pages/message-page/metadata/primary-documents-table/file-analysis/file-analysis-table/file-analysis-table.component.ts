@@ -8,8 +8,14 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { FileOverviewComponent } from '../file-overview/file-overview.component';
 import { FileFeaturePipe } from '../pipes/file-feature.pipe';
-import { FileResult, RowValue } from '../results';
-import { StatusIcons, StatusIconsService } from '../status-icons.service';
+import { FileAnalysis, FileResult, RowValue } from '../results';
+
+export interface StatusIcons {
+  valid: boolean;
+  invalid: boolean;
+  warning: boolean;
+  error: boolean;
+}
 
 type FileOverview = {
   id: string;
@@ -56,6 +62,7 @@ export interface FilePropertyDefinition {
 })
 export class FileAnalysisTableComponent implements AfterViewInit {
   dataSource: MatTableDataSource<FileOverview>;
+  private resultsMap: { [key: string]: FileResult } = {};
 
   private _results?: FileResult[];
   @Input()
@@ -64,10 +71,14 @@ export class FileAnalysisTableComponent implements AfterViewInit {
   }
   set results(value: FileResult[] | undefined) {
     this._results = value;
+    this.resultsMap = {};
+    for (const result of value ?? []) {
+      this.resultsMap[result.id] = result;
+    }
     this.processFileInformation(value ?? []);
   }
 
-  @Input() getResult!: (id: string) => Promise<FileResult | undefined>;
+  @Input() getDetails!: (id: string) => Promise<FileAnalysis | undefined>;
 
   private _properties: FilePropertyDefinition[] = [
     { key: 'path', label: 'Pfad' },
@@ -104,10 +115,7 @@ export class FileAnalysisTableComponent implements AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(
-    private dialog: MatDialog,
-    private statusIcons: StatusIconsService,
-  ) {
+  constructor(private dialog: MatDialog) {
     this.dataSource = new MatTableDataSource<FileOverview>([]);
   }
 
@@ -132,12 +140,17 @@ export class FileAnalysisTableComponent implements AfterViewInit {
     for (let result of results) {
       let fileOverview: FileOverview = {
         id: result.id,
-        icons: this.statusIcons.getIcons(result),
+        icons: {
+          valid: result.summary.valid,
+          invalid: result.summary.invalid,
+          warning: result.summary.formatUncertain || result.summary.validityConflict,
+          error: result.summary.error,
+        },
         values: {
           filename: { value: result.filename },
-          puid: { value: result.toolResults.summary['puid']?.values[0].value },
-          mimeType: { value: result.toolResults.summary['mimeType']?.values[0].value },
-          formatVersion: { value: result.toolResults.summary['formatVersion']?.values[0].value },
+          puid: { value: result.summary.puid },
+          mimeType: { value: result.summary.mimeType },
+          formatVersion: { value: result.summary.formatVersion },
           ...result.info,
         },
       };
@@ -146,13 +159,14 @@ export class FileAnalysisTableComponent implements AfterViewInit {
     this.dataSource.data = data;
   }
 
-  async openDetails(fileOverview: FileOverview): Promise<void> {
-    const id = fileOverview.id;
-    const fileResult = await this.getResult(id);
-    if (fileResult) {
+  async openDetails(overview: FileOverview): Promise<void> {
+    const analysis = await this.getDetails(overview.id);
+    if (analysis) {
       this.dialog.open(FileOverviewComponent, {
         data: {
-          fileResult: fileResult,
+          filename: overview.values['filename']!.value,
+          info: this.resultsMap[overview.id].info,
+          analysis,
           properties: this.properties,
         },
         autoFocus: false,

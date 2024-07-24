@@ -1,11 +1,11 @@
-<h2 mat-dialog-title>{{ data.fileResult.filename }}</h2>
+<h2 mat-dialog-title>{{ data.filename }}</h2>
 
 <mat-dialog-content>
   <div class="info-table" role="table">
     @for (property of infoProperties; track property.key) {
       <div role="row">
         <div role="cell">{{ property.label }}</div>
-        @if (data.fileResult.info[property.key]; as row) {
+        @if (data.info[property.key]; as row) {
           <div role="cell">
             @if (row.routerLink) {
               <a mat-button [routerLink]="row.routerLink" target="_blank">
@@ -20,7 +20,7 @@
       </div>
     }
   </div>
-  <div *ngIf="icons.uncertain" class="icon-explanation">
+  <div *ngIf="data.analysis.summary.formatUncertain" class="icon-explanation">
     <mat-icon class="uncertain-icon">warning</mat-icon>
     <div>
       <p>Der Typ der Datei konnte nicht zweifelsfrei ermittelt werden.</p>
@@ -31,13 +31,21 @@
       <p>Eine aussagekräftige Validierung kann deshalb nicht vorgenommen werden.</p>
     </div>
   </div>
-  <div *ngIf="icons.valid" class="icon-explanation">
+  <div *ngIf="data.analysis.summary.validityConflict" class="icon-explanation">
+    <mat-icon class="uncertain-icon">warning</mat-icon>
+    <div>
+      <p>Widersprüchliche Validierungsergebnisse.</p>
+      <p>Verschiedene Validierungs-Werkzeuge haben unterschiedliche Ergebnisse ausgegeben.</p>
+      <p>Dies kann ein Zeichen für ein Problem mit der Datei oder einem der Werkzeuge sein.</p>
+    </div>
+  </div>
+  <div *ngIf="data.analysis.summary.valid" class="icon-explanation">
     <mat-icon class="valid-icon">check</mat-icon>
     <div>
       <p>Der Datei ist eine valide Datei ihres Typs.</p>
     </div>
   </div>
-  <div *ngIf="icons.invalid" class="icon-explanation">
+  <div *ngIf="data.analysis.summary.invalid" class="icon-explanation">
     <mat-icon class="invalid-icon">close</mat-icon>
     <div>
       <p>Der Datei ist invalide.</p>
@@ -48,7 +56,7 @@
       <p>Dies bedeutet nicht automatisch, dass die Datei unbrauchbar ist.</p>
     </div>
   </div>
-  <div *ngIf="icons.error" class="icon-explanation">
+  <div *ngIf="data.analysis.summary.error" class="icon-explanation">
     <mat-icon class="error-icon">error</mat-icon>
     <div>
       <p>Bei der Überprüfung der Datei trat ein Fehler bei einem oder mehreren Werkzeugen auf.</p>
@@ -63,7 +71,13 @@
     </div>
   </div>
   <div
-    *ngIf="!icons.valid && !icons.invalid && !icons.uncertain && !icons.error"
+    *ngIf="
+      !data.analysis.summary.valid &&
+      !data.analysis.summary.invalid &&
+      !data.analysis.summary.formatUncertain &&
+      !data.analysis.summary.validityConflict &&
+      !data.analysis.summary.error
+    "
     class="icon-explanation"
   >
     <div>

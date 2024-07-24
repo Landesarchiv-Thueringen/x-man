@@ -10,6 +10,7 @@ import { PrettyPrintJsonPipe } from '../pipes/pretty-print-json.pipe';
 import { ToolResult } from '../results';
 
 interface DialogData {
+  toolName: string;
   toolResult: ToolResult;
 }
 
@@ -30,6 +31,7 @@ interface DialogData {
   ],
 })
 export class ToolOutputComponent {
+  readonly toolName = this.data.toolName;
   readonly toolResult = this.data.toolResult;
 
   constructor(@Inject(MAT_DIALOG_DATA) private data: DialogData) {}
