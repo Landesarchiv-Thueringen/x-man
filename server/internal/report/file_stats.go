@@ -29,6 +29,9 @@ type DocumentsEntry struct {
 
 // processDocument adds the given document to the FileStats' PUIDEntries array.
 func (f *FileStats) processDocument(document db.PrimaryDocumentData) {
+	if document.FormatVerification == nil {
+		return
+	}
 	PUID := document.FormatVerification.Summary.PUID
 	idx := slices.IndexFunc(f.PUIDEntries, func(e PUIDEntry) bool { return e.PUID == PUID })
 	if idx == -1 {
@@ -56,9 +59,11 @@ func (p *PUIDEntry) processDocument(document db.PrimaryDocumentData) {
 	formatVersion := document.FormatVerification.Summary.FormatVersion
 	var valid *bool
 	if document.FormatVerification.Summary.Valid {
-		*valid = true
+		v := true
+		valid = &v
 	} else if document.FormatVerification.Summary.Invalid {
-		*valid = false
+		v := false
+		valid = &v
 	}
 	idx := slices.IndexFunc(p.Entries, func(e DocumentsEntry) bool {
 		return e.MimeType == mimeType &&
