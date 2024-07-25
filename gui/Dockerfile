@@ -1,6 +1,4 @@
-# Bug in 22.5 that causes the build to fail. Node version can be removed when
-# resolved upstream.
-FROM node:22.4-alpine3.19 AS build
+FROM node:22-alpine3.20 AS build
 
 WORKDIR /build
 COPY package.json package-lock.json ./

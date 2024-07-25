@@ -1,12 +1,11 @@
-FROM docker.io/golang:alpine AS build
+FROM docker.io/golang:alpine3.20 AS build
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd cmd
 RUN CGO_ENABLED=0 GOOS=linux go build cmd/report.go
 
-FROM docker.io/alpine:edge
-RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
+FROM docker.io/alpine:3.20
 RUN apk add --update typst font-noto
 WORKDIR /app
 COPY --from=build /app/report .
