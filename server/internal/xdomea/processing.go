@@ -212,9 +212,6 @@ func checkMessageValidity(agency db.Agency, messageType db.MessageType, storageP
 		return err
 	}
 	err = validateXdomeaXmlFile(storagePaths.MessagePath, xdomeaVersion)
-	if err != nil {
-		return err
-	}
 	validationError, ok := err.(xsd.SchemaValidationError)
 	if ok {
 		var errorMessages []string
