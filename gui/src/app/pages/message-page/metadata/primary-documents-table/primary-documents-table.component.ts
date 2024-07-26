@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom, switchMap, tap } from 'rxjs';
-import { MessageService, PrimaryDocumentInfo } from '../../../../services/message.service';
-import { notNull } from '../../../../utils/predicates';
-import { MessagePageService } from '../../message-page.service';
 import {
   FileAnalysisTableComponent,
   FilePropertyDefinition,
-} from './file-analysis/file-analysis-table/file-analysis-table.component';
-import { FileResult } from './file-analysis/results';
+} from '../../../../features/file-analysis/file-analysis-table/file-analysis-table.component';
+import { FileResult } from '../../../../features/file-analysis/results';
+import { MessageService, PrimaryDocumentInfo } from '../../../../services/message.service';
+import { notNull } from '../../../../utils/predicates';
+import { MessagePageService } from '../../message-page.service';
 
 @Component({
   selector: 'app-primary-documents-table',

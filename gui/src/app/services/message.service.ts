@@ -3,10 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
-import {
-  FileAnalysis,
-  Summary,
-} from '../pages/message-page/metadata/primary-documents-table/file-analysis/results';
+import { FileAnalysis, Summary } from '../features/file-analysis/results';
 
 export interface Message {
   messageType: MessageType;
