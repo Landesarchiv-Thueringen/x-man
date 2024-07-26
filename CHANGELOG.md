@@ -3,11 +3,14 @@
 ## v0.10.0
 
 - Feature: Formatverifikation und Archivierung können pausiert und abgebrochen werden
+- Feature: Verbesserungen bei der Anzeige der Ergebnisse der Formatverifikation
+- Feature: Zusätzlich angezeigtes Metadatum: Aktenplan-Titel
 - Feature: Server-Konfiguration wird beim Programm-Start getestet
 - Fix: Zugriff auf WebDav mit nicht-leerem Wurzel-Pfad
 - Intern: Migration von PostgreSQL nach MongoDB
 - Intern: Fehlerbehandlung überarbeitet
 - Intern: Automatische Seitenaktualisierung optimiert
+- Intern: Abhängigkeiten aktualisiert
 
 ## v0.9.1
 
