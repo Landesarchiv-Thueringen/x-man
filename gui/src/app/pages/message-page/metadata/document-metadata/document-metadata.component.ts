@@ -29,7 +29,7 @@ import { media } from '../medium.pipe';
 })
 export class DocumentMetadataComponent {
   urlParameterSubscription?: Subscription;
-  documentRecordObject?: DocumentRecord;
+  record?: DocumentRecord;
   messageTypeCode?: string;
   form: FormGroup;
 
@@ -41,6 +41,7 @@ export class DocumentMetadataComponent {
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
+      recordPlanSubject: new FormControl<string | null>(null),
       fileId: new FormControl<string | null>(null),
       subject: new FormControl<string | null>(null),
       documentType: new FormControl<string | null>(null),
@@ -57,7 +58,7 @@ export class DocumentMetadataComponent {
   }
 
   private setRecord(record: DocumentRecord): void {
-    this.documentRecordObject = record;
+    this.record = record;
     let confidentiality: string | undefined;
     if (record.generalMetadata?.confidentialityLevel) {
       confidentiality =
@@ -68,13 +69,14 @@ export class DocumentMetadataComponent {
       medium = media[record.generalMetadata?.medium].shortDesc;
     }
     this.form.patchValue({
-      recordPlanId: this.documentRecordObject!.generalMetadata?.filePlan?.filePlanNumber,
-      fileId: this.documentRecordObject!.generalMetadata?.recordNumber,
-      subject: this.documentRecordObject!.generalMetadata?.subject,
-      documentType: this.documentRecordObject!.type,
-      incomingDate: this.messageService.getDateText(this.documentRecordObject!.incomingDate),
-      outgoingDate: this.messageService.getDateText(this.documentRecordObject!.outgoingDate),
-      documentDate: this.messageService.getDateText(this.documentRecordObject!.documentDate),
+      recordPlanId: record.generalMetadata?.filePlan?.filePlanNumber,
+      recordPlanSubject: record.generalMetadata?.filePlan?.subject,
+      fileId: record.generalMetadata?.recordNumber,
+      subject: record.generalMetadata?.subject,
+      documentType: record.type,
+      incomingDate: this.messageService.getDateText(record.incomingDate),
+      outgoingDate: this.messageService.getDateText(record.outgoingDate),
+      documentDate: this.messageService.getDateText(record.documentDate),
       confidentiality,
       medium,
     });

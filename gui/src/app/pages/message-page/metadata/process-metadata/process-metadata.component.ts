@@ -55,6 +55,7 @@ export class ProcessMetadataComponent {
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
+      recordPlanSubject: new FormControl<string | null>(null),
       fileId: new FormControl<string | null>(null),
       subject: new FormControl<string | null>(null),
       processType: new FormControl<string | null>(null),
@@ -112,32 +113,33 @@ export class ProcessMetadataComponent {
   }
 
   setMetadata(
-    recordObject: ProcessRecord,
+    record: ProcessRecord,
     structureNode: StructureNode,
     appraisal: Appraisal | null,
     appraisalComplete: boolean,
   ): void {
-    this.recordObject = recordObject;
+    this.recordObject = record;
     this.canBeAppraised = structureNode.canBeAppraised;
     this.appraisal = appraisal;
     this.appraisalComplete = appraisalComplete;
-    const appraisalRecomm = recordObject.archiveMetadata?.appraisalRecommCode;
+    const appraisalRecomm = record.archiveMetadata?.appraisalRecommCode;
     let confidentiality: string | undefined;
-    if (recordObject.generalMetadata?.confidentialityLevel) {
+    if (record.generalMetadata?.confidentialityLevel) {
       confidentiality =
-        confidentialityLevels[recordObject.generalMetadata?.confidentialityLevel].shortDesc;
+        confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
     }
     let medium: string | undefined;
-    if (recordObject.generalMetadata?.medium) {
-      medium = media[recordObject.generalMetadata?.medium].shortDesc;
+    if (record.generalMetadata?.medium) {
+      medium = media[record.generalMetadata?.medium].shortDesc;
     }
     this.form.patchValue({
-      recordPlanId: recordObject.generalMetadata?.filePlan?.filePlanNumber,
-      fileId: recordObject.generalMetadata?.recordNumber,
-      subject: recordObject.generalMetadata?.subject,
-      processType: recordObject.type,
-      lifeStart: this.messageService.getDateText(recordObject.lifetime?.start),
-      lifeEnd: this.messageService.getDateText(recordObject.lifetime?.end),
+      recordPlanId: record.generalMetadata?.filePlan?.filePlanNumber,
+      recordPlanSubject: record.generalMetadata?.filePlan?.subject,
+      fileId: record.generalMetadata?.recordNumber,
+      subject: record.generalMetadata?.subject,
+      processType: record.type,
+      lifeStart: this.messageService.getDateText(record.lifetime?.start),
+      lifeEnd: this.messageService.getDateText(record.lifetime?.end),
       appraisal: this.appraisalComplete
         ? this.appraisalService.getAppraisalDescription(appraisal?.decision)?.shortDesc
         : appraisal?.decision,

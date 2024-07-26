@@ -56,6 +56,7 @@ export class FileMetadataComponent {
   ) {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
+      recordPlanSubject: new FormControl<string | null>(null),
       fileId: new FormControl<string | null>(null),
       subject: new FormControl<string | null>(null),
       fileType: new FormControl<string | null>(null),
@@ -128,6 +129,7 @@ export class FileMetadataComponent {
     }
     this.form.patchValue({
       recordPlanId: this.record.generalMetadata?.filePlan?.filePlanNumber,
+      recordPlanSubject: this.record.generalMetadata?.filePlan?.subject,
       fileId: this.record.generalMetadata?.recordNumber,
       subject: this.record.generalMetadata?.subject,
       fileType: this.record.type,

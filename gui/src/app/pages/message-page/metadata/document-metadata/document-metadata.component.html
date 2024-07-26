@@ -1,5 +1,5 @@
 <div class="metadata-section">
-  <form *ngIf="documentRecordObject" [formGroup]="form">
+  <form *ngIf="record" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -12,17 +12,22 @@
               <mat-label>Aktenplanschlüssel</mat-label>
               <input matInput formControlName="recordPlanId" readonly />
             </mat-form-field>
+            <mat-form-field class="record-plan-subject-input" floatLabel="always">
+              <mat-label>Aktenplan</mat-label>
+              <input matInput formControlName="recordPlanSubject" readonly />
+            </mat-form-field>
+          </div>
 
+          <div class="metadata-row">
             <mat-form-field class="document-id-input" floatLabel="always">
               <mat-label>Geschäftszeichen</mat-label>
               <input matInput formControlName="fileId" readonly />
             </mat-form-field>
+            <mat-form-field class="subject-input" floatLabel="always">
+              <mat-label>Behördlicher Dokumentenbetreff</mat-label>
+              <input matInput formControlName="subject" readonly />
+            </mat-form-field>
           </div>
-
-          <mat-form-field class="subject-input" floatLabel="always">
-            <mat-label>Behördlicher Dokumentenbetreff</mat-label>
-            <input matInput formControlName="subject" readonly />
-          </mat-form-field>
 
           <div class="metadata-row">
             <mat-form-field class="document-type-input" floatLabel="always">
@@ -59,8 +64,8 @@
       </mat-expansion-panel>
 
       <app-document-version-metadata
-        *ngIf="this.documentRecordObject?.versions?.length !== 0"
-        [document]="documentRecordObject"
+        *ngIf="record?.versions?.length"
+        [document]="record"
       ></app-document-version-metadata>
     </mat-accordion>
   </form>

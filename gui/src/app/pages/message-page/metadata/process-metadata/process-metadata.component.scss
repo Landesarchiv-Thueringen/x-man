@@ -10,10 +10,6 @@
       column-gap: 1.5em;
     }
 
-    .subject-input {
-      flex-grow: 1;
-    }
-
     .appraisal-input {
       width: 10em;
     }
@@ -22,7 +18,15 @@
       width: 15em;
     }
 
+    .record-plan-subject-input {
+      flex-grow: 1;
+    }
+
     .process-id-input {
+      width: 15em;
+    }
+
+    .subject-input {
       flex-grow: 1;
     }
 

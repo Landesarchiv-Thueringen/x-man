@@ -12,17 +12,22 @@
               <mat-label>Aktenplanschlüssel</mat-label>
               <input matInput formControlName="recordPlanId" readonly />
             </mat-form-field>
+            <mat-form-field class="record-plan-subject-input" floatLabel="always">
+              <mat-label>Aktenplan</mat-label>
+              <input matInput formControlName="recordPlanSubject" readonly />
+            </mat-form-field>
+          </div>
 
+          <div class="metadata-row">
             <mat-form-field class="process-id-input" floatLabel="always">
               <mat-label>Vorgangszeichen</mat-label>
               <input matInput formControlName="fileId" readonly />
             </mat-form-field>
+            <mat-form-field class="subject-input" floatLabel="always">
+              <mat-label>Behördlicher Vorgangsbetreff</mat-label>
+              <input matInput formControlName="subject" readonly />
+            </mat-form-field>
           </div>
-
-          <mat-form-field class="subject-input" floatLabel="always">
-            <mat-label>Behördlicher Vorgangsbetreff</mat-label>
-            <input matInput formControlName="subject" readonly />
-          </mat-form-field>
 
           <div class="metadata-row">
             <mat-form-field class="process-type-input" floatLabel="always">

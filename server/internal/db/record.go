@@ -113,8 +113,9 @@ const (
 )
 
 type FilePlan struct {
-	XMLName        xml.Name `xml:"Aktenplaneinheit" bson:"-" json:"-"`
-	FilePlanNumber string   `xml:"Kennzeichen" bson:"file_plan_number" json:"filePlanNumber"`
+	XMLName        xml.Name `bson:"-" json:"-"`
+	FilePlanNumber string   `bson:"file_plan_number" json:"filePlanNumber"`
+	Subject        string   `bson:"subject" json:"subject"`
 }
 
 type Lifetime struct {
@@ -153,7 +154,14 @@ type PrimaryDocumentContext struct {
 	RecordID        uuid.UUID `bson:"record_id" json:"recordId"`
 }
 
-type fileRecordObjectVersionDifferences struct {
+type filePlanVersionDifferences struct {
+	XMLName        xml.Name `xml:"Aktenplaneinheit"`
+	FilePlanNumber string   `xml:"Kennzeichen"`
+	Subject        string   `xml:"BetreffKurz"`
+	SubjectPre300  string   `xml:"Inhaltsangabe"`
+}
+
+type fileRecordVersionDifferences struct {
 	RecordID        uuid.UUID        `xml:"Identifikation>ID"`
 	GeneralMetadata *GeneralMetadata `xml:"AllgemeineMetadaten"`
 	ArchiveMetadata *ArchiveMetadata `xml:"ArchivspezifischeMetadaten"`
@@ -177,9 +185,25 @@ type archiveMetadataVersionIndependent struct {
 	AppraisalRecommCode string `xml:"Bewertungsvorschlag>code"`
 }
 
+func (f *FilePlan) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var temp filePlanVersionDifferences
+	err := d.DecodeElement(&temp, &start)
+	if err != nil {
+		return err
+	}
+	f.XMLName = temp.XMLName
+	f.FilePlanNumber = temp.FilePlanNumber
+	if temp.Subject != "" {
+		f.Subject = temp.Subject
+	} else {
+		f.Subject = temp.SubjectPre300
+	}
+	return nil
+}
+
 // UnmarshalXML corrects version specific differences of file record objects.
 func (f *FileRecord) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var temp fileRecordObjectVersionDifferences
+	var temp fileRecordVersionDifferences
 	err := d.DecodeElement(&temp, &start)
 	if err != nil {
 		return err
