@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, Input, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -22,6 +24,9 @@ type FileOverview = {
   values: { [key in string]?: RowValue };
   icons: StatusIcons;
 };
+
+type FilterKey = keyof StatusIcons;
+type Filter = { key: FilterKey; label: string; icon: string };
 
 /** Properties to show in the table and / or the details dialog. */
 export interface FilePropertyDefinition {
@@ -54,16 +59,15 @@ export interface FilePropertyDefinition {
     CommonModule,
     FileFeaturePipe,
     MatButtonModule,
+    MatChipsModule,
     MatIconModule,
+    MatMenuModule,
     MatPaginatorModule,
     MatSortModule,
     MatTableModule,
   ],
 })
 export class FileAnalysisTableComponent implements AfterViewInit {
-  dataSource: MatTableDataSource<FileOverview>;
-  private resultsMap: { [key: string]: FileResult } = {};
-
   private _results?: FileResult[];
   @Input()
   get results(): FileResult[] | undefined {
@@ -109,11 +113,21 @@ export class FileAnalysisTableComponent implements AfterViewInit {
     this.columns = this.tableProperties.map(({ key }) => key);
   }
 
-  tableProperties = this.properties.filter((p) => p.inTable !== false);
-  columns = this.tableProperties.map(({ key }) => key);
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  dataSource: MatTableDataSource<FileOverview>;
+  tableProperties = this.properties.filter((p) => p.inTable !== false);
+  columns = this.tableProperties.map(({ key }) => key);
+  activeFilters = new Set<Filter>([]);
+  readonly availableFilters: Filter[] = [
+    { key: 'valid', label: 'Valide', icon: 'check' },
+    { key: 'invalid', label: 'Invalide', icon: 'close' },
+    { key: 'warning', label: 'Warnung', icon: 'warning' },
+    { key: 'error', label: 'Fehler', icon: 'error' },
+  ];
+
+  private resultsMap: { [key: string]: FileResult } = {};
 
   constructor(private dialog: MatDialog) {
     this.dataSource = new MatTableDataSource<FileOverview>([]);
@@ -121,6 +135,8 @@ export class FileAnalysisTableComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.filterPredicate = (data: FileOverview, filter: string) =>
+      this.filterPredicate(data, filter as unknown as Set<Filter>);
     this.dataSource.sort = this.sort;
     this.dataSource.sortingDataAccessor = (data, sortHeaderId) => {
       switch (sortHeaderId) {
@@ -133,6 +149,47 @@ export class FileAnalysisTableComponent implements AfterViewInit {
           return data.values[sortHeaderId]?.value ?? '';
       }
     };
+  }
+
+  addFilter(filter: Filter) {
+    this.activeFilters.add(filter);
+    this.dataSource.filter = this.activeFilters as unknown as string;
+  }
+
+  removeFilter(filter: Filter) {
+    this.activeFilters.delete(filter);
+    this.dataSource.filter = this.activeFilters as unknown as string;
+  }
+
+  nItemsForFilter(filter: Filter): number {
+    return this.dataSource.data.filter((item) => this.filterPredicate(item, new Set([filter])))
+      .length;
+  }
+
+  async openDetails(overview: FileOverview): Promise<void> {
+    const analysis = await this.getDetails(overview.id);
+    if (analysis) {
+      this.dialog.open(FileOverviewComponent, {
+        data: {
+          filename: overview.values['filename']!.value,
+          info: this.resultsMap[overview.id].info,
+          analysis,
+          properties: this.properties,
+        },
+        autoFocus: false,
+        width: '1200px',
+        maxWidth: '80vw',
+      });
+    } else {
+      console.error('file result not found');
+    }
+  }
+
+  private filterPredicate(data: FileOverview, filters?: Set<Filter>): boolean {
+    if (!filters || filters.size === 0) {
+      return true;
+    }
+    return [...filters.values()].some((filter) => data.icons[filter.key] === true);
   }
 
   private processFileInformation(results: FileResult[]): void {
@@ -157,24 +214,5 @@ export class FileAnalysisTableComponent implements AfterViewInit {
       data.push(fileOverview);
     }
     this.dataSource.data = data;
-  }
-
-  async openDetails(overview: FileOverview): Promise<void> {
-    const analysis = await this.getDetails(overview.id);
-    if (analysis) {
-      this.dialog.open(FileOverviewComponent, {
-        data: {
-          filename: overview.values['filename']!.value,
-          info: this.resultsMap[overview.id].info,
-          analysis,
-          properties: this.properties,
-        },
-        autoFocus: false,
-        width: '1200px',
-        maxWidth: '80vw',
-      });
-    } else {
-      console.error('file result not found');
-    }
   }
 }

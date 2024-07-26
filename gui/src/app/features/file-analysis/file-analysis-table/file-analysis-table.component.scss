@@ -1,17 +1,25 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding-top: 3em;
   padding-bottom: 3em;
   padding-left: 5em;
   padding-right: 5em;
 }
 
-.file-analysis-section {
+.heading-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  h1 {
+    margin-right: auto;
+  }
 }
 
-.file-analysis-table {
+.filter-chips {
+  margin-bottom: 1em;
+}
+
+.table-container {
   width: 100%;
   max-width: 150em;
   border-radius: 12px;
@@ -19,51 +27,53 @@
   overflow: hidden;
 }
 
-.table-content {
-  .mat-mdc-row {
-    position: relative;
-  }
+.mat-mdc-row {
+  position: relative;
+}
 
-  .cdk-cell.cdk-column-path,
-  .cdk-cell.cdk-column-filename,
-  .cdk-cell.cdk-column-mimeType {
-    overflow-wrap: anywhere;
-  }
+.cdk-cell.cdk-column-path,
+.cdk-cell.cdk-column-filename,
+.cdk-cell.cdk-column-mimeType {
+  overflow-wrap: anywhere;
+}
 
-  .cdk-cell.cdk-column-status {
-    gap: 0.5em;
-  }
+.cdk-cell.cdk-column-status {
+  gap: 0.5em;
+}
 
-  .uncertain-icon {
-    color: #ff6600;
-  }
+:host,
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled),
+::ng-deep .file-analysis-results-filter-menu .mat-mdc-menu-item {
   .valid-icon {
     color: #00a000;
   }
   .invalid-icon {
     color: #c00000;
   }
+  .warning-icon {
+    color: #ff6600;
+  }
   .error-icon {
     color: #c00000;
   }
+}
 
-  .open-details-button {
+.open-details-button {
+  position: absolute;
+  border-radius: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  &:hover::before {
     position: absolute;
-    border-radius: 0;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    cursor: pointer;
-    &:hover::before {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: currentColor;
-      opacity: 0.04;
-    }
+    background-color: currentColor;
+    opacity: 0.04;
   }
 }
 
