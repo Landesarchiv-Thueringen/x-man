@@ -204,7 +204,7 @@ export class MessageTreeComponent implements AfterViewInit {
       // Start editing the chip value.
       setTimeout(() => {
         const chipRow = this.matChipRow!.last;
-        chipRow['_startEditing']({ target: null });
+        chipRow._elementRef.nativeElement.dispatchEvent(new Event('dblclick'));
         // Force a space after the colon.
         setTimeout(() => {
           const editInput = chipRow.defaultEditInput!;
