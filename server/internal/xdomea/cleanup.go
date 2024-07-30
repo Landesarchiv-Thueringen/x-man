@@ -53,7 +53,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 		return fmt.Errorf("%s message not found for process %s", messageType, processID)
 	}
 	storeDir := message.StoreDir
-	transferFile := message.TransferDirPath
+	transferFile := message.TransferFile
 	if keepTransferFile {
 		log.Printf("Deleting %s message for process %s (keeping transfer file)", messageType, processID)
 	} else {

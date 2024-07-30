@@ -822,7 +822,7 @@ func getCollectionDimagIDs(c *gin.Context) {
 }
 
 func handleRecovery(c *gin.Context, err any) {
-	if os.Getenv("DEBUG_MODE") == "debug" {
+	if os.Getenv("DEBUG_MODE") == "true" {
 		c.AbortWithStatusJSON(
 			http.StatusInternalServerError,
 			gin.H{"error": err},

@@ -35,11 +35,11 @@ func StoreArchivePackage(
 	}
 	prunedMessage := shared.PruneMessage(message, archivePackage)
 	messageFileName := filepath.Base(message.MessagePath)
-	err = writeTextFile(archivePackagePath, messageFileName, prunedMessage)
+	err = writeFile(archivePackagePath, messageFileName, prunedMessage)
 	if err != nil {
 		panic(err)
 	}
-	err = writeTextFile(archivePackagePath, shared.ProtocolFilename, shared.GenerateProtocol(process))
+	err = writeFile(archivePackagePath, shared.ProtocolFilename, shared.GenerateProtocol(process))
 	if err != nil {
 		panic(err)
 	}
@@ -79,7 +79,7 @@ func writeObjectToTextfile(obj any, archivePackagePath string, filename string) 
 	}
 }
 
-// writeTextFile writes a textfile in the archive package.
-func writeTextFile(aipPath string, filename string, content string) error {
-	return os.WriteFile(filepath.Join(aipPath, filename), []byte(content), 0644)
+// writeFile writes a textfile in the archive package.
+func writeFile(aipPath string, filename string, content []byte) error {
+	return os.WriteFile(filepath.Join(aipPath, filename), content, 0644)
 }

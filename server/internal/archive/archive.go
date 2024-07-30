@@ -162,7 +162,7 @@ func (h *ArchiveHandler) HandleItem(ctx context.Context, itemData interface{}) e
 	case db.RecordTypeDocument:
 		aip = createAipFromDocumentRecords(h.process, h.rootRecords.Documents, h.collection.ID)
 	}
-	db.InsertArchivePackage(aip)
+	db.InsertArchivePackage(&aip)
 	var err error
 	switch h.archiveTarget {
 	case "filesystem":

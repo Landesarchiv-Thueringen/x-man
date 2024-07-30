@@ -8,6 +8,7 @@
 - Feature: Server-Konfiguration wird beim Programm-Start getestet
 - Fix: Zugriff auf WebDav mit nicht-leerem Wurzel-Pfad
 - Intern: Migration von PostgreSQL nach MongoDB
+- Intern: Import nach DIMAG mittels BagIt
 - Intern: Fehlerbehandlung überarbeitet
 - Intern: Automatische Seitenaktualisierung optimiert
 - Intern: Abhängigkeiten aktualisiert

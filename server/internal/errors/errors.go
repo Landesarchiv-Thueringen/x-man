@@ -175,7 +175,7 @@ func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
 	if e.TransferPath == "" && e.ProcessID != uuid.Nil && e.MessageType != "" {
 		message, found := db.TryFindMessage(context.Background(), e.ProcessID, e.MessageType)
 		if found {
-			e.TransferPath = message.TransferDirPath
+			e.TransferPath = message.TransferFile
 		}
 	}
 	if e.ProcessStep == "" && e.MessageType != "" {

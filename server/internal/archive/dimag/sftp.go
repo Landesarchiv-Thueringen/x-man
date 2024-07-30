@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"lath/xman/internal/archive/shared"
 	"lath/xman/internal/db"
 	"log"
 	"net"
@@ -14,12 +13,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
 
-const PortSFTP uint = 22
+const sftpPort uint = 22
 
 type Connection struct {
 	sshClient  *ssh.Client
@@ -85,7 +83,7 @@ func InitConnection() (Connection, error) {
 				"If the server's SSH keys were changed, manually reset the \"dimag\" entry in the xman database in collection server_state")
 		},
 	}
-	addr := fmt.Sprintf("%s:%d", url.Host, PortSFTP)
+	addr := fmt.Sprintf("%s:%d", url.Host, sftpPort)
 	sshClient, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
 		return Connection{}, err
@@ -128,78 +126,51 @@ func CloseConnection(c Connection) {
 	}
 }
 
-func uploadArchivePackage(
+// getUploadDir returns the remote directory name as which the BagIt will be
+// uploaded.
+func getUploadDir(bagit bagitHandle) string {
+	return "xman_bagit_" + bagit.ID().String()
+}
+
+// uploadBagit creates a remote import directory on the DIMAG server
+// and uploads the given BagIt package to it.
+func uploadBagit(
 	ctx context.Context,
 	c Connection,
-	process db.SubmissionProcess,
-	message db.Message,
-	archivePackage db.ArchivePackage,
-) (importDir string, err error) {
-	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
-	importDir = "xman_import_" + uuid.NewString()
-	importPath := filepath.Join(uploadDir, importDir)
-	err = c.sftpClient.Mkdir(importPath)
+	bagit bagitHandle,
+) (remotePath string, err error) {
+	uploadDir := getUploadDir(bagit)
+	remotePath = filepath.Join(os.Getenv("DIMAG_SFTP_UPLOAD_DIR"), uploadDir)
+	log.Printf("Uploading %s\n", uploadDir)
+	err = uploadDirRecursive(ctx, c, bagit.Path(), remotePath)
+	return uploadDir, err
+}
+
+func uploadDirRecursive(
+	ctx context.Context, c Connection,
+	localPath, remotePath string,
+) error {
+	entries, err := os.ReadDir(localPath)
 	if err != nil {
-		return "", fmt.Errorf("sftp: mkdir %s: %w", importPath, err)
+		return err
 	}
-	err = uploadXdomeaMessageFile(ctx, c.sftpClient, message, importPath, archivePackage)
+	err = c.sftpClient.Mkdir(remotePath)
 	if err != nil {
-		return "", err
+		return fmt.Errorf("sftp: mkdir %s: %w", remotePath, err)
 	}
-	err = uploadProtocol(ctx, c.sftpClient, process, importPath)
-	if err != nil {
-		return "", err
-	}
-	for _, primaryDocument := range archivePackage.PrimaryDocuments {
-		filePath := filepath.Join(message.StoreDir, primaryDocument.Filename)
-		_, err = os.Stat(filePath)
-		if err != nil {
-			return "", err
+	for _, entry := range entries {
+		localEntryPath := filepath.Join(localPath, entry.Name())
+		remoteEntryPath := filepath.Join(remotePath, entry.Name())
+		if entry.IsDir() {
+			err = uploadDirRecursive(ctx, c, localEntryPath, remoteEntryPath)
+		} else {
+			err = uploadFile(ctx, c.sftpClient, localEntryPath, remoteEntryPath)
 		}
-		remotePath := filepath.Join(importPath, primaryDocument.Filename)
-		err = uploadFile(ctx, c.sftpClient, filePath, remotePath)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
-	err = uploadControlFile(ctx, c.sftpClient, message, archivePackage, importPath, importDir)
-	return importDir, err
-}
-
-func uploadXdomeaMessageFile(
-	ctx context.Context,
-	sftpClient *sftp.Client,
-	message db.Message,
-	importPath string,
-	archivePackage db.ArchivePackage,
-) error {
-	remotePath := getRemoteXmlPath(message, importPath)
-	prunedMessage := shared.PruneMessage(message, archivePackage)
-	return createRemoteTextFile(ctx, sftpClient, prunedMessage, remotePath)
-}
-
-func uploadProtocol(
-	ctx context.Context,
-	sftpClient *sftp.Client,
-	process db.SubmissionProcess,
-	importPath string,
-) error {
-	remotePath := filepath.Join(importPath, shared.ProtocolFilename)
-	protocol := shared.GenerateProtocol(process)
-	return createRemoteTextFile(ctx, sftpClient, protocol, remotePath)
-}
-
-func uploadControlFile(
-	ctx context.Context,
-	sftpClient *sftp.Client,
-	message db.Message,
-	archivePackageData db.ArchivePackage,
-	importPath string,
-	importDir string,
-) error {
-	remotePath := filepath.Join(importPath, ControlFileName)
-	controlFileXml := GenerateControlFile(message, archivePackageData, importDir)
-	return createRemoteTextFile(ctx, sftpClient, controlFileXml, remotePath)
+	return nil
 }
 
 func uploadFile(ctx context.Context, sftpClient *sftp.Client, localPath string, remotePath string) error {
@@ -219,21 +190,6 @@ func uploadFile(ctx context.Context, sftpClient *sftp.Client, localPath string, 
 		return fmt.Errorf("sftp: write file %s: %w", remotePath, err)
 	}
 	return nil
-}
-
-func createRemoteTextFile(ctx context.Context, sftpClient *sftp.Client, fileContent string, remotePath string) error {
-	stringReader := strings.NewReader(fileContent)
-	// the remote path must already exist
-	dstFile, err := sftpClient.OpenFile(remotePath, (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
-	if err != nil {
-		return fmt.Errorf("sftp: open %s: %w", remotePath, err)
-	}
-	defer dstFile.Close()
-	_, err = copy(ctx, dstFile, stringReader)
-	if err != nil {
-		return fmt.Errorf("sftp: write file %s: %w", remotePath, err)
-	}
-	return err
 }
 
 // Adapted from https://gist.github.com/dillonstreator/3e9162e6e0d0929a6543a64f4564b604

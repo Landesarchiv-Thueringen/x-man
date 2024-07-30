@@ -9,7 +9,8 @@ import (
 )
 
 type ArchivePackage struct {
-	ProcessID uuid.UUID `bson:"process_id"`
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	ProcessID uuid.UUID          `bson:"process_id"`
 	// CollectionID references the DIMAG collection (de: Bestand)
 	CollectionID primitive.ObjectID `bson:"collection_id"`
 	// IOTitle is the title of the information object in DIMAG.
@@ -28,12 +29,23 @@ type ArchivePackage struct {
 	PackageID string `bson:"package_id"`
 }
 
-func InsertArchivePackage(aip ArchivePackage) {
+func InsertArchivePackage(aip *ArchivePackage) {
 	coll := mongoDatabase.Collection("archive_packages")
-	_, err := coll.InsertOne(context.Background(), aip)
+	result, err := coll.InsertOne(context.Background(), aip)
 	if err != nil {
 		panic(err)
 	}
+	aip.ID = result.InsertedID.(primitive.ObjectID)
+}
+
+func ReplaceArchivePackage(aip *ArchivePackage) (ok bool) {
+	coll := mongoDatabase.Collection("archive_packages")
+	filter := bson.D{{"_id", aip.ID}}
+	result, err := coll.ReplaceOne(context.Background(), filter, aip)
+	if err != nil {
+		panic(err)
+	}
+	return result.MatchedCount == 1
 }
 
 func FindArchivePackagesForProcess(ctx context.Context, processID uuid.UUID) []ArchivePackage {

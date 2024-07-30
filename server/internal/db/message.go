@@ -9,14 +9,15 @@ import (
 )
 
 type StoragePaths struct {
-	// TransferDirPath is the path of the message's transfer file within the
-	// transfer directory.
-	TransferDirPath string `bson:"transfer_dir_path"`
-	// StoreDir is root storage directory used for the storing files that
-	// belong to the message.
+	// TransferFile is the filename of the message's transfer file (.zip) in the
+	// transfer directory. It contains only the basename, which is relative to
+	// the transfer directory.
+	TransferFile string `bson:"transfer_file"`
+	// StoreDir is root storage directory used for the storing files that belong
+	// to the message. It is relative to the application's working directory.
 	StoreDir string `bson:"store_dir"`
-	// MessagePath is the path of the message's root file within the storage
-	// directory.
+	// MessagePath is the path of the message's root file (.xml) inside the storage
+	// directory. It is relative to the application's working directory.
 	MessagePath string `bson:"message_path"`
 }
 

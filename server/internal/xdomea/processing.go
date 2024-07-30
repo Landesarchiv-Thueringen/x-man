@@ -175,9 +175,9 @@ func addMessage(
 		panic("message doesn't exist: " + messagePath)
 	}
 	storagePaths := db.StoragePaths{
-		TransferDirPath: transferDir,
-		StoreDir:        storeDir,
-		MessagePath:     messagePath,
+		TransferFile: transferDir,
+		StoreDir:     storeDir,
+		MessagePath:  messagePath,
 	}
 	err = checkMessageValidity(agency, messageType, storagePaths)
 	if err != nil {
