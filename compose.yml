@@ -32,6 +32,8 @@ services:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
         - NO_PROXY=.tsa.thlv.de,.thlv.de
+        - UID=${UID}
+        - GID=${GID}
     depends_on:
       mongo:
         condition: service_healthy
