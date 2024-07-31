@@ -817,7 +817,11 @@ func taskAction(c *gin.Context) {
 }
 
 func getCollectionDimagIDs(c *gin.Context) {
-	ids := dimag.GetCollectionIDs()
+	ids, err := dimag.GetCollectionIDs()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	c.JSON(http.StatusOK, ids)
 }
 

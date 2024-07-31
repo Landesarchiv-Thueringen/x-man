@@ -58,7 +58,11 @@ type VerificationHandler struct {
 
 // HandleItem runs format verification on the given document using the
 // remote BORG service and saves the result to the document object.
-func (h *VerificationHandler) HandleItem(ctx context.Context, itemData interface{}) error {
+func (h *VerificationHandler) HandleItem(
+	ctx context.Context,
+	itemData interface{},
+	updateItemData func(data interface{}),
+) error {
 	filename := itemData.(string)
 	filePath := path.Join(h.message.StoreDir, filename)
 	_, err := os.Stat(filePath)

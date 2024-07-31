@@ -20,7 +20,11 @@ type HandlerTemplate func(t *db.Task) (ItemHandler, error)
 
 type ItemHandler interface {
 	// HandleItem processes a single item of the task.
-	HandleItem(ctx context.Context, itemData interface{}) error
+	HandleItem(
+		ctx context.Context,
+		itemData interface{},
+		updateItemData func(data interface{}),
+	) error
 	// Finish handles cleanup work after all items of the task are handled or
 	// the task is paused. The task is considered running until Finish returned.
 	Finish()
@@ -258,7 +262,10 @@ ItemLoop:
 					hasUnexpectedError = true
 				})
 				log.Printf("Processing item %s...\n", item.Label)
-				err := h.HandleItem(ctx, item.Data)
+				err := h.HandleItem(ctx, item.Data, func(data interface{}) {
+					t.Items[i].Data = data
+					db.MustReplaceTask(*t)
+				})
 				if err != nil {
 					log.Printf("Error when processing item %s: %s\n", item.Label, err.Error())
 					t.Items[i].State = db.TaskStateFailed

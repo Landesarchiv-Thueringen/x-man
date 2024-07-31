@@ -18,58 +18,37 @@ var DimagApiPassword = os.Getenv("DIMAG_CORE_PASSWORD")
 func importBag(
 	ctx context.Context,
 	uploadDir string,
-) (importBagResponse, error) {
-	// Create request
+) (jobID int, err error) {
 	requestData := importBagData{
 		UserName:  DimagApiUser,
 		Password:  DimagApiPassword,
 		BagItPath: uploadDir,
+		Async:     true,
 	}
-	envelope := makeImportBagEnvelope(requestData)
-	xmlBytes, err := xml.MarshalIndent(envelope, " ", " ")
+	response, err := soapRequest[importBagResponse](ctx, "importBag", requestData)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	requestString := string(xmlBytes)
-	req, err := http.NewRequestWithContext(
-		ctx, "POST", DimagApiEndpoint,
-		strings.NewReader(requestString),
-	)
-	if err != nil {
-		return importBagResponse{}, err
-	}
-	req.Header.Set("Content-Type", "text/xml;charset=UTF-8")
-	req.Header.Set("SOAPAction", "importBag")
-	// Do request
-	client := &http.Client{}
-	response, err := client.Do(req)
-	if err != nil {
-		return importBagResponse{}, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return importBagResponse{}, fmt.Errorf("DIMAG importBag: %s", response.Status)
-	}
-	// Parse response
-	var parsedResponse importBagResponseEnvelope
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		panic(err)
-	}
-	err = xml.Unmarshal(body, &parsedResponse)
-	if err != nil {
-		panic(err)
-	}
-	responseData := parsedResponse.Body.ImportBagResponse
-	if responseData.Status != 200 {
-		return importBagResponse{}, fmt.Errorf(
-			"DIMAG importBag: %d: %s", responseData.Status, responseData.Message,
+	if response.Status != 100 {
+		return 0, fmt.Errorf(
+			"DIMAG importBag: %d: %s", response.Status, response.Message,
 		)
 	}
-	return responseData, nil
+	return response.JobID, nil
 }
 
-func packageID(r importBagResponse) (string, error) {
+func getJobStatus(jobID int) (getJobStatusResponse, error) {
+	requestData := getJobStatusData{
+		UserName: DimagApiUser,
+		Password: DimagApiPassword,
+		JobID:    jobID,
+	}
+	return soapRequest[getJobStatusResponse](
+		context.Background(), "getJobStatus", requestData,
+	)
+}
+
+func packageID(r getJobStatusResponse) (string, error) {
 	types := strings.Split(r.Types, ";")
 	aids := strings.Split(r.AIDs, ";")
 	for i, t := range types {
@@ -81,7 +60,7 @@ func packageID(r importBagResponse) (string, error) {
 }
 
 // GetCollectionIDs gets a list of all collection IDs via a SOAP request from DIMAG.
-func GetCollectionIDs() []string {
+func GetCollectionIDs() ([]string, error) {
 	requestData := getAIDForKeyValueData{
 		Username: DimagApiUser,
 		Password: DimagApiPassword,
@@ -89,38 +68,63 @@ func GetCollectionIDs() []string {
 		Value:    "Bestand",
 		Typ:      "Struct",
 	}
-	soapRequest := makeGetAIDForKeyValueEnvelope(requestData)
-	xmlBytes, err := xml.Marshal(soapRequest)
+	response, err := soapRequest[getAIDForKeyValueResponse](
+		context.Background(), "getAIDforKeyValue", requestData,
+	)
 	if err != nil {
-		panic(err)
+		return []string{}, err
+	}
+	if response.Status != 200 {
+		return []string{}, fmt.Errorf(
+			"DIMAG getAIDforKeyValue: %d: %s",
+			response.Status, response.Message,
+		)
+	}
+	return strings.Split(response.AIDList, ";"), nil
+}
+
+func soapRequest[R any](ctx context.Context, action string, requestData interface{}) (R, error) {
+	// Create request
+	envelope := makeEnvelope(requestData)
+	xmlBytes, err := xml.MarshalIndent(envelope, " ", " ")
+	if err != nil {
+		var null R
+		return null, err
 	}
 	requestString := string(xmlBytes)
-	req, err := http.NewRequest("POST", DimagApiEndpoint, strings.NewReader(requestString))
+	req, err := http.NewRequestWithContext(
+		ctx, "POST", DimagApiEndpoint,
+		strings.NewReader(requestString),
+	)
 	if err != nil {
-		panic(err)
+		var null R
+		return null, err
 	}
 	req.Header.Set("Content-Type", "text/xml;charset=UTF-8")
-	req.Header.Set("SOAPAction", "getAIDforKeyValue")
+	req.Header.Set("SOAPAction", action)
+	// Do request
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		var null R
+		return null, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		panic(fmt.Sprintf("status code: %d", response.StatusCode))
+		var null R
+		return null, fmt.Errorf("DIMAG %s: %s", action, response.Status)
 	}
+	// Parse response
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		panic(err)
+		var null R
+		return null, err
 	}
-	var parsedResponse getAIDForKeyValueResponseEnvelope
-	err = xml.Unmarshal(body, &parsedResponse)
+	var responseEnvelope responseEnvelope[R]
+	err = xml.Unmarshal(body, &responseEnvelope)
 	if err != nil {
-		panic(err)
+		var null R
+		return null, err
 	}
-	if parsedResponse.Body.GetAIDforKeyValueResponse.Status != 200 {
-		panic(parsedResponse.Body.GetAIDforKeyValueResponse.Message)
-	}
-	return strings.Split(parsedResponse.Body.GetAIDforKeyValueResponse.AIDList, ";")
+	return responseEnvelope.Body.Data, nil
 }

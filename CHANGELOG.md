@@ -9,6 +9,7 @@
 - Fix: Zugriff auf WebDav mit nicht-leerem Wurzel-Pfad
 - Intern: Migration von PostgreSQL nach MongoDB
 - Intern: Import nach DIMAG mittels BagIt
+- Intern: Asynchrone API für Import nach DIMAG
 - Intern: Fehlerbehandlung überarbeitet
 - Intern: Automatische Seitenaktualisierung optimiert
 - Intern: Abhängigkeiten aktualisiert

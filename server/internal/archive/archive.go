@@ -88,6 +88,7 @@ type ArchiveTaskData struct {
 type ArchiveItemData struct {
 	RecordType db.RecordType
 	RecordID   uuid.UUID
+	JobID      int
 }
 
 type rootRecordsMap struct {
@@ -151,7 +152,11 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 	}, nil
 }
 
-func (h *ArchiveHandler) HandleItem(ctx context.Context, itemData interface{}) error {
+func (h *ArchiveHandler) HandleItem(
+	ctx context.Context,
+	itemData interface{},
+	updateItemData func(data interface{}),
+) error {
 	d := db.UnmarshalData[ArchiveItemData](itemData)
 	var aip db.ArchivePackage
 	switch d.RecordType {
@@ -162,14 +167,30 @@ func (h *ArchiveHandler) HandleItem(ctx context.Context, itemData interface{}) e
 	case db.RecordTypeDocument:
 		aip = createAipFromDocumentRecords(h.process, h.rootRecords.Documents, h.collection.ID)
 	}
-	db.InsertArchivePackage(&aip)
+	// Check whether we already created the archive package. This can be the
+	// case when we retry the task after an error.
+	if existingAIP, found := db.FindArchivePackage(
+		context.Background(), h.process.ProcessID, aip.RootRecordIDs,
+	); found {
+		aip = existingAIP
+	} else {
+		db.InsertArchivePackage(&aip)
+	}
 	var err error
 	switch h.archiveTarget {
 	case "filesystem":
 		filesystem.StoreArchivePackage(h.process, h.message, aip)
 	case "dimag":
-		targetData := h.targetData.(DimagData)
-		err = dimag.ImportArchivePackage(ctx, h.process, h.message, &aip, targetData.Connection)
+		if d.JobID == 0 {
+			targetData := h.targetData.(DimagData)
+			jobID, err := dimag.StartImport(ctx, h.process, h.message, &aip, targetData.Connection)
+			if err != nil {
+				return err
+			}
+			d.JobID = jobID
+			updateItemData(d)
+		}
+		err = dimag.WaitForArchiveJob(ctx, d.JobID, &aip)
 	default:
 		panic("unknown archive target: " + h.archiveTarget)
 	}

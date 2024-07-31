@@ -34,8 +34,8 @@ func TestConnection() error {
 	if err != nil {
 		return err
 	}
-	GetCollectionIDs()
-	return nil
+	_, err = GetCollectionIDs()
+	return err
 }
 
 func InitConnection() (Connection, error) {
@@ -141,8 +141,9 @@ func uploadBagit(
 ) (remotePath string, err error) {
 	uploadDir := getUploadDir(bagit)
 	remotePath = filepath.Join(os.Getenv("DIMAG_SFTP_UPLOAD_DIR"), uploadDir)
-	log.Printf("Uploading %s\n", uploadDir)
+	log.Printf("Uploading %s...\n", uploadDir)
 	err = uploadDirRecursive(ctx, c, bagit.Path(), remotePath)
+	log.Println("Upload done")
 	return uploadDir, err
 }
 

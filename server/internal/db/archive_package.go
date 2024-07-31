@@ -59,6 +59,21 @@ func FindArchivePackagesForProcess(ctx context.Context, processID uuid.UUID) []A
 	return aips
 }
 
+func FindArchivePackage(
+	ctx context.Context,
+	processID uuid.UUID,
+	rootRecordIDs []uuid.UUID,
+) (ArchivePackage, bool) {
+	coll := mongoDatabase.Collection("archive_packages")
+	filter := bson.D{
+		{"process_id", processID},
+		{"root_record_ids", bson.D{{"$all", rootRecordIDs}}},
+	}
+	var aip ArchivePackage
+	err := coll.FindOne(ctx, filter).Decode(&aip)
+	return aip, handleError(ctx, err)
+}
+
 func DeleteArchivePackagesForProcess(processID uuid.UUID) {
 	coll := mongoDatabase.Collection("archive_packages")
 	filter := bson.D{{"process_id", processID}}
