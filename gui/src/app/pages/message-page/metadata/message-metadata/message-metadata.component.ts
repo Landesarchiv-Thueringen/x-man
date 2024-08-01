@@ -283,7 +283,7 @@ export class MessageMetadataComponent {
         date: state.archiving.completedAt!,
         onClick,
       });
-    } else if (state.archiving.taskState) {
+    } else if (state.archiving.taskState && state.archiving.taskState !== 'failed') {
       items.push({
         title: 'Archivierung läuft...',
         icon: this.getTaskIcon(state.archiving.taskState),
