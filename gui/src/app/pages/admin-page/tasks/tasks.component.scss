@@ -33,3 +33,10 @@ mat-table {
 .cdk-column-updatedAt {
   flex: 0 0 10em;
 }
+
+a {
+  margin: -10px -12px;
+  mat-icon {
+    flex-shrink: 0;
+  }
+}

@@ -10,7 +10,7 @@
             @if (row.routerLink) {
               <a mat-button [routerLink]="row.routerLink" target="_blank">
                 {{ row.displayString ?? row.value }}
-                <mat-icon>open_in_new</mat-icon>
+                <mat-icon iconPositionEnd>open_in_new</mat-icon>
               </a>
             } @else {
               {{ row.displayString ?? row.value }}

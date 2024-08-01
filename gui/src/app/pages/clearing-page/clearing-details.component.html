@@ -124,7 +124,7 @@
     Fehlerinformationen herunterladen
   </button>
 
-  <button mat-button mat-dialog-close>Schließen</button>
+  <button mat-button mat-dialog-close cdkFocusInitial>Schließen</button>
   @if (!processingError.resolved) {
     <button mat-flat-button [matMenuTriggerFor]="menu">
       Lösen <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>

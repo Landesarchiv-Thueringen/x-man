@@ -60,7 +60,7 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>Aussonderung</mat-header-cell>
     <mat-cell *matCellDef="let element">
       <a mat-button target="_blank" [routerLink]="['/nachricht', element.processId]">
-        <mat-icon>open_in_new</mat-icon>
+        <mat-icon iconPositionEnd>open_in_new</mat-icon>
         {{ element.processId }}</a
       >
     </mat-cell>
