@@ -181,6 +181,10 @@ func (h *ArchiveHandler) HandleItem(
 	case "filesystem":
 		filesystem.StoreArchivePackage(h.process, h.message, aip)
 	case "dimag":
+		// We use DIMAG's asynchronous API. DIMAG creates a job with the import
+		// data and runs it autonomously. Once the job is created, we save the
+		// job ID. In case we encounter an error afterwards, we just continue
+		// waiting for this job on retry.
 		if d.JobID == 0 {
 			targetData := h.targetData.(DimagData)
 			jobID, err := dimag.StartImport(ctx, h.process, h.message, &aip, targetData.Connection)
@@ -191,6 +195,11 @@ func (h *ArchiveHandler) HandleItem(
 			updateItemData(d)
 		}
 		err = dimag.WaitForArchiveJob(ctx, d.JobID, &aip)
+		// If the job failed, we want to create a new job on the next retry.
+		if dimag.IsJobFailedError(err) {
+			d.JobID = 0
+			updateItemData(d)
+		}
 	default:
 		panic("unknown archive target: " + h.archiveTarget)
 	}

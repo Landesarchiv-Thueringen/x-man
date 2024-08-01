@@ -2,6 +2,7 @@ package dimag
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"lath/xman/internal/db"
 	"time"
@@ -9,6 +10,24 @@ import (
 
 const pollIntervalMin = time.Second * 1
 const pollIntervalMax = time.Second * 10
+
+type jobFailedError struct {
+	action    string
+	jobID     int
+	jobStatus getJobStatusResponse
+}
+
+func (err *jobFailedError) Error() string {
+	return fmt.Sprintf(
+		"DIMAG %s job %d: status %d: %s",
+		err.action, err.jobID, err.jobStatus.Status, err.jobStatus.Message,
+	)
+}
+
+func IsJobFailedError(err error) bool {
+	target := &jobFailedError{}
+	return errors.As(err, &target)
+}
 
 // StartImport starts a DIMAG job for archiving a record object in DIMAG.
 func StartImport(
@@ -58,10 +77,7 @@ func WaitForArchiveJob(
 		} else if jobStatus.Status == 200 {
 			break
 		} else {
-			return fmt.Errorf(
-				"DIMAG importBag job %d: status %d: %s",
-				jobID, jobStatus.Status, jobStatus.Message,
-			)
+			return &jobFailedError{"importBag", jobID, jobStatus}
 		}
 	}
 	packageID, err := packageID(jobStatus)
