@@ -24,16 +24,14 @@ func createArchiveBagit(
 			filepath.Join(message.StoreDir, d.Filename),
 		)
 	}
-	bagit.CreateFile(
-		filepath.Join("dimag", "control.xml"),
-		generateControlFile(message, archivePackage, filepath.Join(getUploadDir(bagit), "data")),
+	ioAlternateID, controlFile := generateControlFile(
+		message, archivePackage, filepath.Join(getUploadDir(bagit), "data"),
 	)
-	// TODO: generate protocol in XML format.
-	//
-	// bagit.CreateFile(
-	// 	filepath.Join("dimag", "protocol.xml"),
-	// 	shared.GenerateProtocol(process),
-	// )
+	bagit.CreateFile(filepath.Join("dimag", "control.xml"), controlFile)
+	bagit.CreateFile(
+		filepath.Join("dimag", "protocol.xml"),
+		generateProtocolFile(process, archivePackage, ioAlternateID),
+	)
 	bagit.Finalize()
 	return bagit
 }

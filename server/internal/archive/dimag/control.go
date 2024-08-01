@@ -5,9 +5,11 @@ import (
 	"encoding/xml"
 	"lath/xman/internal/db"
 	"path/filepath"
+
+	"github.com/google/uuid"
 )
 
-var XmlHeader = []byte("<?xml version='1.0' encoding='UTF-8'?>\n")
+var xmlHeader = []byte("<?xml version='1.0' encoding='UTF-8'?>\n")
 
 type itemType string
 
@@ -17,28 +19,29 @@ const (
 	itemTypeFile              itemType = "F"
 )
 
-type dimagControl struct {
+type controlRoot struct {
 	XMLName    xml.Name `xml:"verzeichnungseinheit"`
 	RootID     string   `xml:"rootid"`
 	IndexItems []indexItem
 }
 
 type indexItem struct {
-	XMLName    xml.Name `xml:"verz-obj"`
-	IndexID    string   `xml:"aid"`
-	Lifetime   string   `xml:"entstehungs-zeitraum"`
-	FilePath   string   `xml:"sftp-dateiname,omitempty"`
-	FileName   string   `xml:"dateiname"`
-	Title      string   `xml:"titel"`
-	ItemType   itemType `xml:"typ"`
-	IndexItems []indexItem
+	XMLName     xml.Name `xml:"verz-obj"`
+	IndexID     string   `xml:"aid"`
+	AlternateID string   `xml:"alternate-id,omitempty"`
+	Lifetime    string   `xml:"entstehungs-zeitraum"`
+	FilePath    string   `xml:"sftp-dateiname,omitempty"`
+	FileName    string   `xml:"dateiname"`
+	Title       string   `xml:"titel"`
+	ItemType    itemType `xml:"typ"`
+	IndexItems  []indexItem
 }
 
 func generateControlFile(
 	message db.Message,
 	archivePackage db.ArchivePackage,
 	importDir string,
-) []byte {
+) (ioAlternateID string, fileContent []byte) {
 	primaryDocuments := archivePackage.PrimaryDocuments
 	fileIndexItems := []indexItem{}
 	for _, d := range primaryDocuments {
@@ -69,13 +72,14 @@ func generateControlFile(
 		IndexItems: fileIndexItems,
 	}
 	repItems := []indexItem{repIndexItem}
+	ioAlternateID = uuid.NewString()
 	ioIndexItem := indexItem{
-		Lifetime:   combinedLifetime(archivePackage.IOLifetime),
-		ItemType:   itemTypeInformationObject,
-		Title:      archivePackage.IOTitle,
-		IndexItems: repItems,
+		AlternateID: ioAlternateID,
+		Lifetime:    combinedLifetime(archivePackage.IOLifetime),
+		ItemType:    itemTypeInformationObject,
+		Title:       archivePackage.IOTitle,
+		IndexItems:  repItems,
 	}
-	ioItems := []indexItem{ioIndexItem}
 	archiveCollection, ok := db.FindArchiveCollection(
 		context.Background(),
 		archivePackage.CollectionID,
@@ -83,15 +87,15 @@ func generateControlFile(
 	if !ok {
 		panic("failed to find archive collection: " + archivePackage.CollectionID.Hex())
 	}
-	dimagControl := dimagControl{
+	root := controlRoot{
 		RootID:     archiveCollection.DimagID,
-		IndexItems: ioItems,
+		IndexItems: []indexItem{ioIndexItem},
 	}
-	xmlBytes, err := xml.MarshalIndent(dimagControl, " ", " ")
+	xmlBytes, err := xml.MarshalIndent(root, " ", " ")
 	if err != nil {
 		panic(err)
 	}
-	return append(XmlHeader, xmlBytes...)
+	return ioAlternateID, append(xmlHeader, xmlBytes...)
 }
 
 func fileName(primaryDocument db.PrimaryDocument) string {
