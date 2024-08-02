@@ -107,6 +107,17 @@ mat-tree-node {
   text-align: center;
 }
 
+.packaging-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: bold;
+  width: 48px; // icon width for alignment
+  mat-icon {
+    color: var(--mdc-icon-button-icon-color);
+  }
+}
+
 .spacer {
   flex: 1 1 auto;
 }

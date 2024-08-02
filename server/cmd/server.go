@@ -68,6 +68,9 @@ func main() {
 	authorized.POST("api/appraisal-note", setAppraisalNote)
 	authorized.POST("api/appraisals", setAppraisals)
 	authorized.PATCH("api/finalize-message-appraisal/:processId", finalizeMessageAppraisal)
+	authorized.GET("api/record-options/:processId", getRecordOptions)
+	authorized.GET("api/packaging/:processId", getPackagingDecisions)
+	authorized.POST("api/packaging", setPackaging)
 	authorized.PATCH("api/archive-0503-message/:processId", archive0503Message)
 	authorized.PATCH("api/process-note/:processId", setProcessNote)
 	authorized.GET("api/task/:id", getTask)
@@ -474,6 +477,58 @@ func areAllRecordObjectsAppraised(c *gin.Context) {
 	}
 	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisalComplete)
+}
+
+func getRecordOptions(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	recordOptions := db.FindRecordOptionsForProcess(c.Request.Context(), processID)
+	if recordOptions == nil {
+		recordOptions = []db.RecordOption{}
+	}
+	c.JSON(http.StatusOK, recordOptions)
+}
+
+func getPackagingDecisions(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	packagingDecisions := xdomea.PackagingDecisions(processID)
+	c.JSON(http.StatusOK, packagingDecisions)
+}
+
+func setPackaging(c *gin.Context) {
+	jsonBody, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	var data struct {
+		ProcessID uuid.UUID          `json:"processId"`
+		RecordIDs []uuid.UUID        `json:"recordIds"`
+		Packaging db.PackagingOption `json:"packaging"`
+	}
+	err = json.Unmarshal(jsonBody, &data)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	for _, id := range data.RecordIDs {
+		db.UpsertPackaging(data.ProcessID, id, data.Packaging)
+	}
+	recordOptions := db.FindRecordOptionsForProcess(c.Request.Context(), data.ProcessID)
+	if recordOptions == nil {
+		recordOptions = []db.RecordOption{}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"recordOptions": recordOptions,
+		"packaging":     xdomea.PackagingDecisions(data.ProcessID),
+	})
 }
 
 func setProcessNote(c *gin.Context) {

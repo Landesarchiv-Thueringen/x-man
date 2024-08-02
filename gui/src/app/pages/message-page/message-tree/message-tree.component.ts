@@ -22,13 +22,23 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, ChildActivationEnd, Router, RouterModule } from '@angular/router';
-import { ReplaySubject, Subject, combineLatest, concat, delay, filter, switchMap } from 'rxjs';
+import {
+  ReplaySubject,
+  Subject,
+  combineLatest,
+  concat,
+  delay,
+  filter,
+  firstValueFrom,
+  switchMap,
+} from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import { AuthService } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
 import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ProcessService, SubmissionProcess } from '../../../services/process.service';
+import { PackagingDecision } from '../../../services/recordOptions.service';
 import { Records } from '../../../services/records.service';
 import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
@@ -37,6 +47,7 @@ import { RecordAppraisalPipe } from '../metadata/record-appraisal-pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from './finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import { FilterResult, FlatNode, MessageTreeDataSource } from './message-tree-data-source';
+import { PackagingDialogComponent } from './packaging-dialog/packaging-dialog.component';
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
 
 export interface Filter {
@@ -79,7 +90,6 @@ export class MessageTreeComponent implements AfterViewInit {
   process?: SubmissionProcess;
   message?: Message;
   rootRecords?: Records;
-  showAppraisal = false;
   showSelection = this.messagePage.showSelection;
   hasUnresolvedError = this.messagePage.hasUnresolvedError;
   isDisabled = computed(() => this.hasUnresolvedError() && !this.authService.isAdmin());
@@ -250,7 +260,6 @@ export class MessageTreeComponent implements AfterViewInit {
 
   async initTree(): Promise<void> {
     if (this.message && this.process && this.rootRecords) {
-      this.showAppraisal = this.message.messageType === '0501';
       const rootNode = await this.messageProcessor.processMessage(
         this.process,
         this.message,
@@ -377,6 +386,29 @@ export class MessageTreeComponent implements AfterViewInit {
       return this.appraisals[node.recordId];
     } else {
       return null;
+    }
+  }
+
+  getPackaging(node: FlatNode): PackagingDecision {
+    if (node.recordId) {
+      return this.messagePage.packagingDecisions()[node.recordId] ?? '';
+    } else {
+      return '';
+    }
+  }
+
+  async setPackagingForSelection(): Promise<void> {
+    const dialogRef = this.dialog.open(PackagingDialogComponent);
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    console.log('result', result);
+    if (result) {
+      const recordIds = [...this.selectedNodes]
+        .map((id) => this.dataSource.getNode(id))
+        .filter((node) => node.type === 'file' || node.type === 'subfile')
+        .map((node) => node.recordId!);
+      await this.messagePage.setPackaging(recordIds, result.packaging);
+      this.notificationService.show('Paketierung gesetzt');
+      this.disableSelection();
     }
   }
 

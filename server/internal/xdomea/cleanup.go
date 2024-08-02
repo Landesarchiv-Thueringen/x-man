@@ -34,6 +34,7 @@ func DeleteProcess(processID uuid.UUID) bool {
 	db.DeleteRecordsForProcess(processID)
 	db.DeletePrimaryDocumentsDataForProcess(processID)
 	db.DeleteAppraisalsForProcess(processID)
+	db.DeleteRecordOptionsForProcess(processID)
 	db.DeleteArchivePackagesForProcess(processID)
 	// Delete message storage
 	if err := os.RemoveAll(storeDir); err != nil {

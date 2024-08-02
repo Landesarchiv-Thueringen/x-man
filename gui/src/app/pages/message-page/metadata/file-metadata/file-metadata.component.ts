@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Query, effect } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, Query, computed, effect, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,6 +16,7 @@ import {
   appraisalDescriptions,
 } from '../../../../services/appraisal.service';
 import { MessageService } from '../../../../services/message.service';
+import { PackagingOption, packagingOptions } from '../../../../services/recordOptions.service';
 import { FileRecord } from '../../../../services/records.service';
 import { MessagePageService } from '../../message-page.service';
 import { MessageProcessorService, StructureNode } from '../../message-processor.service';
@@ -42,9 +43,14 @@ export class FileMetadataComponent {
   record?: FileRecord;
   appraisal?: Appraisal | null;
   appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({ code, ...d }));
-  appraisalComplete?: boolean;
+  appraisalComplete = signal(false);
   form: FormGroup;
   canBeAppraised = false;
+  message = this.messagePage.message;
+  readonly packagingOptions = packagingOptions;
+  private params = toSignal(this.route.params, { initialValue: {} as Params });
+  private recordId = computed<string>(() => this.params()['id']);
+  packagingDecision = computed(() => this.messagePage.packagingDecisions()[this.recordId()] ?? '');
 
   constructor(
     private appraisalService: AppraisalService,
@@ -67,6 +73,7 @@ export class FileMetadataComponent {
       appraisalNote: new FormControl<string | null>(null),
       confidentiality: new FormControl<string | null>(null),
       medium: new FormControl<string | null>(null),
+      packaging: new FormControl<PackagingOption>(''),
     });
     const record = this.route.params.pipe(
       switchMap((params: Params) => this.messagePage.getFileRecord(params['id'])),
@@ -87,12 +94,31 @@ export class FileMetadataComponent {
     this.registerAppraisalNoteChanges();
     // Disable individual appraisal controls while selection is active.
     effect(() => {
-      if (this.messagePage.showSelection() || this.messagePage.hasUnresolvedError()) {
+      if (
+        !this.appraisalComplete() && // If the appraisal is complete, appraisal fields are readonly anyway.
+        (this.messagePage.showSelection() || this.messagePage.hasUnresolvedError())
+      ) {
         this.form.get('appraisal')?.disable();
         this.form.get('appraisalNote')?.disable();
       } else {
         this.form.get('appraisal')?.enable();
         this.form.get('appraisalNote')?.enable();
+      }
+    });
+    effect(() => {
+      const packaging = this.messagePage.recordOptionsMap()[this.recordId()]?.packaging ?? '';
+      this.form.patchValue({ packaging });
+    });
+    effect(() => {
+      if (
+        this.messagePage.showSelection() ||
+        this.messagePage.hasUnresolvedError() ||
+        this.packagingDecision() === '' ||
+        this.messagePage.process()?.processState.archiving.complete
+      ) {
+        this.form.get('packaging')?.disable();
+      } else {
+        this.form.get('packaging')?.enable();
       }
     });
   }
@@ -101,7 +127,7 @@ export class FileMetadataComponent {
     this.form.controls['appraisalNote'].valueChanges
       .pipe(skip(1), debounceTime(400))
       .subscribe((value) => {
-        if (value !== this.appraisal?.note && this.appraisalComplete === false) {
+        if (value !== this.appraisal?.note && this.appraisalComplete() === false) {
           this.setAppraisalNote(value);
         }
       });
@@ -116,7 +142,7 @@ export class FileMetadataComponent {
     this.record = record;
     this.canBeAppraised = structureNode.canBeAppraised;
     this.appraisal = appraisal;
-    this.appraisalComplete = appraisalComplete;
+    this.appraisalComplete.set(appraisalComplete);
     const appraisalRecomm = this.record.archiveMetadata?.appraisalRecommCode;
     let confidentiality: string | undefined;
     if (record.generalMetadata?.confidentialityLevel) {
@@ -135,7 +161,7 @@ export class FileMetadataComponent {
       fileType: this.record.type,
       lifeStart: this.messageService.getDateText(this.record.lifetime?.start),
       lifeEnd: this.messageService.getDateText(this.record.lifetime?.end),
-      appraisal: this.appraisalComplete
+      appraisal: this.appraisalComplete()
         ? this.appraisalService.getAppraisalDescription(appraisal?.decision)?.shortDesc
         : appraisal?.decision,
       appraisalRecomm: this.appraisalService.getAppraisalDescription(appraisalRecomm)?.shortDesc,
@@ -151,5 +177,9 @@ export class FileMetadataComponent {
 
   setAppraisalNote(note: string): void {
     this.messagePage.setAppraisalInternalNote(this.record!.recordId, note);
+  }
+
+  setPackaging(value: PackagingOption): void {
+    this.messagePage.setPackaging([this.record!.recordId], value);
   }
 }

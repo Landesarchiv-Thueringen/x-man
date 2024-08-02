@@ -15,9 +15,7 @@
           <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
           <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
         </div>
-        <ng-container
-          *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"
-        ></ng-container>
+        <ng-container *ngTemplateOutlet="rightMatter; context: { $implicit: node }"></ng-container>
       </div>
     </mat-tree-node>
 
@@ -112,9 +110,7 @@
             }
           </mat-menu>
         }
-        <ng-container
-          *ngTemplateOutlet="nodeAppraisal; context: { $implicit: node }"
-        ></ng-container>
+        <ng-container *ngTemplateOutlet="rightMatter; context: { $implicit: node }"></ng-container>
       </div>
       @if (node.type === "message" && activeFilters.length > 0) {
         <div class="filters">
@@ -144,14 +140,17 @@
     </mat-tree-node>
   </mat-tree>
 
-  <div *ngIf="process && message && !showSelection()" class="actions message-actions">
+  <div *ngIf="process && message && !showSelection()" class="actions">
     <button mat-flat-button (click)="copyMessageUrl()">
       <mat-icon>content_copy</mat-icon>
       <span>Objekt-Link kopieren</span>
     </button>
     <button
       mat-flat-button
-      *ngIf="message.messageType === '0501' && !process.processState.appraisal.complete"
+      *ngIf="
+        (message.messageType === '0501' && !process.processState.appraisal.complete) ||
+        (message.messageType === '0503' && !process.processState.archiving.complete)
+      "
       (click)="enableSelection()"
       [disabled]="isDisabled()"
     >
@@ -194,17 +193,29 @@
     </button>
   </div>
 
-  <div *ngIf="process && message && showSelection()" class="actions appraisal-actions">
-    <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
-    <button
-      mat-flat-button
-      (click)="setAppraisalForMultipleRecordObjects()"
-      [disabled]="this.selectedNodes.size === 0"
-    >
-      <mat-icon>checklist</mat-icon>
-      Bewerten
-    </button>
-  </div>
+  @if (process && message && showSelection()) {
+    <div class="actions">
+      <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
+      @if (message.messageType === "0501") {
+        <button
+          mat-flat-button
+          (click)="setAppraisalForMultipleRecordObjects()"
+          [disabled]="this.selectedNodes.size === 0"
+        >
+          <mat-icon>checklist</mat-icon>Bewerten
+        </button>
+      }
+      @if (message.messageType === "0503") {
+        <button
+          mat-flat-button
+          (click)="setPackagingForSelection()"
+          [disabled]="this.selectedNodes.size === 0"
+        >
+          <mat-icon>inventory_2</mat-icon>Paketierungsebene wählen
+        </button>
+      }
+    </div>
+  }
 </div>
 
 <ng-template #nodeIcon let-node>
@@ -245,21 +256,31 @@
   </div>
 </ng-template>
 
-<ng-template #nodeAppraisal let-node>
-  @if (showAppraisal) {
-    @if (node.canBeAppraised) {
-      <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
-        appraisal.decision | recordAppraisal
-      }}</span>
-    }
-    @if (showSelection() && node.selectable) {
-      <mat-checkbox
-        [checked]="selectedNodes.has(node.id)"
-        [indeterminate]="intermediateNodes.has(node.id)"
-        (click)="$event.stopPropagation()"
-        (change)="selectItem($event.checked, node.id)"
-        [aria-label]="node.title"
-      ></mat-checkbox>
-    }
+<ng-template #rightMatter let-node>
+  @if (message?.messageType === "0501" && node.canBeAppraised) {
+    <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
+      appraisal.decision | recordAppraisal
+    }}</span>
+  }
+  @if (message?.messageType === "0503" && getPackaging(node); as packaging) {
+    <span class="packaging-indicator">
+      @switch (packaging) {
+        @case ("single") {
+          <mat-icon>inventory_2</mat-icon>
+        }
+        @case ("sub") {
+          <mat-icon svgIcon="boxes"></mat-icon>
+        }
+      }
+    </span>
+  }
+  @if (showSelection() && node.selectable) {
+    <mat-checkbox
+      [checked]="selectedNodes.has(node.id)"
+      [indeterminate]="intermediateNodes.has(node.id)"
+      (click)="$event.stopPropagation()"
+      (change)="selectItem($event.checked, node.id)"
+      [aria-label]="node.title"
+    ></mat-checkbox>
   }
 </ng-template>

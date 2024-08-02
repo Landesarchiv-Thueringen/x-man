@@ -64,7 +64,7 @@
         <div class="metadata">
           <div class="metadata-row">
             <div
-              *ngIf="appraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"
+              *ngIf="appraisalComplete(); then appraisalInputReadonly; else appraisalInputEditable"
             ></div>
             <ng-template #appraisalInputReadonly>
               <mat-form-field class="appraisal-input" floatLabel="always">
@@ -96,13 +96,34 @@
               #appraisalNote
               matInput
               formControlName="appraisalNote"
-              [readonly]="appraisalComplete"
+              [readonly]="appraisalComplete()"
               rows="5"
             >
             </textarea>
           </mat-form-field>
         </div>
       </mat-expansion-panel>
+
+      @if (message()?.messageType === "0503") {
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Paketierung</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="metadata">
+            <mat-form-field floatLabel="always">
+              <mat-label>Paketierungsebene</mat-label>
+              <mat-select
+                formControlName="packaging"
+                (selectionChange)="setPackaging($event.value)"
+              >
+                @for (option of packagingOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+      }
     </mat-accordion>
   </form>
 </div>

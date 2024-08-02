@@ -314,3 +314,13 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     return result;
   }
 }
+
+function canBeSelected(node: StructureNode): boolean {
+  return (
+    node.type === 'message' || // root node
+    // FIXME: This does not apply when the message type is 0503, see below.
+    node.canBeAppraised
+    // FIXME: For setting a packaging option, subfiles should be selectable, too.
+    // TODO: make information about the message type available here.
+  );
+}

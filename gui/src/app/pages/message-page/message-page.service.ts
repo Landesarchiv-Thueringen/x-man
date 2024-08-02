@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, WritableSignal, computed, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -15,6 +15,12 @@ import {
 import { Appraisal, AppraisalCode, AppraisalService } from '../../services/appraisal.service';
 import { Message, MessageService } from '../../services/message.service';
 import { ProcessData, ProcessService, SubmissionProcess } from '../../services/process.service';
+import {
+  PackagingDecision,
+  PackagingOption,
+  RecordOption,
+  RecordOptionsService,
+} from '../../services/recordOptions.service';
 import {
   DocumentRecord,
   FileRecord,
@@ -38,12 +44,14 @@ export class MessagePageService {
    * the process ID should not change for the lifetime of the message page.
    */
   private processData = new BehaviorSubject<ProcessData | null>(null);
+  process = computed(() => this.processDataSignal()?.process);
   /**
    * The message references by the page URL.
    *
    * We fetch the message once when the relevant URL parameter changes.
    */
-  private message = new BehaviorSubject<Message | null>(null);
+  private _message = new BehaviorSubject<Message | null>(null);
+  message = toSignal(this._message);
   /**
    * The message's root records.
    *
@@ -64,6 +72,8 @@ export class MessagePageService {
    * Appraisals can be updated by the user at any time.
    */
   private appraisals = new BehaviorSubject<Appraisal[] | null>(null);
+  recordOptionsMap: WritableSignal<{ [recordId in string]?: RecordOption }> = signal({});
+  packagingDecisions: WritableSignal<{ [recordId in string]?: PackagingDecision }> = signal({});
 
   readonly showSelection = signal(false);
   private readonly processDataSignal = toSignal(this.processData);
@@ -80,6 +90,7 @@ export class MessagePageService {
     private messageService: MessageService,
     private processService: ProcessService,
     private recordsService: RecordsService,
+    private recordOptionsService: RecordOptionsService,
     private route: ActivatedRoute,
   ) {
     const processId = this.route.params.pipe(
@@ -88,10 +99,17 @@ export class MessagePageService {
     );
     processId.subscribe((processId) => {
       this.registerMessage(processId);
-      // Fetch appraisals once, will be updated when changed by other functions.
+      // Fetch appraisals and record options once, will be updated when changed
+      // by other functions.
       this.appraisalService
         .getAppraisals(processId)
         .subscribe((appraisals) => this.appraisals.next(appraisals ?? []));
+      this.recordOptionsService
+        .getRecordOptions(processId)
+        .subscribe((recordOptions) => this.setRecordOptions(recordOptions));
+      this.recordOptionsService
+        .getPackaging(processId)
+        .subscribe((packagingDecisions) => this.packagingDecisions.set(packagingDecisions));
       // Observe process until destroyed and update `this.process`.
       this.processService
         .observeProcessData(processId)
@@ -113,7 +131,7 @@ export class MessagePageService {
     );
     messageType
       .pipe(switchMap((messageType) => this.messageService.getMessage(processId, messageType)))
-      .subscribe((message) => this.message.next(message));
+      .subscribe((message) => this._message.next(message));
     messageType
       .pipe(switchMap((messageType) => this.recordsService.getRootRecords(processId, messageType)))
       .subscribe((rootRecords) => {
@@ -161,7 +179,7 @@ export class MessagePageService {
   }
 
   observeMessage(): Observable<Message> {
-    return this.message.pipe(filter(notNull));
+    return this._message.pipe(filter(notNull));
   }
 
   observeRootRecords(): Observable<Records> {
@@ -212,12 +230,21 @@ export class MessagePageService {
     );
   }
 
-  async setAppraisalDecision(recordObjectId: string, decision: AppraisalCode): Promise<void> {
+  async setAppraisalDecision(recordId: string, decision: AppraisalCode): Promise<void> {
     const process = await firstValueFrom(this.getProcess());
     const appraisals = await firstValueFrom(
-      this.appraisalService.setDecision(process.processId, recordObjectId, decision),
+      this.appraisalService.setDecision(process.processId, recordId, decision),
     );
     this.appraisals.next(appraisals);
+  }
+
+  async setPackaging(recordIds: string[], packaging: PackagingOption): Promise<void> {
+    const process = await firstValueFrom(this.getProcess());
+    const response = await firstValueFrom(
+      this.recordOptionsService.setPackaging(process.processId, recordIds, packaging),
+    );
+    this.setRecordOptions(response.recordOptions);
+    this.packagingDecisions.set(response.packaging);
   }
 
   async setAppraisalInternalNote(recordObjectId: string, internalNote: string): Promise<void> {
@@ -247,7 +274,7 @@ export class MessagePageService {
 
   async finalizeAppraisals(): Promise<void> {
     await firstValueFrom(
-      this.messageService.finalizeMessageAppraisal(this.message.value!.messageHead.processID),
+      this.messageService.finalizeMessageAppraisal(this._message.value!.messageHead.processID),
     );
     this.updateAppraisals();
     // FIXME: We should rather do a genuine update of the process object.
@@ -258,5 +285,13 @@ export class MessagePageService {
     const process = await firstValueFrom(this.getProcess());
     const appraisals = await firstValueFrom(this.appraisalService.getAppraisals(process.processId));
     this.appraisals.next(appraisals);
+  }
+
+  private setRecordOptions(recordOptions: RecordOption[]): void {
+    const map: { [recordId: string]: RecordOption } = {};
+    for (const r of recordOptions) {
+      map[r.recordId] = r;
+    }
+    this.recordOptionsMap.set(map);
   }
 }
