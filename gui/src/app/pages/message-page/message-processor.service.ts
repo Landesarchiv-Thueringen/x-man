@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject, first, firstValueFrom, map, startWith } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Config, ConfigService } from '../../services/config.service';
-import { Message } from '../../services/message.service';
+import { Message, MessageType } from '../../services/message.service';
 import { SubmissionProcess } from '../../services/process.service';
 import {
   DocumentRecord,
@@ -44,6 +44,15 @@ export interface StructureNode {
    * type is one of 'file' | 'subfile' | 'process' | 'subprocess'.
    */
   canBeAppraised: boolean;
+  /**
+   * Whether the user can choose a packaging level for the node.
+   */
+  canChoosePackaging: boolean;
+  /**
+   * Whether the node should have a checkbox when the user activates
+   * multi-selection.
+   */
+  selectable: boolean;
   children?: StructureNode[];
 }
 
@@ -80,15 +89,21 @@ export class MessageProcessorService {
     }
     // Add file nodes
     for (const fileRecordObject of rootRecords.files ?? []) {
-      messageNode.children!.push(this.getFileStructureNode(fileRecordObject, messageNode));
+      messageNode.children!.push(
+        this.getFileStructureNode(fileRecordObject, messageNode, message.messageType),
+      );
     }
     // Add process nodes
     for (const processRecordObject of rootRecords.processes ?? []) {
-      messageNode.children!.push(this.getProcessStructureNode(processRecordObject, messageNode));
+      messageNode.children!.push(
+        this.getProcessStructureNode(processRecordObject, messageNode, message.messageType),
+      );
     }
     // Add document nodes
     for (const documentRecordObject of rootRecords.documents ?? []) {
-      messageNode.children!.push(this.getDocumentStructureNode(documentRecordObject, messageNode));
+      messageNode.children!.push(
+        this.getDocumentStructureNode(documentRecordObject, messageNode, message.messageType),
+      );
     }
     this.messageProcessed.next();
     return messageNode;
@@ -124,18 +139,6 @@ export class MessageProcessorService {
     );
   }
 
-  private canBeAppraised(type: StructureNode['type'], parent: StructureNode): boolean {
-    switch (this.config!.appraisalLevel) {
-      case 'root':
-        return parent.type === 'message';
-      case 'all':
-        return type === 'file' || type === 'subfile' || type === 'process' || type === 'subprocess';
-      default:
-        console.error('called canBeAppraised when config was not ready');
-        return false;
-    }
-  }
-
   private getMessageNode(
     process: SubmissionProcess,
     message: Message,
@@ -164,6 +167,8 @@ export class MessageProcessorService {
       type: 'message',
       routerLink: 'details',
       canBeAppraised: false,
+      canChoosePackaging: false,
+      selectable: true,
       children: [],
     };
     this.nodes.set(messageNode.id, messageNode);
@@ -180,12 +185,18 @@ export class MessageProcessorService {
       routerLink: routerLink,
       parentId: messageID,
       canBeAppraised: false,
+      canChoosePackaging: false,
+      selectable: false,
     };
     this.nodes.set(primaryDocumentsNode.id, primaryDocumentsNode);
     return primaryDocumentsNode;
   }
 
-  private getFileStructureNode(fileRecord: FileRecord, parent: StructureNode): StructureNode {
+  private getFileStructureNode(
+    fileRecord: FileRecord,
+    parent: StructureNode,
+    messageType: MessageType,
+  ): StructureNode {
     const children: StructureNode[] = [];
     const type = parent.type.endsWith('file') ? 'subfile' : 'file';
     const nodeName = type === 'file' ? 'Akte' : 'Teilakte';
@@ -200,18 +211,20 @@ export class MessageProcessorService {
       parentId: parent.id,
       generalMetadata: fileRecord.generalMetadata,
       children,
-      canBeAppraised: this.canBeAppraised(type, parent),
+      canBeAppraised: this.canBeAppraised(type, parent, messageType),
+      canChoosePackaging: this.canChoosePackaging(type, parent),
+      selectable: this.isSelectable(type, parent, messageType),
     };
     // generate child nodes for all subfiles (de: Teilakten)
     if (fileRecord.subfiles) {
       for (let subfile of fileRecord.subfiles) {
-        children.push(this.getFileStructureNode(subfile, fileNode));
+        children.push(this.getFileStructureNode(subfile, fileNode, messageType));
       }
     }
     // generate child nodes for all processes (de: Vorgänge)
     if (fileRecord.processes) {
       for (let process of fileRecord.processes) {
-        children.push(this.getProcessStructureNode(process, fileNode));
+        children.push(this.getProcessStructureNode(process, fileNode, messageType));
       }
     }
 
@@ -222,6 +235,7 @@ export class MessageProcessorService {
   private getProcessStructureNode(
     processRecord: ProcessRecord,
     parent: StructureNode,
+    messageType: MessageType,
   ): StructureNode {
     const children: StructureNode[] = [];
     const routerLink: string = 'vorgang/' + processRecord.recordId;
@@ -236,19 +250,21 @@ export class MessageProcessorService {
       routerLink: routerLink,
       parentId: parent.id,
       generalMetadata: processRecord.generalMetadata,
-      canBeAppraised: this.canBeAppraised(type, parent),
+      canBeAppraised: this.canBeAppraised(type, parent, messageType),
+      canChoosePackaging: this.canChoosePackaging(type, parent),
+      selectable: this.isSelectable(type, parent, messageType),
       children: children,
     };
     // generate child nodes for all subprocesses (de: Teilvorgänge)
     if (processRecord.subprocesses) {
       for (let subprocess of processRecord.subprocesses) {
-        children.push(this.getProcessStructureNode(subprocess, processNode));
+        children.push(this.getProcessStructureNode(subprocess, processNode, messageType));
       }
     }
     // generate child nodes for all documents (de: Dokumente)
     if (processRecord.documents) {
       for (let document of processRecord.documents) {
-        children.push(this.getDocumentStructureNode(document, processNode));
+        children.push(this.getDocumentStructureNode(document, processNode, messageType));
       }
     }
 
@@ -259,6 +275,7 @@ export class MessageProcessorService {
   private getDocumentStructureNode(
     documentRecord: DocumentRecord,
     parent: StructureNode,
+    messageType: MessageType,
   ): StructureNode {
     const children: StructureNode[] = [];
     const type =
@@ -275,14 +292,75 @@ export class MessageProcessorService {
       parentId: parent.id,
       generalMetadata: documentRecord.generalMetadata,
       canBeAppraised: false,
+      canChoosePackaging: this.canChoosePackaging(type, parent),
+      selectable: this.isSelectable(type, parent, messageType),
       children: children,
     };
     if (documentRecord.attachments) {
       for (let document of documentRecord.attachments) {
-        children.push(this.getDocumentStructureNode(document, documentNode));
+        children.push(this.getDocumentStructureNode(document, documentNode, messageType));
       }
     }
     this.nodes.set(documentNode.id, documentNode);
     return documentNode;
+  }
+
+  private canBeAppraised(
+    type: StructureNodeType,
+    parent: StructureNode,
+    messageType: MessageType,
+  ): boolean {
+    if (messageType !== '0501') {
+      return false;
+    }
+    if (type !== 'file' && type !== 'subfile' && type !== 'process' && type !== 'subprocess') {
+      return false;
+    }
+    switch (this.config!.appraisalLevel) {
+      case 'root':
+        return parent.type === 'message';
+      case 'all':
+        return true;
+      default:
+        console.error('called canBeAppraised when config was not ready');
+        return false;
+    }
+  }
+
+  /**
+   * Whether the user can choose a packaging level for the node.
+   *
+   * We currently support packaging only for the root level. Processes cannot be
+   * sub-packaged.
+   */
+  private canChoosePackaging(type: StructureNodeType, parent: StructureNode): boolean {
+    return type === 'file' && parent.type === 'message';
+  }
+
+  /**
+   * Returns whether the node should have a checkbox in multi-selection mode.
+   *
+   * The result depends on the message type since the action for selected nodes
+   * differs depending on the message type.
+   */
+  private isSelectable(
+    type: StructureNodeType,
+    parent: StructureNode,
+    messageType: MessageType,
+  ): boolean {
+    if (type === 'message') {
+      return true;
+    }
+    switch (messageType) {
+      case '0501':
+        // Multi-selection is used for appraisal.
+        return this.canBeAppraised(type, parent, messageType);
+      case '0503':
+        // Multi-selection is used for packaging.
+        return this.canChoosePackaging(type, parent);
+      default:
+        console.error('unexpected message type: ' + type);
+        return false;
+    }
   }
 }

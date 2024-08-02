@@ -31,7 +31,7 @@ func GenerateProtocol(process db.SubmissionProcess) []byte {
 	return protocol
 }
 
-// PruneMessage removes all records from message which are no part of the
+// PruneMessage removes all records from the message which are no part of the
 // archive package.
 func PruneMessage(message db.Message, aip db.ArchivePackage) []byte {
 	rootRecordIDs := make([]string, len(aip.RootRecordIDs))

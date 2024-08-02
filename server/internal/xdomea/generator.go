@@ -122,7 +122,7 @@ func Generate0502Message(message db.Message) string {
 		XsiXmlNs:    XsiXmlNs,
 		MessageHead: messageHead,
 	}
-	rootRecords := db.FindRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
+	rootRecords := db.FindAllRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
 	m := appraisableRecords(&rootRecords)
 	for id, _ := range m {
 		appraisedObject := GenerateAppraisedObject(messageHead.ProcessID, id, xdomeaVersion)

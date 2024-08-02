@@ -110,7 +110,7 @@ func getAppraisalsMap(processID uuid.UUID) appraisalMap {
 
 func getAppraisalStats(ctx context.Context, message db.Message) (a AppraisalStats) {
 	m := getAppraisalsMap(message.MessageHead.ProcessID)
-	rootRecords := db.FindRootRecords(ctx, message.MessageHead.ProcessID, message.MessageType)
+	rootRecords := db.FindAllRootRecords(ctx, message.MessageHead.ProcessID, message.MessageType)
 	a.processFiles(rootRecords.Files, false, m)
 	a.processProcesses(rootRecords.Processes, false, m)
 	// Treat all root-level documents as appraised to "A" since documents always

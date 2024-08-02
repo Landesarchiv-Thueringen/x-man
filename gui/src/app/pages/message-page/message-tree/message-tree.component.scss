@@ -107,6 +107,26 @@ mat-tree-node {
   text-align: center;
 }
 
+.packaging-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 1em;
+  font-weight: bold;
+  padding: 0 12px;
+  .files-count {
+    color: mat.m2-get-color-from-palette(mat.$m2-indigo-palette, 500);
+  }
+  .processes-count {
+    color: green;
+  }
+  .other-count {
+    color: orange;
+  }
+  mat-icon {
+    color: var(--mdc-icon-button-icon-color);
+  }
+}
+
 .spacer {
   flex: 1 1 auto;
 }
@@ -138,6 +158,10 @@ mat-tree-node {
 .primary-documents-icon {
   color: mat.m2-get-color-from-palette(mat.$m2-indigo-palette, 500);
   margin-right: 0.5em;
+}
+
+mat-checkbox.hidden {
+  visibility: hidden;
 }
 
 ::ng-deep .message-tree-menu {

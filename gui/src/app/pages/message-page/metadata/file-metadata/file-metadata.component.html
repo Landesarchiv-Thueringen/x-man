@@ -64,7 +64,7 @@
         <div class="metadata">
           <div class="metadata-row">
             <div
-              *ngIf="appraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"
+              *ngIf="appraisalComplete(); then appraisalInputReadonly; else appraisalInputEditable"
             ></div>
             <ng-template #appraisalInputReadonly>
               <mat-form-field class="appraisal-input" floatLabel="always">
@@ -96,13 +96,60 @@
               #appraisalNote
               matInput
               formControlName="appraisalNote"
-              [readonly]="appraisalComplete"
+              [readonly]="appraisalComplete()"
               rows="5"
             >
             </textarea>
           </mat-form-field>
+          @if (selectionActive()) {
+            <p>
+              Aktive Mehrfachauswahl. Um die Bewertungsentscheidung für ausgewählte Objekte
+              festzulegen, nutzen Sie die Schaltfläche "Bewerten" im unteren Bereich der
+              Baumansicht.
+            </p>
+          } @else if (hasUnresolvedError()) {
+            <p>
+              Ungelöste Probleme. Es gibt ungelöste Probleme im Zusammenhang mit der Nachricht. Die
+              Funktion wird freigeschaltet, sobald die Probleme gelöst sind.
+            </p>
+          }
         </div>
       </mat-expansion-panel>
+
+      @if (canChoosePackaging) {
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Paketierung</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="metadata">
+            <mat-form-field floatLabel="always">
+              <mat-label>Paketierungsebene</mat-label>
+              <mat-select
+                formControlName="packaging"
+                (selectionChange)="setPackaging($event.value)"
+              >
+                @for (option of packagingOptions; track option.value) {
+                  <mat-option [value]="option.value" [disabled]="option.disabled">{{
+                    option.label
+                  }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            @if (selectionActive()) {
+              <p>
+                Aktive Mehrfachauswahl. Um die Paketierungsebene für ausgewählte Objekte
+                festzulegen, nutzen Sie die Schaltfläche "Paketierungsebene wählen" im unteren
+                Bereich der Baumansicht.
+              </p>
+            } @else if (hasUnresolvedError()) {
+              <p>
+                Ungelöste Probleme. Es gibt ungelöste Probleme im Zusammenhang mit der Nachricht.
+                Die Funktion wird freigeschaltet, sobald die Probleme gelöst sind.
+              </p>
+            }
+          </div>
+        </mat-expansion-panel>
+      }
     </mat-accordion>
   </form>
 </div>

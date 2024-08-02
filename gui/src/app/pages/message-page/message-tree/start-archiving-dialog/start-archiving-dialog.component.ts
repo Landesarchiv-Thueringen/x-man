@@ -8,10 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { Agency } from '../../../../services/agencies.service';
 import { ConfigService } from '../../../../services/config.service';
+import { PackagingStats } from '../../../../services/packaging.service';
 import { CollectionsService } from '../../../admin-page/collections/collections.service';
 
 export interface StartArchivingDialogData {
   agency: Agency;
+  packagingStats: PackagingStats;
 }
 
 @Component({
@@ -32,6 +34,7 @@ export class StartArchivingDialogComponent {
   collectionControl = new FormControl(this.data.agency.collectionId, {
     validators: Validators.required,
   });
+  readonly packagingStats = this.data.packagingStats;
   readonly config = toSignal(this.configService.config);
   readonly collections = toSignal(this.collectionsService.getCollections());
 

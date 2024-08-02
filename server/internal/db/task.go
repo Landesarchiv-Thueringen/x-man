@@ -144,23 +144,6 @@ func MustReplaceTask(t Task) {
 	})
 }
 
-func mustUpdateTask(id primitive.ObjectID, update interface{}) {
-	coll := mongoDatabase.Collection("tasks")
-	result, err := coll.UpdateByID(context.Background(), id, update)
-	if err != nil {
-		panic(err)
-	}
-	if result.MatchedCount == 0 {
-		panic(fmt.Sprintf("failed to update task %v: not found", id))
-	}
-	broadcastUpdate(Update{
-		Collection: "tasks",
-		// Note, that we currently don't populate the field ProcessID since it
-		// is not used.
-		Operation: UpdateOperationUpdate,
-	})
-}
-
 func DeleteTask(ID primitive.ObjectID) {
 	coll := mongoDatabase.Collection("tasks")
 	filter := bson.D{

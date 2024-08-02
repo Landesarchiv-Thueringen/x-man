@@ -10,6 +10,29 @@
     Prozess wird weiter durchgeführt. Sie können den aktuellen Stand weiter in der Gesamtübersicht
     der Aussonderungen sehen.
   </p>
+  <p>Folgende Archivpakete werden angelegt:</p>
+  <ul>
+    @if (packagingStats.files === 1) {
+      <li>1 Akte</li>
+    } @else if (packagingStats.files > 1) {
+      <li>{{ packagingStats.files }} Akten</li>
+    }
+    @if (packagingStats.subfiles === 1) {
+      <li>1 Teilakte</li>
+    } @else if (packagingStats.subfiles > 1) {
+      <li>{{ packagingStats.subfiles }} Teilakten</li>
+    }
+    @if (packagingStats.processes === 1) {
+      <li>1 Vorgang</li>
+    } @else if (packagingStats.processes > 1) {
+      <li>{{ packagingStats.processes }} Vorgänge</li>
+    }
+    @if (packagingStats.other === 1) {
+      <li>1 Sammelpaket für nicht zugeordnete Dokumente</li>
+    } @else if (packagingStats.other > 1) {
+      <li>{{ packagingStats.other }} 1 Sammelpakete für nicht zugeordnete Dokumente</li>
+    }
+  </ul>
   @if (config()?.archiveTarget === "dimag") {
     <mat-form-field>
       <mat-label>Bestand</mat-label>

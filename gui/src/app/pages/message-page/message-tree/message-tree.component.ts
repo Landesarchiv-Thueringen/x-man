@@ -20,23 +20,36 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, ChildActivationEnd, Router, RouterModule } from '@angular/router';
-import { ReplaySubject, Subject, combineLatest, concat, delay, filter, switchMap } from 'rxjs';
+import {
+  ReplaySubject,
+  Subject,
+  combineLatest,
+  concat,
+  delay,
+  filter,
+  firstValueFrom,
+  switchMap,
+} from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import { AuthService } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
 import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
+import { PackagingDecision, PackagingStats } from '../../../services/packaging.service';
 import { ProcessService, SubmissionProcess } from '../../../services/process.service';
 import { Records } from '../../../services/records.service';
 import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
 import { MessageProcessorService, StructureNode } from '../message-processor.service';
 import { RecordAppraisalPipe } from '../metadata/record-appraisal-pipe';
+import { PackagingStatsPipe } from '../packaging-stats.pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
 import { FinalizeAppraisalDialogComponent } from './finalize-appraisal-dialog/finalize-appraisal-dialog.component';
 import { FilterResult, FlatNode, MessageTreeDataSource } from './message-tree-data-source';
+import { PackagingDialogComponent } from './packaging-dialog/packaging-dialog.component';
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
 
 export interface Filter {
@@ -67,7 +80,9 @@ export interface Filter {
     MatMenuModule,
     MatRippleModule,
     MatToolbarModule,
+    MatTooltipModule,
     MatTreeModule,
+    PackagingStatsPipe,
     RecordAppraisalPipe,
     RouterModule,
   ],
@@ -79,8 +94,7 @@ export class MessageTreeComponent implements AfterViewInit {
   process?: SubmissionProcess;
   message?: Message;
   rootRecords?: Records;
-  showAppraisal = false;
-  showSelection = this.messagePage.showSelection;
+  selectionActive = this.messagePage.selectionActive;
   hasUnresolvedError = this.messagePage.hasUnresolvedError;
   isDisabled = computed(() => this.hasUnresolvedError() && !this.authService.isAdmin());
   selectedNodes = new Set<string>();
@@ -250,7 +264,6 @@ export class MessageTreeComponent implements AfterViewInit {
 
   async initTree(): Promise<void> {
     if (this.message && this.process && this.rootRecords) {
-      this.showAppraisal = this.message.messageType === '0501';
       const rootNode = await this.messageProcessor.processMessage(
         this.process,
         this.message,
@@ -271,13 +284,13 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   enableSelection(): void {
-    this.showSelection.set(true);
+    this.selectionActive.set(true);
   }
 
   disableSelection(): void {
     this.selectedNodes.clear();
     this.intermediateNodes.clear();
-    this.showSelection.set(false);
+    this.selectionActive.set(false);
   }
 
   selectItem(selected: boolean, id: string, propagating: 'down' | 'up' | null = null): void {
@@ -297,6 +310,13 @@ export class MessageTreeComponent implements AfterViewInit {
         // Note that we set the selection state even for nodes that we don't
         // allow to be appraised directly in the UI in order to send a complete
         // list to the backend for the multi-appraisal request.
+        //
+        // Since some approaches have changed since this concept was implemented
+        // and selection is now used for packaging in addition to appraisal, it
+        // might be more sensible now to submit only the visibly selected nodes'
+        // IDs to the backend and move any further logic to the backend.
+        // However, changing the behavior could break the selection with
+        // filtered nodes.
         if (
           child.type === 'file-group' ||
           child.type === 'file' ||
@@ -380,6 +400,36 @@ export class MessageTreeComponent implements AfterViewInit {
     }
   }
 
+  getPackaging(node: FlatNode): { decision: PackagingDecision; stats?: PackagingStats } | null {
+    if (node.type === 'file' || node.type === 'subfile' || node.type === 'process') {
+      return {
+        decision: this.messagePage.packagingDecisions()[node.recordId!] ?? '',
+        stats: this.messagePage.packagingStats()[node.recordId!],
+      };
+    } else {
+      return null;
+    }
+  }
+
+  async setPackagingForSelection(): Promise<void> {
+    const recordIds = [...this.selectedNodes]
+      .map((id) => this.dataSource.getNode(id))
+      .filter((node) => node.type === 'file')
+      .map((node) => node.recordId!);
+    const dialogRef = this.dialog.open(PackagingDialogComponent, {
+      data: {
+        processId: this.process!.processId,
+        recordIds,
+      },
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      await this.messagePage.setPackaging(recordIds, result.packaging);
+      this.notificationService.show('Paketierung gesetzt');
+      this.disableSelection();
+    }
+  }
+
   private registerAppraisals(): void {
     this.messagePage
       .observeAppraisals()
@@ -423,6 +473,7 @@ export class MessageTreeComponent implements AfterViewInit {
           autoFocus: false,
           data: {
             agency: this.process?.agency,
+            packagingStats: this.getCombinedPackagingStats(),
           },
         })
         .afterClosed()
@@ -467,5 +518,22 @@ export class MessageTreeComponent implements AfterViewInit {
       this.message?.messageType,
       'details',
     ]);
+  }
+
+  private getCombinedPackagingStats(): PackagingStats {
+    let result: PackagingStats = {
+      files: 0,
+      subfiles: 0,
+      processes: 0,
+      other: 0,
+      deepestLevelHasItems: false, // not used
+    };
+    for (const stats of Object.values(this.messagePage.packagingStats())) {
+      result.files += stats!.files;
+      result.subfiles += stats!.subfiles;
+      result.processes += stats!.processes;
+      result.other += stats!.other;
+    }
+    return result;
   }
 }

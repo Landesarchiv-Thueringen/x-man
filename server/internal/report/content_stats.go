@@ -12,7 +12,7 @@ type ContentStats struct {
 }
 
 func getMessageContentStats(ctx context.Context, message db.Message) ContentStats {
-	rootRecords := db.FindRootRecords(ctx, message.MessageHead.ProcessID, message.MessageType)
+	rootRecords := db.FindAllRootRecords(ctx, message.MessageHead.ProcessID, message.MessageType)
 	return ContentStats{
 		Files:     uint(len(rootRecords.Files)),
 		Processes: uint(len(rootRecords.Processes)),

@@ -193,6 +193,8 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
           id: uuidv4(),
           title: `${numberFiltered} ${numberFiltered > 1 ? 'Elemente' : 'Element'} gefiltert`,
           canBeAppraised: false,
+          canChoosePackaging: false,
+          selectable: false,
           // Not a valid type for StructureNode, but will be valid for GroupedStructureNode
           type: 'filtered' as StructureNodeType,
         });
@@ -201,6 +203,8 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
           id: uuidv4(),
           title: 'Keine übereinstimmenden Elemente',
           canBeAppraised: false,
+          canChoosePackaging: false,
+          selectable: false,
           type: 'filtered' as StructureNodeType,
         });
       }
@@ -237,7 +241,7 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
 
   private groupNodes(nodes: StructureNode): GroupedStructureNode {
     const { children, ...node } = nodes;
-    const selectable = node.canBeAppraised || node.type === 'message';
+    const selectable = node.selectable;
     const shouldGroupChildren = (children?.length ?? 0) > GROUP_SIZE;
     if (shouldGroupChildren) {
       let groupedChildren: GroupedStructureNode[] = [];
@@ -257,7 +261,7 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     }
   }
 
-  private getGroups(nodes: StructureNode[], type: StructureNode['type']): GroupedStructureNode[] {
+  private getGroups(nodes: StructureNode[], type: StructureNodeType): GroupedStructureNode[] {
     const relevantNodes = nodes.filter((node) => node.type === type);
     let currentGroup: GroupedStructureNode;
     let name: string;
@@ -300,14 +304,14 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
           parentId: node.parentId,
           children: [],
           canBeAppraised: false,
-          selectable: relevantNodes.some((n) => n.canBeAppraised),
+          canChoosePackaging: false,
+          selectable: relevantNodes.some((n) => n.selectable),
         };
         result.push(currentGroup);
       }
       currentGroup!.children!.push({
         ...node,
         parentId: currentGroup!.id,
-        selectable: node.canBeAppraised,
         children: node.children?.map((child) => this.groupNodes(child)),
       });
     }

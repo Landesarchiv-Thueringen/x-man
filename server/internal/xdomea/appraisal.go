@@ -51,7 +51,7 @@ func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 // AreAllRecordObjectsAppraised verifies whether every file, subfile, process, and subprocess has been appraised
 // with either an 'A' (de: archivieren) or 'V' (de: vernichten).
 func AreAllRecordObjectsAppraised(ctx context.Context, processID uuid.UUID) bool {
-	rootRecords := db.FindRootRecords(ctx, processID, db.MessageType0501)
+	rootRecords := db.FindAllRootRecords(ctx, processID, db.MessageType0501)
 	m := appraisableRecords(&rootRecords)
 	for id, _ := range m {
 		a, _ := db.FindAppraisal(processID, id)
@@ -149,7 +149,7 @@ func SetAppraisals(
 	} else if process.ProcessState.Appraisal.Complete {
 		return fmt.Errorf("appraisal already finished for process \"%s\"", processID)
 	}
-	rootRecords := db.FindRootRecords(context.Background(), processID, db.MessageType0501)
+	rootRecords := db.FindAllRootRecords(context.Background(), processID, db.MessageType0501)
 	m := appraisableRecords(&rootRecords)
 	isSubAppraisal := map[int]bool{}
 	// Mark all record objects as sub appraisals that have an ancestor of which
@@ -232,7 +232,7 @@ func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message
 }
 
 func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
-	rootRecords := db.FindRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
+	rootRecords := db.FindAllRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
 	for id, _ := range appraisableRecords(&rootRecords) {
 		a, _ := db.FindAppraisal(message.MessageHead.ProcessID, id)
 		if a.Decision != "A" && a.Decision != "V" {
@@ -246,7 +246,7 @@ func updateAppraisalProcessStep(processID uuid.UUID) {
 	if !found {
 		panic(fmt.Errorf("process not found: %s", processID))
 	}
-	rootRecords := db.FindRootRecords(context.Background(), processID, db.MessageType0501)
+	rootRecords := db.FindAllRootRecords(context.Background(), processID, db.MessageType0501)
 	var appraisableRootRecordIDs []uuid.UUID
 	for _, r := range rootRecords.Files {
 		appraisableRootRecordIDs = append(appraisableRootRecordIDs, r.RecordID)

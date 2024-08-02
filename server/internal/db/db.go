@@ -96,6 +96,13 @@ func createIndexes() {
 		},
 		Options: options.Index().SetUnique(true),
 	})
+	createIndex("record_options", mongo.IndexModel{
+		Keys: bson.D{
+			{"process_id", 1},
+			{"record_id", 1},
+		},
+		Options: options.Index().SetUnique(true),
+	})
 	createIndex("primary_documents_data", mongo.IndexModel{
 		Keys: bson.D{
 			{"process_id", 1},

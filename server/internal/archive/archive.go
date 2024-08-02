@@ -38,7 +38,7 @@ func ArchiveSubmission(
 	collection db.ArchiveCollection,
 	userID string,
 ) {
-	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
 	var items []db.TaskItem
 	for _, f := range rootRecords.Files {
 		items = append(items, db.TaskItem{
@@ -131,7 +131,7 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 			panic("failed to find archive collection  " + d.CollectionID.Hex())
 		}
 	}
-	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
 	var targetData interface{}
 	if archiveTarget == "dimag" {
@@ -267,7 +267,7 @@ func makeRootRecordsMap(r db.RootRecords) rootRecordsMap {
 	return m
 }
 
-// createAipFromFileRecord creates the archive package metadata from a file record object.
+// createAipFromFileRecord creates the archive package metadata from a file record.
 func createAipFromFileRecord(
 	process db.SubmissionProcess,
 	f db.FileRecord,
@@ -285,7 +285,7 @@ func createAipFromFileRecord(
 	return archivePackageData
 }
 
-// createAipFromProcessRecord creates the archive package metadata from a process record object.
+// createAipFromProcessRecord creates the archive package metadata from a process record.
 func createAipFromProcessRecord(
 	process db.SubmissionProcess,
 	p db.ProcessRecord,

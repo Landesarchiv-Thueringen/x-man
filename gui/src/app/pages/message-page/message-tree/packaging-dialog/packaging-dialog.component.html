@@ -1,0 +1,20 @@
+<h4 mat-dialog-title>Paketierungsebene für ausgewählte Schriftgutobjekte festlegen</h4>
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field>
+      <mat-label>Paketierungsebene</mat-label>
+      <mat-select formControlName="packaging">
+        @for (option of packagingOptions; track option.value) {
+          <mat-option [value]="option.value" [disabled]="option.disabled">
+            {{ option.label }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close>Abbrechen</button>
+      <button mat-flat-button type="submit">Speichern</button>
+    </mat-dialog-actions>
+  </form>
+</mat-dialog-content>

@@ -62,6 +62,9 @@ func main() {
 	authorized.POST("api/appraisal-note", setAppraisalNote)
 	authorized.POST("api/appraisals", setAppraisals)
 	authorized.PATCH("api/finalize-message-appraisal/:processId", finalizeMessageAppraisal)
+	authorized.GET("api/packaging/:processId", getPackaging)
+	authorized.POST("api/packaging", setPackaging)
+	authorized.POST("api/packaging-stats/:processId", getPackagingStatsForOptions)
 	authorized.PATCH("api/archive-0503-message/:processId", archive0503Message)
 	authorized.PATCH("api/process-note/:processId", setProcessNote)
 	authorized.GET("api/task/:id", getTask)
@@ -336,7 +339,7 @@ func getRootRecords(c *gin.Context) {
 		return
 	}
 	messageType := c.Param("messageType")
-	rootRecords := db.FindRootRecords(c.Request.Context(), processID, db.MessageType(messageType))
+	rootRecords := db.FindAllRootRecords(c.Request.Context(), processID, db.MessageType(messageType))
 	c.JSON(http.StatusOK, rootRecords)
 }
 
@@ -468,6 +471,76 @@ func areAllRecordObjectsAppraised(c *gin.Context) {
 	}
 	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisalComplete)
+}
+
+func getPackaging(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	packagingDecisions, packagingStats, packagingOptions := xdomea.Packaging(processID)
+	c.JSON(http.StatusOK, gin.H{
+		"packagingDecisions": packagingDecisions,
+		"packagingStats":     packagingStats,
+		"packagingOptions":   packagingOptions,
+	})
+}
+
+// getPackagingStatsForOptions returns a map with packaging stats for each
+// available packaging option, if applied to all given root records.
+//
+// The given root record have to be file records.
+//
+// The methods is invoked via a POST request to be able to retrieve a
+// potentially long list of record IDs as request body.
+func getPackagingStatsForOptions(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	jsonBody, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	var recordIDs []uuid.UUID
+	err = json.Unmarshal(jsonBody, &recordIDs)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	rootRecords := db.FindRootRecords(c.Request.Context(), processID, db.MessageType0503, recordIDs)
+	statsMap := xdomea.PackagingStatsForOptions(rootRecords.Files)
+	c.JSON(http.StatusOK, statsMap)
+}
+
+func setPackaging(c *gin.Context) {
+	jsonBody, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	var data struct {
+		ProcessID uuid.UUID          `json:"processId"`
+		RecordIDs []uuid.UUID        `json:"recordIds"`
+		Packaging db.PackagingOption `json:"packaging"`
+	}
+	err = json.Unmarshal(jsonBody, &data)
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	for _, id := range data.RecordIDs {
+		db.UpsertPackaging(data.ProcessID, id, data.Packaging)
+	}
+	packagingDecisions, packagingStats, packagingOptions := xdomea.Packaging(data.ProcessID)
+	c.JSON(http.StatusOK, gin.H{
+		"packagingDecisions": packagingDecisions,
+		"packagingStats":     packagingStats,
+		"packagingOptions":   packagingOptions,
+	})
 }
 
 func setProcessNote(c *gin.Context) {

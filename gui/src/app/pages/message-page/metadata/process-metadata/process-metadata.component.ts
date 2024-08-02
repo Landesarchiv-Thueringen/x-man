@@ -44,6 +44,8 @@ export class ProcessMetadataComponent {
   appraisalComplete?: boolean;
   form: FormGroup;
   canBeAppraised = false;
+  selectionActive = this.messagePage.selectionActive;
+  hasUnresolvedError = this.messagePage.hasUnresolvedError;
 
   constructor(
     private appraisalService: AppraisalService,
@@ -92,7 +94,7 @@ export class ProcessMetadataComponent {
     this.registerAppraisalNoteChanges();
     // Disable individual appraisal controls while selection is active.
     effect(() => {
-      if (this.messagePage.showSelection() || this.messagePage.hasUnresolvedError()) {
+      if (this.messagePage.selectionActive() || this.messagePage.hasUnresolvedError()) {
         this.form.get('appraisal')?.disable();
         this.form.get('appraisalNote')?.disable();
       } else {

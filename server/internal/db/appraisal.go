@@ -25,7 +25,7 @@ type Appraisal struct {
 	Note      string                  `json:"note"`
 }
 
-func FindAppraisalsForProcess(ctx context.Context, processID uuid.UUID) (appraisals []Appraisal) {
+func FindAppraisalsForProcess(ctx context.Context, processID uuid.UUID) []Appraisal {
 	coll := mongoDatabase.Collection("appraisals")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)

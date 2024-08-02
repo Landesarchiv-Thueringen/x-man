@@ -35,7 +35,7 @@ var client http.Client = http.Client{
 }
 
 func VerifyFileFormats(process db.SubmissionProcess, message db.Message) {
-	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
 	var items []db.TaskItem
 	for _, d := range db.GetPrimaryDocuments(&rootRecords) {
 		items = append(items, db.TaskItem{

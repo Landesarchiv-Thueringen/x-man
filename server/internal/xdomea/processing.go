@@ -69,7 +69,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	}
 	if messageType == "0503" {
 		// get primary documents
-		rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, messageType)
+		rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, messageType)
 		primaryDocuments := db.GetPrimaryDocuments(&rootRecords)
 		err = collectPrimaryDocumentsData(process, message, primaryDocuments)
 		if err != nil {
@@ -293,7 +293,7 @@ func checkRecordsOfMessage0503(
 		appraisals[a.RecordID] = a
 	}
 
-	rootRecords := db.FindRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
 	records := db.ExtractNestedRecords(&rootRecords)
 	includedAppraisableRecords := make(map[uuid.UUID]interface{})
 	for _, f := range records.Files {

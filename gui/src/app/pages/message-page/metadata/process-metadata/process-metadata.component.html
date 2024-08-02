@@ -101,6 +101,18 @@
             >
             </textarea>
           </mat-form-field>
+          @if (selectionActive()) {
+            <p>
+              Aktive Mehrfachauswahl. Um die Bewertungsentscheidung für ausgewählte Objekte
+              festzulegen, nutzen Sie die Schaltfläche "Bewerten" im unteren Bereich der
+              Baumansicht.
+            </p>
+          } @else if (hasUnresolvedError()) {
+            <p>
+              Ungelöste Probleme. Es gibt ungelöste Probleme im Zusammenhang mit der Nachricht. Die
+              Funktion wird freigeschaltet, sobald die Probleme gelöst sind.
+            </p>
+          }
         </div>
       </mat-expansion-panel>
     </mat-accordion>

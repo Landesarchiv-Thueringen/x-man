@@ -316,18 +316,44 @@ func InsertRootRecords(processID uuid.UUID, messageType MessageType, records Roo
 	}
 }
 
-// FindRootRecords queries all root records of a given message and returns them
+// FindAllRootRecords queries all root records of a given message and returns them
 // as an array per record type.
-func FindRootRecords(
+func FindAllRootRecords(
 	ctx context.Context,
 	processID uuid.UUID,
 	messageType MessageType,
 ) RootRecords {
-	coll := mongoDatabase.Collection("root_records")
 	filter := bson.D{
 		{"process_id", processID},
 		{"message_type", messageType},
 	}
+	return findRootRecords(ctx, filter)
+}
+
+// FindRootRecords queries the given message for root records that contain the
+// given records and returns them as an array per record type.
+func FindRootRecords(
+	ctx context.Context,
+	processID uuid.UUID,
+	messageType MessageType,
+	recordIDs []uuid.UUID,
+) RootRecords {
+	filter := bson.D{
+		{"$and",
+			bson.A{
+				bson.D{{"process_id", processID}},
+				bson.D{{"message_type", messageType}},
+				bson.D{{"contained_records", bson.D{{"$in", recordIDs}}}},
+			}},
+	}
+	return findRootRecords(ctx, filter)
+}
+
+func findRootRecords(
+	ctx context.Context,
+	filter interface{},
+) RootRecords {
+	coll := mongoDatabase.Collection("root_records")
 	cursor, err := coll.Find(ctx, filter)
 	handleError(ctx, err)
 	var r RootRecords

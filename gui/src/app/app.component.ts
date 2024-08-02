@@ -24,5 +24,9 @@ export class AppComponent {
       'articles',
       this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/articles.svg'),
     );
+    this.matIconRegistry.addSvgIcon(
+      'boxes',
+      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/boxes.svg'),
+    );
   }
 }
