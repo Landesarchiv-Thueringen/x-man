@@ -521,10 +521,12 @@ func getPrimaryDocumentsInfo(c *gin.Context) {
 	data := make([]gin.H, len(primaryDocuments))
 	for i, d := range primaryDocuments {
 		data[i] = gin.H{
-			"filename":                  d.Filename,
-			"filenameOriginal":          d.FilenameOriginal,
-			"recordId":                  d.RecordID,
-			"formatVerificationSummary": d.FormatVerification.Summary,
+			"filename":         d.Filename,
+			"filenameOriginal": d.FilenameOriginal,
+			"recordId":         d.RecordID,
+		}
+		if d.FormatVerification != nil {
+			data[i]["formatVerificationSummary"] = d.FormatVerification.Summary
 		}
 	}
 	c.JSON(http.StatusOK, data)
