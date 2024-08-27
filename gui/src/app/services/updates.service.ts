@@ -29,6 +29,7 @@ export class UpdatesService {
   private readonly updatesSubject = new Subject<Update | 'reconnect'>();
   private eventSource?: EventSource;
   private keepAliveTimer?: number;
+  private reconnectTimer?: number;
   /**
    * The connection state of the event source.
    *
@@ -47,6 +48,14 @@ export class UpdatesService {
           this.unsubscribe();
         }
       });
+    // Try to reconnect on page focus, i.e., when the user switches to the page
+    // tab or clicks the browser window. This is mainly for easier development
+    // after restarting the server.
+    window.addEventListener('focus', () => {
+      if (this.state() === 'failed' && auth.isLoggedIn()) {
+        this.subscribe();
+      }
+    });
   }
 
   // Emits each time the given database collection could have changed.
@@ -85,6 +94,10 @@ export class UpdatesService {
     if (this.eventSource) {
       return;
     }
+    if (this.reconnectTimer) {
+      window.clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
     const token = this.auth.getToken();
     // EventSource doesn't support the authorization header, so we append the
     // token as query parameter.
@@ -108,8 +121,9 @@ export class UpdatesService {
         //    carry two subscriptions into the reloaded page. However, the timeout
         //    will be canceled after the reload, so with this, we keep only the new
         //    subscription.
-        setTimeout(() => {
-          this.unsubscribe();
+        this.unsubscribe();
+        this.reconnectTimer = window.setTimeout(() => {
+          this.reconnectTimer = undefined;
           this.subscribe();
         }, 10_000);
       }
