@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {
   Observable,
   Subject,
@@ -19,6 +19,9 @@ export interface Update {
   operation: 'insert' | 'update' | 'delete';
 }
 
+/**
+ * Provides methods to receive updates from the server via server-sent events.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -26,6 +29,12 @@ export class UpdatesService {
   private readonly updatesSubject = new Subject<Update | 'reconnect'>();
   private eventSource?: EventSource;
   private keepAliveTimer?: number;
+  /**
+   * The connection state of the event source.
+   *
+   * Will be updated to 'failed' or 'connected' when either state is reached. While reconnecting, the previous state is kept until there is
+   */
+  state = signal<null | 'failed' | 'connected'>(null);
 
   constructor(private auth: AuthService) {
     auth
@@ -102,10 +111,15 @@ export class UpdatesService {
         setTimeout(() => {
           this.unsubscribe();
           this.subscribe();
-        }, 10000);
+        }, 10_000);
       }
     });
+    const connectTimeout = setTimeout(() => {
+      this.state.set('failed');
+    }, 1000);
     this.eventSource.addEventListener('open', () => {
+      clearTimeout(connectTimeout);
+      this.state.set('connected');
       // Emit a `reconnect` event on `open`, except for the first time.
       if (this.keepAliveTimer) {
         this.updatesSubject.next('reconnect');

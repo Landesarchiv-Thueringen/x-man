@@ -1,4 +1,4 @@
-<mat-toolbar>
+<mat-toolbar [class.failed]="connectionState() === 'failed'">
   <mat-toolbar-row>
     <a mat-button routerLink="/">
       <mat-icon class="title-icon material-icons-outlined">cancel</mat-icon>
@@ -20,6 +20,13 @@
         [routerLinkActive]="['active']"
         >Administration</a
       >
+      @if (connectionState() === "failed") {
+        <span class="spacer"></span>
+        <div class="failed-notice">
+          <mat-icon>sync_problem</mat-icon>
+          <span>Verbindung zum Server unterbrochen</span>
+        </div>
+      }
       <span class="spacer"></span>
       <button mat-button (click)="openUserDetails()">
         <mat-icon>person</mat-icon>

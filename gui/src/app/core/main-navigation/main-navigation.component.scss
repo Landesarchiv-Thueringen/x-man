@@ -4,6 +4,10 @@ mat-toolbar {
   position: relative;
   z-index: 2;
   @include mat.elevation(4);
+  background: var(--mat-primary);
+  &.failed {
+    background: var(--mat-error);
+  }
 }
 
 mat-icon.title-icon {
@@ -18,4 +22,11 @@ mat-icon.title-icon {
 
 .spacer {
   flex: 1 1 auto;
+}
+
+.failed-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 1rem;
 }

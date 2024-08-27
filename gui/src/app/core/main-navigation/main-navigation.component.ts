@@ -10,6 +10,7 @@ import { RouterModule } from '@angular/router';
 import { UserDetailsComponent } from '../../pages/admin-page/users/user-details.component';
 import { AuthService } from '../../services/auth.service';
 import { ClearingService } from '../../services/clearing.service';
+import { UpdatesService } from '../../services/updates.service';
 import { UsersService } from '../../services/users.service';
 
 @Component({
@@ -31,12 +32,14 @@ import { UsersService } from '../../services/users.service';
 export class MainNavigationComponent {
   loginInformation = this.auth.observeLoginInformation();
   unseenProcessingErrors = this.clearing.observeNumberUnseen();
+  connectionState = this.updates.state;
 
   constructor(
     private auth: AuthService,
     private dialog: MatDialog,
     private users: UsersService,
     private clearing: ClearingService,
+    private updates: UpdatesService,
   ) {}
 
   openUserDetails() {

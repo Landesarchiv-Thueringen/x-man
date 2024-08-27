@@ -115,3 +115,20 @@ To enable Docker's recommended logging mechanism with a default of 5 rotating fi
 ```
 
 See https://docs.docker.com/config/containers/logging/configure/ for further information.
+
+## Troubleshooting
+
+### "Verbindung zum Server unterbrochen"
+
+This message indicates that the event stream for client updates from the server
+could not be established.
+A possible reason is the use of a reverse proxy that does not pass these events.
+
+**Solution (nginx):**
+
+```nginx
+location / {
+    proxy_pass http://url-to-service/;
+    proxy_http_version 1.1;  # Support server-sent events
+}
+```
