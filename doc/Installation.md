@@ -126,9 +126,19 @@ A possible reason is the use of a reverse proxy that does not pass these events.
 
 **Solution (nginx):**
 
+You might need to add some or all of the below options for events to get passed.
+
+For additional information see: https://stackoverflow.com/questions/13672743/eventsource-server-sent-events-through-nginx
+
 ```nginx
 location / {
     proxy_pass http://url-to-service/;
-    proxy_http_version 1.1;  # Support server-sent events
+
+    # additional options to support server-sent events
+    proxy_http_version 1.1;  
+    proxy_set_header Connection '';
+    chunked_transfer_encoding off;
+    proxy_buffering off;
+    proxy_cache off;
 }
 ```
