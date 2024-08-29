@@ -28,13 +28,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const XMAN_MAJOR_VERSION = 0
-const XMAN_MINOR_VERSION = 10
-const XMAN_PATCH_VERSION = 0
-
-var XMAN_VERSION = fmt.Sprintf("%d.%d.%d", XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION)
-
-var defaultResponse = fmt.Sprintf("x-man server %s is running", XMAN_VERSION)
+var defaultResponse = fmt.Sprintf("x-man server %s is running", xdomea.XMAN_VERSION)
 
 func main() {
 	initServer()
@@ -114,9 +108,9 @@ func migrateData() {
 			log.Println("done")
 		}
 	} else {
-		log.Printf("Database is up do date with X-Man version %s\n", XMAN_VERSION)
+		log.Printf("Database is up do date with X-Man version %s\n", xdomea.XMAN_VERSION)
 	}
-	db.UpsertServerStateXmanVersion(XMAN_VERSION)
+	db.UpsertServerStateXmanVersion(xdomea.XMAN_VERSION)
 }
 
 func testConfiguration() {
@@ -156,7 +150,7 @@ func getDefaultResponse(c *gin.Context) {
 
 func getAbout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"version": XMAN_VERSION,
+		"version": xdomea.XMAN_VERSION,
 	})
 }
 

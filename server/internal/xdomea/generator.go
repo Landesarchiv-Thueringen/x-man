@@ -343,7 +343,7 @@ func ConvertParserToGeneratorContact(contact db.Contact) generatorContact {
 
 func GetSendingSystem() generatorSendingSystem {
 	productName := "X-MAN"
-	productVersion := "0.1"
+	productVersion := XMAN_VERSION
 	sendingSystem := generatorSendingSystem{
 		ProductName:    productName,
 		ProductVersion: productVersion,
