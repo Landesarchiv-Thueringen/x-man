@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.10.0
+## v1.0.0
 
 - Feature: Formatverifikation und Archivierung können pausiert und abgebrochen werden
 - Feature: Verbesserungen bei der Anzeige der Ergebnisse der Formatverifikation
