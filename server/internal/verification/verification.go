@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -84,7 +86,7 @@ func (h *VerificationHandler) HandleItem(
 		return err
 	}
 	writer.Close()
-	url := borgURL + "/analyze-file"
+	url := borgURL + "/api/analyze-file"
 	request, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return err
@@ -141,12 +143,43 @@ func initVerificationHandler(t *db.Task) (tasks.ItemHandler, error) {
 }
 
 func TestConnection() error {
-	resp, err := http.Head(borgURL)
+	url := borgURL + "/api/version"
+	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HEAD \"%s\": %d", borgURL, resp.StatusCode)
+		return fmt.Errorf("GET \"%s\": %d", url, resp.StatusCode)
+	}
+	contentType := resp.Header.Get("content-type")
+	if !strings.HasPrefix(contentType, "text/plain") {
+		return fmt.Errorf("GET \"%s\": expected content type text/plain, got: %s", url, contentType)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	return checkBorgVersion(string(body))
+}
+
+// checkBorgVersion compares the given Borg version to what is compatible with
+// x-man and returns an error if it is not.
+func checkBorgVersion(version string) error {
+	r := regexp.MustCompile(`^([0-9])+\.([0-9])+\.([0-9])+$`)
+	m := r.FindStringSubmatch(version)
+	if len(m) != 4 {
+		return fmt.Errorf("failed to parse version: %s", version)
+	}
+	major, err := strconv.Atoi(m[1])
+	if err != nil {
+		return fmt.Errorf("failed to parse version: %s", version)
+	}
+	minor, err := strconv.Atoi(m[2])
+	if err != nil {
+		return fmt.Errorf("failed to parse version: %s", version)
+	}
+	if major < 1 || major == 1 && minor < 1 { // >= 1.1.0
+		return fmt.Errorf("require version >= 1.1.0, has: %s", version)
 	}
 	return nil
 }

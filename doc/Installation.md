@@ -11,6 +11,27 @@ x-man runs on any Linux system that provides the following dependencies:
 
 Testing on Windows is possible with a Linux virtual machine or using the [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) version 2 (WSL 2).
 
+## Services
+
+x-man is meant to be used in combination with some external services. For
+testing purposes, we provide configuration for dummy services (see [Test Setup](#test-setup)). For production use, you should provide and configure these services (see [Configuration](#configuration)).
+
+The following external services should be provided for use in production:
+
+- LDAP (user authentication)
+- DIMAG (archiving)
+- [Borg](https://github.com/Landesarchiv-Thueringen/borg) (format verification)
+- SMTP (e-mail notifications)
+
+See [Administration Manual (De)](./Administration-Manual_DE.md) for further details.
+
+### Compatible Borg Versions
+
+| x-man Version | Borg Version |
+| ------------- | ------------ |
+| 0.9.x         | 1.0.x        |
+| >= 1.0.0      | >= 1.1.0     |
+
 ## Getting Started
 
 For a minimal testing setup run the following commands:
@@ -135,7 +156,7 @@ location / {
     proxy_pass http://url-to-service/;
 
     # additional options to support server-sent events
-    proxy_http_version 1.1;  
+    proxy_http_version 1.1;
     proxy_set_header Connection '';
     chunked_transfer_encoding off;
     proxy_buffering off;
