@@ -31,7 +31,7 @@ services:
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=.tsa.thlv.de,.thlv.de
+        - NO_PROXY=${NO_PROXY}
         - UID=${UID}
         - GID=${GID}
     depends_on:
@@ -83,7 +83,7 @@ services:
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=.tsa.thlv.de,.thlv.de
+        - NO_PROXY=${NO_PROXY}
 
 volumes:
   message_store:
