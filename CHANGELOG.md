@@ -1,5 +1,10 @@
 # Changelog
 
+## Next
+
+- Fix: Einstellung NO_PROXY wird nicht angewendet
+- Intern: Prüfe Borg-Version
+
 ## v1.0.0
 
 - Feature: Formatverifikation und Archivierung können pausiert und abgebrochen werden
