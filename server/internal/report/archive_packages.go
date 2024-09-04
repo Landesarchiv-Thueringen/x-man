@@ -40,8 +40,8 @@ func getArchivePackages(ctx context.Context, process db.SubmissionProcess) (resu
 // getAppraisalNote returns the appraisal note of the first record object that
 // belongs to the archive package.
 func getAppraisalNote(aip db.ArchivePackage) string {
-	if len(aip.RootRecordIDs) > 0 {
-		a, _ := db.FindAppraisal(aip.ProcessID, aip.RootRecordIDs[0])
+	if len(aip.RecordIDs) > 0 {
+		a, _ := db.FindAppraisal(aip.ProcessID, aip.RecordIDs[0])
 		return a.Note
 	}
 	return ""

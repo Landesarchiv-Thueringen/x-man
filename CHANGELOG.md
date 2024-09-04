@@ -2,6 +2,7 @@
 
 ## Next
 
+- Feature: Anpassbare Paketierung
 - Fix: Einstellung NO_PROXY wird nicht angewendet
 - Intern: Prüfe Borg-Version
 

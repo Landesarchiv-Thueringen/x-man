@@ -281,7 +281,7 @@ func GetArchivingInfoPre300(archivePackages []db.ArchivePackage) generatorArchiv
 	if archiveTarget == "dimag" {
 		var recordArchiveMapping []generatorRecordArchiveMapping
 		for _, aip := range archivePackages {
-			for _, recordID := range aip.RootRecordIDs {
+			for _, recordID := range aip.RecordIDs {
 				idMapping := generatorRecordArchiveMapping{
 					RecordID:  recordID.String(),
 					ArchiveID: aip.PackageID,
@@ -297,7 +297,7 @@ func GetArchivingInfoPre300(archivePackages []db.ArchivePackage) generatorArchiv
 func GetArchivedRecordInfo(archivePackages []db.ArchivePackage) []generatorArchivedRecordInfo {
 	var info []generatorArchivedRecordInfo
 	for _, aip := range archivePackages {
-		for _, recordID := range aip.RootRecordIDs {
+		for _, recordID := range aip.RecordIDs {
 			info = append(info, GetArchivedRecordIDMapping(recordID.String(), aip))
 		}
 	}

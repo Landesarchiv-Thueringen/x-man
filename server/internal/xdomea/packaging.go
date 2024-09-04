@@ -43,6 +43,12 @@ func (s *PackagingStats) add(s2 PackagingStats) {
 	s.DeepestLevelHasItems = s.DeepestLevelHasItems || s2.DeepestLevelHasItems
 }
 
+// Packaging looks up the selected packaging options for all objects of the
+// given submission process and calculates the resulting packaging.
+//
+// - `decisions` indicates the calculated packaging decision for each record.
+// - `stats` gives information about the content of each packaged record.
+// - `options` contains the packaging options as selected by the user.
 func Packaging(processID uuid.UUID) (
 	decisions map[uuid.UUID]PackagingDecision,
 	stats map[uuid.UUID]PackagingStats,
@@ -58,8 +64,12 @@ func Packaging(processID uuid.UUID) (
 	for _, f := range rootRecords.Files {
 		stats[f.RecordID] = packagingFileRecord(f, db.PackagingOptionRoot, 0, options, decisions)
 	}
-	packagingProcessRecords(rootRecords.Processes, decisions)
-	packagingDocumentRecords(rootRecords.Documents)
+	// Add an entry for the message root to the stats map, so stats are included
+	// when calculating the combined stats.
+	stats[uuid.Nil] = PackagingStats{
+		Processes: packagingProcessRecords(rootRecords.Processes, decisions),
+		Other:     packagingDocumentRecords(rootRecords.Documents),
+	}
 	return decisions, stats, options
 }
 

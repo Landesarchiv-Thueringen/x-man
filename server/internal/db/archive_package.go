@@ -19,9 +19,21 @@ type ArchivePackage struct {
 	IOLifetime *Lifetime `bson:"io_lifetime"`
 	// REPTitle is the title of the representation in DIMAG.
 	REPTitle string `bson:"rep_title"`
-	// RootRecordIDs are the RecordIDs of all root-level records contained in
-	// the archive package.
-	RootRecordIDs []uuid.UUID `bson:"root_record_ids"`
+	// RecordPath represents the path from the message root to the records
+	// contained in the archive package (given by RecordIDs).
+	//
+	// For root-level records, RecordPath is empty.
+	//
+	// For sub records, the first element of RecordPath is a root-level file
+	// record, the second (if any) is a sub-file record of the record referenced
+	// by the first element and so forth. Records referenced by RecordIDs are
+	// sub records of the record referenced by the last element of RecordPath.
+	//
+	// All segments given by RecordPath must reference file or sub-file records.
+	RecordPath []uuid.UUID `bson:"record_path"`
+	// RecordIDs are the RecordIDs of all records contained in the archive
+	// package.
+	RecordIDs []uuid.UUID `bson:"record_ids"`
 	// PrimaryDocuments are all primary documents contained in the archive
 	// package.
 	PrimaryDocuments []PrimaryDocumentContext `bson:"primary_documents"`
@@ -67,7 +79,7 @@ func FindArchivePackage(
 	coll := mongoDatabase.Collection("archive_packages")
 	filter := bson.D{
 		{"process_id", processID},
-		{"root_record_ids", bson.D{{"$all", rootRecordIDs}}},
+		{"record_ids", bson.D{{"$all", rootRecordIDs}}},
 	}
 	var aip ArchivePackage
 	err := coll.FindOne(ctx, filter).Decode(&aip)
