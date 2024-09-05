@@ -223,23 +223,6 @@ func MustUpdateProcessStepProgress(
 	}
 }
 
-func MustUpdateProcessStepError(
-	processID uuid.UUID,
-	step ProcessStepType,
-) {
-	update := bson.D{{"$set", bson.D{
-		{"process_state." + string(step) + ".updated_at", time.Now()},
-		{"process_state." + string(step) + ".complete", false},
-		{"process_state." + string(step) + ".has_error", true},
-		{"process_state." + string(step) + ".progress", nil},
-		{"process_state." + string(step) + ".task_state", ""},
-	}}}
-	ok := updateProcess(processID, update)
-	if !ok {
-		panic("failed to update process step for process " + processID.String() + ": not found")
-	}
-}
-
 func updateProcess(processID uuid.UUID, update interface{}) (ok bool) {
 	coll := mongoDatabase.Collection("submission_processes")
 	filter := bson.D{{"process_id", processID}}
