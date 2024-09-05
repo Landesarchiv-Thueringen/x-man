@@ -86,34 +86,53 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 			verification.VerifyFileFormats(process, message)
 		}
 	}
-	// if no error occurred while processing the message
-	//
-	// FIXME: This only considers the last operation.
-	if err == nil {
-		// send the confirmation message that the 0501 message was received
-		if messageType == "0501" {
-			err = Send0504Message(agency, message)
+	confirmMessageReceiptIfOk(agency, processID, messageType)
+}
+
+// confirmMessageReceiptIfOk checks if the message was received without errors.
+// If so, it sends the appropriate xdomea message (if any) and an e-mail
+// notification to the archivist(s) in charge.
+func confirmMessageReceiptIfOk(agency db.Agency, processID uuid.UUID, messageType db.MessageType) {
+	message, ok := db.FindMessage(context.Background(), processID, messageType)
+	if !ok {
+		return
+	}
+	for _, e := range db.FindProcessingErrorsForProcess(context.Background(), processID) {
+		if e.MessageType == messageType && !e.Resolved {
+			return
+		}
+	}
+	errorData := db.ProcessingError{
+		Agency:      &agency,
+		ProcessID:   processID,
+		MessageType: messageType,
+	}
+	// Send the confirmation message that the 0501 message was received.
+	if messageType == db.MessageType0501 {
+		err := Send0504Message(agency, message)
+		if err != nil {
 			if err == transferFileExists {
 				// Ignore. This can occur when re-importing the message.
-			} else if err != nil {
+			} else {
 				errorData.Title = "Fehler beim Senden der 0504-Nachricht"
 				errors.AddProcessingErrorWithData(err, errorData)
 			}
+			return
 		}
-		// send e-mail notification to users
-		errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
-		for _, user := range agency.Users {
-			address, err := auth.GetMailAddress(user)
+	}
+	// Send e-mail notification to users.
+	errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
+	for _, user := range agency.Users {
+		address, err := auth.GetMailAddress(user)
+		if err != nil {
+			errors.AddProcessingErrorWithData(err, errorData)
+			continue
+		}
+		preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
+		if preferences.MessageEmailNotifications {
+			err = mail.SendMailNewMessage(address, agency.Name, message)
 			if err != nil {
 				errors.AddProcessingErrorWithData(err, errorData)
-				continue
-			}
-			preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
-			if preferences.MessageEmailNotifications {
-				err = mail.SendMailNewMessage(address, agency.Name, message)
-				if err != nil {
-					errors.AddProcessingErrorWithData(err, errorData)
-				}
 			}
 		}
 	}

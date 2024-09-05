@@ -4,6 +4,7 @@
 
 - Feature: Anpassbare Paketierung
 - Feature: Verbesserte Fehlerausgabe bei Import nach DIMAG
+- Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet
 - Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
