@@ -459,8 +459,7 @@ func finalizeMessageAppraisal(ctx *gin.Context) {
 	userID := ctx.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
-	messagePath := xdomea.Send0502Message(process.Agency, message)
-	db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0502, messagePath)
+	xdomea.Send0502Message(process.Agency, message)
 }
 
 func areAllRecordObjectsAppraised(c *gin.Context) {

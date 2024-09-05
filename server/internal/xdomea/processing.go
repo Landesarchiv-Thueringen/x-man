@@ -90,8 +90,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if err == nil {
 		// send the confirmation message that the 0501 message was received
 		if messageType == "0501" {
-			messagePath := Send0504Message(agency, message)
-			db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0504, messagePath)
+			Send0504Message(agency, message)
 		}
 		// send e-mail notification to users
 		errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
@@ -439,13 +438,12 @@ func Send0504Message(agency db.Agency, message db.Message) string {
 func Send0506Message(process db.SubmissionProcess, message db.Message) {
 	archivePackages := db.FindArchivePackagesForProcess(context.Background(), process.ProcessID)
 	messageXml := Generate0506Message(message, archivePackages)
-	messagePath := sendMessage(
+	sendMessage(
 		process.Agency,
 		message.MessageHead.ProcessID,
 		messageXml,
 		Message0506MessageSuffix,
 	)
-	db.MustUpdateProcessMessagePath(process.ProcessID, db.MessageType0506, messagePath)
 }
 
 // sendMessage creates a xdomea message and copies it into the transfer directory.

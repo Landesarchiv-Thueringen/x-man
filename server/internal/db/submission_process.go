@@ -169,21 +169,6 @@ func UpdateProcessNote(
 	return updateProcess(processID, update)
 }
 
-func MustUpdateProcessMessagePath(processID uuid.UUID, messageType MessageType, messagePath string) {
-	var field string
-	switch messageType {
-	case MessageType0502, MessageType0504, MessageType0506:
-		field = "message_" + string(messageType) + "_path"
-	default:
-		panic("unhandled message type: " + messageType)
-	}
-	update := bson.D{{"$set", bson.D{{field, messagePath}}}}
-	ok := updateProcess(processID, update)
-	if !ok {
-		panic("failed to find process: " + processID.String())
-	}
-}
-
 func UpdateProcessStepCompletion(
 	processID uuid.UUID,
 	step ProcessStepType,
