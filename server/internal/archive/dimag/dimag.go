@@ -18,9 +18,13 @@ type jobFailedError struct {
 }
 
 func (err *jobFailedError) Error() string {
+	message := err.jobStatus.Message
+	if message == "" {
+		message = err.jobStatus.ReturnMessage
+	}
 	return fmt.Sprintf(
 		"DIMAG %s job %d: status %d: %s",
-		err.action, err.jobID, err.jobStatus.Status, err.jobStatus.Message,
+		err.action, err.jobID, err.jobStatus.Status, message,
 	)
 }
 

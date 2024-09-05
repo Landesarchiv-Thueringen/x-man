@@ -67,12 +67,13 @@ type getJobStatusData struct {
 }
 
 type getJobStatusResponse struct {
-	XMLName xml.Name `xml:"getJobStatusResponse"`
-	Status  int      `xml:"status"`
-	JobID   int      `xml:"jid"`
-	Message string   `xml:"msg"`
-	AIDs    string   `xml:"aids"`
-	Types   string   `xml:"types"`
+	XMLName       xml.Name `xml:"getJobStatusResponse"`
+	Status        int      `xml:"status"`
+	JobID         int      `xml:"jid"`
+	Message       string   `xml:"msg"`
+	ReturnMessage string   `xml:"returnmessage"`
+	AIDs          string   `xml:"aids"`
+	Types         string   `xml:"types"`
 }
 
 // GetAIDforKeyValue
