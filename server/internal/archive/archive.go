@@ -289,7 +289,14 @@ func (h *ArchiveHandler) AfterDone() {
 	if h.t.State != db.TaskStateDone {
 		return
 	}
-	xdomea.Send0506Message(h.process, h.message)
+	err := xdomea.Send0506Message(h.process, h.message)
+	if err != nil {
+		errorData := db.ProcessingError{
+			Title:     "Fehler beim Senden der 0506-Nachricht",
+			ProcessID: h.process.ProcessID,
+		}
+		errors.AddProcessingErrorWithData(err, errorData)
+	}
 	preferences := db.FindUserPreferencesWithDefault(context.Background(), h.t.UserID)
 	if preferences.ReportByEmail {
 		defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{

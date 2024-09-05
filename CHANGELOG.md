@@ -6,6 +6,7 @@
 - Feature: Verbesserte Fehlerausgabe bei Import nach DIMAG
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet
+- Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
 - Intern: Prüfe Borg-Version
 
 ## v1.0.0

@@ -436,30 +436,38 @@ func setAppraisals(c *gin.Context) {
 	c.JSON(http.StatusAccepted, appraisals)
 }
 
-func finalizeMessageAppraisal(ctx *gin.Context) {
-	processID, err := uuid.Parse(ctx.Param("processId"))
+func finalizeMessageAppraisal(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
-		ctx.AbortWithError(http.StatusUnprocessableEntity, err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	message, found := db.FindMessage(ctx, processID, db.MessageType0501)
+	message, found := db.FindMessage(c, processID, db.MessageType0501)
 	if !found {
-		ctx.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	process, found := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
 	if !found {
-		ctx.AbortWithStatus(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	if process.ProcessState.Appraisal.Complete {
-		ctx.AbortWithStatus(http.StatusConflict)
+		c.AbortWithStatus(http.StatusConflict)
 		return
 	}
-	userID := ctx.MustGet("userId").(string)
+	userID := c.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
 	message = xdomea.FinalizeMessageAppraisal(message, userName)
-	xdomea.Send0502Message(process.Agency, message)
+	err = xdomea.Send0502Message(process.Agency, message)
+	if err != nil {
+		errorData := db.ProcessingError{
+			Title:     "Fehler beim Senden der 0502-Nachricht",
+			ProcessID: processID,
+		}
+		errors.AddProcessingErrorWithData(err, errorData)
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
 }
 
 func areAllRecordObjectsAppraised(c *gin.Context) {

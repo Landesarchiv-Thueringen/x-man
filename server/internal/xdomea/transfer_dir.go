@@ -283,26 +283,30 @@ func waitUntilStableWebDav(client *gowebdav.Client, file fs.FileInfo) {
 }
 
 // CopyMessageToTransferDirectory copies a file from the local filesystem to a transfer directory.
-func CopyMessageToTransferDirectory(agency db.Agency, processID uuid.UUID, messagePath string) string {
+func CopyMessageToTransferDirectory(agency db.Agency, processID uuid.UUID, messagePath string) error {
 	transferDirURL, err := url.Parse(agency.TransferDirURL)
 	if err != nil {
 		panic(err)
 	}
-	db.InsertTransferFile(agency.ID, processID, filepath.Base(messagePath))
+	ok := db.InsertTransferFile(agency.ID, processID, filepath.Base(messagePath))
+	if !ok {
+		return transferFileExists
+	}
 	switch transferDirURL.Scheme {
 	case string(Local):
-		return copyMessageToLocalFilesystem(transferDirURL, messagePath)
+		copyMessageToLocalFilesystem(transferDirURL, messagePath)
 	case string(WebDAV):
 		fallthrough
 	case string(WebDAVSec):
-		return copyMessageToWebDAV(transferDirURL, messagePath)
+		copyMessageToWebDAV(transferDirURL, messagePath)
 	default:
 		panic("unknown transfer directory scheme")
 	}
+	return nil
 }
 
 // copyMessageToLocalFilesystem copies a file from the local filesystem to another path in the local filesystem.
-func copyMessageToLocalFilesystem(transferDirURL *url.URL, messagePath string) string {
+func copyMessageToLocalFilesystem(transferDirURL *url.URL, messagePath string) {
 	messageFilename := path.Base(messagePath)
 	messageFile, err := os.Open(messagePath)
 	if err != nil {
@@ -319,11 +323,10 @@ func copyMessageToLocalFilesystem(transferDirURL *url.URL, messagePath string) s
 	if err != nil {
 		panic(err)
 	}
-	return messageFilename
 }
 
 // copyMessageToWebDAV copies a file from the local filesystem to a webDAV.
-func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) string {
+func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) {
 	client, err := connectWebDAV(transferDirURL)
 	if err != nil {
 		panic(err)
@@ -338,7 +341,6 @@ func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) string {
 	if err != nil {
 		panic(err)
 	}
-	return webdavFilePath
 }
 
 // CopyMessageFromTransferDirectory copies a file from a transfer directory to a temporary directory.

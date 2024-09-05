@@ -20,6 +20,8 @@ import (
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
+var transferFileExists = fmt.Errorf("transfer file exists")
+
 func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	log.Println("Processing new message " + transferDirMessagePath)
 	errorData := db.ProcessingError{
@@ -90,7 +92,13 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if err == nil {
 		// send the confirmation message that the 0501 message was received
 		if messageType == "0501" {
-			Send0504Message(agency, message)
+			err = Send0504Message(agency, message)
+			if err == transferFileExists {
+				// Ignore. This can occur when re-importing the message.
+			} else if err != nil {
+				errorData.Title = "Fehler beim Senden der 0504-Nachricht"
+				errors.AddProcessingErrorWithData(err, errorData)
+			}
 		}
 		// send e-mail notification to users
 		errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
@@ -415,7 +423,7 @@ func checkMaxRecordObjectDepth(agency db.Agency, process db.SubmissionProcess, m
 	return nil
 }
 
-func Send0502Message(agency db.Agency, message db.Message) string {
+func Send0502Message(agency db.Agency, message db.Message) error {
 	messageXml := Generate0502Message(message)
 	return sendMessage(
 		agency,
@@ -425,7 +433,7 @@ func Send0502Message(agency db.Agency, message db.Message) string {
 	)
 }
 
-func Send0504Message(agency db.Agency, message db.Message) string {
+func Send0504Message(agency db.Agency, message db.Message) error {
 	messageXml := Generate0504Message(message)
 	return sendMessage(
 		agency,
@@ -435,10 +443,10 @@ func Send0504Message(agency db.Agency, message db.Message) string {
 	)
 }
 
-func Send0506Message(process db.SubmissionProcess, message db.Message) {
+func Send0506Message(process db.SubmissionProcess, message db.Message) error {
 	archivePackages := db.FindArchivePackagesForProcess(context.Background(), process.ProcessID)
 	messageXml := Generate0506Message(message, archivePackages)
-	sendMessage(
+	return sendMessage(
 		process.Agency,
 		message.MessageHead.ProcessID,
 		messageXml,
@@ -453,7 +461,7 @@ func sendMessage(
 	processID uuid.UUID,
 	messageXml string,
 	messageSuffix string,
-) string {
+) error {
 	// Create temporary directory. The name of the directory ist the message ID.
 	tempDir, err := os.MkdirTemp("", processID.String())
 	if err != nil {

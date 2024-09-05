@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TransferFile struct {
@@ -48,10 +49,13 @@ func FindTransferDirFilesForProcess(processID uuid.UUID) []TransferFile {
 	return files
 }
 
-// InsertTransferFile marks a file in a transfer directory as
-// already processed. This file will not be processed again until the entry for
-// the file is removed.
-func InsertTransferFile(agencyID primitive.ObjectID, processID uuid.UUID, path string) {
+// InsertTransferFile marks a file in a transfer directory as already processed.
+// This file will not be processed again until the entry for the file is
+// removed.
+//
+// Returns true if the entry was created successfully and false if the entry
+// already existed. Panics on any other error.
+func InsertTransferFile(agencyID primitive.ObjectID, processID uuid.UUID, path string) (ok bool) {
 	coll := mongoDatabase.Collection("transfer_files")
 	_, err := coll.InsertOne(context.Background(), TransferFile{
 		AgencyID:  agencyID,
@@ -59,8 +63,13 @@ func InsertTransferFile(agencyID primitive.ObjectID, processID uuid.UUID, path s
 		Path:      path,
 	})
 	if err != nil {
-		panic(err)
+		if mongo.IsDuplicateKeyError(err) {
+			return false
+		} else {
+			panic(err)
+		}
 	}
+	return true
 }
 
 func DeleteTransferFile(agencyID primitive.ObjectID, path string) (ok bool) {
