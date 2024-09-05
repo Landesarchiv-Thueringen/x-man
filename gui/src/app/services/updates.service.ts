@@ -45,6 +45,7 @@ export class UpdatesService {
         if (isLoggedIn) {
           this.subscribe();
         } else {
+          this.state.set(null);
           this.unsubscribe();
         }
       });
