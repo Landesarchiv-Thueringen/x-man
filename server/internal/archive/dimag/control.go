@@ -109,12 +109,12 @@ func fileName(primaryDocument db.PrimaryDocument) string {
 func combinedLifetime(l *db.Lifetime) string {
 	if l != nil {
 		if l.Start != "" && l.End != "" {
-			return l.Start + " - " + l.End
+			return "Von " + l.Start + " bis " + l.End
 		} else if l.Start != "" {
-			return l.Start + " - "
+			return "Von " + l.Start
 		} else if l.End != "" {
-			return " - " + l.End
+			return "Bis " + l.End
 		}
 	}
-	return ""
+	return "Unbekannt"
 }
