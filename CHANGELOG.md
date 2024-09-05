@@ -3,6 +3,8 @@
 ## Next
 
 - Feature: Anpassbare Paketierung
+- Feature: Verbesserte Fehlerausgabe bei Import nach DIMAG
+- Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet
 - Intern: Prüfe Borg-Version
 
