@@ -13,7 +13,7 @@ import {
   take,
 } from 'rxjs';
 import { Appraisal, AppraisalCode, AppraisalService } from '../../services/appraisal.service';
-import { Message, MessageService } from '../../services/message.service';
+import { Message, MessageService, MessageType } from '../../services/message.service';
 import {
   PackagingData,
   PackagingDecision,
@@ -107,9 +107,6 @@ export class MessagePageService {
       this.appraisalService
         .getAppraisals(processId)
         .subscribe((appraisals) => this.appraisals.next(appraisals ?? []));
-      this.packagingService
-        .getPackaging(processId)
-        .subscribe((data) => this.setPackagingData(data));
       // Observe process until destroyed and update `this.process`.
       this.processService
         .observeProcessData(processId)
@@ -124,7 +121,7 @@ export class MessagePageService {
    * Fetches the message and updates `this.message`.
    */
   private registerMessage(processId: string) {
-    const messageType = this.route.params.pipe(
+    const messageType: Observable<MessageType> = this.route.params.pipe(
       map((params) => params['messageType']),
       filter(notEmpty),
       distinctUntilChanged(),
@@ -137,6 +134,16 @@ export class MessagePageService {
       .subscribe((rootRecords) => {
         this.updateRecords(rootRecords);
       });
+    // Fetch packaging data when first displaying the 0503 message.
+    messageType
+      .pipe(
+        filter(
+          (messageType) =>
+            messageType === '0503' && Object.keys(this.packagingDecisions()).length === 0,
+        ),
+        switchMap(() => this.packagingService.getPackaging(processId)),
+      )
+      .subscribe((data) => this.setPackagingData(data));
   }
 
   /**
