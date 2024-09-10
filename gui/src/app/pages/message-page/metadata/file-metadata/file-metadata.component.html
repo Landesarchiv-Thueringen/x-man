@@ -141,7 +141,7 @@
                 festzulegen, nutzen Sie die Schaltfläche "Paketierungsebene wählen" im unteren
                 Bereich der Baumansicht.
               </p>
-            } @else if (hasUnresolvedError()) {
+            } @else if (hasUnresolvedError() && !process()?.processState?.archiving?.progress) {
               <p>
                 Ungelöste Probleme. Es gibt ungelöste Probleme im Zusammenhang mit der Nachricht.
                 Die Funktion wird freigeschaltet, sobald die Probleme behoben sind.

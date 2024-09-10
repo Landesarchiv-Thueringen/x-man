@@ -149,7 +149,7 @@
       mat-flat-button
       *ngIf="
         (message.messageType === '0501' && !process.processState.appraisal.complete) ||
-        (message.messageType === '0503' && !process.processState.archiving.complete)
+        (message.messageType === '0503' && !process.processState.archiving.progress)
       "
       (click)="enableSelection()"
       [disabled]="hasUnresolvedError()"

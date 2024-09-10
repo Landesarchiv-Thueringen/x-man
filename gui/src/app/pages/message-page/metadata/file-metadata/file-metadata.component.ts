@@ -52,6 +52,7 @@ export class FileMetadataComponent {
   form: FormGroup;
   canBeAppraised = false;
   canChoosePackaging = false;
+  process = this.messagePage.process;
   selectionActive = this.messagePage.selectionActive;
   hasUnresolvedError = this.messagePage.hasUnresolvedError;
   message = this.messagePage.message;
@@ -151,7 +152,7 @@ export class FileMetadataComponent {
       if (
         this.messagePage.selectionActive() ||
         this.messagePage.hasUnresolvedError() ||
-        this.messagePage.process()?.processState.archiving.complete
+        this.messagePage.process()?.processState.archiving.progress
       ) {
         this.form.get('packaging')?.disable();
       } else {
