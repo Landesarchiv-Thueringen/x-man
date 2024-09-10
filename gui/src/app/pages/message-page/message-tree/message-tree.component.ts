@@ -2,13 +2,13 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
-  AfterViewInit,
   Component,
   Inject,
   QueryList,
   ViewChild,
   ViewChildren,
   computed,
+  effect,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -23,23 +23,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { ActivatedRoute, ChildActivationEnd, Router, RouterModule } from '@angular/router';
-import {
-  ReplaySubject,
-  Subject,
-  combineLatest,
-  concat,
-  delay,
-  filter,
-  firstValueFrom,
-  switchMap,
-} from 'rxjs';
+import { delay, filter, firstValueFrom, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import { AuthService } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
 import { Message, MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
 import { PackagingDecision, PackagingStats } from '../../../services/packaging.service';
-import { ProcessService, SubmissionProcess } from '../../../services/process.service';
+import { ProcessService } from '../../../services/process.service';
 import { Records } from '../../../services/records.service';
 import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
@@ -87,13 +78,12 @@ export interface Filter {
     RouterModule,
   ],
 })
-export class MessageTreeComponent implements AfterViewInit {
+export class MessageTreeComponent {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
   @ViewChildren(MatChipRow) matChipRow?: QueryList<MatChipRow>;
 
-  process?: SubmissionProcess;
-  message?: Message;
-  rootRecords?: Records;
+  process = this.messagePage.process;
+  message = this.messagePage.message;
   selectionActive = this.messagePage.selectionActive;
   hasUnresolvedError = this.messagePage.hasUnresolvedError;
   isDisabled = computed(() => this.hasUnresolvedError() && !this.authService.isAdmin());
@@ -105,15 +95,14 @@ export class MessageTreeComponent implements AfterViewInit {
   );
 
   dataSource = new MessageTreeDataSource(this.treeControl);
-  viewInitialized = new ReplaySubject<void>(1);
   appraisals: { [recordId: string]: Appraisal } = {};
   readonly availableFilters: Filter[] = [
     {
       type: 'not-appraised',
       label: 'Noch nicht bewertet',
       showIf: () =>
-        !this.process?.processState.appraisal.complete &&
-        !this.process?.processState.receive0503.complete,
+        !this.process()?.processState.appraisal.complete &&
+        !this.process()?.processState.receive0503.complete,
       predicate: (node) => {
         if (!node.canBeAppraised) {
           return 'propagate-recursive';
@@ -157,11 +146,6 @@ export class MessageTreeComponent implements AfterViewInit {
     private authService: AuthService,
   ) {
     this.registerAppraisals();
-    const processReady = new Subject<void>();
-    this.messagePage.observeProcessData().subscribe(({ process }) => {
-      this.process = process;
-      processReady.complete();
-    });
     // Update currentRecordId with the record ID in the URL.
     this.router.events
       .pipe(
@@ -173,16 +157,11 @@ export class MessageTreeComponent implements AfterViewInit {
         this.currentRecordId = params['id'];
       });
     // Update the tree when `message` changes.
-    concat(
-      processReady,
-      combineLatest([this.messagePage.observeMessage(), this.messagePage.observeRootRecords()]),
-    )
-      .pipe(filter(notNull))
-      .subscribe(async ([message, rootRecords]) => {
-        this.message = message;
-        this.rootRecords = rootRecords;
-        await this.initTree();
-      });
+    //
+    // Compute `agencyName` here, so `initTree` won't be triggered each time the
+    // process state changes.
+    const agencyName = computed(() => this.process()?.agency.name);
+    effect(() => this.initTree(agencyName(), this.message(), this.messagePage.rootRecords()));
     // Expand the current node when display data is updated.
     this.dataSource
       .observeDisplayData()
@@ -196,10 +175,6 @@ export class MessageTreeComponent implements AfterViewInit {
           this.document.getElementById(this.currentRecordId)?.scrollIntoView({ block: 'center' });
         }
       });
-  }
-
-  ngAfterViewInit() {
-    this.viewInitialized.next(void 0);
   }
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
@@ -262,12 +237,16 @@ export class MessageTreeComponent implements AfterViewInit {
     );
   }
 
-  async initTree(): Promise<void> {
-    if (this.message && this.process && this.rootRecords) {
+  private async initTree(
+    agencyName?: string,
+    message?: Message,
+    rootRecords?: Records,
+  ): Promise<void> {
+    if (agencyName && message && rootRecords) {
       const rootNode = await this.messageProcessor.processMessage(
-        this.process,
-        this.message,
-        this.rootRecords,
+        agencyName,
+        message,
+        rootRecords!,
       );
       this.dataSource.data = rootNode;
     }
@@ -418,7 +397,7 @@ export class MessageTreeComponent implements AfterViewInit {
       .map((node) => node.recordId!);
     const dialogRef = this.dialog.open(PackagingDialogComponent, {
       data: {
-        processId: this.process!.processId,
+        processId: this.process()!.processId,
         recordIds,
       },
     });
@@ -442,11 +421,12 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   sendAppraisalMessage(): void {
-    if (this.message) {
+    const message = this.message();
+    if (message) {
       this.dialog
         .open(FinalizeAppraisalDialogComponent, {
           autoFocus: false,
-          data: { processId: this.message.messageHead.processID },
+          data: { processId: message.messageHead.processID },
         })
         .afterClosed()
         .pipe(
@@ -467,12 +447,13 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   archive0503Message() {
-    if (this.message) {
+    const message = this.message();
+    if (message) {
       this.dialog
         .open(StartArchivingDialogComponent, {
           autoFocus: false,
           data: {
-            agency: this.process?.agency,
+            agency: this.process()?.agency,
             packagingStats: this.getCombinedPackagingStats(),
           },
         })
@@ -483,7 +464,7 @@ export class MessageTreeComponent implements AfterViewInit {
             // Navigate to the tree root so the user sees the new status
             this.goToRootNode();
             return this.messageService.archive0503Message(
-              this.message!.messageHead.processID,
+              message.messageHead.processID,
               formResult.collectionId,
             );
           }),
@@ -501,10 +482,10 @@ export class MessageTreeComponent implements AfterViewInit {
   }
 
   downloadReport() {
-    this.processService.getReport(this.process!.processId).subscribe((report) => {
+    this.processService.getReport(this.process()!.processId).subscribe((report) => {
       const a = document.createElement('a');
       document.body.appendChild(a);
-      a.download = `Übernahmebericht ${this.process!.agency.abbreviation} ${this.process!.createdAt}.pdf`;
+      a.download = `Übernahmebericht ${this.process()!.agency.abbreviation} ${this.process()!.createdAt}.pdf`;
       a.href = window.URL.createObjectURL(report);
       a.click();
       document.body.removeChild(a);
@@ -514,8 +495,8 @@ export class MessageTreeComponent implements AfterViewInit {
   private goToRootNode() {
     this.router.navigate([
       'nachricht',
-      this.process?.processId,
-      this.message?.messageType,
+      this.process()?.processId,
+      this.message()?.messageType,
       'details',
     ]);
   }

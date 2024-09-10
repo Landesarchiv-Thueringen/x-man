@@ -51,14 +51,15 @@ export class MessagePageService {
    *
    * We fetch the message once when the relevant URL parameter changes.
    */
-  private _message = new BehaviorSubject<Message | null>(null);
+  private _message = new BehaviorSubject<Message | undefined>(undefined);
   message = toSignal(this._message);
   /**
    * The message's root records.
    *
    * We fetch the root records when the message changes.
    */
-  private rootRecords = new BehaviorSubject<Records | null>(null);
+  private _rootRecords = new BehaviorSubject<Records | undefined>(undefined);
+  rootRecords = toSignal(this._rootRecords);
   /**
    * Record maps of root and all nested records.
    *
@@ -163,7 +164,7 @@ export class MessagePageService {
     rootRecords.files?.forEach(processFile);
     rootRecords.processes?.forEach(processProcess);
     rootRecords.documents?.forEach(processDocument);
-    this.rootRecords.next(rootRecords);
+    this._rootRecords.next(rootRecords);
   }
 
   getProcess(): Observable<SubmissionProcess> {
@@ -182,11 +183,11 @@ export class MessagePageService {
   }
 
   observeRootRecords(): Observable<Records> {
-    return this.rootRecords.pipe(filter(notNull));
+    return this._rootRecords.pipe(filter(notNull));
   }
 
   getFileRecord(recordId: string): Observable<FileRecord> {
-    return this.rootRecords.pipe(
+    return this._rootRecords.pipe(
       map(() => this.fileRecordsMap.get(recordId)),
       filter(notNull),
       take(1),
@@ -194,7 +195,7 @@ export class MessagePageService {
   }
 
   getProcessRecord(recordId: string): Observable<ProcessRecord> {
-    return this.rootRecords.pipe(
+    return this._rootRecords.pipe(
       map(() => this.processRecordsMap.get(recordId)),
       filter(notNull),
       take(1),
@@ -202,7 +203,7 @@ export class MessagePageService {
   }
 
   getDocumentRecord(recordId: string): Observable<DocumentRecord> {
-    return this.rootRecords.pipe(
+    return this._rootRecords.pipe(
       map(() => this.documentsRecordsMap.get(recordId)),
       filter(notNull),
       take(1),

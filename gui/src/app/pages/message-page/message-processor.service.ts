@@ -3,7 +3,6 @@ import { Subject, first, firstValueFrom, map, startWith } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Config, ConfigService } from '../../services/config.service';
 import { Message, MessageType } from '../../services/message.service';
-import { SubmissionProcess } from '../../services/process.service';
 import {
   DocumentRecord,
   FileRecord,
@@ -75,14 +74,14 @@ export class MessageProcessorService {
    * `getNode` will return nodes from the new tree.
    */
   async processMessage(
-    process: SubmissionProcess,
+    agencyName: string,
     message: Message,
     rootRecords: Records,
   ): Promise<StructureNode> {
     this.config = await firstValueFrom(this.configService.config);
     this.nodes.clear();
     // Create message node
-    const messageNode = this.getMessageNode(process, message, rootRecords);
+    const messageNode = this.getMessageNode(agencyName, message, rootRecords);
     // Create file-verification node
     if (message.messageType === '0503') {
       messageNode.children!.push(this.getPrimaryDocumentsNode(messageNode.id));
@@ -140,7 +139,7 @@ export class MessageProcessorService {
   }
 
   private getMessageNode(
-    process: SubmissionProcess,
+    agencyName: string,
     message: Message,
     rootRecords: Records,
   ): StructureNode {
@@ -165,7 +164,7 @@ export class MessageProcessorService {
       // when switching between messages.
       id: message.messageHead.processID + '/' + message.messageType,
       title,
-      subtitle: process.agency.name,
+      subtitle: agencyName,
       type: 'message',
       routerLink: 'details',
       canBeAppraised: false,

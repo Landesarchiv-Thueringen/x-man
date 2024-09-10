@@ -71,8 +71,8 @@
           </mat-menu>
           <button
             *ngIf="
-              process?.processState?.receive0501?.complete &&
-              process?.processState?.receive0503?.complete
+              process()?.processState?.receive0501?.complete &&
+              process()?.processState?.receive0503?.complete
             "
             mat-icon-button
             [matMenuTriggerFor]="menu"
@@ -82,10 +82,10 @@
             <mat-icon class="mat-icon-rtl-mirror">expand_more</mat-icon>
           </button>
           <mat-menu #menu="matMenu" class="message-tree-menu">
-            @if (process?.processState?.receive0501?.complete) {
+            @if (process()?.processState?.receive0501?.complete) {
               <a
                 mat-menu-item
-                [routerLink]="['/nachricht', process?.processId, '0501']"
+                [routerLink]="['/nachricht', process()?.processId, '0501']"
                 [routerLinkActive]="['active']"
               >
                 <mat-icon>assignment</mat-icon>
@@ -95,10 +95,10 @@
                 </span>
               </a>
             }
-            @if (process?.processState?.receive0503?.complete) {
+            @if (process()?.processState?.receive0503?.complete) {
               <a
                 mat-menu-item
-                [routerLink]="['/nachricht', process?.processId, '0503']"
+                [routerLink]="['/nachricht', process()?.processId, '0503']"
                 [routerLinkActive]="['active']"
               >
                 <mat-icon>assignment</mat-icon>
@@ -140,7 +140,7 @@
     </mat-tree-node>
   </mat-tree>
 
-  <div *ngIf="process && message && !selectionActive()" class="actions">
+  <div *ngIf="process() && message() && !selectionActive()" class="actions">
     <button mat-flat-button (click)="copyMessageUrl()">
       <mat-icon>content_copy</mat-icon>
       <span>Objekt-Link kopieren</span>
@@ -148,8 +148,8 @@
     <button
       mat-flat-button
       *ngIf="
-        (message.messageType === '0501' && !process.processState.appraisal.complete) ||
-        (message.messageType === '0503' && !process.processState.archiving.progress)
+        (message()?.messageType === '0501' && !process()?.processState?.appraisal?.complete) ||
+        (message()?.messageType === '0503' && !process()?.processState?.archiving?.progress)
       "
       (click)="enableSelection()"
       [disabled]="hasUnresolvedError()"
@@ -160,7 +160,7 @@
     <button
       mat-flat-button
       class="tertiary-button"
-      *ngIf="process?.processState?.archiving?.complete"
+      *ngIf="process()?.processState?.archiving?.complete"
       (click)="downloadReport()"
     >
       <mat-icon>summarize</mat-icon>
@@ -169,7 +169,7 @@
     <button
       mat-flat-button
       class="tertiary-button"
-      *ngIf="message.messageType === '0501' && !process.processState.appraisal.complete"
+      *ngIf="message()?.messageType === '0501' && !process()?.processState?.appraisal?.complete"
       (click)="sendAppraisalMessage()"
       [disabled]="hasUnresolvedError()"
     >
@@ -180,10 +180,11 @@
       mat-flat-button
       class="tertiary-button"
       *ngIf="
-        message.messageType === '0503' &&
-        (config()?.borgSupport === false || process.processState.formatVerification.complete) &&
-        !process.processState.archiving.taskState &&
-        !process.processState.archiving.complete
+        message()?.messageType === '0503' &&
+        (config()?.borgSupport === false ||
+          process()?.processState?.formatVerification?.complete) &&
+        !process()?.processState?.archiving?.taskState &&
+        !process()?.processState?.archiving?.complete
       "
       (click)="archive0503Message()"
       [disabled]="hasUnresolvedError()"
@@ -193,10 +194,10 @@
     </button>
   </div>
 
-  @if (process && message && selectionActive()) {
+  @if (process() && message() && selectionActive()) {
     <div class="actions">
       <button class="abort-button" mat-button (click)="disableSelection()">Abbrechen</button>
-      @if (message.messageType === "0501") {
+      @if (message()?.messageType === "0501") {
         <button
           mat-flat-button
           (click)="setAppraisalForMultipleRecordObjects()"
@@ -205,7 +206,7 @@
           <mat-icon>checklist</mat-icon>Bewerten
         </button>
       }
-      @if (message.messageType === "0503") {
+      @if (message()?.messageType === "0503") {
         <button
           mat-flat-button
           (click)="setPackagingForSelection()"
@@ -257,12 +258,12 @@
 </ng-template>
 
 <ng-template #rightMatter let-node>
-  @if (message?.messageType === "0501" && node.canBeAppraised) {
+  @if (message()?.messageType === "0501" && node.canBeAppraised) {
     <span class="appraisal-symbol" *ngIf="getAppraisal(node) as appraisal">{{
       appraisal.decision | recordAppraisal
     }}</span>
   }
-  @if (message?.messageType === "0503" && getPackaging(node); as packaging) {
+  @if (message()?.messageType === "0503" && getPackaging(node); as packaging) {
     <span class="packaging-indicator">
       @switch (packaging.decision) {
         @case ("single") {
