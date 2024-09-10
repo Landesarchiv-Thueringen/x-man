@@ -46,12 +46,6 @@ type RootRecords struct {
 	Documents []DocumentRecord `json:"documents"`
 }
 
-type NestedRecords struct {
-	Files     []*FileRecord
-	Processes []*ProcessRecord
-	Documents []*DocumentRecord
-}
-
 type FileRecord struct {
 	RecordID        uuid.UUID        `bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
@@ -272,39 +266,36 @@ func InsertRootRecords(processID uuid.UUID, messageType MessageType, records Roo
 	// Create root record objects
 	rootRecords := make([]interface{}, len(records.Files)+len(records.Processes)+len(records.Documents))
 	for i, f := range records.Files {
-		n := ExtractNestedRecords(&RootRecords{Files: []FileRecord{f}})
 		rootRecords[i] = RootFileRecord{
 			RootRecord: RootRecord{
 				ProcessID:        processID,
 				MessageType:      messageType,
 				RecordType:       RecordTypeFile,
-				ContainedRecords: getContainedRecordIds(n),
+				ContainedRecords: containedRecordIDs(RootRecords{Files: []FileRecord{f}}),
 			},
 			FileRecord: f,
 		}
 	}
 	offset := len(records.Files)
 	for i, p := range records.Processes {
-		n := ExtractNestedRecords(&RootRecords{Processes: []ProcessRecord{p}})
 		rootRecords[i+offset] = RootProcessRecord{
 			RootRecord: RootRecord{
 				ProcessID:        processID,
 				MessageType:      messageType,
 				RecordType:       RecordTypeProcess,
-				ContainedRecords: getContainedRecordIds(n),
+				ContainedRecords: containedRecordIDs(RootRecords{Processes: []ProcessRecord{p}}),
 			},
 			ProcessRecord: p,
 		}
 	}
 	offset += len(records.Processes)
 	for i, d := range records.Documents {
-		n := ExtractNestedRecords(&RootRecords{Documents: []DocumentRecord{d}})
 		rootRecords[i+offset] = RootDocumentRecord{
 			RootRecord: RootRecord{
 				ProcessID:        processID,
 				MessageType:      messageType,
 				RecordType:       RecordTypeDocument,
-				ContainedRecords: getContainedRecordIds(n),
+				ContainedRecords: containedRecordIDs(RootRecords{Documents: []DocumentRecord{d}}),
 			},
 			DocumentRecord: d,
 		}
@@ -450,55 +441,37 @@ func DeleteRecordsForMessage(processID uuid.UUID, messageType MessageType) {
 	}
 }
 
-// ExtractNestedRecords returns all nested records from the given root records in
-// a flat structure. It additionally keeps the nested child records.
-func ExtractNestedRecords(r *RootRecords) NestedRecords {
-	var n NestedRecords
+// containedRecordIDs returns the IDs of all nested records contained in the
+// given root record.
+func containedRecordIDs(r RootRecords) []uuid.UUID {
+	var ids []uuid.UUID
 	var appendDocumentRecords func(documents []DocumentRecord)
 	appendDocumentRecords = func(documents []DocumentRecord) {
 		for _, d := range documents {
-			n.Documents = append(n.Documents, &d)
+			ids = append(ids, d.RecordID)
 			appendDocumentRecords(d.Attachments)
 		}
 	}
-	appendDocumentRecords(r.Documents)
 	var appendProcessRecords func(processes []ProcessRecord)
 	appendProcessRecords = func(processes []ProcessRecord) {
 		for _, p := range processes {
-			n.Processes = append(n.Processes, &p)
+			ids = append(ids, p.RecordID)
 			appendProcessRecords(p.Subprocesses)
 			appendDocumentRecords(p.Documents)
 		}
 	}
-	appendProcessRecords(r.Processes)
 	var appendFileRecords func(files []FileRecord)
 	appendFileRecords = func(files []FileRecord) {
 		for _, f := range files {
-			n.Files = append(n.Files, &f)
+			ids = append(ids, f.RecordID)
 			appendFileRecords(f.Subfiles)
 			appendProcessRecords(f.Processes)
 			appendDocumentRecords(f.Documents)
 		}
 	}
 	appendFileRecords(r.Files)
-	return n
-}
-
-// getContainedRecordIds returns the IDs of all nested records contained in the
-// given root record.
-func getContainedRecordIds(n NestedRecords) []uuid.UUID {
-	ids := make([]uuid.UUID, len(n.Files)+len(n.Processes)+len(n.Documents))
-	for i, f := range n.Files {
-		ids[i] = f.RecordID
-	}
-	offset := len(n.Files)
-	for i, p := range n.Processes {
-		ids[i+offset] = p.RecordID
-	}
-	offset += len(n.Processes)
-	for i, d := range n.Documents {
-		ids[i+offset] = d.RecordID
-	}
+	appendProcessRecords(r.Processes)
+	appendDocumentRecords(r.Documents)
 	return ids
 }
 

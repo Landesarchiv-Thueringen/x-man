@@ -12,26 +12,15 @@ import (
 type AppraisableRecordRelations struct {
 	Parent   uuid.UUID // uuid.Nil for root-level records
 	Children []uuid.UUID
+	Type     db.RecordType
 }
 
 type AppraisableRecordsMap map[uuid.UUID]AppraisableRecordRelations
 
 func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 	m := make(AppraisableRecordsMap)
-	var appendProcessRecords func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID)
-	appendProcessRecords = func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID) {
-		for _, p := range processes {
-			childIDs = append(childIDs, p.RecordID)
-			innerChildIDs := appendProcessRecords(p.RecordID, p.Subprocesses)
-			m[p.RecordID] = AppraisableRecordRelations{
-				Parent:   parent,
-				Children: innerChildIDs,
-			}
-		}
-		return
-	}
-	appendProcessRecords(uuid.Nil, r.Processes)
 	var appendFileRecords func(parent uuid.UUID, files []db.FileRecord) (childIDs []uuid.UUID)
+	var appendProcessRecords func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID)
 	appendFileRecords = func(parent uuid.UUID, files []db.FileRecord) (childIDs []uuid.UUID) {
 		for _, f := range files {
 			childIDs = append(childIDs, f.RecordID)
@@ -40,11 +29,25 @@ func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 			m[f.RecordID] = AppraisableRecordRelations{
 				Parent:   parent,
 				Children: innerChildIDs,
+				Type:     db.RecordTypeFile,
+			}
+		}
+		return
+	}
+	appendProcessRecords = func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID) {
+		for _, p := range processes {
+			childIDs = append(childIDs, p.RecordID)
+			innerChildIDs := appendProcessRecords(p.RecordID, p.Subprocesses)
+			m[p.RecordID] = AppraisableRecordRelations{
+				Parent:   parent,
+				Children: innerChildIDs,
+				Type:     db.RecordTypeProcess,
 			}
 		}
 		return
 	}
 	appendFileRecords(uuid.Nil, r.Files)
+	appendProcessRecords(uuid.Nil, r.Processes)
 	return m
 }
 

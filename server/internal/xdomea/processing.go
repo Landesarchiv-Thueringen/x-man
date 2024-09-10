@@ -305,10 +305,13 @@ func matchAgainst0501Message(
 	return checkRecordsOfMessage0503(process, message)
 }
 
-// checkRecordsOfMessage0503 compares a 0503 message with the appraisal of
-// a 0501 message and returns an error if there are record objects missing in
-// the 0503 message that were marked as to be archived in the appraisal or if
-// there are any surplus objects included in the 0503 message.
+// checkRecordsOfMessage0503 compares a 0503 message with the appraisal of a
+// 0501 message and returns an error if there are record objects missing in the
+// 0503 message that were marked as to be archived in the appraisal or if there
+// are any surplus objects included in the 0503 message.
+//
+// If a record is found be be missing or surplus, its child records will not be
+// listed.
 func checkRecordsOfMessage0503(
 	process db.SubmissionProcess,
 	message0503 db.Message,
@@ -318,29 +321,58 @@ func checkRecordsOfMessage0503(
 	for _, a := range db.FindAppraisalsForProcess(context.Background(), process.ProcessID) {
 		appraisals[a.RecordID] = a
 	}
-
-	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
-	records := db.ExtractNestedRecords(&rootRecords)
-	includedAppraisableRecords := make(map[uuid.UUID]interface{})
-	for _, f := range records.Files {
-		includedAppraisableRecords[f.RecordID] = &f
-	}
-	for _, p := range records.Processes {
-		includedAppraisableRecords[p.RecordID] = &p
-	}
+	submittedRootRecords := db.FindAllRootRecords(
+		context.Background(), process.ProcessID, db.MessageType0503,
+	)
+	submittedRecords := appraisableRecords(&submittedRootRecords)
+	appraisedRootRecords := db.FindAllRootRecords(
+		context.Background(), process.ProcessID, db.MessageType0501,
+	)
+	appraisedRecords := appraisableRecords(&appraisedRootRecords)
 
 	// Check for objects missing from the 0503 message
-	var missingRecordObjects []string
-	for id, a := range appraisals {
-		if a.Decision == db.AppraisalDecisionA && includedAppraisableRecords[id] == nil {
-			missingRecordObjects = append(missingRecordObjects, id.String())
+	var missingRecords []string
+L1:
+	for id, r := range appraisedRecords {
+		_, ok := submittedRecords[id]
+		appraisal := appraisals[id]
+		if appraisal.Decision != db.AppraisalDecisionA || ok {
+			// Not missing.
+			continue
+		}
+		for ancestorID := r.Parent; ancestorID != uuid.Nil; ancestorID = submittedRecords[ancestorID].Parent {
+			// Missing...
+			_, ok := submittedRecords[ancestorID]
+			if appraisals[ancestorID].Decision == db.AppraisalDecisionA && !ok {
+				// ...but an ancestor is also missing and will be printed.
+				continue L1
+			}
+		}
+		// Missing.
+		if r.Type == db.RecordTypeFile {
+			if r.Parent != uuid.Nil {
+				missingRecords = append(missingRecords, fmt.Sprintf("Teilakte %s", id.String()))
+			} else {
+				missingRecords = append(missingRecords, fmt.Sprintf("Akte %s", id.String()))
+			}
+		} else { // db.RecordTypeProcess
+			if submittedRecords[r.Parent].Type == db.RecordTypeProcess {
+				missingRecords = append(missingRecords, fmt.Sprintf("Teilvorgang %s", id.String()))
+			} else {
+				missingRecords = append(missingRecords, fmt.Sprintf("Vorgang %s", id.String()))
+			}
 		}
 	}
-	if len(missingRecordObjects) > 0 {
+	if len(missingRecords) > 0 {
+		var s string
+		if len(missingRecords) == 1 {
+			s = "fehlt 1 Schriftgutobjekt"
+		} else {
+			s = fmt.Sprintf("fehlen %d Schriftgutobjekte", len(missingRecords))
+		}
 		info := fmt.Sprintf(
-			"In der Abgabe fehlen %d Schriftgutobjekte:\n    %v",
-			len(missingRecordObjects),
-			strings.Join(missingRecordObjects, "\n    "))
+			"In der Abgabe %s:\n    %v",
+			s, strings.Join(missingRecords, "\n    "))
 		return &db.ProcessingError{
 			Title: "Die Abgabe ist nicht vollständig",
 			Info:  info,
@@ -348,22 +380,48 @@ func checkRecordsOfMessage0503(
 	}
 
 	// Check for surplus objects in the 0503 message
-	var surplusRecordObjects []string
-	for id, o := range includedAppraisableRecords {
-		a := appraisals[id]
-		if a.Decision != db.AppraisalDecisionA {
-			if _, isFile := o.(*db.FileRecord); isFile {
-				surplusRecordObjects = append(surplusRecordObjects, fmt.Sprintf("Akte [%s]", id.String()))
+	var surplusRecords []string
+L2:
+	for id, r := range submittedRecords {
+		// Not surplus.
+		if appraisals[id].Decision == db.AppraisalDecisionA {
+			continue
+		}
+		// Surplus...
+		for ancestorID := r.Parent; ancestorID != uuid.Nil; ancestorID = submittedRecords[ancestorID].Parent {
+			if appraisals[ancestorID].Decision == db.AppraisalDecisionV {
+				// ...but an ancestor was appraised "V" and will be printed.
+				continue L2
+			}
+		}
+		// Surplus.
+		if r.Type == db.RecordTypeFile {
+			if r.Parent != uuid.Nil {
+				surplusRecords = append(surplusRecords, fmt.Sprintf("Teilakte %s", id.String()))
 			} else {
-				surplusRecordObjects = append(surplusRecordObjects, fmt.Sprintf("Vorgang [%s]", id.String()))
+				surplusRecords = append(surplusRecords, fmt.Sprintf("Akte %s", id.String()))
+			}
+		} else { // db.RecordTypeProcess
+			if submittedRecords[r.Parent].Type == db.RecordTypeProcess {
+				surplusRecords = append(surplusRecords, fmt.Sprintf("Teilvorgang %s", id.String()))
+			} else {
+				surplusRecords = append(surplusRecords, fmt.Sprintf("Vorgang %s", id.String()))
 			}
 		}
 	}
-	if len(surplusRecordObjects) > 0 {
+	if len(surplusRecords) > 0 {
+		var s string
+		if len(surplusRecords) == 1 {
+			s = "1 Schriftgutobjekt, das nicht als zu archivieren bewertet wurde"
+		} else {
+			s = fmt.Sprintf(
+				"%d Schriftgutobjekte, die nicht als zu archivieren bewertet wurden",
+				len(surplusRecords),
+			)
+		}
 		info := fmt.Sprintf(
-			"Die Abgabe enthält %d Schriftgutobjekte, die nicht als zu archivieren bewertet wurden:\n    %v",
-			len(surplusRecordObjects),
-			strings.Join(surplusRecordObjects, "\n    "))
+			"Die Abgabe enthält %s:\n    %v", s, strings.Join(surplusRecords, "\n    "),
+		)
 		return &db.ProcessingError{
 			Title: "Die Abgabe enthält zusätzliche Schriftgutobjekte",
 			Info:  info,
