@@ -161,7 +161,9 @@ export class MessageProcessorService {
       (rootRecords.processes?.length ?? 0);
     title = `${title} (${numberElements} ${numberElements === 1 ? 'Element' : 'Elemente'})`;
     const messageNode: StructureNode = {
-      id: message.messageHead.processID,
+      // We use `id` as track-by function. This makes sure the node gets updated
+      // when switching between messages.
+      id: message.messageHead.processID + '/' + message.messageType,
       title,
       subtitle: process.agency.name,
       type: 'message',
