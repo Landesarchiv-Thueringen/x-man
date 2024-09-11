@@ -9,6 +9,7 @@
 - Fix: Einstellung NO_PROXY wird nicht angewendet
 - Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
 - Intern: Prüfe Borg-Version
+- Intern: Migration zum Signals-Mechanismus in Angular
 
 ## v1.0.0
 

@@ -1,24 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, effect, Signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute, Params } from '@angular/router';
-import { combineLatest, switchMap } from 'rxjs';
-import { debounceTime, shareReplay, skip } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
+import { debounceTime, skip } from 'rxjs/operators';
 import {
-  Appraisal,
   AppraisalCode,
-  AppraisalService,
   appraisalDescriptions,
+  AppraisalService,
 } from '../../../../services/appraisal.service';
 import { MessageService } from '../../../../services/message.service';
-import { ProcessRecord } from '../../../../services/records.service';
 import { MessagePageService } from '../../message-page.service';
-import { MessageProcessorService, StructureNode } from '../../message-processor.service';
 import { confidentialityLevels } from '../confidentiality-level.pipe';
 import { media } from '../medium.pipe';
 
@@ -37,60 +33,52 @@ import { media } from '../medium.pipe';
   ],
 })
 export class ProcessMetadataComponent {
-  /** The pages process record object. Might update on page changes. */
-  recordObject?: ProcessRecord;
-  appraisal?: Appraisal | null;
-  appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({ code, ...d }));
-  appraisalComplete?: boolean;
-  form: FormGroup;
-  canBeAppraised = false;
-  selectionActive = this.messagePage.selectionActive;
-  hasUnresolvedError = this.messagePage.hasUnresolvedError;
+  // Signals
+  readonly recordId: Signal<string>;
+  /** The page's process record. Might update on page changes. */
+  readonly record = computed(() => this.messagePage.processRecords().get(this.recordId()));
+  readonly appraisal = computed(() => this.messagePage.appraisals().get(this.recordId()));
+  readonly appraisalComplete = this.messagePage.appraisalComplete;
+  readonly canBeAppraised: Signal<boolean>;
+  readonly hasUnresolvedError = this.messagePage.hasUnresolvedError;
+  readonly selectionActive = this.messagePage.selectionActive;
+
+  readonly form = this.formBuilder.group({
+    recordPlanId: new FormControl<string | null>(null),
+    recordPlanSubject: new FormControl<string | null>(null),
+    fileId: new FormControl<string | null>(null),
+    subject: new FormControl<string | null>(null),
+    processType: new FormControl<string | null>(null),
+    lifeStart: new FormControl<string | null>(null),
+    lifeEnd: new FormControl<string | null>(null),
+    appraisal: new FormControl<string | null>(null),
+    appraisalRecomm: new FormControl<string | null>(null),
+    appraisalNote: new FormControl<string>('', { nonNullable: true }),
+    confidentiality: new FormControl<string | null>(null),
+    medium: new FormControl<string | null>(null),
+  });
+
+  readonly appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({
+    code,
+    ...d,
+  }));
 
   constructor(
     private appraisalService: AppraisalService,
     private formBuilder: FormBuilder,
     private messagePage: MessagePageService,
-    private messageProcessor: MessageProcessorService,
     private messageService: MessageService,
     private route: ActivatedRoute,
   ) {
-    this.form = this.formBuilder.group({
-      recordPlanId: new FormControl<string | null>(null),
-      recordPlanSubject: new FormControl<string | null>(null),
-      fileId: new FormControl<string | null>(null),
-      subject: new FormControl<string | null>(null),
-      processType: new FormControl<string | null>(null),
-      lifeStart: new FormControl<string | null>(null),
-      lifeEnd: new FormControl<string | null>(null),
-      appraisal: new FormControl<string | null>(null),
-      appraisalRecomm: new FormControl<string | null>(null),
-      appraisalNote: new FormControl<string>('', { nonNullable: true }),
-      confidentiality: new FormControl<string | null>(null),
-      medium: new FormControl<string | null>(null),
-    });
-    const recordObject = this.route.params.pipe(
-      switchMap((params: Params) => this.messagePage.getProcessRecord(params['id'])),
-      shareReplay(1),
-    );
-    const structureNode = recordObject.pipe(
-      switchMap((recordObject) => this.messageProcessor.getNodeWhenReady(recordObject.recordId)),
-    );
-    const appraisal = recordObject.pipe(
-      switchMap((recordObject) => this.messagePage.observeAppraisal(recordObject.recordId)),
-    );
-    // Update the form and local properties on changes.
-    combineLatest([
-      recordObject,
-      structureNode,
-      appraisal,
-      this.messagePage.observeAppraisalComplete(),
-    ])
-      .pipe(takeUntilDestroyed())
-      .subscribe(([recordObject, structureNode, appraisal, appraisalComplete]) =>
-        this.setMetadata(recordObject, structureNode, appraisal, appraisalComplete),
-      );
-    // Send the appraisal note to the backend when the value of the form field changes.
+    // Define signals.
+    const params = toSignal(this.route.params, { requireSync: true });
+    this.recordId = computed<string>(() => params()['id']);
+    const structureNode = computed(() => this.messagePage.treeNodes().get(this.recordId()));
+    this.canBeAppraised = computed(() => structureNode()?.canBeAppraised ?? false);
+    // Update the form on changes.
+    this.registerRecord();
+    this.registerAppraisal();
+    // Register inputs.
     this.registerAppraisalNoteChanges();
     // Disable individual appraisal controls while selection is active.
     effect(() => {
@@ -104,59 +92,63 @@ export class ProcessMetadataComponent {
     });
   }
 
-  registerAppraisalNoteChanges(): void {
+  /** Updates the form when `record` changes. */
+  private registerRecord(): void {
+    effect(() => {
+      const record = this.record();
+      const appraisalRecomm = record?.archiveMetadata?.appraisalRecommCode;
+      let confidentiality: string | undefined;
+      if (record?.generalMetadata?.confidentialityLevel) {
+        confidentiality =
+          confidentialityLevels[record?.generalMetadata?.confidentialityLevel].shortDesc;
+      }
+      let medium: string | undefined;
+      if (record?.generalMetadata?.medium) {
+        medium = media[record?.generalMetadata?.medium].shortDesc;
+      }
+      this.form.patchValue({
+        recordPlanId: record?.generalMetadata?.filePlan?.filePlanNumber,
+        recordPlanSubject: record?.generalMetadata?.filePlan?.subject,
+        fileId: record?.generalMetadata?.recordNumber,
+        subject: record?.generalMetadata?.subject,
+        processType: record?.type,
+        lifeStart: this.messageService.getDateText(record?.lifetime?.start),
+        lifeEnd: this.messageService.getDateText(record?.lifetime?.end),
+        appraisalRecomm: this.appraisalService.getAppraisalDescription(appraisalRecomm)?.shortDesc,
+        confidentiality,
+        medium,
+      });
+    });
+  }
+
+  /** Updates the form when `appraisal` or `appraisalComplete` changes. */
+  private registerAppraisal(): void {
+    effect(() => {
+      this.form.patchValue({
+        appraisal: this.appraisalComplete()
+          ? this.appraisalService.getAppraisalDescription(this.appraisal()?.decision)?.shortDesc
+          : this.appraisal()?.decision,
+        appraisalNote: this.appraisal()?.note,
+      });
+    });
+  }
+
+  /** Sends the appraisal note to the backend when the value of the form field changes. */
+  private registerAppraisalNoteChanges(): void {
     this.form.controls['appraisalNote'].valueChanges
       .pipe(skip(1), debounceTime(400))
       .subscribe((value) => {
-        if (value !== this.appraisal?.note && this.appraisalComplete === false) {
+        if (value !== this.appraisal()?.note && !this.appraisalComplete()) {
           this.setAppraisalNote(value);
         }
       });
   }
 
-  setMetadata(
-    record: ProcessRecord,
-    structureNode: StructureNode,
-    appraisal: Appraisal | null,
-    appraisalComplete: boolean,
-  ): void {
-    this.recordObject = record;
-    this.canBeAppraised = structureNode.canBeAppraised;
-    this.appraisal = appraisal;
-    this.appraisalComplete = appraisalComplete;
-    const appraisalRecomm = record.archiveMetadata?.appraisalRecommCode;
-    let confidentiality: string | undefined;
-    if (record.generalMetadata?.confidentialityLevel) {
-      confidentiality =
-        confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
-    }
-    let medium: string | undefined;
-    if (record.generalMetadata?.medium) {
-      medium = media[record.generalMetadata?.medium].shortDesc;
-    }
-    this.form.patchValue({
-      recordPlanId: record.generalMetadata?.filePlan?.filePlanNumber,
-      recordPlanSubject: record.generalMetadata?.filePlan?.subject,
-      fileId: record.generalMetadata?.recordNumber,
-      subject: record.generalMetadata?.subject,
-      processType: record.type,
-      lifeStart: this.messageService.getDateText(record.lifetime?.start),
-      lifeEnd: this.messageService.getDateText(record.lifetime?.end),
-      appraisal: this.appraisalComplete
-        ? this.appraisalService.getAppraisalDescription(appraisal?.decision)?.shortDesc
-        : appraisal?.decision,
-      appraisalRecomm: this.appraisalService.getAppraisalDescription(appraisalRecomm)?.shortDesc,
-      appraisalNote: appraisal?.note,
-      confidentiality,
-      medium,
-    });
-  }
-
   setAppraisal(decision: AppraisalCode): void {
-    this.messagePage.setAppraisalDecision(this.recordObject!.recordId, decision);
+    this.messagePage.setAppraisalDecision(this.record()!.recordId, decision);
   }
 
   setAppraisalNote(note: string): void {
-    this.messagePage.setAppraisalInternalNote(this.recordObject!.recordId, note);
+    this.messagePage.setAppraisalInternalNote(this.record()!.recordId, note);
   }
 }

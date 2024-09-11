@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, computed, effect, Signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute, Params } from '@angular/router';
-import { Subscription, switchMap } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 import { MessageService } from '../../../../services/message.service';
 import { DocumentRecord } from '../../../../services/records.service';
 import { MessagePageService } from '../../message-page.service';
@@ -28,10 +28,8 @@ import { media } from '../medium.pipe';
   ],
 })
 export class DocumentMetadataComponent {
-  urlParameterSubscription?: Subscription;
-  record?: DocumentRecord;
-  messageTypeCode?: string;
-  form: FormGroup;
+  readonly record: Signal<DocumentRecord | undefined>;
+  readonly form: FormGroup;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -52,31 +50,31 @@ export class DocumentMetadataComponent {
       confidentiality: new FormControl<string | null>(null),
       medium: new FormControl<string | null>(null),
     });
-    this.route.params
-      .pipe(switchMap((params: Params) => this.messagePage.getDocumentRecord(params['id'])))
-      .subscribe((record) => this.setRecord(record));
+    const params = toSignal(this.route.params, { requireSync: true });
+    const recordId = computed<string>(() => params()['id']);
+    this.record = computed(() => this.messagePage.documentsRecords().get(recordId()));
+    effect(() => this.setRecord(this.record()));
   }
 
-  private setRecord(record: DocumentRecord): void {
-    this.record = record;
+  private setRecord(record?: DocumentRecord): void {
     let confidentiality: string | undefined;
-    if (record.generalMetadata?.confidentialityLevel) {
+    if (record?.generalMetadata?.confidentialityLevel) {
       confidentiality =
-        confidentialityLevels[record.generalMetadata?.confidentialityLevel].shortDesc;
+        confidentialityLevels[record?.generalMetadata?.confidentialityLevel].shortDesc;
     }
     let medium: string | undefined;
-    if (record.generalMetadata?.medium) {
-      medium = media[record.generalMetadata?.medium].shortDesc;
+    if (record?.generalMetadata?.medium) {
+      medium = media[record?.generalMetadata?.medium].shortDesc;
     }
     this.form.patchValue({
-      recordPlanId: record.generalMetadata?.filePlan?.filePlanNumber,
-      recordPlanSubject: record.generalMetadata?.filePlan?.subject,
-      fileId: record.generalMetadata?.recordNumber,
-      subject: record.generalMetadata?.subject,
-      documentType: record.type,
-      incomingDate: this.messageService.getDateText(record.incomingDate),
-      outgoingDate: this.messageService.getDateText(record.outgoingDate),
-      documentDate: this.messageService.getDateText(record.documentDate),
+      recordPlanId: record?.generalMetadata?.filePlan?.filePlanNumber,
+      recordPlanSubject: record?.generalMetadata?.filePlan?.subject,
+      fileId: record?.generalMetadata?.recordNumber,
+      subject: record?.generalMetadata?.subject,
+      documentType: record?.type,
+      incomingDate: this.messageService.getDateText(record?.incomingDate),
+      outgoingDate: this.messageService.getDateText(record?.outgoingDate),
+      documentDate: this.messageService.getDateText(record?.documentDate),
       confidentiality,
       medium,
     });

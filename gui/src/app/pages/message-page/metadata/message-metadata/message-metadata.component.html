@@ -1,15 +1,15 @@
 <div class="metadata-section">
-  <form *ngIf="message" [formGroup]="form">
+  <form *ngIf="message() as message" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel
         [expanded]="true"
-        [class.archiving-complete]="process?.processState?.archiving?.complete"
+        [class.archiving-complete]="process()?.processState?.archiving?.complete"
         [class.unresolved-error]="hasUnresolvedError()"
       >
         <mat-expansion-panel-header>
           <mat-panel-title>Status</mat-panel-title>
-          @if (process) {
-            <mat-panel-description>
+          <mat-panel-description>
+            @if (process(); as process) {
               @if (hasUnresolvedError()) {
                 @if (numberOfUnresolvedErrors() === 1) {
                   1 ungelöstes Problem
@@ -37,8 +37,8 @@
               } @else if (process.processState.receive0501.complete) {
                 Anbietung erhalten
               }
-            </mat-panel-description>
-          }
+            }
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <mat-list>
           @for (item of stateItems; track $index) {
@@ -71,11 +71,11 @@
               }
             </mat-list-item>
           }
-          @if (processDeleteTime) {
+          @if (processDeleteTime(); as t) {
             <mat-list-item>
               <mat-icon matListItemIcon>auto_delete</mat-icon>
               <div matListItemTitle>Zur Löschung vorgemerkt</div>
-              <div matListItemLine>ab {{ processDeleteTime | date: "medium" }}</div>
+              <div matListItemLine>ab {{ t | date: "medium" }}</div>
             </mat-list-item>
           }
         </mat-list>

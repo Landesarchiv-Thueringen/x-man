@@ -1,19 +1,12 @@
-import { Injectable, WritableSignal, computed, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Injectable, Signal, computed, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import {
-  BehaviorSubject,
-  Observable,
-  distinctUntilChanged,
-  filter,
-  first,
-  firstValueFrom,
-  map,
-  switchMap,
-  take,
-} from 'rxjs';
+import { Map } from 'immutable';
+import { filter, firstValueFrom, switchMap, tap } from 'rxjs';
 import { Appraisal, AppraisalCode, AppraisalService } from '../../services/appraisal.service';
-import { Message, MessageService, MessageType } from '../../services/message.service';
+import { ProcessingError } from '../../services/clearing.service';
+import { ConfigService } from '../../services/config.service';
+import { Message, MessageService } from '../../services/message.service';
 import {
   PackagingData,
   PackagingDecision,
@@ -21,7 +14,7 @@ import {
   PackagingService,
   PackagingStats,
 } from '../../services/packaging.service';
-import { ProcessData, ProcessService, SubmissionProcess } from '../../services/process.service';
+import { ProcessService, SubmissionProcess } from '../../services/process.service';
 import {
   DocumentRecord,
   FileRecord,
@@ -29,7 +22,8 @@ import {
   Records,
   RecordsService,
 } from '../../services/records.service';
-import { notEmpty, notNull } from '../../utils/predicates';
+import { notEmpty } from '../../utils/predicates';
+import { MessageProcessor, StructureNode } from './message-processor';
 
 /**
  * A Service to provide data the the message page and its child components.
@@ -38,99 +32,119 @@ import { notEmpty, notNull } from '../../utils/predicates';
  */
 @Injectable()
 export class MessagePageService {
+  private readonly params = toSignal(this.route.params, { requireSync: true });
+
+  /** The submission process's ID. Constant for the lifetime of the message page.  */
+  readonly processId: string = this.params()['processId'];
   /**
    * The process references by the page URL.
    *
    * We update the process regularly by refetching it from the backend, however,
    * the process ID should not change for the lifetime of the message page.
    */
-  private processData = new BehaviorSubject<ProcessData | null>(null);
-  process = computed(() => this.processDataSignal()?.process);
+  readonly process = signal<SubmissionProcess | undefined>(undefined);
+  readonly processingErrors = signal<ProcessingError[]>([]);
+  readonly hasUnresolvedError = computed(() => !!this.process()?.unresolvedErrors);
+  readonly appraisalComplete = computed(
+    () =>
+      (this.process()?.processState.appraisal.complete ?? false) ||
+      (this.process()?.processState.receive0503.complete ?? false),
+  );
+
+  /** The message being currently displayed. Controlled by an URL parameter. */
+  readonly messageType = computed<'0501' | '0503' | ''>(() => this.params()['messageType']);
   /**
    * The message references by the page URL.
    *
-   * We fetch the message once when the relevant URL parameter changes.
+   * We fetch the message once when messageType changes.
    */
-  private _message = new BehaviorSubject<Message | undefined>(undefined);
-  message = toSignal(this._message);
+  readonly message = signal<Message | undefined>(undefined);
+
   /**
    * The message's root records.
    *
    * We fetch the root records when the message changes.
    */
-  private _rootRecords = new BehaviorSubject<Records | undefined>(undefined);
-  rootRecords = toSignal(this._rootRecords);
+  readonly rootRecords = signal<Records | undefined>(undefined);
   /**
    * Record maps of root and all nested records.
    *
    * We update all record maps when the root records change.
    */
-  private fileRecordsMap = new Map<string, FileRecord>();
-  private processRecordsMap = new Map<string, ProcessRecord>();
-  private documentsRecordsMap = new Map<string, DocumentRecord>();
+  readonly fileRecords = signal(Map<string, FileRecord>());
+  readonly processRecords = signal(Map<string, ProcessRecord>());
+  readonly documentsRecords = signal(Map<string, DocumentRecord>());
+
   /**
    * All appraisals for the current process.
    *
    * Appraisals can be updated by the user at any time.
    */
-  private appraisals = new BehaviorSubject<Appraisal[] | null>(null);
-  packagingOptions: WritableSignal<{ [recordId in string]?: PackagingOption }> = signal({});
-  packagingDecisions: WritableSignal<{ [recordId in string]?: PackagingDecision }> = signal({});
-  packagingStats: WritableSignal<{ [recordId in string]?: PackagingStats }> = signal({});
+  readonly appraisals = signal<Map<string, Appraisal>>(Map());
+
+  readonly packagingOptions = signal<{ [recordId in string]?: PackagingOption }>({});
+  readonly packagingDecisions = signal<{ [recordId in string]?: PackagingDecision }>({});
+  readonly packagingStats = signal<{ [recordId in string]?: PackagingStats }>({});
 
   readonly selectionActive = signal(false);
-  private readonly processDataSignal = toSignal(this.processData);
-  readonly hasUnresolvedError = computed(() => {
-    const data = this.processDataSignal();
-    if (!data) {
-      return 0;
-    }
-    return data.process.unresolvedErrors > 0;
-  });
+
+  /** A tree structure that reflects the current message. */
+  readonly treeRoot: Signal<StructureNode | undefined>;
+  readonly treeNodes: Signal<Map<string, StructureNode>>;
 
   constructor(
     private appraisalService: AppraisalService,
+    private configService: ConfigService,
     private messageService: MessageService,
     private processService: ProcessService,
     private recordsService: RecordsService,
     private packagingService: PackagingService,
     private route: ActivatedRoute,
   ) {
-    const processId = this.route.params.pipe(
-      take(1),
-      map((params) => params['processId']),
-    );
-    processId.subscribe((processId) => {
-      this.registerMessage(processId);
-      // Fetch appraisals and record options once, will be updated when changed
-      // by other functions.
-      this.appraisalService
-        .getAppraisals(processId)
-        .subscribe((appraisals) => this.appraisals.next(appraisals ?? []));
-      // Observe process until destroyed and update `this.process`.
-      this.processService
-        .observeProcessData(processId)
-        .pipe(takeUntilDestroyed())
-        .subscribe((data) => {
-          this.processData.next(data);
-        });
+    this.registerMessage(this.processId);
+    // Fetch appraisals and record options once, will be updated when changed
+    // by other functions.
+    this.appraisalService
+      .getAppraisals(this.processId)
+      .subscribe((appraisals) => this._setAppraisals(appraisals ?? []));
+    // Observe process until destroyed and update `this.process`.
+    this.processService
+      .observeProcessData(this.processId)
+      .pipe(takeUntilDestroyed())
+      .subscribe((data) => {
+        this.process.set(data.process);
+        this.processingErrors.set(data.processingErrors);
+      });
+    // Register tree data.
+    //
+    // Compute `agencyName` here, so `initTree` won't be triggered each time the
+    // process state changes.
+    const agencyName = computed(() => this.process()?.agency.name);
+    const treeData = computed(() => {
+      if (agencyName() && this.message() && this.rootRecords() && this.configService.config()) {
+        const processor = new MessageProcessor(this.configService.config()!);
+        return processor.processMessage(agencyName()!, this.message()!, this.rootRecords()!);
+      } else {
+        return undefined;
+      }
     });
+    this.treeRoot = computed(() => treeData()?.root);
+    this.treeNodes = computed(() => Map(treeData()?.map));
   }
 
   /**
    * Fetches the message and updates `this.message`.
    */
   private registerMessage(processId: string) {
-    const messageType: Observable<MessageType> = this.route.params.pipe(
-      map((params) => params['messageType']),
-      filter(notEmpty),
-      distinctUntilChanged(),
-    );
+    const messageType = toObservable(this.messageType).pipe(filter(notEmpty));
     messageType
       .pipe(switchMap((messageType) => this.messageService.getMessage(processId, messageType)))
-      .subscribe((message) => this._message.next(message));
+      .subscribe((message) => this.message.set(message));
     messageType
-      .pipe(switchMap((messageType) => this.recordsService.getRootRecords(processId, messageType)))
+      .pipe(
+        tap(() => this.updateRecords(undefined)),
+        switchMap((messageType) => this.recordsService.getRootRecords(processId, messageType)),
+      )
       .subscribe((rootRecords) => {
         this.updateRecords(rootRecords);
       });
@@ -150,115 +164,52 @@ export class MessagePageService {
    * Clears the record maps and replaces their content with the given root
    * records.
    */
-  private updateRecords(rootRecords: Records) {
-    this.fileRecordsMap.clear();
-    this.processRecordsMap.clear();
-    this.documentsRecordsMap.clear();
+  private updateRecords(rootRecords?: Records) {
+    let fileRecords = this.fileRecords().clear();
+    let processRecords = this.processRecords().clear();
+    let documentsRecords = this.documentsRecords().clear();
     const processDocument = (document: DocumentRecord) => {
-      this.documentsRecordsMap.set(document.recordId, document);
+      documentsRecords = documentsRecords.set(document.recordId, document);
       document.attachments?.forEach(processDocument);
     };
     const processProcess = (process: ProcessRecord) => {
-      this.processRecordsMap.set(process.recordId, process);
+      processRecords = processRecords.set(process.recordId, process);
       process.subprocesses?.forEach(processProcess);
       process.documents?.forEach(processDocument);
     };
     const processFile = (file: FileRecord) => {
-      this.fileRecordsMap.set(file.recordId, file);
+      fileRecords = fileRecords.set(file.recordId, file);
       file.subfiles?.forEach(processFile);
       file.processes?.forEach(processProcess);
     };
-    rootRecords.files?.forEach(processFile);
-    rootRecords.processes?.forEach(processProcess);
-    rootRecords.documents?.forEach(processDocument);
-    this._rootRecords.next(rootRecords);
-  }
-
-  getProcess(): Observable<SubmissionProcess> {
-    return this.processData.pipe(
-      first(notNull),
-      map(({ process }) => process),
-    );
-  }
-
-  observeProcessData(): Observable<ProcessData> {
-    return this.processData.pipe(filter(notNull));
-  }
-
-  observeMessage(): Observable<Message> {
-    return this._message.pipe(filter(notNull));
-  }
-
-  observeRootRecords(): Observable<Records> {
-    return this._rootRecords.pipe(filter(notNull));
-  }
-
-  getFileRecord(recordId: string): Observable<FileRecord> {
-    return this._rootRecords.pipe(
-      map(() => this.fileRecordsMap.get(recordId)),
-      filter(notNull),
-      take(1),
-    );
-  }
-
-  getProcessRecord(recordId: string): Observable<ProcessRecord> {
-    return this._rootRecords.pipe(
-      map(() => this.processRecordsMap.get(recordId)),
-      filter(notNull),
-      take(1),
-    );
-  }
-
-  getDocumentRecord(recordId: string): Observable<DocumentRecord> {
-    return this._rootRecords.pipe(
-      map(() => this.documentsRecordsMap.get(recordId)),
-      filter(notNull),
-      take(1),
-    );
-  }
-
-  observeAppraisal(recordId: string): Observable<Appraisal | null> {
-    return this.observeAppraisals().pipe(
-      map((appraisals) => appraisals.find((a) => a.recordId === recordId) ?? null),
-    );
-  }
-
-  observeAppraisals(): Observable<Appraisal[]> {
-    return this.appraisals.pipe(filter(notNull));
-  }
-
-  observeAppraisalComplete(): Observable<boolean> {
-    return this.observeProcessData().pipe(
-      map(
-        ({ process }) =>
-          process.processState.appraisal.complete || process.processState.receive0503.complete,
-      ),
-      distinctUntilChanged(),
-    );
+    rootRecords?.files?.forEach(processFile);
+    rootRecords?.processes?.forEach(processProcess);
+    rootRecords?.documents?.forEach(processDocument);
+    this.rootRecords.set(rootRecords);
+    this.fileRecords.set(fileRecords);
+    this.processRecords.set(processRecords);
+    this.documentsRecords.set(documentsRecords);
   }
 
   async setAppraisalDecision(recordId: string, decision: AppraisalCode): Promise<void> {
-    const process = await firstValueFrom(this.getProcess());
     const appraisals = await firstValueFrom(
-      this.appraisalService.setDecision(process.processId, recordId, decision),
+      this.appraisalService.setDecision(this.processId, recordId, decision),
     );
-    this.appraisals.next(appraisals);
+    this._setAppraisals(appraisals);
   }
 
   async setPackaging(recordIds: string[], packaging: PackagingOption): Promise<void> {
-    const process = await firstValueFrom(this.getProcess());
     const data = await firstValueFrom(
-      this.packagingService.setPackaging(process.processId, recordIds, packaging),
+      this.packagingService.setPackaging(this.processId, recordIds, packaging),
     );
     this.setPackagingData(data);
   }
 
   async setAppraisalInternalNote(recordObjectId: string, internalNote: string): Promise<void> {
-    const process = await firstValueFrom(this.getProcess());
     const appraisals = await firstValueFrom(
-      this.appraisalService.setInternalNote(process.processId, recordObjectId, internalNote),
+      this.appraisalService.setInternalNote(this.processId, recordObjectId, internalNote),
     );
-    this.appraisals.next(appraisals);
+    this._setAppraisals(appraisals);
   }
 
   async setAppraisals(
@@ -266,31 +217,32 @@ export class MessagePageService {
     decision: AppraisalCode,
     internalNote: string,
   ): Promise<void> {
-    const process = await firstValueFrom(this.getProcess());
     const appraisals = await firstValueFrom(
-      this.appraisalService.setAppraisals(
-        process.processId,
-        recordObjectIds,
-        decision,
-        internalNote,
-      ),
+      this.appraisalService.setAppraisals(this.processId, recordObjectIds, decision, internalNote),
     );
-    this.appraisals.next(appraisals);
+    this._setAppraisals(appraisals);
   }
 
   async finalizeAppraisals(): Promise<void> {
     await firstValueFrom(
-      this.messageService.finalizeMessageAppraisal(this._message.value!.messageHead.processID),
+      this.messageService.finalizeMessageAppraisal(this.message()!.messageHead.processID),
     );
     this.updateAppraisals();
     // FIXME: We should rather do a genuine update of the process object.
-    this.processData.value!.process.processState.appraisal.complete = true;
+    this.process()!.processState.appraisal.complete = true;
   }
 
   private async updateAppraisals(): Promise<void> {
-    const process = await firstValueFrom(this.getProcess());
-    const appraisals = await firstValueFrom(this.appraisalService.getAppraisals(process.processId));
-    this.appraisals.next(appraisals);
+    const appraisals = await firstValueFrom(this.appraisalService.getAppraisals(this.processId));
+    this._setAppraisals(appraisals);
+  }
+
+  private _setAppraisals(appraisals: Appraisal[]): void {
+    let map = Map<string, Appraisal>();
+    for (const appraisal of appraisals) {
+      map = map.set(appraisal.recordId, appraisal);
+    }
+    this.appraisals.set(map);
   }
 
   private setPackagingData(data: PackagingData): void {

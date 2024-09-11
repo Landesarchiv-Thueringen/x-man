@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { firstValueFrom, switchMap, tap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import {
   FileAnalysisTableComponent,
   FilePropertyDefinition,
@@ -19,7 +18,7 @@ import { MessagePageService } from '../../message-page.service';
   imports: [FileAnalysisTableComponent],
 })
 export class PrimaryDocumentsTableComponent {
-  processId!: string;
+  processId = this.messagePage.processId;
   results?: FileResult[];
   getDetails = async (id: string) => {
     const data = await firstValueFrom(
@@ -40,19 +39,10 @@ export class PrimaryDocumentsTableComponent {
     private messageService: MessageService,
     private messagePage: MessagePageService,
   ) {
-    this.messagePage
-      .observeMessage()
-      .pipe(
-        takeUntilDestroyed(),
-        tap((message) => (this.processId = message.messageHead.processID)),
-        switchMap((message) =>
-          this.messageService.getPrimaryDocumentsInfo(message.messageHead.processID),
-        ),
-      )
-      .subscribe((info) => {
-        const mapping = primaryDocumentToFileResult.bind(null, this.processId);
-        this.results = info.map(mapping).filter(notNull);
-      });
+    this.messageService.getPrimaryDocumentsInfo(this.processId).subscribe((info) => {
+      const mapping = primaryDocumentToFileResult.bind(null, this.processId);
+      this.results = info.map(mapping).filter(notNull);
+    });
   }
 }
 

@@ -1,5 +1,5 @@
 <div class="metadata-section">
-  <form *ngIf="record" [formGroup]="form">
+  <form *ngIf="record()" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -57,7 +57,7 @@
         </div>
       </mat-expansion-panel>
 
-      <mat-expansion-panel *ngIf="canBeAppraised" [expanded]="true">
+      <mat-expansion-panel *ngIf="canBeAppraised()" [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title> Bewertung </mat-panel-title>
         </mat-expansion-panel-header>
@@ -116,7 +116,7 @@
         </div>
       </mat-expansion-panel>
 
-      @if (canChoosePackaging) {
+      @if (canChoosePackaging()) {
         <mat-expansion-panel [expanded]="true">
           <mat-expansion-panel-header>
             <mat-panel-title>Paketierung</mat-panel-title>

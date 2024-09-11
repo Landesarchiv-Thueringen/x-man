@@ -10,7 +10,7 @@ import {
   computed,
   effect,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -27,14 +27,13 @@ import { delay, filter, firstValueFrom, switchMap } from 'rxjs';
 import { Appraisal } from '../../../services/appraisal.service';
 import { AuthService } from '../../../services/auth.service';
 import { ConfigService } from '../../../services/config.service';
-import { Message, MessageService } from '../../../services/message.service';
+import { MessageService } from '../../../services/message.service';
 import { NotificationService } from '../../../services/notification.service';
 import { PackagingDecision, PackagingStats } from '../../../services/packaging.service';
 import { ProcessService } from '../../../services/process.service';
-import { Records } from '../../../services/records.service';
 import { notNull } from '../../../utils/predicates';
 import { MessagePageService } from '../message-page.service';
-import { MessageProcessorService, StructureNode } from '../message-processor.service';
+import { StructureNode } from '../message-processor';
 import { RecordAppraisalPipe } from '../metadata/record-appraisal-pipe';
 import { PackagingStatsPipe } from '../packaging-stats.pipe';
 import { AppraisalFormComponent } from './appraisal-form/appraisal-form.component';
@@ -82,11 +81,11 @@ export class MessageTreeComponent {
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
   @ViewChildren(MatChipRow) matChipRow?: QueryList<MatChipRow>;
 
-  process = this.messagePage.process;
-  message = this.messagePage.message;
-  selectionActive = this.messagePage.selectionActive;
-  hasUnresolvedError = this.messagePage.hasUnresolvedError;
-  isDisabled = computed(() => this.hasUnresolvedError() && !this.authService.isAdmin());
+  readonly process = this.messagePage.process;
+  readonly message = this.messagePage.message;
+  readonly selectionActive = this.messagePage.selectionActive;
+  readonly hasUnresolvedError = this.messagePage.hasUnresolvedError;
+  readonly isDisabled = computed(() => this.hasUnresolvedError() && !this.authService.isAdmin());
   selectedNodes = new Set<string>();
   intermediateNodes = new Set<string>();
   treeControl = new FlatTreeControl<FlatNode>(
@@ -95,7 +94,7 @@ export class MessageTreeComponent {
   );
 
   dataSource = new MessageTreeDataSource(this.treeControl);
-  appraisals: { [recordId: string]: Appraisal } = {};
+  readonly appraisals = this.messagePage.appraisals;
   readonly availableFilters: Filter[] = [
     {
       type: 'not-appraised',
@@ -107,8 +106,8 @@ export class MessageTreeComponent {
         if (!node.canBeAppraised) {
           return 'propagate-recursive';
         } else if (
-          !this.appraisals[node.recordId!]?.decision ||
-          this.appraisals[node.recordId!].decision === 'B'
+          !this.appraisals().get(node.recordId!)?.decision ||
+          this.appraisals().get(node.recordId!)?.decision === 'B'
         ) {
           return 'show';
         } else {
@@ -129,7 +128,7 @@ export class MessageTreeComponent {
   activeFilters: Filter[] = [];
   filtersHint: string | null = null;
   currentRecordId?: string;
-  config = toSignal(this.configService.config);
+  config = this.configService.config;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -137,7 +136,6 @@ export class MessageTreeComponent {
     private configService: ConfigService,
     private dialog: MatDialog,
     private messagePage: MessagePageService,
-    private messageProcessor: MessageProcessorService,
     private messageService: MessageService,
     private notificationService: NotificationService,
     private processService: ProcessService,
@@ -145,7 +143,6 @@ export class MessageTreeComponent {
     private router: Router,
     private authService: AuthService,
   ) {
-    this.registerAppraisals();
     // Update currentRecordId with the record ID in the URL.
     this.router.events
       .pipe(
@@ -156,12 +153,7 @@ export class MessageTreeComponent {
       .subscribe((params) => {
         this.currentRecordId = params['id'];
       });
-    // Update the tree when `message` changes.
-    //
-    // Compute `agencyName` here, so `initTree` won't be triggered each time the
-    // process state changes.
-    const agencyName = computed(() => this.process()?.agency.name);
-    effect(() => this.initTree(agencyName(), this.message(), this.messagePage.rootRecords()));
+    effect(() => (this.dataSource.data = this.messagePage.treeRoot()));
     // Expand the current node when display data is updated.
     this.dataSource
       .observeDisplayData()
@@ -235,21 +227,6 @@ export class MessageTreeComponent {
     this.dataSource.filters = this.activeFilters.map(
       (filter) => (node) => filter.predicate(node, filter.value),
     );
-  }
-
-  private async initTree(
-    agencyName?: string,
-    message?: Message,
-    rootRecords?: Records,
-  ): Promise<void> {
-    if (agencyName && message && rootRecords) {
-      const rootNode = await this.messageProcessor.processMessage(
-        agencyName,
-        message,
-        rootRecords!,
-      );
-      this.dataSource.data = rootNode;
-    }
   }
 
   expandNode(id: string): void {
@@ -373,7 +350,7 @@ export class MessageTreeComponent {
 
   getAppraisal(node: FlatNode): Appraisal | null {
     if (node.recordId) {
-      return this.appraisals[node.recordId];
+      return this.appraisals().get(node.recordId) ?? null;
     } else {
       return null;
     }
@@ -407,17 +384,6 @@ export class MessageTreeComponent {
       this.notificationService.show('Paketierung gesetzt');
       this.disableSelection();
     }
-  }
-
-  private registerAppraisals(): void {
-    this.messagePage
-      .observeAppraisals()
-      .pipe(takeUntilDestroyed())
-      .subscribe((appraisals) => {
-        for (const appraisal of appraisals) {
-          this.appraisals[appraisal.recordId] = appraisal;
-        }
-      });
   }
 
   sendAppraisalMessage(): void {

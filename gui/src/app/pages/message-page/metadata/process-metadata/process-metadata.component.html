@@ -1,5 +1,5 @@
 <div class="metadata-section">
-  <form *ngIf="recordObject" [formGroup]="form">
+  <form *ngIf="record()" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -57,14 +57,14 @@
         </div>
       </mat-expansion-panel>
 
-      <mat-expansion-panel *ngIf="canBeAppraised" [expanded]="true">
+      <mat-expansion-panel *ngIf="canBeAppraised()" [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title> Bewertung </mat-panel-title>
         </mat-expansion-panel-header>
         <div class="metadata">
           <div class="metadata-row">
             <div
-              *ngIf="appraisalComplete; then appraisalInputReadonly; else appraisalInputEditable"
+              *ngIf="appraisalComplete(); then appraisalInputReadonly; else appraisalInputEditable"
             ></div>
             <ng-template #appraisalInputReadonly>
               <mat-form-field class="appraisal-input" floatLabel="always">
@@ -96,7 +96,7 @@
               #appraisalNote
               matInput
               formControlName="appraisalNote"
-              [readonly]="appraisalComplete"
+              [readonly]="appraisalComplete()"
               rows="5"
             >
             </textarea>

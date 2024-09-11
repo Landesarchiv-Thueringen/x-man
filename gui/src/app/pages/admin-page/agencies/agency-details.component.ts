@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Inject, TemplateRef, ViewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -85,7 +84,7 @@ export class AgencyDetailsComponent {
   assignedArchivists: Observable<User[]>;
   users = this.usersService.getUsers();
   collections = this.collectionsService.getCollections();
-  config = toSignal(this.configService.config);
+  config = this.configService.config;
   /**
    * The result of testing the configuration of the transfer-directory.
    *

@@ -1,6 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, TemplateRef, ViewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, effect, Signal, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -11,11 +10,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { Observable, debounceTime, distinctUntilChanged, filter, map, of, skip, take } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, skip, take } from 'rxjs';
 import { AuthService } from '../../../../services/auth.service';
-import { ProcessingError } from '../../../../services/clearing.service';
-import { ConfigService } from '../../../../services/config.service';
-import { Message, MessageService } from '../../../../services/message.service';
+import { Config, ConfigService } from '../../../../services/config.service';
+import { MessageService } from '../../../../services/message.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { ProcessService, SubmissionProcess } from '../../../../services/process.service';
 import { ItemProgress, TaskState } from '../../../../services/tasks.service';
@@ -63,19 +61,21 @@ export class MessageMetadataComponent {
   @ViewChild('deleteSubmissionProcessDialog')
   deleteSubmissionProcessDialogTemplate!: TemplateRef<unknown>;
 
-  form = this.formBuilder.group({
+  readonly process = this.messagePage.process;
+  readonly processingErrors = this.messagePage.processingErrors;
+  readonly message = this.messagePage.message;
+  readonly hasUnresolvedError = this.messagePage.hasUnresolvedError;
+  readonly isAdmin = this.auth.isAdmin();
+  readonly processDeleteTime: Signal<Date | undefined>;
+
+  readonly form = this.formBuilder.group({
     processID: new FormControl<string | null>(null),
     creationTime: new FormControl<string | null>(null),
     xdomeaVersion: new FormControl<string | null>(null),
     note: new FormControl<string | null>(null),
   });
-  message?: Message;
-  process?: SubmissionProcess;
-  processingErrors: ProcessingError[] = [];
+
   stateItems: StateItem[] = [];
-  processDeleteTime: Date | null = null;
-  isAdmin = this.auth.isAdmin();
-  hasUnresolvedError = this.messagePage.hasUnresolvedError;
 
   constructor(
     private auth: AuthService,
@@ -89,26 +89,23 @@ export class MessageMetadataComponent {
     private messagePage: MessagePageService,
     private messageService: MessageService,
   ) {
-    this.messagePage
-      .observeProcessData()
-      .pipe(takeUntilDestroyed())
-      .subscribe((data) => {
-        const isFirstValue = !this.process;
-        this.process = data.process ?? undefined;
-        this.processingErrors = data.processingErrors;
+    this.processDeleteTime = computed(() =>
+      this.getProcessDeleteTime(this.configService.config(), this.process()),
+    );
+    let initialized = false;
+    effect(() => {
+      const process = this.process();
+      if (process) {
         this.stateItems = this.getStateItems();
-        if (isFirstValue) {
-          this.form.patchValue({ note: data.process.note });
+        if (!initialized) {
+          this.form.patchValue({ note: process.note });
         }
-        this.getProcessDeleteTime(data.process).subscribe(
-          (processDeleteTime) => (this.processDeleteTime = processDeleteTime),
-        );
-      });
-    this.messagePage
-      .observeMessage()
-      .pipe(takeUntilDestroyed())
-      .subscribe((message) => {
-        this.message = message;
+        initialized = true;
+      }
+    });
+    effect(() => {
+      const message = this.message();
+      if (message) {
         this.form.patchValue({
           processID: message.messageHead.processID,
           creationTime: this.datePipe.transform(
@@ -117,8 +114,8 @@ export class MessageMetadataComponent {
           ),
           xdomeaVersion: message.xdomeaVersion,
         });
-      });
-
+      }
+    });
     // Save note when typing (after a debounce)
     this.form.valueChanges
       .pipe(
@@ -133,9 +130,9 @@ export class MessageMetadataComponent {
 
   saveNote(): void {
     const value = this.form.get('note')?.value ?? '';
-    if (this.process!.note !== value) {
-      this.processService.setNote(this.process!.processId, value).subscribe(() => {
-        this.process!.note = value;
+    if (this.process()!.note !== value) {
+      this.processService.setNote(this.process()!.processId, value).subscribe(() => {
+        this.process()!.note = value;
         this.notification.show('Notiz gespeichert');
       });
     }
@@ -148,7 +145,7 @@ export class MessageMetadataComponent {
       .subscribe((confirmed) => {
         if (confirmed) {
           this.messageService
-            .reimportMessage(this.process!.processId, this.message!.messageType)
+            .reimportMessage(this.process()!.processId, this.message()!.messageType)
             .subscribe(() => {
               this.notification.show('Nachricht wird neu eingelesen...');
             });
@@ -163,12 +160,12 @@ export class MessageMetadataComponent {
       .subscribe((confirmed) => {
         if (confirmed) {
           this.messageService
-            .deleteMessage(this.process!.processId, this.message!.messageType)
+            .deleteMessage(this.process()!.processId, this.message()!.messageType)
             .subscribe(() => {
               this.notification.show('Nachricht gelöscht');
               const processHasOtherMessage =
-                this.process?.processState?.receive0501?.complete &&
-                this.process?.processState?.receive0503?.complete;
+                this.process()?.processState?.receive0501?.complete &&
+                this.process()?.processState?.receive0503?.complete;
               if (!processHasOtherMessage) {
                 this.router.navigate(['/']);
               }
@@ -183,7 +180,7 @@ export class MessageMetadataComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.processService.deleteProcess(this.process!.processId).subscribe(() => {
+          this.processService.deleteProcess(this.process()!.processId).subscribe(() => {
             this.notification.show('Aussonderung gelöscht');
             this.router.navigate(['/']);
           });
@@ -192,7 +189,7 @@ export class MessageMetadataComponent {
   }
 
   numberOfUnresolvedErrors(): number {
-    return this.process?.unresolvedErrors ?? 0;
+    return this.process()?.unresolvedErrors ?? 0;
   }
 
   scrollToBottom(panel: MatExpansionPanel): void {
@@ -207,10 +204,10 @@ export class MessageMetadataComponent {
   }
 
   private getStateItems(): StateItem[] {
-    if (!this.process) {
+    if (!this.process()) {
       return [];
     }
-    const state = this.process.processState;
+    const state = this.process()!.processState;
     let items: StateItem[] = [];
     if (state.receive0501.complete) {
       items.push({
@@ -293,7 +290,7 @@ export class MessageMetadataComponent {
         onClick,
       });
     }
-    for (const processingError of this.processingErrors) {
+    for (const processingError of this.processingErrors()) {
       let onClick;
       if (this.auth.isAdmin()) {
         onClick = () =>
@@ -322,17 +319,13 @@ export class MessageMetadataComponent {
     return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
-  private getProcessDeleteTime(process: SubmissionProcess): Observable<Date | null> {
-    if (process.processState.archiving.complete) {
-      return this.configService.config.pipe(
-        map((config) => {
-          let date = new Date(process.processState.archiving.completedAt!);
-          date.setDate(date.getDate() + config.deleteArchivedProcessesAfterDays);
-          return date;
-        }),
-      );
+  private getProcessDeleteTime(config?: Config, process?: SubmissionProcess): Date | undefined {
+    if (config && process?.processState.archiving.complete) {
+      let date = new Date(process.processState.archiving.completedAt!);
+      date.setDate(date.getDate() + config.deleteArchivedProcessesAfterDays);
+      return date;
     } else {
-      return of(null);
+      return undefined;
     }
   }
 

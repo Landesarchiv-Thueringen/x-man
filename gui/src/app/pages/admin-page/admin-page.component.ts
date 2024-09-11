@@ -18,7 +18,7 @@ import { AboutDialogComponent } from './about-dialog/about-dialog.component';
   styleUrl: './admin-page.component.scss',
 })
 export class AdminPageComponent {
-  readonly config = toSignal(this.configService.config);
+  readonly config = this.configService.config;
   readonly aboutInformation = toSignal(this.aboutService.aboutInformation);
 
   constructor(

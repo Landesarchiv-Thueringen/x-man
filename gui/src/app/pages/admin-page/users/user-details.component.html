@@ -26,7 +26,7 @@
         <p>Keine zugeordneten abgebenden Stellen</p>
       }
     </mat-expansion-panel>
-    @if (preferences && supportsEmailNotifications) {
+    @if (preferences && config()?.supportsEmailNotifications) {
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title>E-Mails</mat-panel-title>

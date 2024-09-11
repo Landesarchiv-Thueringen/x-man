@@ -1,7 +1,6 @@
 import { A11yModule } from '@angular/cdk/a11y';
 import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -45,22 +44,19 @@ interface UserDetailsData {
   styleUrl: './user-details.component.scss',
 })
 export class UserDetailsComponent {
-  hasPermissions = Object.values(this.data.user.permissions).some(isTrue);
-  isAdmin = this.auth.isAdmin();
-  supportsEmailNotifications?: boolean;
-  preferences?: FormGroup;
+  readonly hasPermissions = Object.values(this.data.user.permissions).some(isTrue);
+  readonly isAdmin = this.auth.isAdmin();
+  readonly config = this.configService.config;
+  readonly preferences?: FormGroup;
 
   constructor(
     private dialogRef: MatDialogRef<UserDetailsComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UserDetailsData,
     private formBuilder: FormBuilder,
     private auth: AuthService,
-    private config: ConfigService,
+    private configService: ConfigService,
     private users: UsersService,
   ) {
-    this.config.config
-      .pipe(takeUntilDestroyed())
-      .subscribe((config) => (this.supportsEmailNotifications = config.supportsEmailNotifications));
     if (this.data.preferences) {
       this.preferences = this.formBuilder.group(this.data.preferences);
       this.preferences.valueChanges.subscribe((preferences) => {

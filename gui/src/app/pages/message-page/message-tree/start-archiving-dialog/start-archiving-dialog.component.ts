@@ -35,7 +35,7 @@ export class StartArchivingDialogComponent {
     validators: Validators.required,
   });
   readonly packagingStats = this.data.packagingStats;
-  readonly config = toSignal(this.configService.config);
+  readonly config = this.configService.config;
   readonly collections = toSignal(this.collectionsService.getCollections());
 
   constructor(

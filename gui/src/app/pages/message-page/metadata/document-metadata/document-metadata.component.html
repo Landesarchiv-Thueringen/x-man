@@ -1,5 +1,5 @@
 <div class="metadata-section">
-  <form *ngIf="record" [formGroup]="form">
+  <form *ngIf="record() as record" [formGroup]="form">
     <mat-accordion multi>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -64,7 +64,7 @@
       </mat-expansion-panel>
 
       <app-document-version-metadata
-        *ngIf="record?.versions?.length"
+        *ngIf="record.versions?.length"
         [document]="record"
       ></app-document-version-metadata>
     </mat-accordion>

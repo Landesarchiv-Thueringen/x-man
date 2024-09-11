@@ -4,7 +4,7 @@ import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree'
 import { BehaviorSubject, Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { notNull } from '../../../utils/predicates';
-import { StructureNode, StructureNodeType } from '../message-processor.service';
+import { StructureNode, StructureNodeType } from '../message-processor';
 
 const GROUP_SIZE = 100;
 

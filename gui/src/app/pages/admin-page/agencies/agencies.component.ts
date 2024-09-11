@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -51,8 +51,8 @@ export class AgenciesComponent implements AfterViewInit {
       .observeCollections()
       .pipe(takeUntilDestroyed())
       .subscribe((collections) => (this.collections = collections));
-    this.configService.config.subscribe((config) => {
-      if (config.archiveTarget === 'dimag') {
+    effect(() => {
+      if (this.configService.config()?.archiveTarget === 'dimag') {
         this.displayedColumns.push('collectionId');
       }
     });

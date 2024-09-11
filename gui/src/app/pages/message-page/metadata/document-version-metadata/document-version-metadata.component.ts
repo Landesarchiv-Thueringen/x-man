@@ -1,7 +1,6 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -38,7 +37,7 @@ export class DocumentVersionMetadataComponent {
   treeControl: FlatTreeControl<FlatNode>;
   treeFlattener: MatTreeFlattener<Node, FlatNode>;
   dataSource: MatTreeFlatDataSource<Node, FlatNode>;
-  message = toSignal(this.messagePageService.observeMessage());
+  message = this.messagePageService.message;
 
   constructor(
     private messageService: MessageService,

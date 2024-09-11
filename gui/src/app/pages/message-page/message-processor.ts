@@ -1,7 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Subject, first, firstValueFrom, map, startWith } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
-import { Config, ConfigService } from '../../services/config.service';
+import { Config } from '../../services/config.service';
 import { Message, MessageType } from '../../services/message.service';
 import {
   DocumentRecord,
@@ -10,7 +8,6 @@ import {
   ProcessRecord,
   Records,
 } from '../../services/records.service';
-import { notNull } from '../../utils/predicates';
 
 export type StructureNodeType =
   | 'message'
@@ -58,90 +55,60 @@ export interface StructureNode {
 /**
  * Processes a given message into a tree structure.
  */
-@Injectable()
-export class MessageProcessorService {
-  private config?: Config;
-  private readonly nodes = new Map<string, StructureNode>();
-  private messageProcessed = new Subject<void>();
-
-  constructor(private configService: ConfigService) {}
-
+export class MessageProcessor {
+  constructor(private config: Config) {}
   /**
    * Processes the given message into a tree structure and returns the tree's
-   * root node.
-   *
-   * Also save's the generated tree in the service, so subsequent calls to
-   * `getNode` will return nodes from the new tree.
+   * root node and a map of all processed nodes.
    */
-  async processMessage(
+  processMessage(
     agencyName: string,
     message: Message,
     rootRecords: Records,
-  ): Promise<StructureNode> {
-    this.config = await firstValueFrom(this.configService.config);
-    this.nodes.clear();
+  ): { root: StructureNode; map: Map<string, StructureNode> } {
+    const nodesMap = new Map<string, StructureNode>();
     // Create message node
-    const messageNode = this.getMessageNode(agencyName, message, rootRecords);
+    const messageNode = this.getMessageNode(agencyName, message, rootRecords, nodesMap);
     // Create file-verification node
     if (message.messageType === '0503') {
-      messageNode.children!.push(this.getPrimaryDocumentsNode(messageNode.id));
+      messageNode.children!.push(this.getPrimaryDocumentsNode(messageNode.id, nodesMap));
     }
     // Add file nodes
     for (const fileRecordObject of rootRecords.files ?? []) {
       messageNode.children!.push(
-        this.getFileStructureNode(fileRecordObject, messageNode, message.messageType),
+        this.getFileStructureNode(fileRecordObject, messageNode, message.messageType, nodesMap),
       );
     }
     // Add process nodes
     for (const processRecordObject of rootRecords.processes ?? []) {
       messageNode.children!.push(
-        this.getProcessStructureNode(processRecordObject, messageNode, message.messageType),
+        this.getProcessStructureNode(
+          processRecordObject,
+          messageNode,
+          message.messageType,
+          nodesMap,
+        ),
       );
     }
     // Add document nodes
     for (const documentRecordObject of rootRecords.documents ?? []) {
       messageNode.children!.push(
-        this.getDocumentStructureNode(documentRecordObject, messageNode, message.messageType),
+        this.getDocumentStructureNode(
+          documentRecordObject,
+          messageNode,
+          message.messageType,
+          nodesMap,
+        ),
       );
     }
-    this.messageProcessed.next();
-    return messageNode;
-  }
-
-  /**
-   * Returns the structure node with the given ID.
-   *
-   * Throws an error if the node cannot be found in the tree.
-   */
-  getNode(id: string): StructureNode {
-    const node = this.nodes.get(id);
-    if (node == null) {
-      throw new Error('node not found: ' + id);
-    }
-    return node;
-  }
-
-  /**
-   * Returns a promise that resolves to the structure node with the given ID as
-   * soon as it becomes available in the tree.
-   *
-   * For a node to become available `processMessage` has to be called with a
-   * message containing the node.
-   */
-  async getNodeWhenReady(id: string): Promise<StructureNode> {
-    return firstValueFrom(
-      this.messageProcessed.pipe(
-        startWith(void 0),
-        map(() => this.nodes.get(id)),
-        first(notNull),
-      ),
-    );
+    return { root: messageNode, map: nodesMap };
   }
 
   private getMessageNode(
     agencyName: string,
     message: Message,
     rootRecords: Records,
+    nodesMap: Map<string, StructureNode>,
   ): StructureNode {
     let title: string;
     switch (message.messageType) {
@@ -172,11 +139,14 @@ export class MessageProcessorService {
       selectable: true,
       children: [],
     };
-    this.nodes.set(messageNode.id, messageNode);
+    nodesMap.set(messageNode.id, messageNode);
     return messageNode;
   }
 
-  private getPrimaryDocumentsNode(messageID: string): StructureNode {
+  private getPrimaryDocumentsNode(
+    messageID: string,
+    nodesMap: Map<string, StructureNode>,
+  ): StructureNode {
     const routerLink: string = 'formatverifikation';
     const primaryDocumentsNode: StructureNode = {
       id: uuidv4(),
@@ -189,7 +159,7 @@ export class MessageProcessorService {
       canChoosePackaging: false,
       selectable: false,
     };
-    this.nodes.set(primaryDocumentsNode.id, primaryDocumentsNode);
+    nodesMap.set(primaryDocumentsNode.id, primaryDocumentsNode);
     return primaryDocumentsNode;
   }
 
@@ -197,6 +167,7 @@ export class MessageProcessorService {
     fileRecord: FileRecord,
     parent: StructureNode,
     messageType: MessageType,
+    nodesMap: Map<string, StructureNode>,
   ): StructureNode {
     const children: StructureNode[] = [];
     const type = parent.type.endsWith('file') ? 'subfile' : 'file';
@@ -219,17 +190,16 @@ export class MessageProcessorService {
     // generate child nodes for all subfiles (de: Teilakten)
     if (fileRecord.subfiles) {
       for (let subfile of fileRecord.subfiles) {
-        children.push(this.getFileStructureNode(subfile, fileNode, messageType));
+        children.push(this.getFileStructureNode(subfile, fileNode, messageType, nodesMap));
       }
     }
     // generate child nodes for all processes (de: Vorgänge)
     if (fileRecord.processes) {
       for (let process of fileRecord.processes) {
-        children.push(this.getProcessStructureNode(process, fileNode, messageType));
+        children.push(this.getProcessStructureNode(process, fileNode, messageType, nodesMap));
       }
     }
-
-    this.nodes.set(fileNode.id, fileNode);
+    nodesMap.set(fileNode.id, fileNode);
     return fileNode;
   }
 
@@ -237,6 +207,7 @@ export class MessageProcessorService {
     processRecord: ProcessRecord,
     parent: StructureNode,
     messageType: MessageType,
+    nodesMap: Map<string, StructureNode>,
   ): StructureNode {
     const children: StructureNode[] = [];
     const routerLink: string = 'vorgang/' + processRecord.recordId;
@@ -259,17 +230,17 @@ export class MessageProcessorService {
     // generate child nodes for all subprocesses (de: Teilvorgänge)
     if (processRecord.subprocesses) {
       for (let subprocess of processRecord.subprocesses) {
-        children.push(this.getProcessStructureNode(subprocess, processNode, messageType));
+        children.push(this.getProcessStructureNode(subprocess, processNode, messageType, nodesMap));
       }
     }
     // generate child nodes for all documents (de: Dokumente)
     if (processRecord.documents) {
       for (let document of processRecord.documents) {
-        children.push(this.getDocumentStructureNode(document, processNode, messageType));
+        children.push(this.getDocumentStructureNode(document, processNode, messageType, nodesMap));
       }
     }
 
-    this.nodes.set(processNode.id, processNode);
+    nodesMap.set(processNode.id, processNode);
     return processNode;
   }
 
@@ -277,6 +248,7 @@ export class MessageProcessorService {
     documentRecord: DocumentRecord,
     parent: StructureNode,
     messageType: MessageType,
+    nodesMap: Map<string, StructureNode>,
   ): StructureNode {
     const children: StructureNode[] = [];
     const type =
@@ -299,10 +271,10 @@ export class MessageProcessorService {
     };
     if (documentRecord.attachments) {
       for (let document of documentRecord.attachments) {
-        children.push(this.getDocumentStructureNode(document, documentNode, messageType));
+        children.push(this.getDocumentStructureNode(document, documentNode, messageType, nodesMap));
       }
     }
-    this.nodes.set(documentNode.id, documentNode);
+    nodesMap.set(documentNode.id, documentNode);
     return documentNode;
   }
 
@@ -317,14 +289,11 @@ export class MessageProcessorService {
     if (type !== 'file' && type !== 'subfile' && type !== 'process' && type !== 'subprocess') {
       return false;
     }
-    switch (this.config!.appraisalLevel) {
+    switch (this.config.appraisalLevel) {
       case 'root':
         return parent.type === 'message';
       case 'all':
         return true;
-      default:
-        console.error('called canBeAppraised when config was not ready');
-        return false;
     }
   }
 
