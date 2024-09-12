@@ -50,7 +50,7 @@ type FileRecord struct {
 	RecordID        uuid.UUID        `bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	ArchiveMetadata *ArchiveMetadata `bson:"archive_metadata" json:"archiveMetadata"`
-	Lifetime        *Lifetime        `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
+	Lifetime        *Lifetime        `json:"lifetime"`
 	Type            string           `json:"type"`
 	Subfiles        []FileRecord     `json:"subfiles"`
 	Processes       []ProcessRecord  `json:"processes"`
@@ -61,7 +61,7 @@ type ProcessRecord struct {
 	RecordID        uuid.UUID        `xml:"Identifikation>ID" bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	ArchiveMetadata *ArchiveMetadata `bson:"archive_metadata" json:"archiveMetadata"`
-	Lifetime        *Lifetime        `gorm:"foreignKey:LifetimeID;references:ID;constraint:OnDelete:SET NULL" json:"lifetime"`
+	Lifetime        *Lifetime        `json:"lifetime"`
 	Type            string           `json:"type" xml:"Typ"`
 	Subprocesses    []ProcessRecord  `xml:"Teilvorgang" json:"subprocesses"`
 	Documents       []DocumentRecord `xml:"Dokument" json:"documents"`

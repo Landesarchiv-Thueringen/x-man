@@ -25,14 +25,14 @@ type generatorMessage0502 struct {
 }
 
 type generatorMessage0504 struct {
-	XMLName     xml.Name             `gorm:"-" xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
+	XMLName     xml.Name             `xml:"xdomea:Aussonderung.AnbietungEmpfangBestaetigen.0504" json:"-"`
 	MessageHead generatorMessageHead `xml:"xdomea:Kopf" json:"messageHead"`
 	XdomeaXmlNs string               `xml:"xmlns:xdomea,attr"`
 	XsiXmlNs    string               `xml:"xmlns:xsi,attr"`
 }
 
 type generatorMessage0506 struct {
-	XMLName             xml.Name                      `gorm:"-" xml:"xdomea:Aussonderung.AussonderungImportBestaetigen.0506" json:"-"`
+	XMLName             xml.Name                      `xml:"xdomea:Aussonderung.AussonderungImportBestaetigen.0506" json:"-"`
 	MessageHead         generatorMessageHead          `xml:"xdomea:Kopf" json:"messageHead"`
 	XdomeaXmlNs         string                        `xml:"xmlns:xdomea,attr"`
 	XsiXmlNs            string                        `xml:"xmlns:xsi,attr"`
