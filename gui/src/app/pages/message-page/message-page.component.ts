@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
-import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { MessagePageService } from './message-page.service';
 import { MessageTreeComponent } from './message-tree/message-tree.component';
@@ -22,22 +22,36 @@ export class MessagePageComponent {
   sidenavMode: 'side' | 'over' = 'side';
 
   constructor(
-    route: ActivatedRoute,
     private breakpointObserver: BreakpointObserver,
     private messagePage: MessagePageService,
     private router: Router,
   ) {
-    // Redirect to latest message when no message code is given in the URL.
+    // Redirect to the latest message when no message is given in the URL.
     effect(() => {
       if (this.messagePage.messageType() === '') {
         const process = this.messagePage.process();
         if (process) {
           if (process.processState.receive0503.complete) {
-            this.router.navigate(['../0503'], { relativeTo: route, replaceUrl: true });
+            this.router.navigate(['nachricht', process.processId, '0503'], {
+              replaceUrl: true,
+            });
           } else {
-            this.router.navigate(['../0501'], { relativeTo: route, replaceUrl: true });
+            this.router.navigate(['nachricht', process.processId, '0501'], {
+              replaceUrl: true,
+            });
           }
         }
+      }
+    });
+    // Redirect to 0503 message when received.
+    let message0503NotYetReceived: boolean;
+    effect(() => {
+      const process = this.messagePage.process();
+      if (process && !process.processState.receive0503.complete) {
+        message0503NotYetReceived = true;
+      } else if (message0503NotYetReceived && process?.processState.receive0503.complete) {
+        message0503NotYetReceived = false;
+        this.router.navigate(['nachricht', process.processId, '0503']);
       }
     });
 
