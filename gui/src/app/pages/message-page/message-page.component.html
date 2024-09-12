@@ -1,5 +1,5 @@
 <mat-sidenav-container>
-  <mat-sidenav #sidenav [mode]="sidenavMode" opened>
+  <mat-sidenav #sidenav [mode]="sidenavMode" opened [disableClose]="sidenavMode === 'side'">
     <app-message-tree></app-message-tree>
   </mat-sidenav>
 

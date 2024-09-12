@@ -59,8 +59,8 @@ export class MessagePageComponent {
         takeUntilDestroyed(),
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
       )
-      .subscribe(() => {
-        if (this.sidenavMode === 'over') {
+      .subscribe((event) => {
+        if (this.sidenavMode === 'over' && !event.urlAfterRedirects.endsWith('/details')) {
           this.sidenav?.close();
         }
       });

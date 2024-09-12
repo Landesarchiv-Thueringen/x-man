@@ -7,6 +7,7 @@
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet
+- Fix: Kleinere UI-Fixes
 - Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
 - Intern: Prüfe Borg-Version
 - Intern: Migration zum Signals-Mechanismus in Angular
