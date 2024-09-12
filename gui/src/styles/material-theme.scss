@@ -47,3 +47,7 @@ mat-toolbar {
 .error-button {
   @include mat.button-color($light-theme, $color-variant: error);
 }
+
+.secondary-progress-spinner {
+  @include mat.progress-spinner-color($light-theme, $color-variant: secondary);
+}
