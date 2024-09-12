@@ -14,6 +14,7 @@ import (
 	"lath/xman/internal/tasks"
 	"lath/xman/internal/xdomea"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -408,14 +409,18 @@ func createAipFromDocumentRecords(
 ) db.ArchivePackage {
 	// Find all documents for the record path.
 	var documents []db.DocumentRecord
+	var lifetime *db.Lifetime
 	if len(path) == 0 {
 		documents = records.RootDocuments
+		lifetime = lifetimeFromDocuments(documents)
 	} else {
 		parentRecordID := path[len(path)-1]
 		if parent, ok := records.Files[parentRecordID]; ok {
 			documents = parent.Documents
+			lifetime = parent.Lifetime
 		} else if parent, ok := records.Processes[parentRecordID]; ok {
 			documents = parent.Documents
+			lifetime = parent.Lifetime
 		} else {
 			panic("could not find parent record: " + parentRecordID.String())
 		}
@@ -431,7 +436,7 @@ func createAipFromDocumentRecords(
 	aip := db.ArchivePackage{
 		ProcessID:        process.ProcessID,
 		IOTitle:          title,
-		IOLifetime:       nil,
+		IOLifetime:       lifetime,
 		REPTitle:         "Original",
 		PrimaryDocuments: primaryDocuments,
 		RecordIDs:        recordIDs,
@@ -439,6 +444,40 @@ func createAipFromDocumentRecords(
 		CollectionID:     collectionID,
 	}
 	return aip
+}
+
+// lifetimeFromDocuments reads the document date from all given documents and
+// returns the lifetime as the time from the earliest to the latest document
+// encountered.
+func lifetimeFromDocuments(documents []db.DocumentRecord) *db.Lifetime {
+	var start time.Time
+	var end time.Time
+	processDate := func(d string) {
+		if d == "" {
+			return
+		}
+		date, err := time.Parse(time.DateOnly, d)
+		if err != nil {
+			panic(err)
+		}
+		if start.IsZero() || date.Before(start) {
+			start = date
+		}
+		if end.IsZero() || date.After(end) {
+			end = date
+		}
+	}
+	for _, d := range documents {
+		processDate(d.DocumentDate)
+	}
+	if start.IsZero() {
+		return nil
+	} else {
+		return &db.Lifetime{
+			Start: start.Format(time.DateOnly),
+			End:   end.Format(time.DateOnly),
+		}
+	}
 }
 
 func fileRecordTitle(f db.FileRecord) string {

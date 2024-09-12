@@ -4,6 +4,7 @@
 
 - Feature: Anpassbare Paketierung
 - Feature: Verbesserte Fehlerausgabe in verschiedenen Fällen
+- Feature: Laufzeit bei Sammelpaketen für Dokumente ohne Akte oder Vorgang
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet
