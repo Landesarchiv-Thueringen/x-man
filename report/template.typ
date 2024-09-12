@@ -15,7 +15,7 @@
 ]
 
 #let formatDateTime(dateString) = [
-  #let values = dateString.split(regex("[-T:.]"))
+  #let values = dateString.split(regex("[-T:.Z]"))
   #let date = datetime(
     year: int(values.at(0)),
     month: int(values.at(1)),

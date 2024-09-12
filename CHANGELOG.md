@@ -8,6 +8,7 @@
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet
 - Fix: Kleinere UI-Fixes
+- Fix: Fehler bei Erstellung des Übernahmeberichtes in manchen Fällen
 - Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
 - Intern: Prüfe Borg-Version
 - Intern: Migration zum Signals-Mechanismus in Angular
