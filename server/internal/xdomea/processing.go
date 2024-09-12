@@ -119,6 +119,17 @@ func confirmMessageReceiptIfOk(agency db.Agency, processID uuid.UUID, messageTyp
 			}
 			return
 		}
+	} else if messageType == db.MessageType0503 {
+		err := Send0507Message(agency, message)
+		if err != nil {
+			if err == transferFileExists {
+				// Ignore. This can occur when re-importing the message.
+			} else {
+				errorData.Title = "Fehler beim Senden der 0507-Nachricht"
+				errors.AddProcessingErrorWithData(err, errorData)
+			}
+			return
+		}
 	}
 	// Send e-mail notification to users.
 	errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
@@ -520,14 +531,27 @@ func Send0504Message(agency db.Agency, message db.Message) error {
 	)
 }
 
-func Send0506Message(process db.SubmissionProcess, message db.Message) error {
+func Send0506Message(process db.SubmissionProcess, message0503 db.Message) error {
 	archivePackages := db.FindArchivePackagesForProcess(context.Background(), process.ProcessID)
-	messageXml := Generate0506Message(message, archivePackages)
+	messageXml := Generate0506Message(message0503, archivePackages)
 	return sendMessage(
 		process.Agency,
-		message.MessageHead.ProcessID,
+		message0503.MessageHead.ProcessID,
 		messageXml,
 		Message0506MessageSuffix,
+	)
+}
+
+func Send0507Message(agency db.Agency, message0503 db.Message) error {
+	messageXml, ok := Generate0507Message(message0503)
+	if !ok {
+		return nil
+	}
+	return sendMessage(
+		agency,
+		message0503.MessageHead.ProcessID,
+		messageXml,
+		Message0507MessageSuffix,
 	)
 }
 

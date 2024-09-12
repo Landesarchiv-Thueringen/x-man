@@ -3,6 +3,7 @@
 ## Next
 
 - Feature: Anpassbare Paketierung
+- Feature: Bestätige Erhalt der Abgabe mit 0507-Nachricht (xdomea >= 3.0)
 - Feature: Verbesserte Fehlerausgabe in verschiedenen Fällen
 - Feature: Laufzeit bei Sammelpaketen für Dokumente ohne Akte oder Vorgang
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern

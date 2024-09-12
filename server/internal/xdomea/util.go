@@ -9,13 +9,15 @@ import (
 	"github.com/google/uuid"
 )
 
-var uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-var Message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
-var Message0502MessageSuffix = "_Aussonderung.Bewertungsverzeichnis.0502"
-var Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
-var Message0504MessageSuffix = "_Aussonderung.AnbietungEmpfangBestaetigen.0504"
-var Message0505MessageSuffix = "_Aussonderung.BewertungEmpfangBestaetigen.0505"
-var Message0506MessageSuffix = "_Aussonderung.AussonderungImportBestaetigen.0506"
+const uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+const Message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
+const Message0502MessageSuffix = "_Aussonderung.Bewertungsverzeichnis.0502"
+const Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
+const Message0504MessageSuffix = "_Aussonderung.AnbietungEmpfangBestaetigen.0504"
+const Message0505MessageSuffix = "_Aussonderung.BewertungEmpfangBestaetigen.0505"
+const Message0506MessageSuffix = "_Aussonderung.AussonderungImportBestaetigen.0506"
+const Message0507MessageSuffix = "_Aussonderung.AussonderungEmpfangBestaetigen.0507"
+
 var uuidRegex = regexp.MustCompile(uuidRegexString)
 var message0501Regex = regexp.MustCompile(uuidRegexString + Message0501MessageSuffix + ".zip")
 var message0503Regex = regexp.MustCompile(uuidRegexString + Message0503MessageSuffix + ".zip")
