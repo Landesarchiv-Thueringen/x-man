@@ -143,20 +143,85 @@
       columns: (1fr),
       stroke: none,
       [*Übernommen*],
-      [#formatContentStatsElement("Files", data.Message0503Stats.Files)],
+      ..if data.Message0503Stats.Files > 0 {
+        ([#formatContentStatsElement("Files", data.Message0503Stats.Files)],)
+      },
+      ..if data.Message0503Stats.Processes > 0 {
+        (
+          [#formatContentStatsElement("Processes", data.Message0503Stats.Processes)],
+        )
+      },
+      ..if data.Message0503Stats.Documents > 0 {
+        (
+          [#formatContentStatsElement("Documents", data.Message0503Stats.Documents)],
+        )
+      },
     )
     #v(10fr)
   ] else [
-    #table(
-      columns: (1fr, 1fr, 1fr),
-      stroke: none,
-      [*Angeboten*],
-      [*Übernommen*],
-      [*Kassiert*],
-      [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
-      [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
-      [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
-    )
+    #if data.AppraisalStats.Files.PartiallyArchived + data.AppraisalStats.Processes.PartiallyArchived > 0 [
+      #table(
+        columns: (1fr, 1fr, 1fr, 1fr),
+        stroke: none,
+        [*Angeboten*],
+        [*Übernommen*],
+        [*Teilweise übernommen*],
+        [*Kassiert*],
+        ..if data.AppraisalStats.Files.Total > 0 {
+          (
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.PartiallyArchived)],
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
+          )
+        },
+        ..if data.AppraisalStats.Processes.Total > 0 {
+          (
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Total)],
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Archived)],
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.PartiallyArchived)],
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Discarded)],
+          )
+        },
+        ..if data.AppraisalStats.Documents.Total > 0 {
+          (
+            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Total)],
+            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Archived)],
+            [-],
+            [-],
+          )
+        },
+      )
+    ] else [
+      #table(
+        columns: (1fr, 1fr, 1fr),
+        stroke: none,
+        [*Angeboten*],
+        [*Übernommen*],
+        [*Kassiert*],
+        ..if data.AppraisalStats.Files.Total > 0 {
+          (
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
+            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
+          )
+        },
+        ..if data.AppraisalStats.Processes.Total > 0 {
+          (
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Total)],
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Archived)],
+            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Discarded)],
+          )
+        },
+        ..if data.AppraisalStats.Documents.Total > 0 {
+          (
+            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Total)],
+            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Archived)],
+            [-],
+          )
+        },
+      )
+    ]
     #table(
       columns: 2,
       stroke: none,
@@ -234,29 +299,50 @@
   )
 ]
 
-#let archivePackages(elements) = [
-  = Archivierte Pakete
-  #for el in elements [
-    == #el.Title
+#let archivePackage(aipData) = [
+  #box(stroke: 0.5pt + rgb(0, 0, 0, 80), fill: rgb(0, 0, 0, 20), table(
+    columns: (auto, 1fr, auto, 1fr),
+    stroke: none,
+    table.cell(colspan: 4)[*#aipData.Title*],
+    [Laufzeit:],
+    formatLifetime(aipData.Lifetime),
+    [],
+    [],
+    [Speicher-?volumen:],
+    formatFilesize(aipData.TotalFileSize),
+    [Paket-ID:],
+    fallback(aipData.PackageID),
+  ))
+]
 
-    #table(
-      columns: (auto, 1fr, auto, 1fr),
-      stroke: none,
-      [Laufzeit:],
-      formatLifetime(el.Lifetime),
-      [],
-      [],
-      [Speicher-?volumen:],
-      formatFilesize(el.TotalFileSize),
-      [Paket-ID:],
-      fallback(el.PackageID),
-    )
-    #table(
-      columns: 2,
-      stroke: none,
-      [Bewertungs-?notiz:],
-      [#fallback(el.AppraisalNote)],
-    )
+#let archivePackageSection(structureData, level) = [
+  #heading(level: level + 1, structureData.Title)
+  #if structureData.AppraisalNote != "" [
+    Bewertungsnotiz: #structureData.AppraisalNote
+  ]
+
+  #for el in structureData.Children [
+    #if el.AIP == none [
+      #archivePackageSection(el, level + 1)
+    ] else [
+      #archivePackage(el.AIP)
+      #if el.AppraisalNote != "" [
+        Bewertungsnotiz: #el.AppraisalNote
+      ]
+    ]
+  ]
+]
+
+#let archivePackages(elements) = [
+  #for el in elements [
+    #if el.AIP == none [
+      #archivePackageSection(el, 1)
+    ] else [
+      #archivePackage(el.AIP)
+      #if el.AppraisalNote != "" [
+        Bewertungsnotiz: #el.AppraisalNote
+      ]
+    ]
   ]
 ]
 
@@ -280,6 +366,7 @@
   #topMatter(data)
   #overview(data)
   #pagebreak()
+  = Archivierte Pakete
   #archivePackages(data.ArchivePackages)
   // #pagebreak()
   // #fileStats(data.FileStats)

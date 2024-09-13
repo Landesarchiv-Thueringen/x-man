@@ -68,11 +68,7 @@ func taskItemsForFiles(
 	var items []db.TaskItem
 	for _, f := range files {
 		var title string
-		if len(path) == 0 {
-			title = fileRecordTitle(f)
-		} else {
-			title = subfileRecordTitle(f)
-		}
+		title = xdomea.FileRecordTitle(f, len(path) > 0)
 		switch m[f.RecordID] {
 		case xdomea.PackagingDecisionSingle:
 			items = append(items, db.TaskItem{
@@ -105,7 +101,7 @@ func taskItemsForProcesses(
 	for _, p := range processes {
 		switch m[p.RecordID] {
 		case xdomea.PackagingDecisionSingle:
-			title := processRecordTitle(p)
+			title := xdomea.ProcessRecordTitle(p)
 			items = append(items, db.TaskItem{
 				Label: title,
 				State: db.TaskStatePending,
@@ -478,43 +474,4 @@ func lifetimeFromDocuments(documents []db.DocumentRecord) *db.Lifetime {
 			End:   end.Format(time.DateOnly),
 		}
 	}
-}
-
-func fileRecordTitle(f db.FileRecord) string {
-	title := "Akte"
-	if f.GeneralMetadata != nil {
-		if f.GeneralMetadata.RecordNumber != "" {
-			title += " " + f.GeneralMetadata.RecordNumber
-		}
-		if f.GeneralMetadata.Subject != "" {
-			title += ": " + f.GeneralMetadata.Subject
-		}
-	}
-	return title
-}
-
-func subfileRecordTitle(f db.FileRecord) string {
-	title := "Teilakte"
-	if f.GeneralMetadata != nil {
-		if f.GeneralMetadata.RecordNumber != "" {
-			title += " " + f.GeneralMetadata.RecordNumber
-		}
-		if f.GeneralMetadata.Subject != "" {
-			title += ": " + f.GeneralMetadata.Subject
-		}
-	}
-	return title
-}
-
-func processRecordTitle(p db.ProcessRecord) string {
-	title := "Vorgang"
-	if p.GeneralMetadata != nil {
-		if p.GeneralMetadata.RecordNumber != "" {
-			title += " " + p.GeneralMetadata.RecordNumber
-		}
-		if p.GeneralMetadata.Subject != "" {
-			title += ": " + p.GeneralMetadata.Subject
-		}
-	}
-	return title
 }

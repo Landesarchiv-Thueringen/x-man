@@ -8,95 +8,95 @@ import (
 )
 
 type ObjectAppraisalStats struct {
-	Total     uint
-	Archived  uint
-	Discarded uint
-}
-
-func (objectStats *ObjectAppraisalStats) addObject(a db.Appraisal) {
-	switch a.Decision {
-	case "A":
-		objectStats.Archived += 1
-	case "V":
-		objectStats.Discarded += 1
-	default:
-		panic("unexpected appraisal code: " + a.Decision)
-	}
-	objectStats.Total += 1
+	Total             int
+	Archived          int
+	PartiallyArchived int
+	Discarded         int
 }
 
 type AppraisalStats struct {
-	// HasDeviatingAppraisals indicates whether there are any appraisals within
-	// the stats that differ from the parent element's own appraisal code.
-	//
-	// If the parent is a message, appraisal code "A" is used for comparison.
-	HasDeviatingAppraisals bool
-	Files                  ObjectAppraisalStats
-	SubFiles               ObjectAppraisalStats
-	Processes              ObjectAppraisalStats
-	SubProcesses           ObjectAppraisalStats
-	Documents              ObjectAppraisalStats
-	Attachments            ObjectAppraisalStats
+	Files     ObjectAppraisalStats
+	Processes ObjectAppraisalStats
+	Documents ObjectAppraisalStats
 }
 
 type appraisalMap = map[uuid.UUID]db.Appraisal
 
-func (a *AppraisalStats) processFiles(files []db.FileRecord, isSubLevel bool, m appraisalMap) {
-	for _, file := range files {
-		if isSubLevel {
-			a.SubFiles.addObject(m[file.RecordID])
-		} else {
-			a.Files.addObject(m[file.RecordID])
+func fileHasDiscardedChildren(file db.FileRecord, m appraisalMap) bool {
+	for _, s := range file.Subfiles {
+		if m[s.RecordID].Decision != db.AppraisalDecisionA || fileHasDiscardedChildren(s, m) {
+			return true
 		}
-		a.processFiles(file.Subfiles, true, m)
-		a.processProcesses(file.Processes, false, m)
-		a.processDocuments(file.Documents, false, m[file.RecordID])
+	}
+	for _, p := range file.Processes {
+		if m[p.RecordID].Decision != db.AppraisalDecisionA || processHasDiscardedChildren(p, m) {
+			return true
+		}
+	}
+	return false
+}
+
+func processHasDiscardedChildren(process db.ProcessRecord, m appraisalMap) bool {
+	for _, s := range process.Subprocesses {
+		if m[s.RecordID].Decision != db.AppraisalDecisionA || processHasDiscardedChildren(s, m) {
+			return true
+		}
+	}
+	return false
+}
+
+// processFiles adds the given files to the appraisal stats.
+//
+// Files have to be on the root level of submission message.
+func (a *AppraisalStats) processFiles(files []db.FileRecord, m appraisalMap) {
+	for _, f := range files {
+		switch d := m[f.RecordID].Decision; d {
+		case db.AppraisalDecisionA:
+			if fileHasDiscardedChildren(f, m) {
+				a.Files.PartiallyArchived++
+			} else {
+				a.Files.Archived++
+			}
+		case db.AppraisalDecisionV:
+			a.Files.Discarded++
+		default:
+			panic("unexpected appraisal decision: " + d)
+		}
+		a.Files.Total++
 	}
 }
 
-func (a *AppraisalStats) processProcesses(processes []db.ProcessRecord, isSubLevel bool, m appraisalMap) {
-	for _, process := range processes {
-		if isSubLevel {
-			a.SubProcesses.addObject(m[process.RecordID])
-		} else {
-			a.Processes.addObject(m[process.RecordID])
+// processProcesses adds the given processes to the appraisal stats.
+//
+// Processes have to be on the root level of submission message.
+func (a *AppraisalStats) processProcesses(processes []db.ProcessRecord, m appraisalMap) {
+	for _, p := range processes {
+		switch d := m[p.RecordID].Decision; d {
+		case db.AppraisalDecisionA:
+			if processHasDiscardedChildren(p, m) {
+				a.Processes.PartiallyArchived++
+			} else {
+				a.Processes.Archived++
+			}
+		case db.AppraisalDecisionV:
+			a.Processes.Discarded++
+		default:
+			panic("unexpected appraisal decision: " + d)
 		}
-		a.processProcesses(process.Subprocesses, false, m)
-		a.processDocuments(process.Documents, false, m[process.RecordID])
+		a.Processes.Total++
 	}
 }
 
+// processDocuments adds the given documents to the appraisal stats.
+//
+// Documents have to be on the root level of submission message.
 func (a *AppraisalStats) processDocuments(
 	documents []db.DocumentRecord,
-	isSubLevel bool,
-	appraisal db.Appraisal,
 ) {
-	for _, document := range documents {
-		if isSubLevel {
-			a.Attachments.addObject(appraisal)
-		} else {
-			a.Documents.addObject(appraisal)
-		}
-		a.processDocuments(document.Attachments, true, appraisal)
-	}
-}
-
-// checkForDeviatingAppraisals checks if the stats object has processed  any
-// elements with an appraisal code different from the one given and sets
-// HasDeviatingAppraisals accordingly.
-//
-// Should be called after all objects have been processed.
-func (a *AppraisalStats) checkForDeviatingAppraisals(appraisalCode string) {
-	switch appraisalCode {
-	case "A":
-		a.HasDeviatingAppraisals = a.Files.Discarded+a.SubFiles.Discarded+
-			a.Processes.Discarded+a.SubProcesses.Discarded > 0
-	case "V":
-		a.HasDeviatingAppraisals = a.Files.Archived+a.SubFiles.Archived+
-			a.Processes.Archived+a.SubProcesses.Archived > 0
-	default:
-		panic("unexpected appraisal code: " + appraisalCode)
-	}
+	// Documents on the root level cannot be appraised and are therefore
+	// automatically archived.
+	a.Documents.Archived += len(documents)
+	a.Documents.Total += len(documents)
 }
 
 func getAppraisalsMap(processID uuid.UUID) appraisalMap {
@@ -111,12 +111,8 @@ func getAppraisalsMap(processID uuid.UUID) appraisalMap {
 func getAppraisalStats(ctx context.Context, message db.Message) (a AppraisalStats) {
 	m := getAppraisalsMap(message.MessageHead.ProcessID)
 	rootRecords := db.FindAllRootRecords(ctx, message.MessageHead.ProcessID, message.MessageType)
-	a.processFiles(rootRecords.Files, false, m)
-	a.processProcesses(rootRecords.Processes, false, m)
-	// Treat all root-level documents as appraised to "A" since documents always
-	// inherit their appraisal from their parent element (which in this case is
-	// the message itself).
-	a.processDocuments(rootRecords.Documents, false, db.Appraisal{Decision: "A"})
-	a.checkForDeviatingAppraisals("A")
+	a.processFiles(rootRecords.Files, m)
+	a.processProcesses(rootRecords.Processes, m)
+	a.processDocuments(rootRecords.Documents)
 	return
 }

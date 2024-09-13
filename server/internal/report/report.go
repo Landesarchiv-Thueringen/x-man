@@ -14,7 +14,7 @@ import (
 
 type ReportData struct {
 	Process          db.SubmissionProcess
-	ArchivePackages  []ArchivePackageData
+	ArchivePackages  []ArchivePackageStructure
 	Message0503Stats *ContentStats
 	AppraisalStats   *AppraisalStats
 	FileStats        FileStats
@@ -57,7 +57,7 @@ func getReportData(ctx context.Context, process db.SubmissionProcess) (reportDat
 		appraisalStats := getAppraisalStats(ctx, message0501)
 		reportData.AppraisalStats = &appraisalStats
 	}
-	reportData.ArchivePackages = getArchivePackages(ctx, process)
+	reportData.ArchivePackages = archivePackagesInfo(ctx, process)
 	messageStats := getMessageContentStats(ctx, message0503)
 	reportData.Message0503Stats = &messageStats
 	reportData.FileStats = getFileStats(ctx, process)
