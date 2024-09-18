@@ -449,7 +449,7 @@ func RemoveFileFromTransferDir(agency db.Agency, path string) {
 // RemoveFileFromLocalFilesystem deletes a file on a local filesystem.
 func RemoveFileFromLocalFilesystem(transferDirURL *url.URL, path string) {
 	fullPath := filepath.Join(transferDirURL.Path, path)
-	err := os.Remove(fullPath)
+	err := os.RemoveAll(fullPath)
 	if err != nil {
 		panic(err)
 	}
@@ -461,7 +461,7 @@ func RemoveFileFromWebDAV(transferDirURL *url.URL, path string) {
 	if err != nil {
 		panic(err)
 	}
-	err = client.Remove(path)
+	err = client.RemoveAll(path)
 	if err != nil {
 		panic(err)
 	}
