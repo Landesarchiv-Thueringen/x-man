@@ -27,6 +27,10 @@
 !/compose.yml
 !/compose.*.yml
 
+# allow podman kube files
+!/development.yaml
+!/config.yaml.example
+
 # allow go workspace files
 !/go.work
 !/go.work.sum

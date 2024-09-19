@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: xman-mongo
+spec:
+  accessModes:
+    - ReadWriteOncePod
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: xman-gui
+  labels:
+    app: xman-gui
+spec:
+  containers:
+    - name: main
+      image: localhost/x-man_server
+      ports:
+        - containerPort: 80
+          hostPort: 8080
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: xman-mongo
+  labels:
+    app: xman-mongo
+spec:
+  containers:
+    - name: main
+      image: docker.io/mongo
+      env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: mongo
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: mongo
+      volumeMounts:
+        - mountPath: /data/db
+          name: mongo-pvc
+  volumes:
+    - name: mongo-pvc
+      persistentVolumeClaim:
+        claimName: xman-mongo
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: xman-mongo-express
+  labels:
+    app: xman-mongo-express
+spec:
+  containers:
+    - name: main
+      image: docker.io/mongo-express
+      ports:
+        - containerPort: 8081
+          hostPort: 8081
+      env:
+        - name: ME_CONFIG_MONGODB_URL
+          value: mongodb://mongo:mongo@xman-mongo:27017/
+        - name: ME_CONFIG_BASICAUTH
+          value: false
+  restartPolicy: Never

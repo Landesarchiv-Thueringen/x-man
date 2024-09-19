@@ -163,3 +163,15 @@ location / {
     proxy_cache off;
 }
 ```
+
+## Running With Podman
+
+Requirements:
+
+- Podman
+- Podman-Compose (for building images)
+
+```sh
+# build images
+podman compose build
+```
