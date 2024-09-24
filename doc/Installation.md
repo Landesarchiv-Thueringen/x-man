@@ -4,8 +4,10 @@
 
 x-man runs on any Linux system that provides the following dependencies:
 
-- Docker (configured and with running daemon)
-- Docker Compose
+- Either
+  - Docker (configured and with running daemon), or
+  - Podman
+- Docker Compose (for both, Docker and Podman)
 - OpenSSL (for testing setup)
 - NodeJS and NPM (for frontend development)
 

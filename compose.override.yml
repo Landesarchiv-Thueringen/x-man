@@ -8,10 +8,10 @@ services:
         - http_proxy=${HTTP_PROXY}
         - https_proxy=${HTTPS_PROXY}
         - CONFIGURATION=development
-    restart: no
+    restart: "no"
 
   mongo:
-    restart: no
+    restart: "no"
 
   server:
     build:
@@ -20,8 +20,10 @@ services:
         - http_proxy=${HTTP_PROXY}
         - https_proxy=${HTTPS_PROXY}
         - NO_PROXY=${NO_PROXY}
-        - UID=${UID}
-        - GID=${GID}
+    depends_on:
+      ldap:
+        condition: service_healthy
+        restart: true
     volumes:
       - ./debug-data:/debug-data
     environment:
@@ -36,9 +38,9 @@ services:
       - 3000:80
     # This is only needed in case you want to connect to a service via a port
     # exposed on the host, e.g., to Borg.
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    restart: no
+    # extra_hosts:
+    #   - host.docker.internal:host-gateway
+    restart: "no"
 
   report:
     build:
@@ -49,15 +51,19 @@ services:
         - NO_PROXY=${NO_PROXY}
     environment:
       - GIN_MODE=debug
-    restart: no
+    restart: "no"
 
   mongo-express:
     image: docker.io/mongo-express
+    depends_on:
+      mongo:
+        condition: service_healthy
+        restart: true
     ports:
       - 8081:8081
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongo:27017/
-      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_BASICAUTH: "false"
 
   webdav:
     image: docker.io/bytemark/webdav
@@ -74,6 +80,10 @@ services:
     image: ghcr.io/rroemhild/docker-test-openldap:master
     ulimits:
       nofile: 1024
+    healthcheck:
+      test: ldapsearch -H ldap://localhost:10389 -x -b "ou=people,dc=planetexpress,dc=com" cn
+      interval: 3s
+      timeout: 1s
     volumes:
       - ./data/tls/ldap.crt:/etc/ldap/ssl/ldap.crt
       - ./data/tls/ldap.key:/etc/ldap/ssl/ldap.key

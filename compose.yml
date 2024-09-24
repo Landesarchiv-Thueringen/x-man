@@ -1,7 +1,9 @@
 services:
   gui:
     depends_on:
-      - server
+      server:
+        condition: service_started
+        restart: true
     image: localhost/xman-gui
     ports:
       - ${PORT}:80
@@ -11,9 +13,8 @@ services:
     image: docker.io/mongo
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 1s
+      interval: 3s
       timeout: 1s
-      retries: 10
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
@@ -26,8 +27,10 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+        restart: true
       server-init:
         condition: service_completed_successfully
+        restart: true
     environment:
       - GIN_MODE=release
       - TZ=Europe/Berlin
