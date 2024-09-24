@@ -3,10 +3,25 @@
 services:
   gui:
     build:
+      context: ./gui
       args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
         - CONFIGURATION=development
+    restart: no
+
+  mongo:
+    restart: no
 
   server:
+    build:
+      context: ./server
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
+        - UID=${UID}
+        - GID=${GID}
     volumes:
       - ./debug-data:/debug-data
     environment:
@@ -23,10 +38,18 @@ services:
     # exposed on the host, e.g., to Borg.
     extra_hosts:
       - host.docker.internal:host-gateway
+    restart: no
 
   report:
+    build:
+      context: ./report
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
     environment:
       - GIN_MODE=debug
+    restart: no
 
   mongo-express:
     image: docker.io/mongo-express

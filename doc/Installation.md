@@ -93,8 +93,22 @@ can verify the certificates and establish secure connections.
 ### Build and Run
 
 ```sh
-# Build and run for production
-docker compose -f compose.yml -f compose.prod.yml up --build -d
+# Build for production
+docker compose -f compose.yml -f compose.build-prod.yml build
+```
+
+To run the production build, you do not need the entire repository, but only two files:
+
+- .env
+- compose.yml
+
+In the directory containing these files, run
+
+```sh
+# Run for production
+docker compose up -d
+# Run for production when inside the complete source code directory
+docker compose -f compose.yml up -d
 ```
 
 Re-run the command after changing configuration.

@@ -2,13 +2,10 @@ services:
   gui:
     depends_on:
       - server
-    build:
-      context: ./gui
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
+    image: localhost/xman-gui
     ports:
       - ${PORT}:80
+    restart: unless-stopped
 
   mongo:
     image: docker.io/mongo
@@ -17,27 +14,20 @@ services:
       interval: 1s
       timeout: 1s
       retries: 10
-    ports:
-      - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
     volumes:
       - mongo:/data/db
+    restart: unless-stopped
 
   server:
-    build:
-      context: ./server
-      args:
-        - http_proxy=${HTTP_PROXY}
-        - https_proxy=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
-        - UID=${UID}
-        - GID=${GID}
+    image: localhost/xman-server
     depends_on:
       mongo:
         condition: service_healthy
     environment:
+      - GIN_MODE=release
       - TZ=Europe/Berlin
       - ORIGIN=${ORIGIN}
       - LOGIN_TOKEN_LIFETIME_DAYS=${LOGIN_TOKEN_LIFETIME_DAYS}
@@ -76,14 +66,13 @@ services:
       - message_store:/xman/message_store
       - ./data/transfer_dir:/xman/transfer_dir
       - ./data/archive:/xman/archive
+    restart: unless-stopped
 
   report:
-    build:
-      context: ./report
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
+    image: localhost/xman-report
+    environment:
+      - GIN_MODE=release
+    restart: unless-stopped
 
 volumes:
   message_store:
