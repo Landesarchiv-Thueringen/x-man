@@ -12,6 +12,7 @@
 - Fix: Kleinere UI-Fixes
 - Fix: Fehler bei Erstellung des Übernahmeberichtes in manchen Fällen
 - Fix: Löschen von unbekannten Ordnern in Transfer-Verzeichnis
+- Intern: Verbesserte Kompatibilität mit Podman
 - Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
 - Intern: Prüfe Borg-Version
 - Intern: Migration zum Signals-Mechanismus in Angular
