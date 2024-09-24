@@ -124,7 +124,7 @@ signed by a commonly accepted CA, you need to provide any involved root- and
 intermediate certificates to x-man.
 
 Copy certificates in PEM format with the file ending `.crt` to
-`server/data/ca-certificates` and rerun `docker compose build`. This allows you
+`data/ca-certificates` and rerun `docker compose up`. This allows you
 to remove the `TLS_INSECURE_SKIP_VERIFY` option for URLs that you provided
 certificates for.
 

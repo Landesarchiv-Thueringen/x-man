@@ -26,6 +26,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      server-init:
+        condition: service_completed_successfully
     environment:
       - GIN_MODE=release
       - TZ=Europe/Berlin
@@ -63,10 +65,19 @@ services:
       - DIMAG_CORE_USER=${DIMAG_CORE_USER}
       - DIMAG_CORE_PASSWORD=${DIMAG_CORE_PASSWORD}
     volumes:
+      - certs:/etc/ssl/certs
       - message_store:/xman/message_store
       - ./data/transfer_dir:/xman/transfer_dir
       - ./data/archive:/xman/archive
     restart: unless-stopped
+
+  server-init:
+    image: docker.io/golang
+    volumes:
+      - certs:/etc/ssl/certs
+      - ./data/ca-certificates:/usr/local/share/ca-certificates
+    command: >
+      update-ca-certificates
 
   report:
     image: localhost/xman-report
@@ -77,3 +88,4 @@ services:
 volumes:
   message_store:
   mongo:
+  certs:

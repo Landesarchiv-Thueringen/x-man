@@ -32,4 +32,4 @@ EOF
 createServerCert ldap
 createServerCert mailhog-tls
 
-cp Test-RootCA.crt ../../server/data/ca-certificates/
+cp Test-RootCA.crt ../ca-certificates/
