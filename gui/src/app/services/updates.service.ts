@@ -30,6 +30,7 @@ export class UpdatesService {
   private eventSource?: EventSource;
   private keepAliveTimer?: number;
   private reconnectTimer?: number;
+  private connectTimeout?: number;
   /**
    * The connection state of the event source.
    *
@@ -47,6 +48,14 @@ export class UpdatesService {
         } else {
           this.state.set(null);
           this.unsubscribe();
+          if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = undefined;
+          }
+          if (this.connectTimeout) {
+            window.clearTimeout(this.connectTimeout);
+            this.connectTimeout = undefined;
+          }
         }
       });
     // Try to reconnect on page focus, i.e., when the user switches to the page
@@ -99,6 +108,10 @@ export class UpdatesService {
       window.clearTimeout(this.reconnectTimer);
       this.reconnectTimer = undefined;
     }
+    if (this.connectTimeout) {
+      window.clearTimeout(this.connectTimeout);
+      this.connectTimeout = undefined;
+    }
     const token = this.auth.getToken();
     // EventSource doesn't support the authorization header, so we append the
     // token as query parameter.
@@ -107,6 +120,10 @@ export class UpdatesService {
       const messageData: Update = JSON.parse(event.data);
       this.updatesSubject.next(messageData);
     });
+    this.connectTimeout = window.setTimeout(() => {
+      this.connectTimeout = undefined;
+      this.state.set('failed');
+    }, 1000);
     this.eventSource.addEventListener('error', () => {
       // When the connection is closed without an error, the browser tries to
       // reconnect automatically. However, it also invokes this error hook in
@@ -129,11 +146,9 @@ export class UpdatesService {
         }, 10_000);
       }
     });
-    const connectTimeout = setTimeout(() => {
-      this.state.set('failed');
-    }, 1000);
     this.eventSource.addEventListener('open', () => {
-      clearTimeout(connectTimeout);
+      clearTimeout(this.connectTimeout);
+      this.connectTimeout = undefined;
       this.state.set('connected');
       // Emit a `reconnect` event on `open`, except for the first time.
       if (this.keepAliveTimer) {
