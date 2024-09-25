@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { first, shareReplay, switchMap } from 'rxjs';
+import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { notNull } from '../utils/predicates';
 import { AuthService } from './auth.service';
@@ -28,9 +28,15 @@ export class ConfigService {
     private httpClient: HttpClient,
   ) {
     const config = this.auth.observeLoginInformation().pipe(
-      first(notNull),
-      switchMap(() => this.httpClient.get<Config>(environment.endpoint + '/config')),
-      shareReplay(1),
+      map(notNull),
+      distinctUntilChanged(),
+      switchMap((isLoggedIn) => {
+        if (isLoggedIn) {
+          return this.httpClient.get<Config>(environment.endpoint + '/config');
+        } else {
+          return of(undefined);
+        }
+      }),
     );
     this.config = toSignal(config);
   }
