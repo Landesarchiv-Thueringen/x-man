@@ -33,6 +33,7 @@
     "etree",
     "Formatverifikation",
     "Metadatum",
+    "mongodb",
     "Paketierung",
     "Paketierungsebene",
     "Primärdateien",

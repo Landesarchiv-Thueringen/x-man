@@ -1,10 +1,12 @@
 services:
   gui:
+    image: localhost/xman-gui
     depends_on:
       server:
         condition: service_started
         restart: true
-    image: localhost/xman-gui
+    environment:
+      SERVER_API_URL: http://server/api/
     ports:
       - ${PORT}:80
     restart: unless-stopped
@@ -32,6 +34,8 @@ services:
         condition: service_completed_successfully
         restart: true
     environment:
+      - MONGODB_URL=mongodb://mongo:27017
+      - REPORT_URL=http://report
       - GIN_MODE=release
       - TZ=Europe/Berlin
       - ORIGIN=${ORIGIN}

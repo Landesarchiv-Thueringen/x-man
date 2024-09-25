@@ -38,7 +38,7 @@ func Init() {
 		Password: os.Getenv("MONGODB_PASSWORD"),
 	}
 	clientOpts := options.Client().
-		ApplyURI("mongodb://mongo:27017").
+		ApplyURI(os.Getenv("MONGODB_URL")).
 		SetAuth(credential).
 		SetTimeout(10 * time.Second)
 	client, err := mongo.Connect(context.Background(), clientOpts)

@@ -21,13 +21,19 @@ type ReportData struct {
 }
 
 // GetReport sends process data to the report service and returns the generated PDF.
-func GetReport(ctx context.Context, process db.SubmissionProcess) (contentLength int64, contentType string, body io.Reader) {
+func GetReport(
+	ctx context.Context,
+	process db.SubmissionProcess,
+) (contentLength int64, contentType string, body io.Reader) {
 	values, err := getReportData(ctx, process)
 	if err != nil {
 		panic(err)
 	}
 	jsonValue, _ := json.Marshal(values)
-	resp, err := http.Post("http://report/render", "application/json", bytes.NewBuffer(jsonValue))
+	resp, err := http.Post(
+		os.Getenv("REPORT_URL") + "/render", "application/json",
+		bytes.NewBuffer(jsonValue),
+	)
 	if err != nil {
 		panic(err)
 	} else if resp.StatusCode != http.StatusOK {
@@ -42,7 +48,10 @@ func GetReport(ctx context.Context, process db.SubmissionProcess) (contentLength
 }
 
 // getReportData accumulates process data for use by the report service.
-func getReportData(ctx context.Context, process db.SubmissionProcess) (reportData ReportData, err error) {
+func getReportData(
+	ctx context.Context,
+	 process db.SubmissionProcess,
+	 ) (reportData ReportData, err error) {
 	messages := make(map[db.MessageType]db.Message)
 	for _, m := range db.FindMessagesForProcess(ctx, process.ProcessID) {
 		messages[m.MessageType] = m
