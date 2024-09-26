@@ -43,11 +43,4 @@ func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) 
 		panic(err)
 	}
 	db.UpdateProcessingErrorResolve(e, r)
-	// We don't confirm received messages when there are errors. If we resolved
-	// the last error here, we confirm the receipt.
-	if e.ProcessStep == db.ProcessStepReceive0501 ||
-		e.ProcessStep == db.ProcessStepReceive0503 ||
-		e.ProcessStep == db.ProcessStepReceive0505 {
-		confirmMessageReceiptIfOk(*e.Agency, e.ProcessID, e.MessageType)
-	}
 }

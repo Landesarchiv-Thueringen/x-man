@@ -86,21 +86,15 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 			verification.VerifyFileFormats(process, message)
 		}
 	}
-	confirmMessageReceiptIfOk(agency, processID, messageType)
+	confirmMessageReceipt(agency, processID, messageType)
 }
 
-// confirmMessageReceiptIfOk checks if the message was received without errors.
-// If so, it sends the appropriate xdomea message (if any) and an e-mail
-// notification to the archivist(s) in charge.
-func confirmMessageReceiptIfOk(agency db.Agency, processID uuid.UUID, messageType db.MessageType) {
+// confirmMessageReceipt sends the appropriate xdomea message (if any) and an
+// e-mail notification to the archivist(s) in charge.
+func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db.MessageType) {
 	message, ok := db.FindMessage(context.Background(), processID, messageType)
 	if !ok {
-		return
-	}
-	for _, e := range db.FindProcessingErrorsForProcess(context.Background(), processID) {
-		if e.MessageType == messageType && !e.Resolved {
-			return
-		}
+		panic(fmt.Sprintf("failed to find message %s for process %s", messageType, processID))
 	}
 	errorData := db.ProcessingError{
 		Agency:      &agency,
@@ -117,7 +111,6 @@ func confirmMessageReceiptIfOk(agency db.Agency, processID uuid.UUID, messageTyp
 				errorData.Title = "Fehler beim Senden der 0504-Nachricht"
 				errors.AddProcessingErrorWithData(err, errorData)
 			}
-			return
 		}
 	} else if messageType == db.MessageType0503 {
 		err := Send0507Message(agency, message)
@@ -128,7 +121,6 @@ func confirmMessageReceiptIfOk(agency db.Agency, processID uuid.UUID, messageTyp
 				errorData.Title = "Fehler beim Senden der 0507-Nachricht"
 				errors.AddProcessingErrorWithData(err, errorData)
 			}
-			return
 		}
 	}
 	// Send e-mail notification to users.
