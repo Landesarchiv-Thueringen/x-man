@@ -476,6 +476,9 @@ func containedRecordIDs(r RootRecords) []uuid.UUID {
 }
 
 func GetPrimaryDocuments(r *RootRecords) []PrimaryDocumentContext {
+	if r == nil {
+		return []PrimaryDocumentContext{}
+	}
 	var d []PrimaryDocumentContext
 	for _, c := range r.Files {
 		d = append(d, GetPrimaryDocumentsForFile(&c)...)

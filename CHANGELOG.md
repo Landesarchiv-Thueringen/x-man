@@ -7,6 +7,7 @@
 - Feature: Überarbeiteter Übernahmebericht
 - Feature: Verbesserte Fehlerausgabe in verschiedenen Fällen
 - Feature: Laufzeit bei Sammelpaketen für Dokumente ohne Akte oder Vorgang
+- Feature: Warnung bei nicht zugeordneten Dokumenten
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet

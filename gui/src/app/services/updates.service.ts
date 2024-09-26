@@ -14,7 +14,7 @@ import { notNull } from '../utils/predicates';
 import { AuthService } from './auth.service';
 
 export interface Update {
-  collection: 'submission_processes' | 'processing_errors' | 'tasks';
+  collection: 'submission_processes' | 'processing_errors' | 'warnings' | 'tasks';
   processId: string;
   operation: 'insert' | 'update' | 'delete';
 }

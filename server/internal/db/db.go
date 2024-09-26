@@ -110,6 +110,11 @@ func createIndexes() {
 		},
 		Options: options.Index().SetUnique(true),
 	})
+	createIndex("warnings", mongo.IndexModel{
+		Keys: bson.D{
+			{"process_id", 1},
+		},
+	})
 	createIndex("processing_errors", mongo.IndexModel{
 		Keys: bson.D{
 			{"process_id", 1},

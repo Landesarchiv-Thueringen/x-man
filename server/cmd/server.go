@@ -255,12 +255,17 @@ func getProcessData(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
+	warnings := db.FindWarningsForProcess(c.Request.Context(), processID)
+	if warnings == nil {
+		warnings = make([]db.Warning, 0)
+	}
 	processingErrors := db.FindProcessingErrorsForProcess(c.Request.Context(), processID)
 	if processingErrors == nil {
 		processingErrors = make([]db.ProcessingError, 0)
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"process":          process,
+		"warnings":         warnings,
 		"processingErrors": processingErrors,
 	})
 }

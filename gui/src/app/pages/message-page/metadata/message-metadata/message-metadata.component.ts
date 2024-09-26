@@ -62,6 +62,7 @@ export class MessageMetadataComponent {
   deleteSubmissionProcessDialogTemplate!: TemplateRef<unknown>;
 
   readonly process = this.messagePage.process;
+  readonly warnings = this.messagePage.warnings;
   readonly processingErrors = this.messagePage.processingErrors;
   readonly message = this.messagePage.message;
   readonly hasUnresolvedError = this.messagePage.hasUnresolvedError;
@@ -288,6 +289,14 @@ export class MessageMetadataComponent {
         taskState: state.archiving.taskState,
         progress: state.archiving.progress,
         onClick,
+      });
+    }
+    for (const warning of this.warnings()) {
+      items.push({
+        title: warning.title,
+        icon: 'warning',
+        class: 'warning',
+        date: warning.createdAt,
       });
     }
     for (const processingError of this.processingErrors()) {

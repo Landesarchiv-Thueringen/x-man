@@ -15,6 +15,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
@@ -47,7 +48,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		messageType,
 	)
 	// save message
-	process, message, err := addMessage(
+	process, message, rootRecords, err := addMessage(
 		agency,
 		processID,
 		messageType,
@@ -69,10 +70,18 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	if err != nil {
 		errors.AddProcessingErrorWithData(err, errorData)
 	}
+	if rootRecords != nil && len(rootRecords.Documents) > 0 &&
+		(messageType == db.MessageType0501 ||
+			messageType == db.MessageType0503 && !process.ProcessState.Receive0501.Complete) {
+		db.InsertWarning(db.Warning{
+			CreatedAt:   time.Now(),
+			Title:       "Aussonderung enthält nicht zugeordnete Dokumente",
+			MessageType: messageType,
+			ProcessID:   processID,
+		})
+	}
 	if messageType == "0503" {
-		// get primary documents
-		rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, messageType)
-		primaryDocuments := db.GetPrimaryDocuments(&rootRecords)
+		primaryDocuments := db.GetPrimaryDocuments(rootRecords)
 		err = collectPrimaryDocumentsData(process, message, primaryDocuments)
 		if err != nil {
 			errors.AddProcessingErrorWithData(err, errorData)
@@ -196,7 +205,7 @@ func addMessage(
 	processStoreDir string,
 	storeDir string,
 	transferDir string,
-) (db.SubmissionProcess, db.Message, error) {
+) (db.SubmissionProcess, db.Message, *db.RootRecords, error) {
 	messageName := getMessageName(processID, messageType)
 	messagePath := path.Join(storeDir, messageName)
 	_, err := os.Stat(messagePath)
@@ -211,12 +220,12 @@ func addMessage(
 	err = checkMessageValidity(agency, messageType, storagePaths)
 	if err != nil {
 		e := errors.FromError("Schema-Validierung ungültig", err)
-		return db.SubmissionProcess{}, db.Message{}, &e
+		return db.SubmissionProcess{}, db.Message{}, nil, &e
 	}
 	parsedMessage, err := parseMessage(messagePath, messageType)
 	if err != nil {
 		e := errors.FromError("Fehler beim Einlesen der Nachricht", err)
-		return db.SubmissionProcess{}, db.Message{}, &e
+		return db.SubmissionProcess{}, db.Message{}, nil, &e
 	}
 	message := db.Message{
 		StoragePaths:   storagePaths,
@@ -231,7 +240,7 @@ func addMessage(
 	if parsedMessage.RootRecords != nil {
 		db.InsertRootRecords(processID, messageType, *parsedMessage.RootRecords)
 	}
-	return process, message, nil
+	return process, message, parsedMessage.RootRecords, nil
 }
 
 // checkMessageValidity performs a xsd schema validation against the message XML file.

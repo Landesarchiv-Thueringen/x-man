@@ -36,6 +36,8 @@ func DeleteProcess(processID uuid.UUID) bool {
 	db.DeleteAppraisalsForProcess(processID)
 	db.DeleteRecordOptionsForProcess(processID)
 	db.DeleteArchivePackagesForProcess(processID)
+	db.DeleteWarningsForProcess(processID)
+	db.DeleteProcessingErrorsForProcess(processID)
 	// Delete message storage
 	if err := os.RemoveAll(storeDir); err != nil {
 		panic(err)
@@ -44,7 +46,6 @@ func DeleteProcess(processID uuid.UUID) bool {
 	for _, path := range transferFiles {
 		RemoveFileFromTransferDir(process.Agency, path)
 	}
-	db.DeleteProcessingErrorsForProcess(processID)
 	return true
 }
 
@@ -100,6 +101,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 		RemoveFileFromTransferDir(process.Agency, transferFile)
 		cleanupEmptyProcess(message.MessageHead.ProcessID)
 	}
+	db.DeleteWarningsForMessage(processID, message.MessageType)
 	db.DeleteProcessingErrorsForMessage(processID, message.MessageType)
 	return nil
 }

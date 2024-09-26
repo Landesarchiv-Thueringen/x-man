@@ -10,6 +10,7 @@ import { UpdatesService } from './updates.service';
 
 export interface ProcessData {
   process: SubmissionProcess;
+  warnings: Warning[];
   processingErrors: ProcessingError[];
 }
 
@@ -20,6 +21,11 @@ export interface SubmissionProcess {
   note: string;
   processState: ProcessState;
   unresolvedErrors: number;
+}
+
+export interface Warning {
+  createdAt: string;
+  title: string;
 }
 
 export interface ProcessState {

@@ -14,7 +14,7 @@ import {
   PackagingService,
   PackagingStats,
 } from '../../services/packaging.service';
-import { ProcessService, SubmissionProcess } from '../../services/process.service';
+import { ProcessService, SubmissionProcess, Warning } from '../../services/process.service';
 import {
   DocumentRecord,
   FileRecord,
@@ -43,6 +43,7 @@ export class MessagePageService {
    * the process ID should not change for the lifetime of the message page.
    */
   readonly process = signal<SubmissionProcess | undefined>(undefined);
+  readonly warnings = signal<Warning[]>([]);
   readonly processingErrors = signal<ProcessingError[]>([]);
   readonly hasUnresolvedError = computed(() => !!this.process()?.unresolvedErrors);
   readonly appraisalComplete = computed(
@@ -113,6 +114,7 @@ export class MessagePageService {
       .pipe(takeUntilDestroyed())
       .subscribe((data) => {
         this.process.set(data.process);
+        this.warnings.set(data.warnings);
         this.processingErrors.set(data.processingErrors);
       });
     // Register tree data.
