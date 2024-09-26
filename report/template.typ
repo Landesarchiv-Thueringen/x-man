@@ -299,20 +299,32 @@
   )
 ]
 
+#let archivePackageColor(recordType) = {
+  (
+    file: rgb("#3f51b5"),
+    process: rgb("#008000"),
+    document: rgb("#ffa500"),
+  ).at(recordType)
+}
+
 #let archivePackage(aipData) = [
-  #box(stroke: 0.5pt + rgb(0, 0, 0, 80), fill: rgb(0, 0, 0, 20), table(
-    columns: (auto, 1fr, auto, 1fr),
-    stroke: none,
-    table.cell(colspan: 4)[*#aipData.Title*],
-    [Laufzeit:],
-    formatLifetime(aipData.Lifetime),
-    [],
-    [],
-    [Speicher-?volumen:],
-    formatFilesize(aipData.TotalFileSize),
-    [Paket-ID:],
-    fallback(aipData.PackageID),
-  ))
+  #box(
+    stroke: 0.5pt + archivePackageColor(aipData.Type),
+    fill: archivePackageColor(aipData.Type).transparentize(80%),
+    table(
+      columns: (auto, 1fr, auto, 1fr),
+      stroke: none,
+      table.cell(colspan: 4)[*#aipData.Title*],
+      [Laufzeit:],
+      formatLifetime(aipData.Lifetime),
+      [],
+      [],
+      [Speicher-?volumen:],
+      formatFilesize(aipData.TotalFileSize),
+      [Paket-ID:],
+      fallback(aipData.PackageID),
+    ),
+  )
 ]
 
 #let archivePackageSection(structureData, level) = [

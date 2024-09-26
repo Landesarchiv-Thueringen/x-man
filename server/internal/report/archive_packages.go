@@ -35,6 +35,7 @@ type ArchivePackageStructure struct {
 
 type ArchivePackageData struct {
 	Title         string
+	Type          db.RecordType
 	Lifetime      *db.Lifetime
 	TotalFileSize int64
 	PackageID     string
@@ -75,6 +76,7 @@ func archivePackagesInfoForFile(
 			return ArchivePackageStructure{
 				AIP: &ArchivePackageData{
 					Title:         aip.IOTitle,
+					Type:          db.RecordTypeFile,
 					Lifetime:      aip.IOLifetime,
 					TotalFileSize: getTotalFileSize(context.Background(), aip),
 					PackageID:     aip.PackageID,
@@ -120,6 +122,7 @@ func archivePackagesInfoForProcess(
 			return ArchivePackageStructure{
 				AIP: &ArchivePackageData{
 					Title:         aip.IOTitle,
+					Type:          db.RecordTypeProcess,
 					Lifetime:      aip.IOLifetime,
 					TotalFileSize: getTotalFileSize(context.Background(), aip),
 					PackageID:     aip.PackageID,
@@ -163,6 +166,7 @@ func archivePackagesInfoForDocuments(
 			return ArchivePackageStructure{
 				AIP: &ArchivePackageData{
 					Title:         aip.IOTitle,
+					Type:          db.RecordTypeDocument,
 					Lifetime:      aip.IOLifetime,
 					TotalFileSize: getTotalFileSize(context.Background(), aip),
 					PackageID:     aip.PackageID,
