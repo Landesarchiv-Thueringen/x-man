@@ -234,15 +234,14 @@
       #cetz.canvas(
         {
           let values = ()
-          if (data.AppraisalStats.Files.Archived > 0) {
-            values.push(([übernommen], data.AppraisalStats.Files.Archived, (fill: olive)))
+          let archived = data.AppraisalStats.Files.Archived + data.AppraisalStats.Files.PartiallyArchived
+          archived += data.AppraisalStats.Processes.Archived + data.AppraisalStats.Processes.PartiallyArchived
+          let discarded = data.AppraisalStats.Files.Discarded + data.AppraisalStats.Processes.Discarded
+          if (archived > 0) {
+            values.push(([übernommen], archived, (fill: olive)))
           }
-          if (data.AppraisalStats.Files.Discarded > 0) {
-            values.push((
-              [kassiert],
-              data.AppraisalStats.Files.Discarded,
-              (fill: rgb("#e53a31")),
-            ))
+          if (discarded > 0) {
+            values.push(([kassiert], discarded, (fill: rgb("#e53a31")),))
           }
           cetz.chart.piechart(
             values,
@@ -250,7 +249,7 @@
             value-key: 1,
             radius: 4,
             slice-style: (
-              // slice-style as a somewhat peculiar indexing strategy...
+              // slice-style has a somewhat peculiar indexing strategy...
               index => values.at(calc.rem-euclid(values.len() - index - 1, values.len())).at(2)
             ),
             inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
