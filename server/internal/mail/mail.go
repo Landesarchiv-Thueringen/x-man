@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/smtp"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 
@@ -25,7 +26,7 @@ type Attachment struct {
 	Body        []byte
 }
 
-func SendMailNewMessage(to string, agencyName string, message db.Message) error {
+func SendMailNewMessageNotification(to string, agencyName string, message db.Message) error {
 	var messageType string
 	switch message.MessageType {
 	case "0501":
@@ -43,9 +44,36 @@ func SendMailNewMessage(to string, agencyName string, message db.Message) error 
 		url := origin + "/nachricht/" + message.MessageHead.ProcessID.String() + "/" + string(message.MessageType)
 		body += fmt.Sprintf("<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
+	body += "<p>Diese E-Mail stellt eine reine Benachrichtigung dar und sollte nicht veraktet werden.</p>\n"
 	body += "<p>Sie bekommen diese E-Mail, weil Sie der abgebenden Stelle als zuständige(r) Archivar(in) zugeordnet sind.<br>\n" +
 		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
 	return sendMail(to, "Neue "+messageType+" von "+agencyName, body, []Attachment{})
+}
+
+func SendMailNewMessagePostOffice(to string, agencyName string, message db.Message) error {
+	var messageType string
+	switch message.MessageType {
+	case "0501":
+		messageType = "Anbietung"
+	case "0503":
+		messageType = "Abgabe"
+	case "0505":
+		messageType = "Bewertungsbestätigung"
+	default:
+		panic("unhandled message type: " + message.MessageType)
+	}
+	body := "<p>Es ist eine " + messageType + " von \"" + agencyName + "\" eingegangen.</p>\n"
+	body += "<p>Im Anhang befindet sich die XML-Datei der xdomea-Nachricht.</p>\n"
+	body += "<p>Diese E-Mail ist an die Poststelle adressiert und zur Veraktung vorgesehen.</p>\n"
+	messageXML, err := os.ReadFile(message.MessagePath)
+	if err != nil {
+		panic(err)
+	}
+	return sendMail(to, messageType+" von "+agencyName, body, []Attachment{{
+		Filename:    path.Base(message.MessagePath),
+		ContentType: "application/xml",
+		Body:        messageXML,
+	}})
 }
 
 func SendMailReport(to string, process db.SubmissionProcess, report Attachment) error {

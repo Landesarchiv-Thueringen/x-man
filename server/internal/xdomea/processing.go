@@ -99,7 +99,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 }
 
 // confirmMessageReceipt sends the appropriate xdomea message (if any) and an
-// e-mail notification to the archivist(s) in charge.
+// e-mail notification to the post office and the archivist(s) in charge.
 func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db.MessageType) {
 	message, ok := db.FindMessage(context.Background(), processID, messageType)
 	if !ok {
@@ -132,6 +132,14 @@ func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db
 			}
 		}
 	}
+	// Forward e-mail to post office.
+	errorData.Title = "Fehler bei der E-Mail-Weiterleitung zur Poststelle"
+	if address := os.Getenv("POST_OFFICE_EMAIL"); address != "" {
+		err := mail.SendMailNewMessagePostOffice(address, agency.Name, message)
+		if err != nil {
+			errors.AddProcessingErrorWithData(err, errorData)
+		}
+	}
 	// Send e-mail notification to users.
 	errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
 	for _, user := range agency.Users {
@@ -142,7 +150,7 @@ func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db
 		}
 		preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
 		if preferences.MessageEmailNotifications {
-			err = mail.SendMailNewMessage(address, agency.Name, message)
+			err = mail.SendMailNewMessageNotification(address, agency.Name, message)
 			if err != nil {
 				errors.AddProcessingErrorWithData(err, errorData)
 			}
