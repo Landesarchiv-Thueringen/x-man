@@ -4,9 +4,8 @@ package dimag
 // It is not specific to any DIMAG functionality.
 
 import (
-	"crypto/sha512"
-	"fmt"
 	"io"
+	"lath/xman/internal/archive/shared"
 	"os"
 	"path/filepath"
 
@@ -104,7 +103,7 @@ func (h *bagitHandle) Remove() {
 }
 
 func (h *bagitHandle) createManifest() {
-	h.CreateFile("manifest-sha512.txt", sha512SumRecords(h.Path(), "data", true))
+	h.CreateFile("manifest-sha512.txt", shared.Sha512Sum(h.Path(), "data", true))
 }
 
 func (h *bagitHandle) createTagManifest() {
@@ -117,50 +116,8 @@ func (h *bagitHandle) createTagManifest() {
 		if entry.Name() == "data" {
 			continue
 		}
-		entryRecords := sha512SumRecords(h.Path(), entry.Name(), entry.IsDir())
+		entryRecords := shared.Sha512Sum(h.Path(), entry.Name(), entry.IsDir())
 		records = append(records, entryRecords...)
 	}
 	h.CreateFile("tagmanifest-sha512.txt", records)
-}
-
-// sha512SumRecords creates lines for a a checksum file for the given file or
-// directory and all subdirectories, if any.
-//
-// Parameters:
-// - rootPath: the root for paths in the checksum file
-// - subPath: the file or directory to be checked, relative to rootPath
-// - isDir: whether the entry at subPath is a directory (otherwise, file is assumed)
-// Returns the contents of the checksum file.
-func sha512SumRecords(rootPath string, subPath string, isDir bool) []byte {
-	path := filepath.Join(rootPath, subPath)
-	if isDir {
-		var sums []byte
-		entries, err := os.ReadDir(path)
-		if err != nil {
-			panic(err)
-		}
-		for _, entry := range entries {
-			entrySubPath := filepath.Join(subPath, entry.Name())
-			entrySums := sha512SumRecords(rootPath, entrySubPath, entry.IsDir())
-			sums = append(sums, entrySums...)
-		}
-		return sums
-	} else {
-		return fmt.Appendf([]byte{}, "%x  %s\n", sha512Sum(path), subPath)
-	}
-}
-
-// sha512Sum calculates the sha512 sum for a single file.
-func sha512Sum(path string) []byte {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	h := sha512.New()
-	_, err = io.Copy(h, f)
-	if err != nil {
-		panic(err)
-	}
-	return h.Sum(nil)
 }

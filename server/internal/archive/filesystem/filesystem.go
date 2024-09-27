@@ -14,7 +14,7 @@ import (
 const temporaryArchivePath = "/xman/archive"
 
 // StoreArchivePackage creates a folder on the file system for the archive
-// package and copies all primary files in this folder.
+// package and copies all relevant files in this folder.
 func StoreArchivePackage(
 	process db.SubmissionProcess,
 	message db.Message,
@@ -26,24 +26,33 @@ func StoreArchivePackage(
 	if err != nil {
 		panic(err)
 	}
-	// copy all primary documents in archive package
+	// Add primary documents.
 	for _, primaryDocument := range archivePackage.PrimaryDocuments {
 		err := copyFileIntoArchivePackage(message.StoreDir, archivePackagePath, primaryDocument.Filename)
 		if err != nil {
 			panic(err)
 		}
 	}
+	// Add relevant part of xdomea message.
 	prunedMessage := shared.PruneMessage(message, archivePackage)
 	messageFileName := filepath.Base(message.MessagePath)
 	err = writeFile(archivePackagePath, messageFileName, prunedMessage)
 	if err != nil {
 		panic(err)
 	}
+	// Add protocol.
 	err = writeFile(archivePackagePath, shared.ProtocolFilename, shared.GenerateProtocol(process))
 	if err != nil {
 		panic(err)
 	}
+	// Add internal archive-package object.
 	writeObjectToTextfile(archivePackage, archivePackagePath, "aip.json")
+	// Calculate and add checksums.
+	checksums := shared.Sha512Sum(archivePackagePath, "", true)
+	err = writeFile(archivePackagePath, "sha512sum.txt", checksums)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // CopyFileIntoArchivePackage copies a file from the message store into an archive package.
