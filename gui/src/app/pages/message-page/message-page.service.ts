@@ -230,8 +230,6 @@ export class MessagePageService {
       this.messageService.finalizeMessageAppraisal(this.message()!.messageHead.processID),
     );
     this.updateAppraisals();
-    // FIXME: We should rather do a genuine update of the process object.
-    this.process()!.processState.appraisal.complete = true;
   }
 
   private async updateAppraisals(): Promise<void> {
