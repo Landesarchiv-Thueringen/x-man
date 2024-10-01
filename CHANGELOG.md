@@ -20,6 +20,7 @@
 - Intern: Verbesserte Fehlerbehandlung beim Versenden von xdomea-Nachrichten
 - Intern: Prüfe Borg-Version
 - Intern: Migration zum Signals-Mechanismus in Angular
+- Intern: Konfigurierbare Ports für Dienste
 
 ## v1.0.0
 

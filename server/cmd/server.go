@@ -89,8 +89,7 @@ func main() {
 	admin.GET("api/tasks", getTasks)
 	admin.POST("api/task/action/:id", taskAction)
 	admin.GET("api/dimag-collection-ids", getCollectionDimagIDs)
-	addr := "0.0.0.0:80"
-	router.Run(addr)
+	router.Run()
 }
 
 func initServer() {

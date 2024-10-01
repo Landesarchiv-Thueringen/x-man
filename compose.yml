@@ -34,6 +34,7 @@ services:
         condition: service_completed_successfully
         restart: true
     environment:
+      - PORT=80
       - MONGODB_URL=mongodb://mongo:27017
       - REPORT_URL=http://report
       - GIN_MODE=release
@@ -90,6 +91,7 @@ services:
   report:
     image: localhost/xman-report
     environment:
+      - PORT=80
       - GIN_MODE=release
     restart: unless-stopped
 

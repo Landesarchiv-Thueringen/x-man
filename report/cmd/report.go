@@ -19,7 +19,7 @@ func main() {
 	router.SetTrustedProxies(nil)
 	router.GET("", getDefaultResponse)
 	router.POST("render", render)
-	router.Run("0.0.0.0:80")
+	router.Run()
 }
 
 func getDefaultResponse(c *gin.Context) {
