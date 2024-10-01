@@ -167,6 +167,7 @@ export class MessageTreeComponent {
           this.document.getElementById(this.currentRecordId)?.scrollIntoView({ block: 'center' });
         }
       });
+    this.notifyWhenArchivingDone();
   }
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
@@ -412,38 +413,24 @@ export class MessageTreeComponent {
     }
   }
 
-  archive0503Message() {
+  async archive0503Message(): Promise<void> {
     const message = this.message();
-    if (message) {
-      this.dialog
-        .open(StartArchivingDialogComponent, {
-          autoFocus: false,
-          data: {
-            agency: this.process()?.agency,
-            packagingStats: this.getCombinedPackagingStats(),
-          },
-        })
-        .afterClosed()
-        .pipe(
-          filter((formResult) => !!formResult),
-          switchMap((formResult) => {
-            // Navigate to the tree root so the user sees the new status
-            this.goToRootNode();
-            return this.messageService.archive0503Message(
-              message.messageHead.processID,
-              formResult.collectionId,
-            );
-          }),
-        )
-        .subscribe({
-          error: (error: any) => {
-            this.notificationService.show('Archivierung fehlgeschlagen');
-            console.error(error);
-          },
-          next: () => {
-            this.notificationService.show('Archivierung gestartet...');
-          },
-        });
+    if (!message) {
+      return;
+    }
+    const dialogRef = this.dialog.open(StartArchivingDialogComponent, {
+      autoFocus: false,
+      data: {
+        agency: this.process()?.agency,
+        packagingStats: this.getCombinedPackagingStats(),
+      },
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      this.goToRootNode();
+      this.messageService
+        .archive0503Message(message.messageHead.processID, result.collectionId)
+        .subscribe(() => this.notificationService.show('Archivierung gestartet...'));
     }
   }
 
@@ -455,6 +442,35 @@ export class MessageTreeComponent {
       a.href = window.URL.createObjectURL(report);
       a.click();
       document.body.removeChild(a);
+    });
+  }
+
+  /**
+   * Registers listeners to show a notification toast when the current
+   * submission process has been archived successfully or encountered an error
+   * while archiving.
+   */
+  private notifyWhenArchivingDone(): void {
+    /** Whether archiving of the page's submission process has not yet started. */
+    let archivingNotYetComplete: boolean;
+    effect(() => {
+      const process = this.messagePage.process();
+      if (
+        process &&
+        !process.processState.archiving.complete &&
+        !process.processState.archiving.hasError
+      ) {
+        // Initially set archivingNotYetComplete or reset when errors are resolved.
+        archivingNotYetComplete = true;
+      } else if (archivingNotYetComplete && process?.processState.archiving.complete) {
+        // Archiving has been marked complete since we started watching.
+        this.notificationService.show('Archivierung abgeschlossen');
+        archivingNotYetComplete = false;
+      } else if (archivingNotYetComplete && process?.processState.archiving.hasError) {
+        // Archiving has failed since we started watching.
+        this.notificationService.show('Archivierung fehlgeschlagen');
+        archivingNotYetComplete = false;
+      }
     });
   }
 
