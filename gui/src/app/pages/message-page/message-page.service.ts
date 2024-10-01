@@ -8,9 +8,9 @@ import { ProcessingError } from '../../services/clearing.service';
 import { ConfigService } from '../../services/config.service';
 import { Message, MessageService } from '../../services/message.service';
 import {
+  PackagingChoice,
   PackagingData,
   PackagingDecision,
-  PackagingOption,
   PackagingService,
   PackagingStats,
 } from '../../services/packaging.service';
@@ -83,7 +83,7 @@ export class MessagePageService {
    */
   readonly appraisals = signal<Map<string, Appraisal>>(Map());
 
-  readonly packagingOptions = signal<{ [recordId in string]?: PackagingOption }>({});
+  readonly packagingChoices = signal<{ [recordId in string]?: PackagingChoice }>({});
   readonly packagingDecisions = signal<{ [recordId in string]?: PackagingDecision }>({});
   readonly packagingStats = signal<{ [recordId in string]?: PackagingStats }>({});
 
@@ -200,9 +200,9 @@ export class MessagePageService {
     this._setAppraisals(appraisals);
   }
 
-  async setPackaging(recordIds: string[], packaging: PackagingOption): Promise<void> {
+  async setPackaging(recordIds: string[], packaging: PackagingChoice): Promise<void> {
     const data = await firstValueFrom(
-      this.packagingService.setPackaging(this.processId, recordIds, packaging),
+      this.packagingService.setPackagingChoice(this.processId, recordIds, packaging),
     );
     this.setPackagingData(data);
   }
@@ -246,8 +246,8 @@ export class MessagePageService {
   }
 
   private setPackagingData(data: PackagingData): void {
-    this.packagingOptions.set(data.packagingOptions);
-    this.packagingDecisions.set(data.packagingDecisions);
-    this.packagingStats.set(data.packagingStats);
+    this.packagingChoices.set(data.choices);
+    this.packagingDecisions.set(data.decisions);
+    this.packagingStats.set(data.stats);
   }
 }

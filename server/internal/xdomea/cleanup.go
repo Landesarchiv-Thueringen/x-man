@@ -34,7 +34,7 @@ func DeleteProcess(processID uuid.UUID) bool {
 	db.DeleteRecordsForProcess(processID)
 	db.DeletePrimaryDocumentsDataForProcess(processID)
 	db.DeleteAppraisalsForProcess(processID)
-	db.DeleteRecordOptionsForProcess(processID)
+	db.DeletePackagingChoicesForProcess(processID)
 	db.DeleteArchivePackagesForProcess(processID)
 	db.DeleteWarningsForProcess(processID)
 	db.DeleteProcessingErrorsForProcess(processID)

@@ -3,13 +3,13 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export const packagingOptions: { value: PackagingOption; label: string; disabled?: boolean }[] = [
+export const packagingChoices: { value: PackagingChoice; label: string; disabled?: boolean }[] = [
   { value: 'root', label: 'Wurzelebene' },
   { value: 'level-1', label: '1. Unterebene' },
   { value: 'level-2', label: '2. Unterebene' },
 ];
 
-export type PackagingOption = 'root' | 'level-1' | 'level-2';
+export type PackagingChoice = 'root' | 'level-1' | 'level-2';
 export type PackagingDecision = '' | 'single' | 'sub';
 export interface PackagingStats {
   files: number;
@@ -20,12 +20,12 @@ export interface PackagingStats {
 }
 
 export interface PackagingData {
-  packagingOptions: { [recordId in string]?: PackagingOption };
-  packagingDecisions: { [recordId in string]?: PackagingDecision };
-  packagingStats: { [recordId in string]?: PackagingStats };
+  choices: { [recordId in string]?: PackagingChoice };
+  decisions: { [recordId in string]?: PackagingDecision };
+  stats: { [recordId in string]?: PackagingStats };
 }
 
-export type PackagingStatsMap = { [option in PackagingOption]: PackagingStats };
+export type PackagingStatsMap = { [option in PackagingChoice]: PackagingStats };
 
 @Injectable({
   providedIn: 'root',
@@ -37,15 +37,15 @@ export class PackagingService {
     return this.httpClient.get<PackagingData>(environment.endpoint + '/packaging/' + processId);
   }
 
-  setPackaging(
+  setPackagingChoice(
     processId: string,
     recordIds: string[],
-    packaging: PackagingOption,
+    packagingChoice: PackagingChoice,
   ): Observable<PackagingData> {
     return this.httpClient.post<PackagingData>(environment.endpoint + '/packaging', {
       processId,
       recordIds,
-      packaging,
+      packagingChoice,
     });
   }
 

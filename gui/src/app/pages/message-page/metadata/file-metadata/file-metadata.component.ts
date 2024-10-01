@@ -16,9 +16,9 @@ import {
 } from '../../../../services/appraisal.service';
 import { MessageService } from '../../../../services/message.service';
 import {
-  PackagingOption,
+  PackagingChoice,
   PackagingService,
-  packagingOptions,
+  packagingChoices,
 } from '../../../../services/packaging.service';
 import { MessagePageService } from '../../message-page.service';
 import { printPackagingStats } from '../../packaging-stats.pipe';
@@ -69,19 +69,19 @@ export class FileMetadataComponent {
     appraisalNote: new FormControl<string>('', { nonNullable: true }),
     confidentiality: new FormControl<string | null>(null),
     medium: new FormControl<string | null>(null),
-    packaging: new FormControl<PackagingOption | null>(null),
+    packaging: new FormControl<PackagingChoice | null>(null),
   });
 
   readonly appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({
     code,
     ...d,
   }));
-  packagingOptions = [...packagingOptions.map((option) => ({ ...option }))];
+  packagingChoices = [...packagingChoices.map((option) => ({ ...option }))];
   /**
-   * When all packaging-option labels have been enriched with packaging stats,
+   * When all packaging-choice labels have been enriched with packaging stats,
    * this variable holds the record ID that the information belongs to.
    */
-  private packagingOptionsPopulated = '';
+  private packagingChoicesPopulated = '';
 
   constructor(
     private appraisalService: AppraisalService,
@@ -120,27 +120,27 @@ export class FileMetadataComponent {
     });
     // Set the packaging select field to the current value.
     effect(() => {
-      const packaging = this.messagePage.packagingOptions()?.[this.recordId()] ?? 'root';
+      const packaging = this.messagePage.packagingChoices()?.[this.recordId()] ?? 'root';
       this.form.patchValue({ packaging });
     });
     // Reset packaging options when the record changes.
     effect(() => {
       this.recordId();
-      this.packagingOptionsPopulated = '';
-      this.packagingOptions = [...packagingOptions.map((option) => ({ ...option }))];
-      this.enrichPackagingOptions();
+      this.packagingChoicesPopulated = '';
+      this.packagingChoices = [...packagingChoices.map((option) => ({ ...option }))];
+      this.enrichPackagingChoices();
     });
     // Enrich the currently selected packaging options with known stats while
     // the request for the remaining stats is in flight.
     effect(() => {
-      if (this.packagingOptionsPopulated == this.recordId()) {
+      if (this.packagingChoicesPopulated == this.recordId()) {
         return;
       }
-      const packaging = this.messagePage.packagingOptions()?.[this.recordId()] ?? 'root';
+      const packaging = this.messagePage.packagingChoices()?.[this.recordId()] ?? 'root';
       const packagingStats = this.messagePage.packagingStats()?.[this.recordId()];
-      this.packagingOptions = [...packagingOptions.map((option) => ({ ...option }))];
+      this.packagingChoices = [...packagingChoices.map((option) => ({ ...option }))];
       if (packagingStats) {
-        const option = this.packagingOptions.find((option) => option.value === packaging)!;
+        const option = this.packagingChoices.find((option) => option.value === packaging)!;
         option.label = option.label + ` (${printPackagingStats(packagingStats)})`;
       }
     });
@@ -215,17 +215,17 @@ export class FileMetadataComponent {
    * Fetches packaging stats for all packaging options from the backend and
    * enriches the option labels with the additional information.
    */
-  private async enrichPackagingOptions(): Promise<void> {
-    if (this.packagingOptionsPopulated || !this.messagePage.process()) {
+  private async enrichPackagingChoices(): Promise<void> {
+    if (this.packagingChoicesPopulated || !this.messagePage.process()) {
       return;
     }
-    this.packagingOptionsPopulated = this.recordId();
+    this.packagingChoicesPopulated = this.recordId();
     const statsMap = await firstValueFrom(
       this.packagingService.getPackagingStats(this.messagePage.process()!.processId, [
         this.recordId(),
       ]),
     );
-    for (const option of this.packagingOptions) {
+    for (const option of this.packagingChoices) {
       option.disabled = !statsMap[option.value].deepestLevelHasItems;
       if (option.label.includes('(')) {
         continue; // already includes stats
@@ -242,7 +242,7 @@ export class FileMetadataComponent {
     this.messagePage.setAppraisalInternalNote(this.record()!.recordId, note);
   }
 
-  setPackaging(value: PackagingOption): void {
+  setPackaging(value: PackagingChoice): void {
     this.messagePage.setPackaging([this.record()!.recordId], value);
   }
 }

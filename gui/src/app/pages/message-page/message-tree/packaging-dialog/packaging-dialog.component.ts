@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
-import { packagingOptions, PackagingService } from '../../../../services/packaging.service';
+import { packagingChoices, PackagingService } from '../../../../services/packaging.service';
 import { printPackagingStats } from '../../packaging-stats.pipe';
 
 export interface PackagingDialogData {
@@ -27,7 +27,7 @@ export interface PackagingDialogData {
   styleUrl: './packaging-dialog.component.scss',
 })
 export class PackagingDialogComponent {
-  packagingOptions = [...packagingOptions.map((option) => ({ ...option }))];
+  packagingChoices = [...packagingChoices.map((option) => ({ ...option }))];
   form = this.formBuilder.group({
     packaging: 'root',
   });
@@ -38,20 +38,20 @@ export class PackagingDialogComponent {
     private formBuilder: FormBuilder,
     private packagingService: PackagingService,
   ) {
-    this.populatePackagingOptions();
+    this.populatePackagingChoices();
   }
 
   onSubmit(): void {
     this.dialogRef.close(this.form.value);
   }
 
-  private async populatePackagingOptions() {
+  private async populatePackagingChoices() {
     const statsMap = await firstValueFrom(
       this.packagingService.getPackagingStats(this.data.processId, this.data.recordIds),
     );
-    for (const option of this.packagingOptions) {
-      option.disabled = !statsMap[option.value].deepestLevelHasItems;
-      option.label = option.label + ` (${printPackagingStats(statsMap[option.value])})`;
+    for (const choice of this.packagingChoices) {
+      choice.disabled = !statsMap[choice.value].deepestLevelHasItems;
+      choice.label = choice.label + ` (${printPackagingStats(statsMap[choice.value])})`;
     }
   }
 }

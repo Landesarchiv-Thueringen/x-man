@@ -128,9 +128,9 @@
                 formControlName="packaging"
                 (selectionChange)="setPackaging($event.value)"
               >
-                @for (option of packagingOptions; track option.value) {
-                  <mat-option [value]="option.value" [disabled]="option.disabled">{{
-                    option.label
+                @for (choice of packagingChoices; track choice.value) {
+                  <mat-option [value]="choice.value" [disabled]="choice.disabled">{{
+                    choice.label
                   }}</mat-option>
                 }
               </mat-select>

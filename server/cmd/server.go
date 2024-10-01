@@ -63,7 +63,7 @@ func main() {
 	authorized.POST("api/appraisals", setAppraisals)
 	authorized.PATCH("api/finalize-message-appraisal/:processId", finalizeMessageAppraisal)
 	authorized.GET("api/packaging/:processId", getPackaging)
-	authorized.POST("api/packaging", setPackaging)
+	authorized.POST("api/packaging", setPackagingChoice)
 	authorized.POST("api/packaging-stats/:processId", getPackagingStatsForOptions)
 	authorized.PATCH("api/archive-0503-message/:processId", archive0503Message)
 	authorized.PATCH("api/process-note/:processId", setProcessNote)
@@ -491,11 +491,11 @@ func getPackaging(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	packagingDecisions, packagingStats, packagingOptions := xdomea.Packaging(processID)
+	decisions, stats, choices := xdomea.Packaging(processID)
 	c.JSON(http.StatusOK, gin.H{
-		"packagingDecisions": packagingDecisions,
-		"packagingStats":     packagingStats,
-		"packagingOptions":   packagingOptions,
+		"decisions": decisions,
+		"stats":     stats,
+		"choices":   choices,
 	})
 }
 
@@ -524,11 +524,11 @@ func getPackagingStatsForOptions(c *gin.Context) {
 		return
 	}
 	rootRecords := db.FindRootRecords(c.Request.Context(), processID, db.MessageType0503, recordIDs)
-	statsMap := xdomea.PackagingStatsForOptions(rootRecords.Files)
+	statsMap := xdomea.PackagingStatsForChoices(rootRecords.Files)
 	c.JSON(http.StatusOK, statsMap)
 }
 
-func setPackaging(c *gin.Context) {
+func setPackagingChoice(c *gin.Context) {
 	jsonBody, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -537,7 +537,7 @@ func setPackaging(c *gin.Context) {
 	var data struct {
 		ProcessID uuid.UUID          `json:"processId"`
 		RecordIDs []uuid.UUID        `json:"recordIds"`
-		Packaging db.PackagingOption `json:"packaging"`
+		Packaging db.PackagingChoice `json:"packagingChoice"`
 	}
 	err = json.Unmarshal(jsonBody, &data)
 	if err != nil {
@@ -545,13 +545,13 @@ func setPackaging(c *gin.Context) {
 		return
 	}
 	for _, id := range data.RecordIDs {
-		db.UpsertPackaging(data.ProcessID, id, data.Packaging)
+		db.UpsertPackagingChoice(data.ProcessID, id, data.Packaging)
 	}
-	packagingDecisions, packagingStats, packagingOptions := xdomea.Packaging(data.ProcessID)
+	decisions, stats, choices := xdomea.Packaging(data.ProcessID)
 	c.JSON(http.StatusOK, gin.H{
-		"packagingDecisions": packagingDecisions,
-		"packagingStats":     packagingStats,
-		"packagingOptions":   packagingOptions,
+		"decisions": decisions,
+		"stats":     stats,
+		"choices":   choices,
 	})
 }
 

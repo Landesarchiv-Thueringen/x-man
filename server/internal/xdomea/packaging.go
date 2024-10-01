@@ -8,7 +8,7 @@ import (
 )
 
 // PackagingDecision is the computed decision of how to package a record, based
-// on the chosen packaging option of its root record.
+// on the selected packaging choice of its root record.
 type PackagingDecision string
 
 const (
@@ -52,17 +52,17 @@ func (s *PackagingStats) add(s2 PackagingStats) {
 func Packaging(processID uuid.UUID) (
 	decisions map[uuid.UUID]PackagingDecision,
 	stats map[uuid.UUID]PackagingStats,
-	options map[uuid.UUID]db.PackagingOption,
+	choices map[uuid.UUID]db.PackagingChoice,
 ) {
-	options = make(map[uuid.UUID]db.PackagingOption)
-	for _, o := range db.FindRecordOptionsForProcess(context.Background(), processID) {
-		options[o.RecordID] = o.Packaging
+	choices = make(map[uuid.UUID]db.PackagingChoice)
+	for _, c := range db.FindPackagingChoicesForProcess(context.Background(), processID) {
+		choices[c.RecordID] = c.PackagingChoice
 	}
 	rootRecords := db.FindAllRootRecords(context.Background(), processID, db.MessageType0503)
 	decisions = make(map[uuid.UUID]PackagingDecision)
 	stats = make(map[uuid.UUID]PackagingStats)
 	for _, f := range rootRecords.Files {
-		stats[f.RecordID] = packagingFileRecord(f, db.PackagingOptionRoot, 0, options, decisions)
+		stats[f.RecordID] = packagingFileRecord(f, db.PackagingChoiceRoot, 0, choices, decisions)
 	}
 	// Add an entry for the message root to the stats map, so stats are included
 	// when calculating the combined stats.
@@ -70,22 +70,22 @@ func Packaging(processID uuid.UUID) (
 		Processes: packagingProcessRecords(rootRecords.Processes, decisions),
 		Other:     packagingDocumentRecords(rootRecords.Documents),
 	}
-	return decisions, stats, options
+	return decisions, stats, choices
 }
 
-func PackagingStatsForOptions(rootRecords []db.FileRecord) map[db.PackagingOption]PackagingStats {
-	result := make(map[db.PackagingOption]PackagingStats)
+func PackagingStatsForChoices(rootRecords []db.FileRecord) map[db.PackagingChoice]PackagingStats {
+	result := make(map[db.PackagingChoice]PackagingStats)
 	dummyDecisions := make(map[uuid.UUID]PackagingDecision)
-	for _, o := range []db.PackagingOption{
-		db.PackagingOptionRoot,
-		db.PackagingOptionLevel1,
-		db.PackagingOptionLevel2,
+	for _, c := range []db.PackagingChoice{
+		db.PackagingChoiceRoot,
+		db.PackagingChoiceLevel1,
+		db.PackagingChoiceLevel2,
 	} {
 		var stats PackagingStats
 		for _, f := range rootRecords {
-			stats.add(packagingFileRecord(f, o, 0, nil, dummyDecisions))
+			stats.add(packagingFileRecord(f, c, 0, nil, dummyDecisions))
 		}
-		result[o] = stats
+		result[c] = stats
 	}
 	return result
 }
@@ -95,25 +95,25 @@ func PackagingStatsForOptions(rootRecords []db.FileRecord) map[db.PackagingOptio
 // packages to be created for the respective record types.
 func packagingFileRecord(
 	record db.FileRecord,
-	option db.PackagingOption,
+	choice db.PackagingChoice,
 	level int,
-	options map[uuid.UUID]db.PackagingOption,
+	choices map[uuid.UUID]db.PackagingChoice,
 	decisions map[uuid.UUID]PackagingDecision,
 ) PackagingStats {
-	if options[record.RecordID] != "" {
-		option = options[record.RecordID]
+	if choices[record.RecordID] != "" {
+		choice = choices[record.RecordID]
 	}
 	switch {
-	case option == db.PackagingOptionRoot && level == 0:
+	case choice == db.PackagingChoiceRoot && level == 0:
 		decisions[record.RecordID] = PackagingDecisionSingle
 		return PackagingStats{Files: 1, DeepestLevelHasItems: true}
-	case level == optionLevel(option):
+	case level == choiceLevel(choice):
 		decisions[record.RecordID] = PackagingDecisionSingle
 		return PackagingStats{Subfiles: 1, DeepestLevelHasItems: true}
-	case level < optionLevel(option):
+	case level < choiceLevel(choice):
 		var stats PackagingStats
 		for _, f := range record.Subfiles {
-			stats.add(packagingFileRecord(f, option, level+1, options, decisions))
+			stats.add(packagingFileRecord(f, choice, level+1, choices, decisions))
 		}
 		stats.Processes += packagingProcessRecords(record.Processes, decisions)
 		if stats.Total() == 0 {
@@ -122,20 +122,20 @@ func packagingFileRecord(
 		}
 		decisions[record.RecordID] = PackagingDecisionSub
 		stats.Other += packagingDocumentRecords(record.Documents)
-		stats.DeepestLevelHasItems = stats.DeepestLevelHasItems || level+1 == optionLevel(option)
+		stats.DeepestLevelHasItems = stats.DeepestLevelHasItems || level+1 == choiceLevel(choice)
 		return stats
 	default:
 		panic("unreachable")
 	}
 }
 
-func optionLevel(o db.PackagingOption) int {
-	switch o {
-	case db.PackagingOptionRoot:
+func choiceLevel(c db.PackagingChoice) int {
+	switch c {
+	case db.PackagingChoiceRoot:
 		return 0
-	case db.PackagingOptionLevel1:
+	case db.PackagingChoiceLevel1:
 		return 1
-	case db.PackagingOptionLevel2:
+	case db.PackagingChoiceLevel2:
 		return 2
 	default:
 		panic("unreachable")
