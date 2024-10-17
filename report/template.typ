@@ -164,7 +164,7 @@
         columns: (1fr, 1fr, 1fr, 1fr),
         stroke: none,
         [*Angeboten*],
-        [*Übernommen*],
+        [*Vollständig übernommen*],
         [*Teilweise übernommen*],
         [*Kassiert*],
         ..if data.AppraisalStats.Files.Total > 0 {
