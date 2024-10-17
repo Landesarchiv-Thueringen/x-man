@@ -86,8 +86,8 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		if err != nil {
 			errors.AddProcessingErrorWithData(err, errorData)
 		}
-		err = matchAgainst0501Message(process, message)
-		if err != nil {
+		errs := matchAgainst0501Message(process, message)
+		for _, err := range errs {
 			errors.AddProcessingErrorWithData(err, errorData)
 		}
 		// start format verification
@@ -309,18 +309,18 @@ func collectPrimaryDocumentsData(
 func matchAgainst0501Message(
 	process db.SubmissionProcess,
 	message db.Message,
-) error {
+) []error {
 	// Check if 0501 message exists.
 	_, found := db.FindMessage(context.Background(), process.ProcessID, db.MessageType0501)
 	// 0501 Message doesn't exist. No further message validation necessary.
 	if !found {
-		return nil
+		return []error{}
 	}
 	// Check if appraisal of 0501 message is already complete.
 	if !process.ProcessState.Appraisal.Complete {
-		return &db.ProcessingError{
+		return []error{&db.ProcessingError{
 			Title: "Die Abgabe wurde erhalten, bevor die Bewertung der Anbietung abgeschlossen wurde",
-		}
+		}}
 	}
 	return checkRecordsOfMessage0503(process, message)
 }
@@ -335,7 +335,8 @@ func matchAgainst0501Message(
 func checkRecordsOfMessage0503(
 	process db.SubmissionProcess,
 	message0503 db.Message,
-) error {
+) []error {
+	var errs []error
 	// Gather data
 	appraisals := make(map[uuid.UUID]db.Appraisal)
 	for _, a := range db.FindAppraisalsForProcess(context.Background(), process.ProcessID) {
@@ -393,10 +394,10 @@ L1:
 		info := fmt.Sprintf(
 			"In der Abgabe %s:\n    %v",
 			s, strings.Join(missingRecords, "\n    "))
-		return &db.ProcessingError{
+		errs = append(errs, &db.ProcessingError{
 			Title: "Die Abgabe ist nicht vollständig",
 			Info:  info,
-		}
+		})
 	}
 
 	// Check for surplus objects in the 0503 message
@@ -442,12 +443,12 @@ L2:
 		info := fmt.Sprintf(
 			"Die Abgabe enthält %s:\n    %v", s, strings.Join(surplusRecords, "\n    "),
 		)
-		return &db.ProcessingError{
+		errs = append(errs, &db.ProcessingError{
 			Title: "Die Abgabe enthält zusätzliche Schriftgutobjekte",
 			Info:  info,
-		}
+		})
 	}
-	return nil
+	return errs
 }
 
 // compareAgencyFields checks whether the message's metadata match the agency
