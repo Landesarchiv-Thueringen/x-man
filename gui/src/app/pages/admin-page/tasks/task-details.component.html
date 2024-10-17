@@ -69,7 +69,7 @@
           } @else if (item.state === "failed") {
             <mat-icon matListItemIcon>close</mat-icon>
           }
-          <h3 matListItemTitle>{{ item.label }}</h3>
+          <p matListItemTitle>{{ item.label }}</p>
           <p matListItemLine>
             @switch (item.state) {
               @case ("pending") {

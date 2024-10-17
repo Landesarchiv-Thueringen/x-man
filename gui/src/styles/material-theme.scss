@@ -31,6 +31,13 @@ html {
   --mat-error: #{mat.get-theme-color($light-theme, error)};
 }
 
+.mat-typography h1 {
+  font:
+    400 2.25rem / 2.75rem Roboto,
+    sans-serif;
+  letter-spacing: -0.016rem;
+}
+
 .dark-theme,
 mat-toolbar {
   @include mat.all-component-colors($dark-theme);
