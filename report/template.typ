@@ -213,12 +213,21 @@
       #cetz.canvas(
         {
           let values = ()
-          let archived = all.map(el => el.Archived + el.PartiallyArchived).sum()
+          let archived = all.map(el => el.Archived).sum()
+          let partiallyArchived = all.map(el => el.PartiallyArchived).sum()
           let discarded = all.map(el => el.Discarded).sum()
           let missing = all.map(el => el.Missing).sum()
           let surplus = all.map(el => el.Surplus).sum()
           if (archived > 0) {
             values.push(([übernommen], archived, (fill: rgb("#005cbb")), rgb("#ffffff")))
+          }
+          if (partiallyArchived > 0) {
+            values.push((
+              [teilweise],
+              partiallyArchived,
+              (fill: rgb("#0074e9")),
+              rgb("#ffffff"),
+            ))
           }
           if (discarded > 0) {
             values.push(([kassiert], discarded, (fill: rgb("#d7e3ff")), rgb("#410002")))
