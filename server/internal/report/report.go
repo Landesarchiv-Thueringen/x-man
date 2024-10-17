@@ -31,7 +31,7 @@ func GetReport(
 	}
 	jsonValue, _ := json.Marshal(values)
 	resp, err := http.Post(
-		os.Getenv("REPORT_URL") + "/render", "application/json",
+		os.Getenv("REPORT_URL")+"/render", "application/json",
 		bytes.NewBuffer(jsonValue),
 	)
 	if err != nil {
@@ -50,8 +50,8 @@ func GetReport(
 // getReportData accumulates process data for use by the report service.
 func getReportData(
 	ctx context.Context,
-	 process db.SubmissionProcess,
-	 ) (reportData ReportData, err error) {
+	process db.SubmissionProcess,
+) (reportData ReportData, err error) {
 	messages := make(map[db.MessageType]db.Message)
 	for _, m := range db.FindMessagesForProcess(ctx, process.ProcessID) {
 		messages[m.MessageType] = m
@@ -63,7 +63,7 @@ func getReportData(
 	reportData.Process = process
 
 	if message0501, ok := messages[db.MessageType0501]; ok {
-		appraisalStats := getAppraisalStats(ctx, message0501)
+		appraisalStats := getAppraisalStats(ctx, message0501, message0503)
 		reportData.AppraisalStats = &appraisalStats
 	}
 	reportData.ArchivePackages = archivePackagesInfo(ctx, process)

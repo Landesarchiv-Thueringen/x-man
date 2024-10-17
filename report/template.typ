@@ -159,89 +159,75 @@
     )
     #v(10fr)
   ] else [
-    #if data.AppraisalStats.Files.PartiallyArchived + data.AppraisalStats.Processes.PartiallyArchived > 0 [
-      #table(
-        columns: (1fr, 1fr, 1fr, 1fr),
-        stroke: none,
-        [*Angeboten*],
-        [*Vollständig übernommen*],
-        [*Teilweise übernommen*],
-        [*Kassiert*],
-        ..if data.AppraisalStats.Files.Total > 0 {
-          (
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.PartiallyArchived)],
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
-          )
-        },
-        ..if data.AppraisalStats.Processes.Total > 0 {
-          (
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Total)],
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Archived)],
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.PartiallyArchived)],
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Discarded)],
-          )
-        },
-        ..if data.AppraisalStats.Documents.Total > 0 {
-          (
-            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Total)],
-            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Archived)],
-            [-],
-            [-],
-          )
-        },
-      )
+    #let columns = ()
+    #let all = (
+      data.AppraisalStats.Files,
+      data.AppraisalStats.Processes,
+      data.AppraisalStats.Documents,
+    )
+    #columns.push((label: "Angeboten", key: "Offered"))
+    #if all.any(el => el.PartiallyArchived > 0) [
+      #columns.push((label: "Vollständig übernommen", key: "Archived"))
+      #columns.push((label: "Teilweise übernommen", key: "PartiallyArchived"))
     ] else [
-      #table(
-        columns: (1fr, 1fr, 1fr),
-        stroke: none,
-        [*Angeboten*],
-        [*Übernommen*],
-        [*Kassiert*],
-        ..if data.AppraisalStats.Files.Total > 0 {
-          (
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Total)],
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Archived)],
-            [#formatContentStatsElement("Files", data.AppraisalStats.Files.Discarded)],
-          )
-        },
-        ..if data.AppraisalStats.Processes.Total > 0 {
-          (
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Total)],
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Archived)],
-            [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.Discarded)],
-          )
-        },
-        ..if data.AppraisalStats.Documents.Total > 0 {
-          (
-            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Total)],
-            [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.Archived)],
-            [-],
-          )
-        },
-      )
+      #columns.push((label: "Übernommen", key: "Archived"))
     ]
+    #columns.push((label: "Kassiert", key: "Discarded"))
+    #if all.any(el => el.Missing > 0) [
+      #columns.push((label: "Fehlend", key: "Missing"))
+    ]
+    #if all.any(el => el.Surplus > 0) [
+      #columns.push((label: "Zusätzlich", key: "Surplus"))
+    ]
+    #table(
+      columns: range(columns.len()).map(_ => 1fr),
+      stroke: none,
+      ..columns.map(c => [*#c.label*]),
+      ..if data.AppraisalStats.Files.Total > 0 {
+        columns.map(
+          c => [#formatContentStatsElement("Files", data.AppraisalStats.Files.at(c.key))],
+        )
+      },
+      ..if data.AppraisalStats.Processes.Total > 0 {
+        columns.map(
+          c => [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.at(c.key))],
+        )
+      },
+      ..if data.AppraisalStats.Documents.Total > 0 {
+        columns.map(
+          c => [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.at(c.key))],
+        )
+      },
+    )
+
     #table(
       columns: 2,
       stroke: none,
       [Gesamt-?speicher-?volumen übernommen:],
       [#formatFilesize(data.FileStats.TotalBytes)],
     )
+
     #[
       #v(1fr)
       #set align(center)
       #cetz.canvas(
         {
           let values = ()
-          let archived = data.AppraisalStats.Files.Archived + data.AppraisalStats.Files.PartiallyArchived
-          archived += data.AppraisalStats.Processes.Archived + data.AppraisalStats.Processes.PartiallyArchived
-          let discarded = data.AppraisalStats.Files.Discarded + data.AppraisalStats.Processes.Discarded
+          let archived = all.map(el => el.Archived + el.PartiallyArchived).sum()
+          let discarded = all.map(el => el.Discarded).sum()
+          let missing = all.map(el => el.Missing).sum()
+          let surplus = all.map(el => el.Surplus).sum()
           if (archived > 0) {
-            values.push(([übernommen], archived, (fill: olive)))
+            values.push(([übernommen], archived, (fill: rgb("#005cbb")), rgb("#ffffff")))
           }
           if (discarded > 0) {
-            values.push(([kassiert], discarded, (fill: rgb("#e53a31")),))
+            values.push(([kassiert], discarded, (fill: rgb("#d7e3ff")), rgb("#410002")))
+          }
+          if (missing > 0) {
+            values.push(([fehlend], missing, (fill: rgb("#ffdad6")), rgb("#001b3f")))
+          }
+          if (surplus > 0) {
+            values.push(([zusätzlich], surplus, (fill: rgb("#ba1a1a")), rgb("#ffffff")))
           }
           cetz.chart.piechart(
             values,
@@ -252,7 +238,10 @@
               // slice-style has a somewhat peculiar indexing strategy...
               index => values.at(calc.rem-euclid(values.len() - index - 1, values.len())).at(2)
             ),
-            inner-label: (content: (value, label) => [#text(white, label)], radius: 120%),
+            inner-label: (
+              content: (value, label) => [#text(values.find(v => v.at(0) == label).at(3), label)],
+              radius: 120%,
+            ),
             outer-label: (content: "%", radius: 120%),
           )
         },
