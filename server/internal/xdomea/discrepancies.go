@@ -10,7 +10,6 @@ import (
 type Discrepancies struct {
 	MissingRecords []string
 	SurplusRecords []string
-	// MissingPrimaryDocuments []string
 }
 
 type recordNode struct {

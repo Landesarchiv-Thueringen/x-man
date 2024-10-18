@@ -39,7 +39,9 @@ func ArchiveSubmission(
 	collection db.ArchiveCollection,
 	userID string,
 ) {
-	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	rootRecords := db.FindAllRootRecords(
+		context.Background(), process.ProcessID, db.MessageType0503,
+	)
 	var items []db.TaskItem
 	m, _, _ := xdomea.Packaging(process.ProcessID)
 	items = append(items, taskItemsForFiles(m, []uuid.UUID{}, rootRecords.Files)...)
@@ -82,9 +84,12 @@ func taskItemsForFiles(
 				},
 			})
 		case xdomea.PackagingDecisionSub:
-			items = append(items, taskItemsForFiles(m, append(path, f.RecordID), f.Subfiles)...)
-			items = append(items, taskItemsForProcesses(m, append(path, f.RecordID), f.Processes)...)
-			items = append(items, taskItemsForDocuments(title, append(path, f.RecordID), f.Documents)...)
+			items = append(items,
+				taskItemsForFiles(m, append(path, f.RecordID), f.Subfiles)...)
+			items = append(items,
+				taskItemsForProcesses(m, append(path, f.RecordID), f.Processes)...)
+			items = append(items,
+				taskItemsForDocuments(title, append(path, f.RecordID), f.Documents)...)
 		default:
 			panic("no packaging decision for file record " + f.RecordID.String())
 		}
@@ -113,7 +118,9 @@ func taskItemsForProcesses(
 				},
 			})
 		case xdomea.PackagingDecisionSub:
-			panic("unexpected packaging decision for process record " + p.RecordID.String() + ": \"sub\"")
+			panic("unexpected packaging decision for process record " +
+				p.RecordID.String() + ": \"sub\"",
+			)
 		default:
 			panic("no packaging decision for process record " + p.RecordID.String())
 		}
@@ -194,7 +201,9 @@ func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 			panic("failed to find archive collection  " + d.CollectionID.Hex())
 		}
 	}
-	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+	rootRecords := db.FindAllRootRecords(
+		context.Background(), process.ProcessID, db.MessageType0503,
+	)
 	archiveTarget := os.Getenv("ARCHIVE_TARGET")
 	var targetData interface{}
 	if archiveTarget == "dimag" {
@@ -256,7 +265,9 @@ func (h *ArchiveHandler) HandleItem(
 		// waiting for this job on retry.
 		if d.JobID == 0 {
 			targetData := h.targetData.(DimagData)
-			jobID, err := dimag.StartImport(ctx, h.process, h.message, &aip, targetData.Connection)
+			jobID, err := dimag.StartImport(
+				ctx, h.process, h.message, &aip, targetData.Connection,
+			)
 			if err != nil {
 				return err
 			}
@@ -316,7 +327,10 @@ func (h *ArchiveHandler) AfterDone() {
 		if err != nil {
 			errors.AddProcessingErrorWithData(err, errorData)
 		} else {
-			filename := fmt.Sprintf("Übernahmebericht %s %s.pdf", process.Agency.Abbreviation, process.CreatedAt)
+			filename := fmt.Sprintf(
+				"Übernahmebericht %s %s.pdf",
+				process.Agency.Abbreviation, process.CreatedAt,
+			)
 			err = mail.SendMailReport(
 				address, process,
 				mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
@@ -353,7 +367,8 @@ func makeRecordsMap(r db.RootRecords) recordsMap {
 	return m
 }
 
-// createAipFromFileRecord creates the archive package metadata from a file record.
+// createAipFromFileRecord creates the archive package metadata from a file
+// record.
 func createAipFromFileRecord(
 	title string,
 	process db.SubmissionProcess,
@@ -361,12 +376,16 @@ func createAipFromFileRecord(
 	f db.FileRecord,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
+	primaryDocuments := xdomea.GetPrimaryDocumentsForFile(&f)
+	primaryDocuments, _ = xdomea.FilterMissingPrimaryDocuments(
+		process.ProcessID, primaryDocuments,
+	)
 	archivePackageData := db.ArchivePackage{
 		ProcessID:        process.ProcessID,
 		IOTitle:          title,
 		IOLifetime:       f.Lifetime,
 		REPTitle:         "Original",
-		PrimaryDocuments: db.GetPrimaryDocumentsForFile(&f),
+		PrimaryDocuments: primaryDocuments,
 		RecordIDs:        []uuid.UUID{f.RecordID},
 		RecordPath:       path,
 		CollectionID:     collectionID,
@@ -374,7 +393,8 @@ func createAipFromFileRecord(
 	return archivePackageData
 }
 
-// createAipFromProcessRecord creates the archive package metadata from a process record.
+// createAipFromProcessRecord creates the archive package metadata from a
+// process record.
 func createAipFromProcessRecord(
 	title string,
 	process db.SubmissionProcess,
@@ -382,12 +402,16 @@ func createAipFromProcessRecord(
 	p db.ProcessRecord,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
+	primaryDocuments := xdomea.GetPrimaryDocumentsForProcess(&p)
+	primaryDocuments, _ = xdomea.FilterMissingPrimaryDocuments(
+		process.ProcessID, primaryDocuments,
+	)
 	archivePackageData := db.ArchivePackage{
 		ProcessID:        process.ProcessID,
 		IOTitle:          title,
 		IOLifetime:       p.Lifetime,
 		REPTitle:         "Original",
-		PrimaryDocuments: db.GetPrimaryDocumentsForProcess(&p),
+		PrimaryDocuments: primaryDocuments,
 		RecordIDs:        []uuid.UUID{p.RecordID},
 		RecordPath:       path,
 		CollectionID:     collectionID,
@@ -395,7 +419,8 @@ func createAipFromProcessRecord(
 	return archivePackageData
 }
 
-// createAipFromDocumentRecords creates the metadata for a shared archive package of multiple documents.
+// createAipFromDocumentRecords creates the metadata for a shared archive
+// package of multiple documents.
 func createAipFromDocumentRecords(
 	title string,
 	process db.SubmissionProcess,
@@ -423,8 +448,12 @@ func createAipFromDocumentRecords(
 	}
 	var primaryDocuments []db.PrimaryDocumentContext
 	for _, d := range documents {
-		primaryDocuments = append(primaryDocuments, db.GetPrimaryDocumentsForDocument(&d)...)
+		primaryDocuments = append(primaryDocuments,
+			xdomea.GetPrimaryDocumentsForDocument(&d)...)
 	}
+	primaryDocuments, _ = xdomea.FilterMissingPrimaryDocuments(
+		process.ProcessID, primaryDocuments,
+	)
 	var recordIDs []uuid.UUID
 	for _, r := range documents {
 		recordIDs = append(recordIDs, r.RecordID)

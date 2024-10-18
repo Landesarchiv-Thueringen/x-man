@@ -188,9 +188,9 @@ func getAppraisalNote(aip db.ArchivePackage) string {
 }
 
 // getTotalFileSize returns the total file size in bytes of all files that
-// belong to the given archive package.
+// belong to the given archive package. asdf
 func getTotalFileSize(ctx context.Context, a db.ArchivePackage) int64 {
-	var filenames []string
+	filenames := make([]string, 0)
 	for _, p := range a.PrimaryDocuments {
 		filenames = append(filenames, p.Filename)
 	}

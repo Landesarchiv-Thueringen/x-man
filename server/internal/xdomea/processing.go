@@ -81,7 +81,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		})
 	}
 	if messageType == "0503" {
-		primaryDocuments := db.GetPrimaryDocuments(rootRecords)
+		primaryDocuments := GetPrimaryDocuments(rootRecords)
 		err = collectPrimaryDocumentsData(process, message, primaryDocuments)
 		if err != nil {
 			errors.AddProcessingErrorWithData(err, errorData)
@@ -92,7 +92,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		}
 		// start format verification
 		if os.Getenv("BORG_URL") != "" {
-			verification.VerifyFileFormats(process, message)
+			verification.VerifyFileFormats(process, primaryDocuments)
 		}
 	}
 	confirmMessageReceipt(agency, processID, messageType)

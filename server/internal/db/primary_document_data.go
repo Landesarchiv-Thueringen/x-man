@@ -103,6 +103,9 @@ func DeletePrimaryDocumentsDataForProcess(processID uuid.UUID) {
 }
 
 func CalculateTotalFileSize(ctx context.Context, processID uuid.UUID, filenames []string) int64 {
+	if len(filenames) == 0 {
+		return 0
+	}
 	coll := mongoDatabase.Collection("primary_documents_data")
 	matchStage := bson.D{{"$match", bson.D{
 		{"process_id", processID},

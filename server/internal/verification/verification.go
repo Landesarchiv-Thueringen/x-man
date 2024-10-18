@@ -34,10 +34,9 @@ var client http.Client = http.Client{
 	Transport: &tr,
 }
 
-func VerifyFileFormats(process db.SubmissionProcess, message db.Message) {
-	rootRecords := db.FindAllRootRecords(context.Background(), process.ProcessID, db.MessageType0503)
+func VerifyFileFormats(process db.SubmissionProcess, primaryDocuments []db.PrimaryDocumentContext) {
 	var items []db.TaskItem
-	for _, d := range db.GetPrimaryDocuments(&rootRecords) {
+	for _, d := range primaryDocuments {
 		items = append(items, db.TaskItem{
 			Label: d.Filename,
 			State: db.TaskStatePending,

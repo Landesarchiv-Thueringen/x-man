@@ -157,6 +157,12 @@
         )
       },
     )
+    #table(
+      columns: 2,
+      stroke: none,
+      [Gesamt-?speicher-?volumen übernommen:],
+      [#formatFilesize(data.FileStats.TotalBytes)],
+    )
     #v(10fr)
   ] else [
     #let columns = ()
@@ -261,7 +267,7 @@
 ]
 
 #let discrepancies(discrepancies) = [
-  = Dikrepanzen
+  = Diskrepanzen
   #if discrepancies.MissingRecords != none [
     == Fehlende Schriftgutobjekte (#discrepancies.MissingRecords.len())
 
@@ -280,6 +286,15 @@
 
     #for el in discrepancies.SurplusRecords [
       - #el
+    ]
+  ]
+  #if discrepancies.MissingPrimaryDocuments != none [
+    == Fehlende Primärdokumente (#discrepancies.MissingPrimaryDocuments.len())
+
+    Folgende Dateien sind nicht in der Abgabe enthalten, obwohl die xdomea-Nachricht
+    die Primärdokumente referenziert.
+    #for el in discrepancies.MissingPrimaryDocuments [
+      - #el.replace("_", "_" + str(sym.zws))
     ]
   ]
 ]
@@ -399,7 +414,7 @@
 
   #topMatter(data)
   #overview(data)
-  #if data.Discrepancies.MissingRecords != none or data.Discrepancies.SurplusRecords != none [
+  #if data.Discrepancies.values().any(a => a != none) [
     #pagebreak()
     #discrepancies(data.Discrepancies)
   ]

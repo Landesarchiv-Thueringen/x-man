@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 	"net/http"
 	"os"
 )
@@ -19,7 +18,7 @@ type ReportData struct {
 	Message0503Stats *ContentStats
 	AppraisalStats   *AppraisalStats
 	FileStats        FileStats
-	Discrepancies    xdomea.Discrepancies
+	Discrepancies    Discrepancies
 }
 
 // GetReport sends process data to the report service and returns the generated PDF.
@@ -67,7 +66,9 @@ func getReportData(
 	if message0501, ok := messages[db.MessageType0501]; ok {
 		appraisalStats := getAppraisalStats(ctx, message0501, message0503)
 		reportData.AppraisalStats = &appraisalStats
-		reportData.Discrepancies = xdomea.FindDiscrepancies(message0501, message0503)
+		reportData.Discrepancies = findDiscrepancies(&message0501, message0503)
+	} else {
+		reportData.Discrepancies = findDiscrepancies(nil, message0503)
 	}
 	reportData.ArchivePackages = archivePackagesInfo(ctx, process)
 	messageStats := getMessageContentStats(ctx, message0503)

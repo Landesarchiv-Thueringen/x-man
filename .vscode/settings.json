@@ -38,6 +38,7 @@
     "Paketierungsebene",
     "Primärdateien",
     "Primärdaten",
+    "Primärdokumente",
     "puid",
     "PUID",
     "Schriftgutobjekt",
@@ -68,5 +69,6 @@
     "analyses": {
       "composites": false // allow query syntax for mongodb driver
     }
-  }
+  },
+  "cSpell.checkOnlyEnabledFileTypes": false
 }
