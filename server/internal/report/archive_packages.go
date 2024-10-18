@@ -146,7 +146,7 @@ func archivePackagesInfoForProcess(
 	}
 	appraisal, _ := db.FindAppraisal(aips[0].ProcessID, process.RecordID)
 	return ArchivePackageStructure{
-		Title:         xdomea.ProcessRecordTitle(process),
+		Title:         xdomea.ProcessRecordTitle(process, false),
 		Children:      children,
 		AppraisalNote: appraisal.Note,
 	}

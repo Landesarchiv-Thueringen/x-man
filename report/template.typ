@@ -260,6 +260,30 @@
   ]
 ]
 
+#let discrepancies(discrepancies) = [
+  = Dikrepanzen
+  #if discrepancies.MissingRecords != none [
+    == Fehlende Schriftgutobjekte (#discrepancies.MissingRecords.len())
+
+    In der Abgabe fehlen folgende Schriftgutobjekte, die in der Anbietung als zu
+    archivieren bewertet wurden.
+
+    #for el in discrepancies.MissingRecords [
+      - #el
+    ]
+  ]
+  #if discrepancies.SurplusRecords != none [
+    == Zusätzliche Schriftgutobjekte (#discrepancies.SurplusRecords.len())
+
+    Die Abgabe enthält folgende Schriftgutobjekte, die entweder in der Anbietung
+    nicht vorhanden waren, oder als zu vernichten bewertet wurden.
+
+    #for el in discrepancies.SurplusRecords [
+      - #el
+    ]
+  ]
+]
+
 #let fileStats(fileStats) = [
   = Formatstatistik
   #table(
@@ -343,6 +367,7 @@
 ]
 
 #let archivePackages(elements) = [
+  = Archivierte Pakete
   #for el in elements [
     #if el.AIP == none [
       #archivePackageSection(el, 1)
@@ -374,8 +399,11 @@
 
   #topMatter(data)
   #overview(data)
+  #if data.Discrepancies.MissingRecords != none or data.Discrepancies.SurplusRecords != none [
+    #pagebreak()
+    #discrepancies(data.Discrepancies)
+  ]
   #pagebreak()
-  = Archivierte Pakete
   #archivePackages(data.ArchivePackages)
   // #pagebreak()
   // #fileStats(data.FileStats)

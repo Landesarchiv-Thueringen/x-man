@@ -101,7 +101,7 @@ func taskItemsForProcesses(
 	for _, p := range processes {
 		switch m[p.RecordID] {
 		case xdomea.PackagingDecisionSingle:
-			title := xdomea.ProcessRecordTitle(p)
+			title := xdomea.ProcessRecordTitle(p, false)
 			items = append(items, db.TaskItem{
 				Label: title,
 				State: db.TaskStatePending,
