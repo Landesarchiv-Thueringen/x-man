@@ -3,7 +3,6 @@ package shared
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"lath/xman/internal/db"
 	"slices"
 
@@ -15,20 +14,16 @@ const ProtocolFilename = "xman_protocol.json"
 var idPathXdomea = etree.MustCompilePath("./Identifikation/ID")
 
 func GenerateProtocol(process db.SubmissionProcess) []byte {
-	processStateBytes, err := json.MarshalIndent(process.ProcessState, "", " ")
+	processingErrors := db.FindProcessingErrorsForProcess(context.Background(), process.ProcessID)
+	protocol := map[string]any{
+		"processState":     process.ProcessState,
+		"processingErrors": processingErrors,
+	}
+	result, err := json.MarshalIndent(protocol, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	protocol := append(processStateBytes, '\n')
-	processingErrors := db.FindProcessingErrorsForProcess(context.Background(), process.ProcessID)
-	if len(processingErrors) > 0 {
-		errorsBytes, err := json.MarshalIndent(processingErrors, "", " ")
-		if err != nil {
-			panic(err)
-		}
-		protocol = fmt.Appendln(protocol, errorsBytes)
-	}
-	return protocol
+	return result
 }
 
 // PruneMessage removes all records from the message which are no part of the

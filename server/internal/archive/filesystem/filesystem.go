@@ -78,7 +78,7 @@ func copyFileIntoArchivePackage(storePath string, archivePackagePath string, fil
 
 // writeObjectToTextfile writes an object to a textfile in the archive package.
 func writeObjectToTextfile(obj any, archivePackagePath string, filename string) {
-	bytes, err := json.MarshalIndent(obj, "", " ")
+	bytes, err := json.MarshalIndent(obj, "", "  ")
 	if err != nil {
 		panic(err)
 	}
