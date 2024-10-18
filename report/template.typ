@@ -218,43 +218,46 @@
       #set align(center)
       #cetz.canvas(
         {
-          let values = ()
-          let archived = all.map(el => el.Archived).sum()
-          let partiallyArchived = all.map(el => el.PartiallyArchived).sum()
-          let discarded = all.map(el => el.Discarded).sum()
-          let missing = all.map(el => el.Missing).sum()
-          let surplus = all.map(el => el.Surplus).sum()
-          if (archived > 0) {
-            values.push(([übernommen], archived, (fill: rgb("#005cbb")), rgb("#ffffff")))
-          }
-          if (partiallyArchived > 0) {
-            values.push((
-              [teilweise],
-              partiallyArchived,
-              (fill: rgb("#0074e9")),
-              rgb("#ffffff"),
-            ))
-          }
-          if (discarded > 0) {
-            values.push(([kassiert], discarded, (fill: rgb("#d7e3ff")), rgb("#410002")))
-          }
-          if (missing > 0) {
-            values.push(([fehlend], missing, (fill: rgb("#ffdad6")), rgb("#001b3f")))
-          }
-          if (surplus > 0) {
-            values.push(([zusätzlich], surplus, (fill: rgb("#ba1a1a")), rgb("#ffffff")))
-          }
+          let values = ((
+            label: [übernommen],
+            value: all.map(el => el.Archived).sum(),
+            backgroundColor: rgb("#005cbb"),
+            textColor: rgb("#ffffff"),
+          ), (
+            label: [teilweise],
+            value: all.map(el => el.PartiallyArchived).sum(),
+            backgroundColor: rgb("#0074e9"),
+            textColor: rgb("#ffffff"),
+          ), (
+            label: [kassiert],
+            value: all.map(el => el.Discarded).sum(),
+            backgroundColor: rgb("#d7e3ff"),
+            textColor: rgb("#410002"),
+          ), (
+            label: [fehlend],
+            value: all.map(el => el.Missing).sum(),
+            backgroundColor: rgb("#ffdad6"),
+            textColor: rgb("#001b3f"),
+          ), (
+            label: [zusätzlich],
+            value: all.map(el => el.Surplus).sum(),
+            backgroundColor: rgb("#ba1a1a"),
+            textColor: rgb("#ffffff"),
+          )).filter(v => v.value > 0)
           cetz.chart.piechart(
             values,
-            label-key: 0,
-            value-key: 1,
+            label-key: "label",
+            value-key: "value",
             radius: 4,
             slice-style: (
-              // slice-style has a somewhat peculiar indexing strategy...
-              index => values.at(calc.rem-euclid(values.len() - index - 1, values.len())).at(2)
+              index => (
+                // slice-style has a somewhat peculiar indexing strategy...
+                fill: values.at(calc.rem-euclid(values.len() - index - 1, values.len())).backgroundColor,
+                stroke: none,
+              )
             ),
             inner-label: (
-              content: (value, label) => [#text(values.find(v => v.at(0) == label).at(3), label)],
+              content: (value, label) => [#text(values.find(v => v.label == label).textColor, label)],
               radius: 120%,
             ),
             outer-label: (content: "%", radius: 120%),
