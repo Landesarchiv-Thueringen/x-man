@@ -11,6 +11,7 @@
 - Feature: Prüfsummen bei Archivierung in Dateisystem
 - Feature: Archiviere Ergebnisse der Formatverifikation
 - Feature: xdomea-Nachrichten an zentrale Poststelle weiterleiten
+- Fix: Bewertung von Objekten mit Dokumenten und anderen Kind-Objekten
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit
 - Fix: Einstellung NO_PROXY wird nicht angewendet

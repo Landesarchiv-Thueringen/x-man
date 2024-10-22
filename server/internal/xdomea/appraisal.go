@@ -10,9 +10,10 @@ import (
 )
 
 type AppraisableRecordRelations struct {
-	Parent   uuid.UUID // uuid.Nil for root-level records
-	Children []uuid.UUID
-	Type     db.RecordType
+	Parent       uuid.UUID // uuid.Nil for root-level records
+	Children     []uuid.UUID
+	HasDocuments bool
+	Type         db.RecordType
 }
 
 type AppraisableRecordsMap map[uuid.UUID]AppraisableRecordRelations
@@ -27,9 +28,10 @@ func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 			innerChildIDs := appendFileRecords(f.RecordID, f.Subfiles)
 			innerChildIDs = append(innerChildIDs, appendProcessRecords(f.RecordID, f.Processes)...)
 			m[f.RecordID] = AppraisableRecordRelations{
-				Parent:   parent,
-				Children: innerChildIDs,
-				Type:     db.RecordTypeFile,
+				Parent:       parent,
+				Children:     innerChildIDs,
+				HasDocuments: len(f.Documents) > 0,
+				Type:         db.RecordTypeFile,
 			}
 		}
 		return
@@ -39,9 +41,10 @@ func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 			childIDs = append(childIDs, p.RecordID)
 			innerChildIDs := appendProcessRecords(p.RecordID, p.Subprocesses)
 			m[p.RecordID] = AppraisableRecordRelations{
-				Parent:   parent,
-				Children: innerChildIDs,
-				Type:     db.RecordTypeProcess,
+				Parent:       parent,
+				Children:     innerChildIDs,
+				HasDocuments: len(p.Documents) > 0,
+				Type:         db.RecordTypeProcess,
 			}
 		}
 		return
@@ -76,8 +79,13 @@ func AreAllRecordObjectsAppraised(ctx context.Context, processID uuid.UUID) bool
 //
 // It clears the internal appraisal note of children that it updates.
 //
-// If the decision to set is "A" and given record object is a sub object, it
-// makes sure that all ancestors are also set to "A".
+// If the decision to set is "A" and given record is a sub record, it makes sure
+// that all ancestors are also set to "A".
+//
+// For any other decision, if the given record is a sub record, in case that
+// with the given appraisal all siblings have assumed the same decision, it
+// updates the parent to match the decision, repeating the process for further
+// ancestors.
 func SetAppraisalDecisionRecursive(
 	processID uuid.UUID,
 	recordID uuid.UUID,
@@ -200,6 +208,13 @@ func matchParentForEqualSiblings(
 ) {
 	parent := m[id].Parent
 	if parent != uuid.Nil {
+		// If the record has documents as siblings, these documents
+		// automatically assume the parent's appraisal decision since documents
+		// themselves are not appraisable. Therefore, there we can never update
+		// the parent's appraisal in this case.
+		if m[parent].HasDocuments {
+			return
+		}
 		parentAppraisal, _ := db.FindAppraisal(processID, parent)
 		if parentAppraisal.Decision != decision {
 			for _, sibling := range m[parent].Children {
