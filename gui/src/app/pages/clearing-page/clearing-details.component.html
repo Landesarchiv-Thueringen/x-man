@@ -11,11 +11,11 @@
         <div role="cell">Lösung</div>
         <div role="cell">
           @switch (processingError.resolution) {
-            @case ("mark-solved") {
-              Als gelöst markiert
+            @case ("ignore-problem") {
+              Problem ignoriert
             }
-            @case ("mark-done") {
-              Als abgeschlossen markiert
+            @case ("skip-task") {
+              Aufgabe ausgelassen
             }
             @case ("retry-task") {
               Aufgabe wiederholt
@@ -143,14 +143,14 @@
     processingError.processStep === "format_verification" &&
     processingError.taskId !== "000000000000000000000000"
   ) {
-    <button mat-menu-item (click)="markDone()">
-      <mat-icon>done</mat-icon>
-      <span>Als abgeschlossen markieren</span>
+    <button mat-menu-item (click)="skipTask()">
+      <mat-icon>skip_next</mat-icon>
+      <span>Aufgabe auslassen</span>
     </button>
   } @else {
-    <button mat-menu-item (click)="markSolved()">
+    <button mat-menu-item (click)="ignoreProblem()">
       <mat-icon>done</mat-icon>
-      <span>Als gelöst markieren</span>
+      <span>Problem ignorieren</span>
     </button>
   }
   @if (processingError.taskId !== "000000000000000000000000") {

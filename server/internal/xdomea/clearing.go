@@ -16,9 +16,9 @@ import (
 func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) {
 	var err error
 	switch r {
-	case db.ErrorResolutionMarkSolved:
+	case db.ErrorResolutionIgnoreProblem:
 		// Do nothing
-	case db.ErrorResolutionMarkDone:
+	case db.ErrorResolutionSkipTask:
 		err = db.UpdateProcessStepCompletion(e.ProcessID, e.ProcessStep, true, user)
 	case db.ErrorResolutionRetryTask:
 		err = tasks.Action(e.TaskID, db.TaskActionRetry)

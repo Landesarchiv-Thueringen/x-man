@@ -7,8 +7,8 @@ import { MessageType } from '../services/message.service';
 import { UpdatesService } from './updates.service';
 
 type ProcessingErrorResolution =
-  | 'mark-solved'
-  | 'mark-done'
+  | 'ignore-problem'
+  | 'skip-task'
   | 'retry-task'
   | 'reimport-message'
   | 'delete-message'

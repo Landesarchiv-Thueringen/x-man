@@ -14,8 +14,8 @@ import (
 type ProcessingErrorResolution string
 
 const (
-	ErrorResolutionMarkSolved          ProcessingErrorResolution = "mark-solved"
-	ErrorResolutionMarkDone            ProcessingErrorResolution = "mark-done"
+	ErrorResolutionIgnoreProblem       ProcessingErrorResolution = "ignore-problem"
+	ErrorResolutionSkipTask            ProcessingErrorResolution = "skip-task"
 	ErrorResolutionRetryTask           ProcessingErrorResolution = "retry-task"
 	ErrorResolutionReimportMessage     ProcessingErrorResolution = "reimport-message"
 	ErrorResolutionDeleteMessage       ProcessingErrorResolution = "delete-message"

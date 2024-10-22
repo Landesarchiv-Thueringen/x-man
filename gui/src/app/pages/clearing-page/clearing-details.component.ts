@@ -108,14 +108,14 @@ export class ClearingDetailsComponent {
     a.click();
   }
 
-  markSolved() {
-    this.clearingService.resolveError(this.processingError.id, 'mark-solved').subscribe(() => {
+  ignoreProblem() {
+    this.clearingService.resolveError(this.processingError.id, 'ignore-problem').subscribe(() => {
       this.dialogRef.close();
     });
   }
 
-  markDone() {
-    this.clearingService.resolveError(this.processingError.id, 'mark-done').subscribe(() => {
+  skipTask() {
+    this.clearingService.resolveError(this.processingError.id, 'skip-task').subscribe(() => {
       this.dialogRef.close();
     });
   }
