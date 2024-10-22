@@ -24,13 +24,24 @@ func createArchiveBagit(
 			filepath.Join(message.StoreDir, d.Filename),
 		)
 	}
+	var verificationResultsFilename string
+	if f, ok := shared.GenerateVerificationResults(process.ProcessID, archivePackage); ok {
+		verificationResultsFilename = "verification_results.json"
+		bagit.CreateFile(
+			filepath.Join("data", verificationResultsFilename),
+			f,
+		)
+	}
 	ioAlternateID, controlFile := generateControlFile(
-		message, archivePackage, filepath.Join(getUploadDir(bagit), "data"),
+		message,
+		archivePackage,
+		filepath.Join(getUploadDir(bagit), "data"),
+		verificationResultsFilename,
 	)
 	bagit.CreateFile(filepath.Join("dimag", "control.xml"), controlFile)
 	bagit.CreateFile(
 		filepath.Join("dimag", "protocol.xml"),
-		generateProtocolFile(process, archivePackage, ioAlternateID),
+		generateProtocolFile(process, ioAlternateID),
 	)
 	bagit.Finalize()
 	return bagit

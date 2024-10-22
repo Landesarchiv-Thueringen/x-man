@@ -45,6 +45,10 @@ func StoreArchivePackage(
 	if err != nil {
 		panic(err)
 	}
+	// Add format verification results.
+	if f, ok := shared.GenerateVerificationResults(process.ProcessID, archivePackage); ok {
+		writeFile(archivePackagePath, "verification_results.json", f)
+	}
 	// Add internal archive-package object.
 	writeObjectToTextfile(archivePackage, archivePackagePath, "aip.json")
 	// Calculate and add checksums.

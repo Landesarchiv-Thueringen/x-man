@@ -9,6 +9,7 @@
 - Feature: Laufzeit bei Sammelpaketen für Dokumente ohne Akte oder Vorgang
 - Feature: Warnung bei nicht zugeordneten Dokumenten
 - Feature: Prüfsummen bei Archivierung in Dateisystem
+- Feature: Archiviere Ergebnisse der Formatverifikation
 - Feature: xdomea-Nachrichten an zentrale Poststelle weiterleiten
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit

@@ -17,6 +17,7 @@ const (
 	itemTypeInformationObject itemType = "O"
 	itemTypeRepresentation    itemType = "R"
 	itemTypeFile              itemType = "F"
+	itemTypeDocumentation     itemType = "D"
 )
 
 type controlRoot struct {
@@ -41,6 +42,7 @@ func generateControlFile(
 	message db.Message,
 	archivePackage db.ArchivePackage,
 	importDir string,
+	verificationResultsFilename string,
 ) (ioAlternateID string, fileContent []byte) {
 	primaryDocuments := archivePackage.PrimaryDocuments
 	fileIndexItems := []indexItem{}
@@ -59,13 +61,14 @@ func generateControlFile(
 		FilePath: filepath.Join(importDir, filepath.Base(message.MessagePath)),
 	}
 	fileIndexItems = append(fileIndexItems, messageIndexItem)
-	// protocolIndexItem := indexItem{
-	// 	ItemType: itemTypeFile,
-	// 	Title:    shared.ProtocolFilename,
-	// 	FileName: shared.ProtocolFilename,
-	// 	FilePath: filepath.Join(importDir, shared.ProtocolFilename),
-	// }
-	// fileIndexItems = append(fileIndexItems, protocolIndexItem)
+	if verificationResultsFilename != "" {
+		verificationResultsIndexItem := indexItem{
+			ItemType: itemTypeDocumentation,
+			Title:    "Ergebnisse der Formatverifikation",
+			FilePath: filepath.Join(importDir, verificationResultsFilename),
+		}
+		fileIndexItems = append(fileIndexItems, verificationResultsIndexItem)
+	}
 	repIndexItem := indexItem{
 		ItemType:   itemTypeRepresentation,
 		Title:      archivePackage.REPTitle,
