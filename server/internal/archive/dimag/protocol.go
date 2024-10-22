@@ -32,7 +32,6 @@ type protocolEntry struct {
 
 func generateProtocolFile(
 	process db.SubmissionProcess,
-	archivePackage db.ArchivePackage,
 	ioAlternateID string,
 ) []byte {
 	entries := append(
