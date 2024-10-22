@@ -5,6 +5,7 @@ import {
   Component,
   Inject,
   QueryList,
+  TemplateRef,
   ViewChild,
   ViewChildren,
   computed,
@@ -16,9 +17,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipEditedEvent, MatChipRow, MatChipsModule } from '@angular/material/chips';
 import { MatRippleModule } from '@angular/material/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
@@ -42,17 +45,21 @@ import { FilterResult, FlatNode, MessageTreeDataSource } from './message-tree-da
 import { PackagingDialogComponent } from './packaging-dialog/packaging-dialog.component';
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
 
-export interface Filter {
+export interface Filter<T = unknown> {
   /** A unique string to identify the filter. */
   type: string;
   /** A label shown to the user. */
   label: string;
   /** An optional filter value to be entered by the user and passed to the predicate. */
-  value?: string;
+  value?: T;
+  /** A function that lets the user edit the value. */
+  edit?: (oldValue?: T) => Promise<T | null>;
+  /** How to show the value in the filter chip. */
+  printValue?: (value: T) => string;
   /** An optional condition for when to show the filter in the menu. */
   showIf?: () => boolean;
   /** The filter predicate that decides whether to include a node in results. */
-  predicate: (node: StructureNode, value?: string) => FilterResult;
+  predicate: (node: StructureNode, value: T) => FilterResult;
 }
 
 @Component({
@@ -66,9 +73,12 @@ export interface Filter {
     MatButtonModule,
     MatCheckboxModule,
     MatChipsModule,
+    MatDialogModule,
     MatIconModule,
     MatMenuModule,
+    MatRadioModule,
     MatRippleModule,
+    MatSelectModule,
     MatToolbarModule,
     MatTooltipModule,
     MatTreeModule,
@@ -78,8 +88,10 @@ export interface Filter {
   ],
 })
 export class MessageTreeComponent {
+  Math = Math;
   @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
   @ViewChildren(MatChipRow) matChipRow?: QueryList<MatChipRow>;
+  @ViewChild('lifetimeFilterDialog') lifetimeFilterDialog!: TemplateRef<unknown>;
 
   readonly process = this.messagePage.process;
   readonly message = this.messagePage.message;
@@ -95,7 +107,7 @@ export class MessageTreeComponent {
 
   dataSource = new MessageTreeDataSource(this.treeControl);
   readonly appraisals = this.messagePage.appraisals;
-  readonly availableFilters: Filter[] = [
+  readonly availableFilters: Filter<any>[] = [
     {
       type: 'not-appraised',
       label: 'Noch nicht bewertet',
@@ -124,11 +136,71 @@ export class MessageTreeComponent {
           ? 'show-recursive'
           : 'hide-recursive',
     },
+    {
+      type: 'lifetime',
+      label: 'Laufzeit',
+      edit: (value) => {
+        const dialogRef = this.dialog.open(this.lifetimeFilterDialog, {
+          data: value,
+        });
+        return firstValueFrom(dialogRef.afterClosed());
+      },
+      printValue: (value) => {
+        switch (value.mode) {
+          case 'lifetime':
+            return `${value.from} - ${value.to}`;
+          case 'missing':
+            return `ohne Angabe`;
+          default:
+            const _: never = value.mode;
+            return '';
+        }
+      },
+      predicate: (node, value) => {
+        if (node.type === 'document') {
+          return 'propagate-recursive';
+        }
+        const regEx = /^([0-9]{4})-/;
+        const start = node.lifetime?.start.match(regEx)?.[1];
+        const end = node.lifetime?.end.match(regEx)?.[1];
+        switch (value.mode) {
+          case 'lifetime':
+            if (!start || !end) {
+              return 'hide';
+            } else if (parseInt(start) > value.to || parseInt(end) < value.from) {
+              return 'hide';
+            } else {
+              return 'show';
+            }
+          case 'missing':
+            return !start || !end ? 'show' : 'hide';
+          default:
+            const mode: never = value.mode;
+            throw new Error('unexpected case: ' + mode);
+        }
+      },
+    } as Filter<{ from: number; to: number; mode: 'lifetime' | 'missing' }>,
   ];
   activeFilters: Filter[] = [];
   filtersHint: string | null = null;
   currentRecordId?: string;
   config = this.configService.config;
+
+  lifetimeYears = computed(() => {
+    const result: { [year: string]: boolean } = {};
+    const regEx = /^([0-9]{4})-/;
+    this.messagePage.treeNodes().forEach((value) => {
+      const start = value.lifetime?.start?.match(regEx)?.[1];
+      if (start) {
+        result[start] = true;
+      }
+      const end = value.lifetime?.end?.match(regEx)?.[1];
+      if (end) {
+        result[end] = true;
+      }
+    });
+    return Object.keys(result).map((s) => +s);
+  });
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -177,10 +249,14 @@ export class MessageTreeComponent {
   }
 
   addFilter(filter: Filter): void {
-    if (filter.value == null) {
-      this.activeFilters.push(filter);
-      this.applyFilters();
-    } else {
+    if (filter.edit) {
+      filter.edit(filter.value).then((value) => {
+        if (value) {
+          this.activeFilters.push({ ...filter, value });
+          this.applyFilters();
+        }
+      });
+    } else if (typeof filter.value === 'string') {
       // If the filter has a value, insert the chip in editing mode.
       this.activeFilters.push({ ...filter, value: '' });
       // Start editing the chip value.
@@ -195,6 +271,24 @@ export class MessageTreeComponent {
         });
       });
       this.filtersHint = `Geben Sie einen Wert ein, um nach ${filter.label} zu filtern, und bestätigen Sie Ihre Eingabe mit Enter.`;
+    } else if (filter.value == null) {
+      this.activeFilters.push(filter);
+      this.applyFilters();
+    }
+  }
+
+  editFilter(filter: Filter): void {
+    if (filter.edit) {
+      filter.edit(filter.value).then((value) => {
+        if (value) {
+          filter.value = value;
+          this.applyFilters();
+        }
+      });
+    } else if (this.filterHasStringValue(filter)) {
+      const index = this.activeFilters.indexOf(filter);
+      const chipRow = this.matChipRow?.get(index);
+      chipRow?._elementRef.nativeElement.dispatchEvent(new Event('dblclick'));
     }
   }
 
@@ -211,7 +305,7 @@ export class MessageTreeComponent {
     this.filtersHint = null;
   }
 
-  filterHasValue(filter: Filter): boolean {
+  filterHasStringValue(filter: Filter): boolean {
     return typeof filter.value === 'string';
   }
 

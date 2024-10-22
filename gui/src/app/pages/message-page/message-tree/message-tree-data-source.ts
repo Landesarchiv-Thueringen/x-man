@@ -172,7 +172,10 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
       return null;
     } else {
       const children = this.getFilteredChildren(node, filterResults);
-      if (children?.length || filterResults.every((r) => r === 'show')) {
+      const hasRealChildren = children?.some(
+        (child) => child.type !== ('filtered' as StructureNodeType),
+      );
+      if (hasRealChildren || filterResults.every((r) => r === 'show')) {
         return { ...node, children };
       } else {
         return null;
@@ -188,20 +191,20 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     const filteredChildren = children?.filter(notNull);
     const numberFiltered = children?.filter((child) => child == null).length ?? 0;
     if (numberFiltered > 0) {
-      if (numberFiltered < node.children!.length) {
+      if (node.type === 'message' && filteredChildren!.length === 0) {
         filteredChildren!.push({
           id: uuidv4(),
-          title: `${numberFiltered} ${numberFiltered > 1 ? 'Elemente' : 'Element'} gefiltert`,
+          title: 'Keine übereinstimmenden Elemente',
           canBeAppraised: false,
           canChoosePackaging: false,
           selectable: false,
           // Not a valid type for StructureNode, but will be valid for GroupedStructureNode
           type: 'filtered' as StructureNodeType,
         });
-      } else if (node.type === 'message') {
+      } else {
         filteredChildren!.push({
           id: uuidv4(),
-          title: 'Keine übereinstimmenden Elemente',
+          title: `${numberFiltered} ${numberFiltered > 1 ? 'Elemente' : 'Element'} gefiltert`,
           canBeAppraised: false,
           canChoosePackaging: false,
           selectable: false,

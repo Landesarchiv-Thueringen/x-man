@@ -11,6 +11,7 @@
 - Feature: Prüfsummen bei Archivierung in Dateisystem
 - Feature: Archiviere Ergebnisse der Formatverifikation
 - Feature: xdomea-Nachrichten an zentrale Poststelle weiterleiten
+- Feature: Filtern nach Laufzeit
 - Fix: Fehler beim Übertragen von Bewertungsentscheidungen im Objekt-Baum
 - Fix: Benachrichtigungen und Bestätigungen von xdomea-Nachrichten bei Fehlern
 - Fix: Import nach DIMAG mit unbekannter Laufzeit

@@ -82,6 +82,7 @@ mat-tree-node {
 .node-info {
   display: flex;
   flex-direction: row;
+  flex-grow: 1;
   align-items: center;
 
   .mat-icon {
@@ -125,10 +126,6 @@ mat-tree-node {
   mat-icon {
     color: var(--mdc-icon-button-icon-color);
   }
-}
-
-.spacer {
-  flex: 1 1 auto;
 }
 
 .message-icon {
@@ -184,5 +181,21 @@ mat-checkbox.hidden {
   }
   a:not(.active) .active-checkmark {
     visibility: hidden;
+  }
+}
+
+.lifetime-filter-content {
+  display: flex;
+  flex-direction: column;
+  mat-radio-group {
+    margin: 4px 0;
+  }
+  .hbox {
+    display: flex;
+    gap: 1em;
+    padding-left: 44px;
+  }
+  mat-form-field {
+    margin-top: 12px;
   }
 }

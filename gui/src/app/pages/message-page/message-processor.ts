@@ -5,6 +5,7 @@ import {
   DocumentRecord,
   FileRecord,
   GeneralMetadata,
+  Lifetime,
   ProcessRecord,
   Records,
 } from '../../services/records.service';
@@ -31,6 +32,7 @@ export interface StructureNode {
   recordId?: string;
   routerLink?: string;
   generalMetadata?: GeneralMetadata;
+  lifetime?: Lifetime;
   /**
    * Whether the node can be appraised by the user with the UI.
    *
@@ -182,6 +184,7 @@ export class MessageProcessor {
       routerLink,
       parentId: parent.id,
       generalMetadata: fileRecord.generalMetadata,
+      lifetime: fileRecord.lifetime,
       children,
       canBeAppraised: this.canBeAppraised(type, parent, messageType),
       canChoosePackaging: this.canChoosePackaging(type, parent),
@@ -222,6 +225,7 @@ export class MessageProcessor {
       routerLink: routerLink,
       parentId: parent.id,
       generalMetadata: processRecord.generalMetadata,
+      lifetime: processRecord.lifetime,
       canBeAppraised: this.canBeAppraised(type, parent, messageType),
       canChoosePackaging: this.canChoosePackaging(type, parent),
       selectable: this.isSelectable(type, parent, messageType),

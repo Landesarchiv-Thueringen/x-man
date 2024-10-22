@@ -47,7 +47,6 @@
           <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
         </div>
 
-        <div class="spacer"></div>
         @if (node.type === "message" && !selectionActive()) {
           <button
             mat-icon-button
@@ -56,9 +55,9 @@
             aria-label="Filter"
             [disabled]="isDisabled()"
           >
-            <mat-icon [class.material-icons-outlined]="activeFilters.length === 0"
-              >filter_alt</mat-icon
-            >
+            <mat-icon [class.material-icons-outlined]="activeFilters.length === 0">
+              filter_alt
+            </mat-icon>
           </button>
           <mat-menu #filterMenu="matMenu">
             @for (filter of availableFilters; track filter) {
@@ -118,10 +117,13 @@
             @for (filter of activeFilters; track filter) {
               <mat-chip-row
                 (removed)="removeFilter(filter)"
-                [editable]="filterHasValue(filter)"
+                [editable]="filterHasStringValue(filter)"
                 (edited)="onFilterEdited($event, filter)"
+                (click)="editFilter(filter)"
               >
-                @if (filterHasValue(filter)) {
+                @if (filter.value && filter.printValue) {
+                  {{ filter.label }}: {{ filter.printValue(filter.value) }}
+                } @else if (filterHasStringValue(filter)) {
                   {{ filter.label }}: {{ filter.value }}
                 } @else {
                   {{ filter.label }}
@@ -242,7 +244,7 @@
   <div class="node-title">
     <div class="node-title-line">
       {{ node.title }}
-      @if (node.type !== "filtered" && !node.type.endsWith("group")) {
+      @if (node.type !== "filtered" && !node.type?.endsWith("group")) {
         <button
           class="overlay-button"
           mat-button
@@ -307,4 +309,58 @@
       [disabled]="!node.selectable"
     ></mat-checkbox>
   }
+</ng-template>
+
+<ng-template #lifetimeFilterDialog let-value>
+  <h2 mat-dialog-title>Filtern nach Laufzeit</h2>
+  <mat-dialog-content class="lifetime-filter-content">
+    <mat-radio-group #mode="matRadioGroup" [value]="value?.mode ?? 'lifetime'">
+      <mat-radio-button value="lifetime">
+        Objekte, deren Laufzeit (teilweise) innerhalb des folgenden Zeitraums liegt
+      </mat-radio-button>
+      <div class="hbox">
+        <mat-form-field>
+          <mat-label> Von </mat-label>
+          <mat-select
+            #from
+            [value]="value?.from"
+            (selectionChange)="to.value = Math.max($event.value, to.value ?? $event.value)"
+            [disabled]="mode.value !== 'lifetime'"
+          >
+            @for (year of lifetimeYears(); track year) {
+              <mat-option [value]="year">{{ year }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label> Bis </mat-label>
+          <mat-select
+            #to
+            [value]="value?.to"
+            (selectionChange)="from.value = Math.min($event.value, from.value ?? $event.value)"
+            [disabled]="mode.value !== 'lifetime'"
+          >
+            @for (year of lifetimeYears(); track year) {
+              <mat-option [value]="year">{{ year }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <mat-radio-button value="missing">Objekte ohne Angabe einer Laufzeit</mat-radio-button>
+    </mat-radio-group>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button mat-dialog-close>Abbrechen</button>
+    <button
+      mat-button
+      [disabled]="mode.value === 'lifetime' && !from.value"
+      [mat-dialog-close]="{
+        from: from.value,
+        to: to.value,
+        mode: mode.value,
+      }"
+    >
+      Ok
+    </button>
+  </mat-dialog-actions>
 </ng-template>
