@@ -109,14 +109,27 @@ func SetAppraisalDecisionRecursive(
 	} else {
 		matchParentForEqualSiblings(processID, m, recordID, decision)
 	}
+	propagateAppraisalDecisionDown(processID, recordID, m, decision, previousAppraisal)
+	updateAppraisalProcessStep(processID)
+	return nil
+}
+
+// propagateAppraisalDecisionDown recursively propagates an appraisal decision
+// as described in SetAppraisalDecisionRecursive.
+func propagateAppraisalDecisionDown(
+	processID uuid.UUID,
+	recordID uuid.UUID,
+	m AppraisableRecordsMap,
+	decision db.AppraisalDecisionOption,
+	previousAppraisal db.Appraisal,
+) {
 	for _, subRecordID := range m[recordID].Children {
 		a, _ := db.FindAppraisal(processID, subRecordID)
 		if a.Decision == "" || a.Decision == previousAppraisal.Decision {
 			db.UpsertAppraisal(processID, subRecordID, decision, "")
+			propagateAppraisalDecisionDown(processID, subRecordID, m, decision, previousAppraisal)
 		}
 	}
-	updateAppraisalProcessStep(processID)
-	return nil
 }
 
 // SetAppraisalDecisionRecursive saves an internal appraisal note for a record
