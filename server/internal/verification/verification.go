@@ -34,7 +34,7 @@ var client http.Client = http.Client{
 	Transport: &tr,
 }
 
-func VerifyFileFormats(process db.SubmissionProcess, primaryDocuments []db.PrimaryDocumentContext) {
+func VerifyFileFormats(process db.SubmissionProcess, primaryDocuments []db.PrimaryDocumentData) {
 	var items []db.TaskItem
 	for _, d := range primaryDocuments {
 		items = append(items, db.TaskItem{

@@ -82,7 +82,9 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	}
 	if messageType == "0503" {
 		primaryDocuments := GetPrimaryDocuments(rootRecords)
-		err = collectPrimaryDocumentsData(process, message, primaryDocuments)
+		primaryDocumentsData, err := collectPrimaryDocumentsData(
+			process, message, primaryDocuments,
+		)
 		if err != nil {
 			errors.AddProcessingErrorWithData(err, errorData)
 		}
@@ -92,7 +94,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		}
 		// start format verification
 		if os.Getenv("BORG_URL") != "" {
-			verification.VerifyFileFormats(process, primaryDocuments)
+			verification.VerifyFileFormats(process, primaryDocumentsData)
 		}
 	}
 	confirmMessageReceipt(agency, processID, messageType)
@@ -277,7 +279,7 @@ func collectPrimaryDocumentsData(
 	process db.SubmissionProcess,
 	message db.Message,
 	primaryDocuments []db.PrimaryDocumentContext,
-) error {
+) ([]db.PrimaryDocumentData, error) {
 	var missingDocuments []string
 	var primaryDocumentsData []db.PrimaryDocumentData
 	for _, d := range primaryDocuments {
@@ -294,14 +296,16 @@ func collectPrimaryDocumentsData(
 			})
 		}
 	}
-	db.InsertPrimaryDocumentsData(primaryDocumentsData)
+	if len(primaryDocumentsData) > 0 {
+		db.InsertPrimaryDocumentsData(primaryDocumentsData)
+	}
 	if len(missingDocuments) > 0 {
-		return &db.ProcessingError{
+		return primaryDocumentsData, &db.ProcessingError{
 			Title: "Primärdateien fehlen in Abgabe",
 			Info:  strings.Join(missingDocuments, "\n  "),
 		}
 	}
-	return nil
+	return primaryDocumentsData, nil
 }
 
 // matchAgainst0501Message compares a 0503 message with a previously received
