@@ -163,6 +163,9 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
   }
 
   private filterNode(node: StructureNode, parentResults: FilterResult[]): StructureNode | null {
+    if (node.type === 'primaryDocuments') {
+      return null;
+    }
     const filterResults = this.getFilterResultsForNode(node, parentResults);
     if (filterResults.every((r) => r === 'show-recursive')) {
       return node;

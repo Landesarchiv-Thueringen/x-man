@@ -52,6 +52,16 @@ export interface Filter<T = unknown> {
   label: string;
   /** An optional filter value to be entered by the user and passed to the predicate. */
   value?: T;
+  /**
+   * A function to retrieve possible values for the filter.
+   *
+   * This is only supported for T = string.
+   *
+   * If provided, a menu will be shown when selecting or editing the filter.
+   *
+   * Conflicts with `edit` and `printValue`.
+   */
+  values?: () => T[];
   /** A function that lets the user edit the value. */
   edit?: (oldValue?: T) => Promise<T | null>;
   /** How to show the value in the filter chip. */
@@ -107,6 +117,56 @@ export class MessageTreeComponent {
 
   dataSource = new MessageTreeDataSource(this.treeControl);
   readonly appraisals = this.messagePage.appraisals;
+  activeFilters: Filter<any>[] = [];
+  filtersHint: string | null = null;
+  currentRecordId?: string;
+  config = this.configService.config;
+
+  lifetimeYears = computed(() => {
+    const result: { [year: string]: boolean } = {};
+    const regEx = /^([0-9]{4})-/;
+    this.messagePage.treeNodes().forEach((value) => {
+      const start = value.lifetime?.start?.match(regEx)?.[1];
+      if (start) {
+        result[start] = true;
+      }
+      const end = value.lifetime?.end?.match(regEx)?.[1];
+      if (end) {
+        result[end] = true;
+      }
+    });
+    return Object.keys(result).map((s) => +s);
+  });
+
+  leadershipOrgValues = computed(() => {
+    const result: { [value: string]: boolean } = {};
+    this.messagePage.treeNodes().forEach((value) => {
+      if (
+        value.generalMetadata &&
+        // We assume that values for files and processes refer to organizations
+        // while values for documents refer to individual persons. We only
+        // consider organizations here.
+        ['file', 'subfile', 'process', 'subprocess'].includes(value.type)
+      ) {
+        result[value.generalMetadata.leadership ?? ''] = true;
+      }
+    });
+    return Object.keys(result);
+  });
+
+  fileManagerOrgValues = computed(() => {
+    const result: { [value: string]: boolean } = {};
+    this.messagePage.treeNodes().forEach((value) => {
+      if (
+        value.generalMetadata &&
+        ['file', 'subfile', 'process', 'subprocess'].includes(value.type)
+      ) {
+        result[value.generalMetadata.fileManager ?? ''] = true;
+      }
+    });
+    return Object.keys(result);
+  });
+
   readonly availableFilters: Filter<any>[] = [
     {
       type: 'not-appraised',
@@ -180,27 +240,35 @@ export class MessageTreeComponent {
         }
       },
     } as Filter<{ from: number; to: number; mode: 'lifetime' | 'missing' }>,
+    {
+      type: 'leadershipOrg',
+      label: 'Federführende Organisation',
+      predicate: (node, value) => {
+        if (node.type === 'document') {
+          return 'propagate-recursive';
+        } else if (node.generalMetadata?.leadership === value) {
+          return 'show';
+        } else {
+          return 'hide';
+        }
+      },
+      values: this.leadershipOrgValues,
+    },
+    {
+      type: 'fileManager',
+      label: 'Aktenführende Organisation',
+      predicate: (node, value) => {
+        if (node.type === 'document') {
+          return 'propagate-recursive';
+        } else if (node.generalMetadata?.fileManager === value) {
+          return 'show';
+        } else {
+          return 'hide';
+        }
+      },
+      values: this.fileManagerOrgValues,
+    },
   ];
-  activeFilters: Filter[] = [];
-  filtersHint: string | null = null;
-  currentRecordId?: string;
-  config = this.configService.config;
-
-  lifetimeYears = computed(() => {
-    const result: { [year: string]: boolean } = {};
-    const regEx = /^([0-9]{4})-/;
-    this.messagePage.treeNodes().forEach((value) => {
-      const start = value.lifetime?.start?.match(regEx)?.[1];
-      if (start) {
-        result[start] = true;
-      }
-      const end = value.lifetime?.end?.match(regEx)?.[1];
-      if (end) {
-        result[end] = true;
-      }
-    });
-    return Object.keys(result).map((s) => +s);
-  });
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -275,6 +343,15 @@ export class MessageTreeComponent {
       this.activeFilters.push(filter);
       this.applyFilters();
     }
+  }
+
+  setFilterValue(filter: Filter<string>, value: string): void {
+    if (this.activeFilters.includes(filter)) {
+      filter.value = value;
+    } else {
+      this.activeFilters.push({ ...filter, value });
+    }
+    this.applyFilters();
   }
 
   editFilter(filter: Filter): void {

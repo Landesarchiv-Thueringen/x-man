@@ -62,9 +62,20 @@
           <mat-menu #filterMenu="matMenu">
             @for (filter of availableFilters; track filter) {
               @if (filter.showIf?.() ?? true) {
-                <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
-                  {{ filter.label }}
-                </button>
+                @if (filter.values) {
+                  <button
+                    mat-menu-item
+                    [disabled]="hasFilter(filter)"
+                    [matMenuTriggerFor]="filterValuesMenu"
+                    [matMenuTriggerData]="{ filter }"
+                  >
+                    {{ filter.label }}
+                  </button>
+                } @else {
+                  <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
+                    {{ filter.label }}
+                  </button>
+                }
               }
             }
           </mat-menu>
@@ -115,23 +126,36 @@
         <div class="filters">
           <mat-chip-set>
             @for (filter of activeFilters; track filter) {
-              <mat-chip-row
-                (removed)="removeFilter(filter)"
-                [editable]="filterHasStringValue(filter)"
-                (edited)="onFilterEdited($event, filter)"
-                (click)="editFilter(filter)"
-              >
-                @if (filter.value && filter.printValue) {
-                  {{ filter.label }}: {{ filter.printValue(filter.value) }}
-                } @else if (filterHasStringValue(filter)) {
-                  {{ filter.label }}: {{ filter.value }}
-                } @else {
-                  {{ filter.label }}
-                }
-                <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              </mat-chip-row>
+              @if (filter.values) {
+                <mat-chip-row
+                  (removed)="removeFilter(filter)"
+                  [matMenuTriggerFor]="filterValuesMenu"
+                  [matMenuTriggerData]="{ filter }"
+                >
+                  {{ filter.label }}: {{ filter.value || "ohne Angabe" }}
+                  <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              } @else {
+                <mat-chip-row
+                  (removed)="removeFilter(filter)"
+                  [editable]="filterHasStringValue(filter)"
+                  (edited)="onFilterEdited($event, filter)"
+                  (click)="editFilter(filter)"
+                >
+                  @if (filter.value && filter.printValue) {
+                    {{ filter.label }}: {{ filter.printValue(filter.value) }}
+                  } @else if (filterHasStringValue(filter)) {
+                    {{ filter.label }}: {{ filter.value }}
+                  } @else {
+                    {{ filter.label }}
+                  }
+                  <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
             }
           </mat-chip-set>
           @if (filtersHint) {
@@ -364,3 +388,20 @@
     </button>
   </mat-dialog-actions>
 </ng-template>
+
+<mat-menu #filterValuesMenu="matMenu">
+  <ng-template matMenuContent let-filter="filter">
+    @for (value of filter.values(); track value) {
+      <button mat-menu-item (click)="setFilterValue(filter, value)">
+        @if (value) {
+          {{ value }}
+        } @else {
+          <em>Ohne Angabe</em>
+        }
+        @if (value === filter.value) {
+          <mat-icon matIconSuffix>check</mat-icon>
+        }
+      </button>
+    }
+  </ng-template>
+</mat-menu>

@@ -30,6 +30,17 @@
           </div>
 
           <div class="metadata-row">
+            <mat-form-field class="leadership-input" floatLabel="always">
+              <mat-label>Federführende Organisationseinheit</mat-label>
+              <input matInput formControlName="leadership" readonly />
+            </mat-form-field>
+            <mat-form-field class="file-manager-input" floatLabel="always">
+              <mat-label>Aktenführende Organisationseinheit</mat-label>
+              <input matInput formControlName="fileManager" readonly />
+            </mat-form-field>
+          </div>
+
+          <div class="metadata-row">
             <mat-form-field class="process-type-input" floatLabel="always">
               <mat-label>Vorgangstyp</mat-label>
               <input matInput formControlName="processType" readonly />

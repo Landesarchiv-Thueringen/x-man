@@ -83,6 +83,8 @@ type GeneralMetadata struct {
 	XMLName              xml.Name              `xml:"AllgemeineMetadaten" bson:"-"  json:"-"`
 	Subject              string                `xml:"Betreff" json:"subject"`
 	RecordNumber         string                `xml:"Kennzeichen" bson:"record_number" json:"recordNumber"`
+	Leadership           string                `xml:"Federfuehrung" bson:"leadership" json:"leadership"`
+	FileManager          string                `xml:"Aktenfuehrung" bson:"file_manager" json:"fileManager"`
 	FilePlan             *FilePlan             `xml:"Aktenplaneinheit" bson:"file_plan"  json:"filePlan"`
 	ConfidentialityLevel *ConfidentialityLevel `xml:"Vertraulichkeitsstufe>code" json:"confidentialityLevel"`
 	Medium               *Medium               `xml:"Medium>code" json:"medium"`

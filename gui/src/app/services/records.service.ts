@@ -50,6 +50,8 @@ export interface DocumentVersion {
 export interface GeneralMetadata {
   subject: string;
   recordNumber: string;
+  leadership: string;
+  fileManager: string;
   filePlan?: FilePlan;
   confidentialityLevel?: ConfidentialityLevel;
   medium?: Medium;
