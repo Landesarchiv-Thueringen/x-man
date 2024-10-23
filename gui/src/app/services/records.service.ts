@@ -66,8 +66,8 @@ export interface ArchiveMetadata {
 }
 
 export interface FilePlan {
-  filePlanNumber?: string;
-  subject?: string;
+  filePlanNumber: string;
+  subject: string;
 }
 
 export interface Lifetime {

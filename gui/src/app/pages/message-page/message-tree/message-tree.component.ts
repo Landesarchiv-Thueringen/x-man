@@ -45,12 +45,15 @@ import { FilterResult, FlatNode, MessageTreeDataSource } from './message-tree-da
 import { PackagingDialogComponent } from './packaging-dialog/packaging-dialog.component';
 import { StartArchivingDialogComponent } from './start-archiving-dialog/start-archiving-dialog.component';
 
-export interface Filter<T = unknown> {
+export interface Filter<T = string> {
   /** A unique string to identify the filter. */
   type: string;
   /** A label shown to the user. */
   label: string;
-  /** An optional filter value to be entered by the user and passed to the predicate. */
+  /**
+   * An optional filter value to be selected by the user and passed to the
+   * predicate.
+   */
   value?: T;
   /**
    * A function to retrieve possible values for the filter.
@@ -122,6 +125,17 @@ export class MessageTreeComponent {
   currentRecordId?: string;
   config = this.configService.config;
 
+  recordPlanIds = computed(() => {
+    const result: { [id: string]: boolean } = {};
+    this.messagePage.treeRoot()?.children?.forEach((node) => {
+      if (node.generalMetadata) {
+        const id = node.generalMetadata.filePlan?.filePlanNumber.toString() ?? '';
+        result[id] = true;
+      }
+    });
+    return Object.keys(result);
+  });
+
   lifetimeYears = computed(() => {
     const result: { [year: string]: boolean } = {};
     const regEx = /^([0-9]{4})-/;
@@ -190,7 +204,7 @@ export class MessageTreeComponent {
     {
       type: 'record-plan-id',
       label: 'Aktenplanschlüssel',
-      value: '',
+      values: this.recordPlanIds,
       predicate: (node, value) =>
         node.generalMetadata?.filePlan?.filePlanNumber?.toString() === value
           ? 'show-recursive'

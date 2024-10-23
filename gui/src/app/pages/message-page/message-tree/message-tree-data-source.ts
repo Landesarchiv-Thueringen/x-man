@@ -154,8 +154,9 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
     if (!this._filters?.length) {
       return rootNode;
     } else {
-      const children = this.getFilteredChildren(
-        rootNode,
+      let children = rootNode.children?.filter((node) => node.type !== 'primaryDocuments');
+      children = this.getFilteredChildren(
+        { ...rootNode, children },
         Array(this._filters!.length).fill('show'),
       );
       return { ...rootNode, children };
@@ -163,9 +164,6 @@ export class MessageTreeDataSource extends DataSource<FlatNode> {
   }
 
   private filterNode(node: StructureNode, parentResults: FilterResult[]): StructureNode | null {
-    if (node.type === 'primaryDocuments') {
-      return null;
-    }
     const filterResults = this.getFilterResultsForNode(node, parentResults);
     if (filterResults.every((r) => r === 'show-recursive')) {
       return node;
