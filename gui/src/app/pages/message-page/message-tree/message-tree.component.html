@@ -138,16 +138,9 @@
                   </button>
                 </mat-chip-row>
               } @else {
-                <mat-chip-row
-                  (removed)="removeFilter(filter)"
-                  [editable]="filterHasStringValue(filter)"
-                  (edited)="onFilterEdited($event, filter)"
-                  (click)="editFilter(filter)"
-                >
+                <mat-chip-row (removed)="removeFilter(filter)" (click)="editFilter(filter)">
                   @if (filter.value && filter.printValue) {
                     {{ filter.label }}: {{ filter.printValue(filter.value) }}
-                  } @else if (filterHasStringValue(filter)) {
-                    {{ filter.label }}: {{ filter.value }}
                   } @else {
                     {{ filter.label }}
                   }

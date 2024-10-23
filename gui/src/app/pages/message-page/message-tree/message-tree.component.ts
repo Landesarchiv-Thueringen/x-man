@@ -15,7 +15,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipEditedEvent, MatChipRow, MatChipsModule } from '@angular/material/chips';
+import { MatChipRow, MatChipsModule } from '@angular/material/chips';
 import { MatRippleModule } from '@angular/material/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -330,6 +330,12 @@ export class MessageTreeComponent {
     return element.id;
   }
 
+  /**
+   * Makes a new filter active.
+   *
+   * If the filter provides an `edit` callback, uses the callback to set the
+   * filter value.
+   */
   addFilter(filter: Filter): void {
     if (filter.edit) {
       filter.edit(filter.value).then((value) => {
@@ -338,36 +344,17 @@ export class MessageTreeComponent {
           this.applyFilters();
         }
       });
-    } else if (typeof filter.value === 'string') {
-      // If the filter has a value, insert the chip in editing mode.
-      this.activeFilters.push({ ...filter, value: '' });
-      // Start editing the chip value.
-      setTimeout(() => {
-        const chipRow = this.matChipRow!.last;
-        chipRow._elementRef.nativeElement.dispatchEvent(new Event('dblclick'));
-        // Force a space after the colon.
-        setTimeout(() => {
-          const editInput = chipRow.defaultEditInput!;
-          editInput.getNativeElement().innerHTML = `${filter.label}:&nbsp;`;
-          editInput['_moveCursorToEndOfInput']();
-        });
-      });
-      this.filtersHint = `Geben Sie einen Wert ein, um nach ${filter.label} zu filtern, und bestätigen Sie Ihre Eingabe mit Enter.`;
-    } else if (filter.value == null) {
+    } else {
       this.activeFilters.push(filter);
       this.applyFilters();
     }
   }
 
-  setFilterValue(filter: Filter<string>, value: string): void {
-    if (this.activeFilters.includes(filter)) {
-      filter.value = value;
-    } else {
-      this.activeFilters.push({ ...filter, value });
-    }
-    this.applyFilters();
-  }
-
+  /**
+   * Uses a filter's `edit` callback to assign a new filter value.
+   *
+   * If the filter does not provide an `edit` callback, does nothing.
+   */
   editFilter(filter: Filter): void {
     if (filter.edit) {
       filter.edit(filter.value).then((value) => {
@@ -376,28 +363,20 @@ export class MessageTreeComponent {
           this.applyFilters();
         }
       });
-    } else if (this.filterHasStringValue(filter)) {
-      const index = this.activeFilters.indexOf(filter);
-      const chipRow = this.matChipRow?.get(index);
-      chipRow?._elementRef.nativeElement.dispatchEvent(new Event('dblclick'));
     }
   }
 
-  onFilterEdited(event: MatChipEditedEvent, filter: Filter): void {
-    const value = event.value.replace(new RegExp(filter.label + ':?'), '').trim();
-    if (value) {
+  /**
+   * Sets the value for the given filter and adds the filter if not already
+   * active.
+   */
+  setFilterValue(filter: Filter<string>, value: string): void {
+    if (this.activeFilters.includes(filter)) {
       filter.value = value;
-      setTimeout(() => {
-        this.applyFilters();
-      });
     } else {
-      this.removeFilter(filter);
+      this.activeFilters.push({ ...filter, value });
     }
-    this.filtersHint = null;
-  }
-
-  filterHasStringValue(filter: Filter): boolean {
-    return typeof filter.value === 'string';
+    this.applyFilters();
   }
 
   hasFilter(filter: Filter): boolean {
