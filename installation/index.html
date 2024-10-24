@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="de" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Installation (en) - x-man</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Installation (en)";
+        var mkdocs_page_input_path = "installation.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> x-man
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Durchsuchen" aria-label="Durchsuchen" title="Tragen Sie hier den gesuchten Begriff ein" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigationsmenü">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../benutzerhandbuch/">Benutzerhandbuch</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../betriebshandbuch/">Betriebshandbuch</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation (en)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#download">Download</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#services">Services</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-docker-compose">Using Docker-Compose</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#test-setup">Test Setup</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#production-use">Production Use</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#custom-tls-certificates">Custom TLS Certificates</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../development/">Development (en)</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile Navigationsmenü">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">x-man</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Dokumentation"></a></li>
+      <li class="breadcrumb-item active">Installation (en)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="installation">Installation</h1>
+<h2 id="download">Download</h2>
+<p>Download the <a href="https://github.com/Landesarchiv-Thueringen/x-man/releases/latest">latest release</a> from GitHub or clone the <a href="https://github.com/Landesarchiv-Thueringen/x-man">repository</a> if you want the development version.</p>
+<h2 id="requirements">Requirements</h2>
+<p>x-man runs on any Linux system that provides the following dependencies:</p>
+<ul>
+<li>Either</li>
+<li>Docker (configured and with running daemon), or</li>
+<li>Podman</li>
+<li>Docker Compose (for both, Docker and Podman)</li>
+<li>OpenSSL (for testing setup)</li>
+<li>NodeJS and NPM (for frontend development)</li>
+</ul>
+<p>Testing on Windows is possible with a Linux virtual machine or using the <a href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux (WSL)</a> version 2 (WSL 2).</p>
+<h2 id="services">Services</h2>
+<p>x-man is meant to be used in combination with some external services. For
+testing purposes, we provide configuration for dummy services (see <a href="#test-setup">Test Setup</a>). For production use, you should provide and configure these services (see <a href="#configuration">Configuration</a>).</p>
+<p>The following external services should be provided for use in production:</p>
+<ul>
+<li>LDAP (user authentication)</li>
+<li>DIMAG (archiving)</li>
+<li><a href="https://github.com/Landesarchiv-Thueringen/borg">Borg</a> (format verification)</li>
+<li>SMTP (e-mail notifications)</li>
+</ul>
+<p>See <a href="../betriebshandbuch/">Betriebshandbuch (de)</a> for further details.</p>
+<h3 id="compatible-borg-versions">Compatible Borg Versions</h3>
+<table>
+<thead>
+<tr>
+<th>x-man Version</th>
+<th>Borg Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.9.x</td>
+<td>1.0.x</td>
+</tr>
+<tr>
+<td>&gt;= 1.0.0</td>
+<td>&gt;= 1.1.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="getting-started">Getting Started</h2>
+<p>For a minimal testing setup run the following commands:</p>
+<pre><code class="language-sh"># Create TLS certificates for testing
+./scripts/generate-test-certificates.sh
+# Create the initial configuration
+cp .env.example .env
+# Activate the development / testing setup
+ln -s compose.dev.yml compose.override.yml
+# Build and run
+docker compose up --build -d
+</code></pre>
+<p>In case you are behind a http proxy, you will need to provide its address with
+<code>HTTP_PROXY</code> in <code>.env</code> before running the last command.</p>
+<p>The application will be exposed on <a href="http://localhost:8080">localhost:8080</a>.</p>
+<p>Login:</p>
+<ul>
+<li>fry / fry (user)</li>
+<li>hermes / hermes (administrator)</li>
+</ul>
+<h3 id="tear-down">Tear Down</h3>
+<pre><code class="language-sh">docker compose down --volumes
+</code></pre>
+<h2 id="using-docker-compose">Using Docker-Compose</h2>
+<p>There are compose files for different purposes:</p>
+<ul>
+<li><code>compose.yml</code> is the base file for all other files. On its own, it sets up the production runtime with existing images or builds images for production.</li>
+<li><code>compose.dev.yml</code> contains adaptions for development and testing. It contains build- and configuration adaptations and additional services.</li>
+<li><code>compose.override.yml</code> will be included by docker-compose automatically when present. It is not present in the repository, but you can link <code>compose.dev.yml</code> to it or create your own for custom changes.</li>
+</ul>
+<h2 id="test-setup">Test Setup</h2>
+<p>When following the steps of <a href="#getting-started">Getting Started</a>, some outside
+services will be replaced by dummy implementations that are not intended for
+production use but allow to create a testing environment without much
+configuration.</p>
+<h3 id="ldap">LDAP</h3>
+<p>The development configuration comes with an <a href="https://github.com/rroemhild/docker-test-openldap">OpenLDAP Docker Image for testing</a>.</p>
+<p>You can login as any member of the group <code>ship_crew</code> and <code>admin_staff</code> while the
+latter has administration privileges.</p>
+<h3 id="e-mail">E-Mail</h3>
+<p>Notification e-mails are sent to a <a href="https://github.com/mailhog/MailHog">Mailhog</a> instance.</p>
+<p>A web UI is available on http://localhost:8025.</p>
+<h3 id="certificates">Certificates</h3>
+<p>The script <code>generate-test-certificates.sh</code> creates dummy certificates for the services above.</p>
+<p>A root certificate is created and installed in the application container, so it
+can verify the certificates and establish secure connections.</p>
+<h2 id="configuration">Configuration</h2>
+<p>Copy <code>.env.example</code> to <code>.env</code> and adjust values as described in the file.</p>
+<pre><code class="language-sh"># Create the initial configuration
+cp .env.example .env
+# Adjust values as needed
+$EDITOR .env
+</code></pre>
+<p>Re-run <code>docker compose up -d</code> after changing configuration.</p>
+<h2 id="production-use">Production Use</h2>
+<p>Create and adjust an <code>.env</code> file as described above. The production setup requires you to provide valid configuration for the required <a href="#services">services</a>.</p>
+<pre><code class="language-sh"># Remove overrides for development setup if any
+rm -f compose.override.yml
+# Build
+docker compose build
+# Run
+docker compose up -d
+</code></pre>
+<p>For the last command, you do not need the entire repository, but only these two files:</p>
+<ul>
+<li>.env</li>
+<li>compose.yml</li>
+</ul>
+<h2 id="custom-tls-certificates">Custom TLS Certificates</h2>
+<p>In case any servers you provide in <code>.env</code> cannot present certificates that are
+signed by a commonly accepted CA, you need to provide any involved root- and
+intermediate certificates to x-man.</p>
+<p>Copy certificates in PEM format with the file ending <code>.crt</code> to
+<code>data/ca-certificates</code> and rerun <code>docker compose up</code>. This allows you
+to remove the <code>TLS_INSECURE_SKIP_VERIFY</code> option for URLs that you provided
+certificates for.</p>
+<p>Remember to remove the generated <code>Test-RootCA.crt</code> for production use.</p>
+<h2 id="logging">Logging</h2>
+<p>X-man and its services use Docker's <a href="https://docs.docker.com/config/containers/logging/">logging mechanism</a>. View logs via <code>docker</code> or <code>docker compose</code>, for example</p>
+<pre><code class="language-sh">docker compose logs -f server
+</code></pre>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>By default, the size of log files is not limited and log files can quickly become very large!</p>
+</div>
+<p>To enable Docker's recommended logging mechanism with a default of 5 rotating files and a maximum of 20 MB, add the following to <code>/etc/docker/daemon.json</code>:</p>
+<pre><code class="language-json">{
+  &quot;log-driver&quot;: &quot;local&quot;
+}
+</code></pre>
+<p>See <a href="https://docs.docker.com/config/containers/logging/configure/">Configure logging drivers</a> for further information.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="verbindung-zum-server-unterbrochen">"Verbindung zum Server unterbrochen"</h3>
+<p>This message indicates that the event stream for client updates from the server
+could not be established.
+A possible reason is the use of a reverse proxy that does not pass these events.</p>
+<p><strong>Solution (nginx):</strong></p>
+<p>You might need to add some or all of the below options for events to get passed.</p>
+<p>For additional information see: <a href="https://stackoverflow.com/questions/13672743/eventsource-server-sent-events-through-nginx">stackoverflow: EventSource / Server-Sent Events through Nginx</a>.</p>
+<pre><code class="language-nginx">location / {
+    proxy_pass http://url-to-service/;
+
+    # additional options to support server-sent events
+    proxy_http_version 1.1;
+    proxy_set_header Connection '';
+    chunked_transfer_encoding off;
+    proxy_buffering off;
+    proxy_cache off;
+}
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer-Navigation">
+        <a href="../betriebshandbuch/" class="btn btn-neutral float-left" title="Betriebshandbuch"><span class="icon icon-circle-arrow-left"></span> Zurück</a>
+        <a href="../development/" class="btn btn-neutral float-right" title="Development (en)">Weiter <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Erzeugt mit <a href="https://www.mkdocs.org/">MkDocs</a> mit einem <a href="https://github.com/readthedocs/sphinx_rtd_theme">Thema</a> von <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versionen">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Landesarchiv-Thueringen/x-man" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../betriebshandbuch/" style="color: #fcfcfc">&laquo; Zurück</a></span>
+    
+    
+      <span><a href="../development/" style="color: #fcfcfc">Weiter &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

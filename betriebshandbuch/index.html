@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="de" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Betriebshandbuch - x-man</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Betriebshandbuch";
+        var mkdocs_page_input_path = "betriebshandbuch.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> x-man
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Durchsuchen" aria-label="Durchsuchen" title="Tragen Sie hier den gesuchten Begriff ein" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigationsmenü">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../benutzerhandbuch/">Benutzerhandbuch</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Betriebshandbuch</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#betrieb">Betrieb</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#funktionsweise">Funktionsweise</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#nachrichtenaustausch-mit-xdomea">Nachrichtenaustausch mit xdomea</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#bewertung-von-anbietungen">Bewertung von Anbietungen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#archivierung-mit-dem-dimag-kernmodul">Archivierung mit dem DIMAG Kernmodul</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#automatisches-loschen-von-aussonderungen">Automatisches Löschen von Aussonderungen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#nutzerverwaltung-mit-ldap">Nutzerverwaltung mit LDAP</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#zertifikate">Zertifikate</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#e-mail-benachrichtigungen">E-Mail-Benachrichtigungen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#formatverifikation">Formatverifikation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#administration">Administration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fehlerbehebung">Fehlerbehebung</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation (en)</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../development/">Development (en)</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile Navigationsmenü">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">x-man</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Dokumentation"></a></li>
+      <li class="breadcrumb-item active">Betriebshandbuch</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="betriebshandbuch">Betriebshandbuch</h1>
+<h2 id="betrieb">Betrieb</h2>
+<p>Die Server-Komponente des xdomea-Aussonderungsmanagers (kurz x-man) wird in einer Docker-Umgebung auf einem Linux-System betrieben und mit Umgebungsvariablen konfiguriert. Siehe <a href="../installation/">Installation (en)</a> für weitere Informationen. Sie ist für den Betrieb in einem Rechenzentrum durch IT-Fachleute vorgesehen.</p>
+<p>Die Web-Anwendung (GUI-Komponente) wird durch den Server ausgeliefert und kann von Endnutzern über den Web-Browser aufgerufen werden.</p>
+<h2 id="funktionsweise">Funktionsweise</h2>
+<p>Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe <a href="https://github.com/Landesarchiv-Thueringen/x-man/blob/main/README.md">Readme</a>.</p>
+<h2 id="nachrichtenaustausch-mit-xdomea">Nachrichtenaustausch mit xdomea</h2>
+<p><strong>Nachrichten in xdomea.</strong> Nachrichten nach dem xdomea-Standard sind Zip-Dateien, deren Dateiname und Inhalt nach einem festgelegten Schema aufgebaut sind. Ein valider Dateiname ist z. B. <code>e25cf421-d7e2-4df0-ae8f-e8cd764cd2cc_Aussonderung.Anbieteverzeichnis.0501.zip</code>. Es gibt verschiedene Nachrichten mit festgelegten Funktionen, die anhand von vierstelligen Nummern unterschieden werden (im Beispiel 0501). Nachrichten werden automatisiert durch Fachanwendungen zwischen einer abgebenden Stelle und dem zuständigen Archiv ausgetauscht. x-man stellt diese Fachanwendung auf Archivseite dar.</p>
+<p><strong>Transferverzeichnisse.</strong> Der Austausch von Nachrichten geschieht über konfigurierte Transferverzeichnisse (siehe <a href="#administration">Administration</a>). Ein Transferverzeichnis kann entweder über das lokale Dateisystem oder als WebDAV-Freigabe eingebunden werden. Um eine Nachricht zu senden, legt die abgebende Stelle eine Datei, die dem xdomea-Standard entspricht, im Transferverzeichnis ab. Konfigurierte Transferverzeichnisse werden von x-man automatisch regelmäßig auf neue Nachrichten überprüft. Wird eine Nachricht gefunden, wird sie automatisch eingelesen und verarbeitet. Auf der anderen Seite erstellt x-man selbst Nachrichten, die im Aussonderungsverfahren von xdomea vorgesehen sind (Bewertungsnachricht, diverse Empfangs- bzw. Importbestätigungen), und überträgt diese in die Transferverzeichnisse.</p>
+<p><strong>Datenhaltung.</strong> Nach dem Auffinden einer neuen Nachricht verarbeitet x-man diese für die weitere Verwendung. Daten zur Nachricht befinden sich an verschiedenen Stellen und sollten synchron gehalten werden um Fehler zu vermeiden (z.B. beim Wiederherstellen eines Backups gemeinsam wiederhergestellt werden). Alle Daten werden von x-man selbst verwaltet und erfordern im normalen Betrieb keinen manuellen Zugriff.</p>
+<ul>
+<li>Transferverzeichnis: Nach dem initialen Einlesen greift x-man zunächst nicht mehr auf die eingelesene Datei im Transferverzeichnis zu, jedoch löscht es Nachrichten nach der erfolgreichen Archivierung und dem Ablaufen einer Frist aus der Anwendung und entfernt dabei auch die zugehörigen Dateien aus dem Transferverzeichnis.</li>
+<li>Datenbank: x-mans interne Datenhaltung erfolgt durch eine MongoDB-Datenbank. Neben dem Inhalt von xdomea-Nachrichten wird hier auch die Konfiguration der Anwendung und der Bearbeitungszustand von Aussonderungen gespeichert. Die zugehörigen Daten werden in der vorgeschlagenen Docker-Compose-Konfiguration in einem Docker-Volume abgelegt.</li>
+<li>Message-Store: Primärdaten werden von x-man direkt in einem Dateisystem verwaltet. Auch der Message-Store wird in der der vorgeschlagenen Docker-Compose-Konfiguration als Docker-Volume angelegt.</li>
+</ul>
+<p><strong>Validitätsprüfung.</strong> Empfangene Nachrichten werden von x-man auf Validität und Korrektheit geprüft. Bei gefundenen Fehlern wird ein Problem-Eintrag für die Steuerungsstelle angelegt (siehe <a href="#fehlerbehebung">Fehlerbehandlung</a>). Geprüft wird:</p>
+<ul>
+<li>Validität der Nachricht nach dem xdomea-Standard durch eine XML-Schemaprüfung</li>
+<li>Inhalt der Nachricht im Kontext eines laufenden Aussonderungsprozesses, insbesondere Abgaben bei vorangegangener Bewertung einer Anbietung</li>
+<li>Maximale Verschachtlungstiefe nach Einstellung von <code>MAX_RECORD_DEPTH</code>. In der aktuellen Version sieht xdomea eine maximale Verschachtlungstiefe von 5 Ebenen vor, jedoch darf der Wert in Absprache zwischen Archiven und abgebenden Stellen verändert werden.</li>
+</ul>
+<h2 id="bewertung-von-anbietungen">Bewertung von Anbietungen</h2>
+<p>Empfangene Anbietungen können von Archivarinnen bewertet werden. x-man erlaubt die Bewertung auf Akten- und Vorgangsebene sowie die Einschränkung der Bewertung auf Wurzelelemente der Anbietung. Das Verhalten kann mit der Umgebungsvariable <code>APPRAISAL_LEVEL</code> eingestellt werden.</p>
+<h2 id="archivierung-mit-dem-dimag-kernmodul">Archivierung mit dem DIMAG Kernmodul</h2>
+<p>x-man kann zur dauerhaften Archivierung an das DIMAG Kernmodul angebunden werden. Die Konfiguration geschieht über Umgebungsvariablen mit dem Präfix <code>DIMAG</code>. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe <a href="#zertifikate">Zertifikate</a>). Das Mapping der Daten ist durch die Anwendung vorgegeben und kann nicht konfiguriert werden.</p>
+<p>Alternativ ist die Archivierung in ein lokales Dateisystem möglich. Das Verhalten wird über die Variable <code>ARCHIVE_TARGET</code> gesteuert. Diese Art der Archivierung folgt keiner standardisierten Form und ist zu Test-Zwecken oder als Übergangslösung gedacht.</p>
+<h2 id="automatisches-loschen-von-aussonderungen">Automatisches Löschen von Aussonderungen</h2>
+<p>x-man ist ein Durchgangssystem, das Daten nicht dauerhaft vorhält. Entsprechend werden die zugehören Daten zu Aussonderungen nach der erfolgreichen Archivierung nach dem Ablauf einer Frist automatisch gelöscht. Diese Frist kann mit der Umgebungsvariable <code>DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS</code> in Tagen bestimmt werden.</p>
+<h2 id="nutzerverwaltung-mit-ldap">Nutzerverwaltung mit LDAP</h2>
+<p>Die Nutzerverwaltung von x-man geschieht über ein LDAP-System wie Active Directory. x-man greift dabei nur lesend auf ein bestehendes System zu. Die Konfiguration geschieht über Variablen mit dem Präfix <code>LDAP</code>. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe <a href="#zertifikate">Zertifikate</a>). Neben einem fest-konfigurierten Nutzer für den Zugriff auf Nutzerlisten und Gruppen ist die Konfiguration von zwei LDAP-Gruppen erforderlich:</p>
+<ul>
+<li><code>LDAP_ACCESS_GROUP</code>: Mitglieder der als Wert eingetragenen Gruppe können sich in x-man anmelden und ihnen können abgebende Stellen zugewiesen werden.</li>
+<li><code>LDAP_ADMIN_GROUP</code>: Mitglieder der als Wert eingetragenen Gruppe können sich mit Administrations-Rechten in x-man anmelden. Sie haben alle Befugnisse der Mitglieder der Access-Group und können zusätzlich Fehler in der Steuerungsstelle einsehen und beheben sowie die Laufzeit-Konfiguration der Anwendung steuern (siehe <a href="#fehlerbehebung">Fehlerbehandlung</a> und <a href="#administration">Administration</a>).</li>
+</ul>
+<p>Bei der Anmeldung von Nutzern stellt x-man sogenannte Bearer Tokens aus, die vom Webbrowser gespeichert werden. Die Länge der Gültigkeit dieser Tokens sowie ein geheimer Wert, der zur Erstellung und Prüfung der Tokens dient wird über die Umgebungsvariablen mit dem Präfix <code>TOKEN</code> gesteuert.</p>
+<h2 id="zertifikate">Zertifikate</h2>
+<p>Bei der verschlüsselten Kommunikation mit externen Diensten (z.B. LDAP, DIMAG, SMTP, Borg) werden Zertifikate zur Authentifizierung des externen Dienstes genutzt. x-man greift dabei auf die konfigurierten Wurzelzertifikate der Linux-Umgebung zurück. Das ist bei einem Betrieb per Docker der Docker-Container des Backend-Servers. Für den Fall, dass externe Dienste über ein öffentlich gültiges Zertifikat verfügen, ist kein weiteres Zutun erforderlich. Falls Dienste jedoch selbst signierte oder interne Zertifikate verwenden, muss die Zertifikatskette für x-man zugänglich gemacht werden. Dazu kopieren Sie alle Zertifikate, die genutzt werden um Zertifikate externer Dienste zu signieren, in den Ordner <code>data/ca-certificates</code> und wiederholen Sie die Schritte um Docker-Images zu starten wie in <a href="Installation.md">Installation</a> beschrieben. Zertifikate sollten die Dateiendung <code>.crt</code> haben und im PEM-Format folgender Form vorliegen:</p>
+<pre><code>-----BEGIN CERTIFICATE-----
+[...]
+-----END CERTIFICATE-----
+</code></pre>
+<h2 id="e-mail-benachrichtigungen">E-Mail-Benachrichtigungen</h2>
+<p>x-man erlaubt die Benachrichtigung von Nutzern bei neuen xdomea-Nachrichten oder abgeschlossenen Aufgaben, sowie von Administratoren bei neuen Fehlern. Dazu muss ein SMTP-Server konfiguriert werden. Dies geschieht über Umgebungsvariablen mit dem Präfix <code>SMTP</code>. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe <a href="#zertifikate">Zertifikate</a>).</p>
+<p>E-Mail-Adressen werden den Nutzereinträgen aus LDAP entnommen und sind nicht konfigurierbar. Nutzer und Administratoren haben jedoch die Möglichkeit in der Anwendung, E-Mail-Benachrichtigungen für sich selbst zu aktivieren und deaktivieren.</p>
+<h2 id="formatverifikation">Formatverifikation</h2>
+<p>x-man unterstützt die automatische Formatverifikation mit dem Tool <a href="https://github.com/Landesarchiv-Thueringen/borg">BorgFormat</a>. Hierfür ist eine separate Installation von Borg auf einem Server nötig, der vom x-man-Server erreichbar ist. Die Konfiguration geschieht über die Umgebungsvariable <code>BORG_URL</code>. Ggf. ist das Hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe <a href="#zertifikate">Zertifikate</a>).</p>
+<p>Im Fall von negativen Ergebnissen wird für die Abgabe ein Fehler in der Steuerungsstelle erzeugt (siehe <a href="#fehlerbehebung">Fehlerbehandlung</a>).</p>
+<h2 id="administration">Administration</h2>
+<p>Nutzer, die der Gruppe für Administratoren angehören (siehe <a href="#nutzerverwaltung-mit-ldap">Nutzerverwaltung mit LDAP</a>), können über die Weboberfläche von x-man auf das Administrations-Panel zugreifen. Hier stehen verschiedene Ansichten für die Anpassung von Laufzeit-Konfiguration und die Einsicht in den laufende Aufgaben der Anwendung zur Verfügung. Konfiguration, die mit Umgebungsvariablen gesteuert wird, kann hier jedoch nicht angepasst werden.</p>
+<h3 id="abgebende-stellen">Abgebende Stellen</h3>
+<p><img alt="Administrations-Panel Abgebende Stellen" src="../img/admin-agencies.png" /></p>
+<p>Hier können die abgebenden Stellen konfiguriert werden, die Schriftgutobjekte an das Archiv aussondern. Die folgenden Daten können eingestellt werden:</p>
+<ul>
+<li><strong>Name</strong> und <strong>Kürzel</strong> werden in der Anwendung angezeigt und in den Übernahmebericht übernommen, um die abgebende Stelle zu identifizieren.</li>
+<li><strong>Behördenkennung</strong> (Präfix und Behördenschlüssel) wird mit den Daten von empfangenen xdomea-Nachrichten abgeglichen. Bei Nichtübereinstimmung wird ein Fehler für die Steuerungsstelle erzeugt.</li>
+<li><strong>Zuordnung zu Bestand</strong> ist die Vorauswahl für den DIMAG-Bestand, in den die Abgaben der abgebenden Stelle standardmäßig für die dauerhafte Archivierung übertragen werden. Der Bestand kann bei der Archivierung durch die Archivarin angepasst werden, die hier eingestellte Vorauswahl bleibt davon jedoch unverändert.</li>
+<li><strong>Zuordnung zu Mitarbeiter</strong> bestimmt, welche Nutzer die Aussonderungen der abgebenden Stelle in ihrer Aussonderung-Liste sehen und bei neuen Nachrichten per E-Mail benachrichtigt werden. Administratoren haben die Möglichkeit, in der Aussonderungs-Liste auch Aussonderungen von abgebenden Stellen anzuzeigen, die ihnen nicht zugeordnet sind.</li>
+<li><strong>Kontakt</strong> ermöglicht das Speichern einer E-Mail-Adresse, an die bei Fehlern E-Mails an die abgebende Stelle gesendet werden können. x-man stellt Vorlagen für E-Mails bereit, auf deren Grundlage Administratoren E-Mails verfassen können, sendet jedoch nicht eigenständig E-Mails an abgebende Stellen.</li>
+<li><strong>Transferverzeichnis</strong> ist ein Ordner auf dem lokalen Dateisystem oder eine WebDav-Freigabe, der/die zur Übertragung von xdomea-Nachrichten genutzt wird. Abgebende Stellen sowie x-man legen Nachrichten in Form von Zip-Dateien nach dem xdomea-Standard in dieses Verzeichnis ab, um sie von der Gegenseite abholen zu lassen. x-man überprüft selbstständig regelmäßig die hier konfigurierten Transferverzeichnisse auf neue Nachrichten. Nach abgeschlossener Archivierung und dem Verstreichen einer einstellbaren Frist löscht x-man sowohl die von x-man selbst erstellten, wie auch die von der abgebenden Stelle empfangenen Nachrichten aus dem Transferverzeichnis.</li>
+</ul>
+<h3 id="bestande">Bestände</h3>
+<p><img alt="Administrations-Panel Bestände" src="../img/admin-collections.png" /></p>
+<p>Hier werden die DIMAG-Bestände eingetragen, in die Abgaben archiviert werden. Da das DIMAG Kernmodul nicht über eine Schnittstelle verfügt, über die Namen von Beständen abgerufen werden können, müssen die Bestände von DIMAG von einem Administrator von Hand zu x-man übertragen werden. Bestände können nur in DIMAG selbst angelegt oder bearbeitet werden. Die Einstellungen auf dieser Seite dienen nur dazu, die Konfiguration von DIMAG nachzubilden.</p>
+<h3 id="mitarbeiter">Mitarbeiter</h3>
+<p><img alt="Administrations-Panel Mitarbeiter" src="../img/admin-users.png" /></p>
+<p>Hier können die Nutzer, die vom LDAP-System abgerufen werden, eingesehen werden. x-man erlaubt keine eigene Nutzerverwaltung und zeigt lediglich die vom LDAP-System vorgegebenen Daten. In der Liste sind nur Nutzer aufgeführt, die durch ihre Gruppenzugehörigkeit Zugriffsrechte auf das System haben (sieh <a href="#nutzerverwaltung-mit-ldap">Nutzerverwaltung mit LDAP</a>).</p>
+<h3 id="aufgaben">Aufgaben</h3>
+<p><img alt="Administrations-Panel Aufgaben" src="../img/admin-tasks.png" /></p>
+<p>Hier werden länger laufende Aufgaben des x-man Servers angezeigt. Aufgaben können pausiert, abgebrochen und neu gestartet werden. Es gibt die Aufgabenarten "Formatverifikation" und "Archivierung".</p>
+<h2 id="fehlerbehebung">Fehlerbehebung</h2>
+<p><img alt="Steuerungsstelle" src="../img/clearing.png" /></p>
+<p>Für Administratoren ist zusätzlich der Bereich "Steuerungsstelle" sichtbar. Hier werden Fehler bei der Verarbeitung von xdomea-Nachrichten und anderen Aufgaben aufgelistet. Allgemein wird die Bearbeitung durch die Archivarin beim Auftreten von Fehlern unterbrochen, bis der Fehler durch die Steuerungsstelle ausgeräumt ist. Bei Fehlern in xdomea-Nachrichten kann die Zusammenarbeit mit der abgebenden Stelle erforderlich sein, um den Fehler auszuräumen. Administratoren haben außerdem die Möglichkeit, einen Fehler "als gelöst [zu] markieren", um ein Fortsetzen der Bearbeitung zu erlauben, oder die gesamte xdomea-Nachricht zu löschen.</p>
+<p>Neben gezielt gefundenen Fehlern werden auch unerwartete Anwendungsfehler in der Steuerungsstelle angezeigt. Diese Fehler sind nicht mit einer Aussonderung verbunden, aber können zu einem inkonsistenten Zustand der Anwendung führen. Eine direkte Behandlung solcher Fehler durch x-man ist nicht möglich. Anwendungsfehler können z.B. durch eine fehlerhafte Konfiguration oder Probleme im Betrieb wie Netzwerkfehlern ausgelöst werden. In diesen Fällen kann das Problem ggf. extern gelöst werden. Eine weitere Ursache können Programmierfehler in der Anwendung selbst sein. Wenn Sie glauben, solche Fehler zu beobachten, würden wir uns über Rückmeldung in Form eines <a href="https://github.com/Landesarchiv-Thueringen/x-man/issues">Github-Issues</a> freuen.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer-Navigation">
+        <a href="../benutzerhandbuch/" class="btn btn-neutral float-left" title="Benutzerhandbuch"><span class="icon icon-circle-arrow-left"></span> Zurück</a>
+        <a href="../installation/" class="btn btn-neutral float-right" title="Installation (en)">Weiter <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Erzeugt mit <a href="https://www.mkdocs.org/">MkDocs</a> mit einem <a href="https://github.com/readthedocs/sphinx_rtd_theme">Thema</a> von <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versionen">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Landesarchiv-Thueringen/x-man" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../benutzerhandbuch/" style="color: #fcfcfc">&laquo; Zurück</a></span>
+    
+    
+      <span><a href="../installation/" style="color: #fcfcfc">Weiter &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
