@@ -3,10 +3,7 @@
 services:
   gui:
     build:
-      context: ./gui
       args:
-        - http_proxy=${HTTP_PROXY}
-        - https_proxy=${HTTPS_PROXY}
         - CONFIGURATION=development
     restart: "no"
 
@@ -14,12 +11,6 @@ services:
     restart: "no"
 
   server:
-    build:
-      context: ./server
-      args:
-        - http_proxy=${HTTP_PROXY}
-        - https_proxy=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
     depends_on:
       ldap:
         condition: service_healthy
@@ -43,12 +34,6 @@ services:
     restart: "no"
 
   report:
-    build:
-      context: ./report
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
     environment:
       - GIN_MODE=debug
     restart: "no"

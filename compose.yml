@@ -1,6 +1,12 @@
 services:
   gui:
     image: localhost/xman-gui
+    build:
+      context: ./gui
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - CONFIGURATION=production
     depends_on:
       server:
         condition: service_started
@@ -26,6 +32,12 @@ services:
 
   server:
     image: localhost/xman-server
+    build:
+      context: ./server
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
     depends_on:
       mongo:
         condition: service_healthy
@@ -90,6 +102,12 @@ services:
 
   report:
     image: localhost/xman-report
+    build:
+      context: ./report
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
     environment:
       - PORT=80
       - GIN_MODE=release

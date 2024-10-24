@@ -25,7 +25,7 @@
 
 # allow docker compose files
 !/compose.yml
-!/compose.*.yml
+!/compose.dev.yml
 
 # allow go workspace files
 !/go.work
