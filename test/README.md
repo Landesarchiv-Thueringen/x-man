@@ -2,7 +2,7 @@
 
 ## Preparation
 
-Build and run the application as described in [Installation #Getting Started](../doc/Installation.md#getting-started).
+Build and run the application as described in [Getting Started](https://landesarchiv-thueringen.github.io/x-man/installation/#getting-started).
 
 In this directory, run
 

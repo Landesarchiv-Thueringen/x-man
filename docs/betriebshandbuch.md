@@ -1,14 +1,14 @@
-# Benutzerhandbuch für Administratoren
+# Betriebshandbuch
 
 ## Betrieb
 
-Die Server-Komponente des xdomea-Aussonderungsmanagers (kurz x-man) wird in einer Docker-Umgebung auf einem Linux-System betrieben und mit Umgebungsvariablen konfiguriert. Siehe [Installation (en)](./Installation.md) für weitere Informationen. Sie ist für den Betrieb in einem Rechenzentrum durch IT-Fachleute vorgesehen.
+Die Server-Komponente des xdomea-Aussonderungsmanagers (kurz x-man) wird in einer Docker-Umgebung auf einem Linux-System betrieben und mit Umgebungsvariablen konfiguriert. Siehe [Installation (en)](./installation.md) für weitere Informationen. Sie ist für den Betrieb in einem Rechenzentrum durch IT-Fachleute vorgesehen.
 
 Die Web-Anwendung (GUI-Komponente) wird durch den Server ausgeliefert und kann von Endnutzern über den Web-Browser aufgerufen werden.
 
 ## Funktionsweise
 
-Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](../README.md).
+Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](https://github.com/Landesarchiv-Thueringen/x-man/blob/main/README.md).
 
 ## Nachrichtenaustausch mit xdomea
 
@@ -53,7 +53,7 @@ Bei der Anmeldung von Nutzern stellt x-man sogenannte Bearer Tokens aus, die vom
 
 ## Zertifikate
 
-Bei der verschlüsselten Kommunikation mit externen Diensten (z.B. LDAP, DIMAG, SMTP, Borg) werden Zertifikate zur Authentifizierung des externen Dienstes genutzt. x-man greift dabei auf die konfigurierten Wurzelzertifikate der Linux-Umgebung zurück. Das ist bei einem Betrieb per Docker der Docker-Container des Backend-Servers. Für den Fall, dass externe Dienste über ein öffentlich gültiges Zertifikat verfügen, ist kein weiteres Zutun erforderlich. Falls Dienste jedoch selbst signierte oder interne Zertifikate verwenden, muss die Zertifikatskette für x-man zugänglich gemacht werden. Dazu kopieren Sie alle Zertifikate, die genutzt werden um Zertifikate externer Dienste zu signieren, in den Ordner `data/ca-certificates` und wiederholen Sie die Schritte um Docker-Images zu starten wie in [Installation](Installation.md) beschrieben. Zertifikate sollten die Dateiendung `.crt` haben und im PEM-Format folgender Form vorliegen:
+Bei der verschlüsselten Kommunikation mit externen Diensten (z.B. LDAP, DIMAG, SMTP, Borg) werden Zertifikate zur Authentifizierung des externen Dienstes genutzt. x-man greift dabei auf die konfigurierten Wurzelzertifikate der Linux-Umgebung zurück. Das ist bei einem Betrieb per Docker der Docker-Container des Backend-Servers. Für den Fall, dass externe Dienste über ein öffentlich gültiges Zertifikat verfügen, ist kein weiteres Zutun erforderlich. Falls Dienste jedoch selbst signierte oder interne Zertifikate verwenden, muss die Zertifikatskette für x-man zugänglich gemacht werden. Dazu kopieren Sie alle Zertifikate, die genutzt werden um Zertifikate externer Dienste zu signieren, in den Ordner `data/ca-certificates` und wiederholen Sie die Schritte um Docker-Container zu starten wie in [Installation (en)](installation.md) beschrieben. Zertifikate sollten die Dateiendung `.crt` haben und im PEM-Format folgender Form vorliegen:
 
 ```
 -----BEGIN CERTIFICATE-----
@@ -114,4 +114,4 @@ Hier werden länger laufende Aufgaben des x-man Servers angezeigt. Aufgaben kön
 
 Für Administratoren ist zusätzlich der Bereich "Steuerungsstelle" sichtbar. Hier werden Fehler bei der Verarbeitung von xdomea-Nachrichten und anderen Aufgaben aufgelistet. Allgemein wird die Bearbeitung durch die Archivarin beim Auftreten von Fehlern unterbrochen, bis der Fehler durch die Steuerungsstelle ausgeräumt ist. Bei Fehlern in xdomea-Nachrichten kann die Zusammenarbeit mit der abgebenden Stelle erforderlich sein, um den Fehler auszuräumen. Administratoren haben außerdem die Möglichkeit, einen Fehler "als gelöst [zu] markieren", um ein Fortsetzen der Bearbeitung zu erlauben, oder die gesamte xdomea-Nachricht zu löschen.
 
-Neben gezielt gefundenen Fehlern werden auch unerwartete Anwendungsfehler in der Steuerungsstelle angezeigt. Diese Fehler sind nicht mit einer Aussonderung verbunden, aber können zu einem inkonsistenten Zustand der Anwendung führen. Eine direkte Behandlung solcher Fehler durch x-man ist nicht möglich. Anwendungsfehler können z.B. durch eine fehlerhafte Konfiguration oder Probleme im Betrieb wie Netzwerkfehlern ausgelöst werden. In diesen Fällen kann das Problem ggf. extern gelöst werden. Eine weitere Ursache können Programmierfehler in der Anwendung selbst sein. Wenn Sie glauben, solche Fehler zu beobachten, würden wir uns über Rückmeldung in Form eines Github-Issues freuen: https://github.com/Landesarchiv-Thueringen/x-man/issues.
+Neben gezielt gefundenen Fehlern werden auch unerwartete Anwendungsfehler in der Steuerungsstelle angezeigt. Diese Fehler sind nicht mit einer Aussonderung verbunden, aber können zu einem inkonsistenten Zustand der Anwendung führen. Eine direkte Behandlung solcher Fehler durch x-man ist nicht möglich. Anwendungsfehler können z.B. durch eine fehlerhafte Konfiguration oder Probleme im Betrieb wie Netzwerkfehlern ausgelöst werden. In diesen Fällen kann das Problem ggf. extern gelöst werden. Eine weitere Ursache können Programmierfehler in der Anwendung selbst sein. Wenn Sie glauben, solche Fehler zu beobachten, würden wir uns über Rückmeldung in Form eines [Github-Issues](https://github.com/Landesarchiv-Thueringen/x-man/issues) freuen.

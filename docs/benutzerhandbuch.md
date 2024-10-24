@@ -1,6 +1,8 @@
 # Benutzerhandbuch
 
-Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](../README.md).
+Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](https://github.com/Landesarchiv-Thueringen/x-man/blob/main/README.md).
+
+## Funktionen
 
 **Die Anwendung.** Der xdomea-Aussonderungsmanager (kurz x-man) wird als Webanwendung bereitgestellt. Die Bedienung erfolgt vollständig über die Web-Oberfläche, so dass Sie Dateien nur in Ausnahmefällen oder zur manuellen Überprüfung herunterladen müssen. Die Web-Oberfläche aktualisiert sich selbstständig bei eingehenden Nachrichten und abgeschlossenen Prozessen.
 

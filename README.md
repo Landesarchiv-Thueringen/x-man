@@ -5,7 +5,11 @@ Der xdomea-Aussonderungsmanager (kurz x-man) ermöglicht die Ansicht, Bewertung 
 Die Nutzeroberfläche wird als Webanwendung ausgeliefert und funktioniert in allen modernen Browsern.
 Die Anwendung kommuniziert über automatisierte Schnittstellen mit externen Diensten und die Bedienung geschieht medienbruchfrei in der Anwendung.
 
-![Nachrichten-Ansicht](./doc/img/message-page.png)
+Siehe [Dokumentation](https://landesarchiv-thueringen.github.io/x-man/) für weitere Informationen zu Bedienung und Betrieb.
+
+![Nachrichten-Ansicht](./docs/img/message-page.png)
+
+## Funktionen
 
 Hauptfunktionen:
 
@@ -30,15 +34,15 @@ Die Anwendung wurde bisher nur mit generierten Testdaten geprüft. Ein Test mit 
 
 Siehe
 
-- [Benutzerhandbuch für Archivarinnen](./doc/User-Manual_DE.md)
-- [Benutzerhandbuch für Administratoren](./doc/Administration-Manual_DE.md)
+- [Benutzerhandbuch](https://landesarchiv-thueringen.github.io/x-man/benutzerhandbuch/)
+- [Betriebshandbuch](https://landesarchiv-thueringen.github.io/x-man/betriebshandbuch/)
 
 ## Betrieb und Entwicklung
 
 Siehe
 
-- [Installation (en)](./doc/Installation.md)
-- [Development (en)](./doc/Development.md)
+- [Installation (en)](https://landesarchiv-thueringen.github.io/x-man/installation/)
+- [Development (en)](https://landesarchiv-thueringen.github.io/x-man/development/)
 - [Tests (en)](./test/README.md)
 
 ## Roadmap

@@ -17,8 +17,11 @@
 !/README.md
 !/CHANGELOG.md
 !/LICENSE
-!/doc/*.md
-!/doc/img/*.png
+!/docs/*.md
+!/docs/img/*.png
+
+# allow MkDocs
+!/mkdocs.yml
 
 # allow environment file
 !/.env.example

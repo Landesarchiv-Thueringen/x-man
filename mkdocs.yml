@@ -1,0 +1,17 @@
+site_name: x-man
+repo_url: https://github.com/Landesarchiv-Thueringen/x-man
+edit_uri: ""
+
+nav:
+  - benutzerhandbuch.md
+  - betriebshandbuch.md
+  - Installation (en): installation.md
+  - Development (en): development.md
+
+theme:
+  name: readthedocs
+  navigation_depth: 2
+  locale: de
+
+markdown_extensions:
+  - admonition

@@ -1,28 +1,48 @@
 # Development
 
-When run with development configuration (see [Getting Started](./Installation.md#getting-started)), there are some additional options to help with testing and debugging.
+Use the setup described in [Getting Started](./installation.md#getting-started) as starting point for development.
 
 ## Frontend Development Server
 
-To run with a auto-refreshing development server for frontend development, run
+To start an auto-refreshing server for frontend development, run
 
 ```sh
-# Run a minimal backend configuration. You can also start the complete stack without specifying "server".
-docker compose up --build -d server
-# Start the frontend development server
 cd gui
+# Install dependencies
+npm install
+# Start the frontend development server
 npm start
 ```
 
-## Debug the Database
+## Debugging the Database
 
 The development configuration starts an instance of [mongo-express](https://github.com/mongo-express/mongo-express) and connects it to the application database.
 
-Its web UI is available on http://localhost:8081.
+Its web UI is available on [localhost:8081](http://localhost:8081).
 
-## Concepts
+## Releasing a New Version
 
-### Error Handling
+- Choose a version tag based on semantic versioning.  
+  In most cases, this means incrementing the minor version when there are new features and otherwise, incrementing the patch version.
+- Update `CHANGELOG.md` with the chosen version tag and any changes.
+- Update the version constants in `server/internal/xdomea/x_man.go`.
+- Push any changes to `main`.
+- Draft a [new release](https://github.com/Landesarchiv-Thueringen/x-man/releases/new) on GitHub.
+
+## Generating Documentation
+
+We generate documentation with [MkDocs](https://www.mkdocs.org/) and upload the generated site to [GitHub Pages](https://pages.github.com/).
+
+```sh
+# Install dependencies (Arch Linux)
+sudo pacman -S mkdocs python-dateutil
+# Generate and serve docs locally
+mkdocs serve
+# Generate and upload to GitHub Pages
+mkdocs gh-deploy
+```
+
+## Error Handling
 
 **Error and panic.**
 In the server, we use a combination of go `error` return values and `panic`. In general, expected problems—such as connection issues or invalid files—should be returned as `error` while unexpected problems due to programming errors can `panic`.
@@ -39,13 +59,3 @@ In general, it is ok to `panic` on missing or invalid environment variables. How
 **Recovering from a panic.**
 `panic`s are recovered from to not crash the application. This happens by Gin when handling HTTP requests and should be taken care of by the programmer when invoking a goroutine.
 Take care to not cause further `panic`s when recovering from a previous `panic`, since this might crash the application.
-
-## Using Docker-Compose
-
-There are three compose files serving different purposes:
-
-- `compose.yml` is the base file for all other files. On its own, it sets up the production runtime with existing images, that have to be built before.
-- `compose.override.yml` contains adaptions for development and testing. It will be included by docker-compose automatically when present. It contains build instructions, configuration adaptations, and additional services.
-- `compose.build-prod.yml` contains build instructions for production builds. It has to be specified when calling docker-compose explicitly. After building images using this file, a production setup can be stared using `compose.yml` alone.
-
-See [Getting Started](./Installation.md#getting-started) and [Build and Run](./Installation.md#build-and-run) for instructions how to use these files.

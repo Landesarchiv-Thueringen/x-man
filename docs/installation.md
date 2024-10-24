@@ -1,5 +1,9 @@
 # Installation
 
+## Download
+
+Download the [latest release](https://github.com/Landesarchiv-Thueringen/x-man/releases/latest) from GitHub or clone the [repository](https://github.com/Landesarchiv-Thueringen/x-man) if you want the development version.
+
 ## Requirements
 
 x-man runs on any Linux system that provides the following dependencies:
@@ -25,7 +29,7 @@ The following external services should be provided for use in production:
 - [Borg](https://github.com/Landesarchiv-Thueringen/borg) (format verification)
 - SMTP (e-mail notifications)
 
-See [Administration Manual (De)](./Administration-Manual_DE.md) for further details.
+See [Betriebshandbuch (de)](./betriebshandbuch.md) for further details.
 
 ### Compatible Borg Versions
 
@@ -41,16 +45,18 @@ For a minimal testing setup run the following commands:
 ```sh
 # Create TLS certificates for testing
 ./scripts/generate-test-certificates.sh
-# Create initial configuration
+# Create the initial configuration
 cp .env.example .env
-# Build and run for development / testing
-docker compose up --build
+# Activate the development / testing setup
+ln -s compose.dev.yml compose.override.yml
+# Build and run
+docker compose up --build -d
 ```
 
 In case you are behind a http proxy, you will need to provide its address with
 `HTTP_PROXY` in `.env` before running the last command.
 
-The application will be exposed on http://localhost:8080.
+The application will be exposed on [localhost:8080](http://localhost:8080).
 
 Login:
 
@@ -62,6 +68,14 @@ Login:
 ```sh
 docker compose down --volumes
 ```
+
+## Using Docker-Compose
+
+There are compose files for different purposes:
+
+- `compose.yml` is the base file for all other files. On its own, it sets up the production runtime with existing images or builds images for production.
+- `compose.dev.yml` contains adaptions for development and testing. It contains build- and configuration adaptations and additional services.
+- `compose.override.yml` will be included by docker-compose automatically when present. It is not present in the repository, but you can link `compose.dev.yml` to it or create your own for custom changes.
 
 ## Test Setup
 
@@ -90,36 +104,38 @@ The script `generate-test-certificates.sh` creates dummy certificates for the se
 A root certificate is created and installed in the application container, so it
 can verify the certificates and establish secure connections.
 
-## Production Use
+## Configuration
 
-### Build and Run
+Copy `.env.example` to `.env` and adjust values as described in the file.
 
 ```sh
-# Build for production
-docker compose -f compose.yml -f compose.build-prod.yml build
+# Create the initial configuration
+cp .env.example .env
+# Adjust values as needed
+$EDITOR .env
 ```
 
-To run the production build, you do not need the entire repository, but only two files:
+Re-run `docker compose up -d` after changing configuration.
+
+## Production Use
+
+Create and adjust an `.env` file as described above. The production setup requires you to provide valid configuration for the required [services](#services).
+
+```sh
+# Remove overrides for development setup if any
+rm -f compose.override.yml
+# Build
+docker compose build
+# Run
+docker compose up -d
+```
+
+For the last command, you do not need the entire repository, but only these two files:
 
 - .env
 - compose.yml
 
-In the directory containing these files, run
-
-```sh
-# Run for production
-docker compose up -d
-# Run for production when inside the complete source code directory
-docker compose -f compose.yml up -d
-```
-
-Re-run the command after changing configuration.
-
-### Configuration
-
-Copy `.env.example` to `.env` and adjust values as described in the file.
-
-### Custom TLS Certificates
+## Custom TLS Certificates
 
 In case any servers you provide in `.env` cannot present certificates that are
 signed by a commonly accepted CA, you need to provide any involved root- and
@@ -140,8 +156,9 @@ X-man and its services use Docker's [logging mechanism](https://docs.docker.com/
 docker compose logs -f server
 ```
 
-> [!CAUTION]
-> By default, the size of log files is not limited and log files can quickly become very large!
+!!! warning
+
+    By default, the size of log files is not limited and log files can quickly become very large!
 
 To enable Docker's recommended logging mechanism with a default of 5 rotating files and a maximum of 20 MB, add the following to `/etc/docker/daemon.json`:
 
@@ -151,7 +168,7 @@ To enable Docker's recommended logging mechanism with a default of 5 rotating fi
 }
 ```
 
-See https://docs.docker.com/config/containers/logging/configure/ for further information.
+See [Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/) for further information.
 
 ## Troubleshooting
 
@@ -165,7 +182,7 @@ A possible reason is the use of a reverse proxy that does not pass these events.
 
 You might need to add some or all of the below options for events to get passed.
 
-For additional information see: https://stackoverflow.com/questions/13672743/eventsource-server-sent-events-through-nginx
+For additional information see: [stackoverflow: EventSource / Server-Sent Events through Nginx](https://stackoverflow.com/questions/13672743/eventsource-server-sent-events-through-nginx).
 
 ```nginx
 location / {
