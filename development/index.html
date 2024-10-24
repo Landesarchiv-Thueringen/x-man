@@ -115,7 +115,11 @@ npm start
 <h2 id="generating-documentation">Generating Documentation</h2>
 <p>We generate documentation with <a href="https://www.mkdocs.org/">MkDocs</a> and upload the generated site to <a href="https://pages.github.com/">GitHub Pages</a>.</p>
 <pre><code class="language-sh"># Install dependencies (Arch Linux)
-pacman -S mkdocs python-dateutil
+sudo pacman -S mkdocs python-dateutil
+# Generate and serve docs locally
+mkdocs serve
+# Generate and upload to GitHub Pages
+mkdocs gh-deploy
 </code></pre>
 <h2 id="error-handling">Error Handling</h2>
 <p><strong>Error and panic.</strong>
