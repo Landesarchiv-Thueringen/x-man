@@ -108,14 +108,16 @@
 <h2 id="requirements">Requirements</h2>
 <p>x-man runs on any Linux system that provides the following dependencies:</p>
 <ul>
-<li>Either</li>
+<li>Either<ul>
 <li>Docker (configured and with running daemon), or</li>
 <li>Podman</li>
+</ul>
+</li>
 <li>Docker Compose (for both, Docker and Podman)</li>
 <li>OpenSSL (for testing setup)</li>
 <li>NodeJS and NPM (for frontend development)</li>
 </ul>
-<p>Testing on Windows is possible with a Linux virtual machine or using the <a href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux (WSL)</a> version 2 (WSL 2).</p>
+<p>Testing on Windows is possible with a Linux virtual machine or using the <a href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux</a> version 2 (WSL 2).</p>
 <h2 id="services">Services</h2>
 <p>x-man is meant to be used in combination with some external services. For
 testing purposes, we provide configuration for dummy services (see <a href="#test-setup">Test Setup</a>). For production use, you should provide and configure these services (see <a href="#configuration">Configuration</a>).</p>
@@ -249,7 +251,7 @@ certificates for.</p>
 </div>
 <p>To enable Docker's recommended logging mechanism with a default of 5 rotating files and a maximum of 20 MB, add the following to <code>/etc/docker/daemon.json</code>:</p>
 <pre><code class="language-json">{
-  &quot;log-driver&quot;: &quot;local&quot;
+    &quot;log-driver&quot;: &quot;local&quot;
 }
 </code></pre>
 <p>See <a href="https://docs.docker.com/config/containers/logging/configure/">Configure logging drivers</a> for further information.</p>

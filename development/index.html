@@ -107,8 +107,8 @@ npm start
 <p>Its web UI is available on <a href="http://localhost:8081">localhost:8081</a>.</p>
 <h2 id="releasing-a-new-version">Releasing a New Version</h2>
 <ul>
-<li>Choose a version tag based on semantic versioning.<br />
-  In most cases, this means incrementing the minor version when there are new features and otherwise, incrementing the patch version.</li>
+<li>Choose a version tag based on semantic versioning.
+    In most cases, this means incrementing the minor version when there are new features and otherwise, incrementing the patch version.</li>
 <li>Update <code>CHANGELOG.md</code> with the chosen version tag and any changes.</li>
 <li>Update the version constants in <code>server/internal/xdomea/x_man.go</code>.</li>
 <li>Push any changes to <code>main</code>.</li>
@@ -126,15 +126,15 @@ mkdocs gh-deploy
 <h2 id="server-package-layout">Server Package Layout</h2>
 <ul>
 <li><code>main</code> (cmd/server.go)<br />
-  Entry point. Not imported by any package.</li>
+    Entry point. Not imported by any package.</li>
 <li><code>archive</code>, <code>report</code>, <code>routines</code><br />
-  High-level packages. Only imported by the <code>main</code> package.</li>
+    High-level packages. Only imported by the <code>main</code> package.</li>
 <li><code>xdomea</code><br />
-  Main application logic. Imported by high-level packages and <code>main</code>.</li>
+    Main application logic. Imported by high-level packages and <code>main</code>.</li>
 <li><code>auth</code>, <code>errors</code>, <code>mail</code>, <code>tasks</code>, <code>verification</code><br />
-  Low-level packages. Imported by higher packages. Depend only on <code>db</code> or each other.</li>
+    Low-level packages. Imported by higher packages. Depend only on <code>db</code> or each other.</li>
 <li><code>db</code><br />
-  Database and types. Imported by all other packages. No dependencies to internal packages.</li>
+    Database and types. Imported by all other packages. No dependencies to internal packages.</li>
 </ul>
 <h2 id="error-handling">Error Handling</h2>
 <p><strong>Error and panic.</strong>
