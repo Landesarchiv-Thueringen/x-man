@@ -42,6 +42,19 @@ mkdocs serve
 mkdocs gh-deploy
 ```
 
+## Server Package Layout
+
+- `main` (cmd/server.go)  
+  Entry point. Not imported by any package.
+- `archive`, `report`, `routines`  
+  High-level packages. Only imported by the `main` package.
+- `xdomea`  
+  Main application logic. Imported by high-level packages and `main`.
+- `auth`, `errors`, `mail`, `tasks`, `verification`  
+  Low-level packages. Imported by higher packages. Depend only on `db` or each other.
+- `db`  
+  Database and types. Imported by all other packages. No dependencies to internal packages.
+
 ## Error Handling
 
 **Error and panic.**

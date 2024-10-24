@@ -8,6 +8,8 @@ nav:
   - Installation (en): installation.md
   - Development (en): development.md
 
+not_in_nav: index.md
+
 theme:
   name: readthedocs
   navigation_depth: 2

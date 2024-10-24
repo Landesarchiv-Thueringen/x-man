@@ -58,10 +58,12 @@ In case you are behind a http proxy, you will need to provide its address with
 
 The application will be exposed on [localhost:8080](http://localhost:8080).
 
-Login:
+### Login
 
-- fry / fry (user)
-- hermes / hermes (administrator)
+| User   | Password | Role      |
+| ------ | -------- | --------- |
+| fry    | fry      | Archivist |
+| hermes | hermes   | Admin     |
 
 ### Tear Down
 

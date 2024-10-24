@@ -11,14 +11,14 @@ Siehe [Dokumentation](https://landesarchiv-thueringen.github.io/x-man/) für wei
 
 ## Funktionen
 
-Hauptfunktionen:
+### Hauptfunktionen
 
 - Annahme von Aussonderungen und Austausch von Nachrichten mit abgebenden Stellen nach dem [xdomea-Standard](https://www.xrepository.de/details/urn:xoev-de:xdomea:kosit:standard:xdomea) (Versionen 2.3 bis 3.1)
 - Ansicht und Bewertung von Anbietungen in der Weboberfläche
 - Datei-Validierung mit Hilfe von [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg)
 - Import von Abgaben in das [DIMAG Kernmodul](https://gitlab.la-bw.de/dimag/core/kernmodul) für die dauerhafte Archivierung
 
-Ergänzende Funktionen:
+### Ergänzende Funktionen
 
 - Erstellen eines Übernahmeberichtes nach erfolgreicher Archivierung
 - E-Mail-Benachrichtigungen bei neuen xdomea-Nachrichten oder im Fehlerfall
@@ -32,14 +32,10 @@ Die Anwendung wurde bisher nur mit generierten Testdaten geprüft. Ein Test mit 
 
 ## Bedienung
 
-Siehe
-
 - [Benutzerhandbuch](https://landesarchiv-thueringen.github.io/x-man/benutzerhandbuch/)
 - [Betriebshandbuch](https://landesarchiv-thueringen.github.io/x-man/betriebshandbuch/)
 
 ## Betrieb und Entwicklung
-
-Siehe
 
 - [Installation (en)](https://landesarchiv-thueringen.github.io/x-man/installation/)
 - [Development (en)](https://landesarchiv-thueringen.github.io/x-man/development/)
@@ -48,8 +44,6 @@ Siehe
 ## Roadmap
 
 - AFIS-Schnittstelle für die automatische Bildung von Verzeichnungseinheiten bei der Archivierung
-- DIMAG-Import als Bagit um die Integrität der Primärdateien abzusichern und Protokolleinträge im DIMAG-Format zu erstellen
-- konfigurierbare Paketierungsebene für die Erstellung der Achivpakete
 
 ## Lizenz
 
