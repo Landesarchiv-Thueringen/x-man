@@ -8,14 +8,14 @@ Download the [latest release](https://github.com/Landesarchiv-Thueringen/x-man/r
 
 x-man runs on any Linux system that provides the following dependencies:
 
-- Either
-  - Docker (configured and with running daemon), or
-  - Podman
-- Docker Compose (for both, Docker and Podman)
-- OpenSSL (for testing setup)
-- NodeJS and NPM (for frontend development)
+-   Either
+    -   Docker (configured and with running daemon), or
+    -   Podman
+-   Docker Compose (for both, Docker and Podman)
+-   OpenSSL (for testing setup)
+-   NodeJS and NPM (for frontend development)
 
-Testing on Windows is possible with a Linux virtual machine or using the [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) version 2 (WSL 2).
+Testing on Windows is possible with a Linux virtual machine or using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) version 2 (WSL 2).
 
 ## Services
 
@@ -24,10 +24,10 @@ testing purposes, we provide configuration for dummy services (see [Test Setup](
 
 The following external services should be provided for use in production:
 
-- LDAP (user authentication)
-- DIMAG (archiving)
-- [Borg](https://github.com/Landesarchiv-Thueringen/borg) (format verification)
-- SMTP (e-mail notifications)
+-   LDAP (user authentication)
+-   DIMAG (archiving)
+-   [Borg](https://github.com/Landesarchiv-Thueringen/borg) (format verification)
+-   SMTP (e-mail notifications)
 
 See [Betriebshandbuch (de)](./betriebshandbuch.md) for further details.
 
@@ -75,9 +75,9 @@ docker compose down --volumes
 
 There are compose files for different purposes:
 
-- `compose.yml` is the base file for all other files. On its own, it sets up the production runtime with existing images or builds images for production.
-- `compose.dev.yml` contains adaptions for development and testing. It contains build- and configuration adaptations and additional services.
-- `compose.override.yml` will be included by docker-compose automatically when present. It is not present in the repository, but you can link `compose.dev.yml` to it or create your own for custom changes.
+-   `compose.yml` is the base file for all other files. On its own, it sets up the production runtime with existing images or builds images for production.
+-   `compose.dev.yml` contains adaptions for development and testing. It contains build- and configuration adaptations and additional services.
+-   `compose.override.yml` will be included by docker-compose automatically when present. It is not present in the repository, but you can link `compose.dev.yml` to it or create your own for custom changes.
 
 ## Test Setup
 
@@ -134,8 +134,8 @@ docker compose up -d
 
 For the last command, you do not need the entire repository, but only these two files:
 
-- .env
-- compose.yml
+-   .env
+-   compose.yml
 
 ## Custom TLS Certificates
 
@@ -166,7 +166,7 @@ To enable Docker's recommended logging mechanism with a default of 5 rotating fi
 
 ```json
 {
-  "log-driver": "local"
+    "log-driver": "local"
 }
 ```
 

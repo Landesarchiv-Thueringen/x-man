@@ -2,16 +2,15 @@
 *
 !*/
 
-# prohibit directories that can't be accessed with user rights (removes warnings)
-/archive
-/server/database/data
-
 # allow visual studio code config
 !.vscode/settings.json
 !.vscode/extensions.json
 
 # allow gitginore files
 !.gitignore
+
+# allow editor config
+!/.editorconfig
 
 # allow docs
 !/README.md

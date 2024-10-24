@@ -18,15 +18,15 @@ Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](ht
 
 **Datenhaltung.** Nach dem Auffinden einer neuen Nachricht verarbeitet x-man diese für die weitere Verwendung. Daten zur Nachricht befinden sich an verschiedenen Stellen und sollten synchron gehalten werden um Fehler zu vermeiden (z.B. beim Wiederherstellen eines Backups gemeinsam wiederhergestellt werden). Alle Daten werden von x-man selbst verwaltet und erfordern im normalen Betrieb keinen manuellen Zugriff.
 
-- Transferverzeichnis: Nach dem initialen Einlesen greift x-man zunächst nicht mehr auf die eingelesene Datei im Transferverzeichnis zu, jedoch löscht es Nachrichten nach der erfolgreichen Archivierung und dem Ablaufen einer Frist aus der Anwendung und entfernt dabei auch die zugehörigen Dateien aus dem Transferverzeichnis.
-- Datenbank: x-mans interne Datenhaltung erfolgt durch eine MongoDB-Datenbank. Neben dem Inhalt von xdomea-Nachrichten wird hier auch die Konfiguration der Anwendung und der Bearbeitungszustand von Aussonderungen gespeichert. Die zugehörigen Daten werden in der vorgeschlagenen Docker-Compose-Konfiguration in einem Docker-Volume abgelegt.
-- Message-Store: Primärdaten werden von x-man direkt in einem Dateisystem verwaltet. Auch der Message-Store wird in der der vorgeschlagenen Docker-Compose-Konfiguration als Docker-Volume angelegt.
+-   Transferverzeichnis: Nach dem initialen Einlesen greift x-man zunächst nicht mehr auf die eingelesene Datei im Transferverzeichnis zu, jedoch löscht es Nachrichten nach der erfolgreichen Archivierung und dem Ablaufen einer Frist aus der Anwendung und entfernt dabei auch die zugehörigen Dateien aus dem Transferverzeichnis.
+-   Datenbank: x-mans interne Datenhaltung erfolgt durch eine MongoDB-Datenbank. Neben dem Inhalt von xdomea-Nachrichten wird hier auch die Konfiguration der Anwendung und der Bearbeitungszustand von Aussonderungen gespeichert. Die zugehörigen Daten werden in der vorgeschlagenen Docker-Compose-Konfiguration in einem Docker-Volume abgelegt.
+-   Message-Store: Primärdaten werden von x-man direkt in einem Dateisystem verwaltet. Auch der Message-Store wird in der der vorgeschlagenen Docker-Compose-Konfiguration als Docker-Volume angelegt.
 
 **Validitätsprüfung.** Empfangene Nachrichten werden von x-man auf Validität und Korrektheit geprüft. Bei gefundenen Fehlern wird ein Problem-Eintrag für die Steuerungsstelle angelegt (siehe [Fehlerbehandlung](#fehlerbehebung)). Geprüft wird:
 
-- Validität der Nachricht nach dem xdomea-Standard durch eine XML-Schemaprüfung
-- Inhalt der Nachricht im Kontext eines laufenden Aussonderungsprozesses, insbesondere Abgaben bei vorangegangener Bewertung einer Anbietung
-- Maximale Verschachtlungstiefe nach Einstellung von `MAX_RECORD_DEPTH`. In der aktuellen Version sieht xdomea eine maximale Verschachtlungstiefe von 5 Ebenen vor, jedoch darf der Wert in Absprache zwischen Archiven und abgebenden Stellen verändert werden.
+-   Validität der Nachricht nach dem xdomea-Standard durch eine XML-Schemaprüfung
+-   Inhalt der Nachricht im Kontext eines laufenden Aussonderungsprozesses, insbesondere Abgaben bei vorangegangener Bewertung einer Anbietung
+-   Maximale Verschachtlungstiefe nach Einstellung von `MAX_RECORD_DEPTH`. In der aktuellen Version sieht xdomea eine maximale Verschachtlungstiefe von 5 Ebenen vor, jedoch darf der Wert in Absprache zwischen Archiven und abgebenden Stellen verändert werden.
 
 ## Bewertung von Anbietungen
 
@@ -46,8 +46,8 @@ x-man ist ein Durchgangssystem, das Daten nicht dauerhaft vorhält. Entsprechend
 
 Die Nutzerverwaltung von x-man geschieht über ein LDAP-System wie Active Directory. x-man greift dabei nur lesend auf ein bestehendes System zu. Die Konfiguration geschieht über Variablen mit dem Präfix `LDAP`. Ggf. ist das hinzufügen von Zertifikaten für die verschlüsselte Kommunikation nötig (siehe [Zertifikate](#zertifikate)). Neben einem fest-konfigurierten Nutzer für den Zugriff auf Nutzerlisten und Gruppen ist die Konfiguration von zwei LDAP-Gruppen erforderlich:
 
-- `LDAP_ACCESS_GROUP`: Mitglieder der als Wert eingetragenen Gruppe können sich in x-man anmelden und ihnen können abgebende Stellen zugewiesen werden.
-- `LDAP_ADMIN_GROUP`: Mitglieder der als Wert eingetragenen Gruppe können sich mit Administrations-Rechten in x-man anmelden. Sie haben alle Befugnisse der Mitglieder der Access-Group und können zusätzlich Fehler in der Steuerungsstelle einsehen und beheben sowie die Laufzeit-Konfiguration der Anwendung steuern (siehe [Fehlerbehandlung](#fehlerbehebung) und [Administration](#administration)).
+-   `LDAP_ACCESS_GROUP`: Mitglieder der als Wert eingetragenen Gruppe können sich in x-man anmelden und ihnen können abgebende Stellen zugewiesen werden.
+-   `LDAP_ADMIN_GROUP`: Mitglieder der als Wert eingetragenen Gruppe können sich mit Administrations-Rechten in x-man anmelden. Sie haben alle Befugnisse der Mitglieder der Access-Group und können zusätzlich Fehler in der Steuerungsstelle einsehen und beheben sowie die Laufzeit-Konfiguration der Anwendung steuern (siehe [Fehlerbehandlung](#fehlerbehebung) und [Administration](#administration)).
 
 Bei der Anmeldung von Nutzern stellt x-man sogenannte Bearer Tokens aus, die vom Webbrowser gespeichert werden. Die Länge der Gültigkeit dieser Tokens sowie ein geheimer Wert, der zur Erstellung und Prüfung der Tokens dient wird über die Umgebungsvariablen mit dem Präfix `TOKEN` gesteuert.
 
@@ -83,12 +83,12 @@ Nutzer, die der Gruppe für Administratoren angehören (siehe [Nutzerverwaltung 
 
 Hier können die abgebenden Stellen konfiguriert werden, die Schriftgutobjekte an das Archiv aussondern. Die folgenden Daten können eingestellt werden:
 
-- **Name** und **Kürzel** werden in der Anwendung angezeigt und in den Übernahmebericht übernommen, um die abgebende Stelle zu identifizieren.
-- **Behördenkennung** (Präfix und Behördenschlüssel) wird mit den Daten von empfangenen xdomea-Nachrichten abgeglichen. Bei Nichtübereinstimmung wird ein Fehler für die Steuerungsstelle erzeugt.
-- **Zuordnung zu Bestand** ist die Vorauswahl für den DIMAG-Bestand, in den die Abgaben der abgebenden Stelle standardmäßig für die dauerhafte Archivierung übertragen werden. Der Bestand kann bei der Archivierung durch die Archivarin angepasst werden, die hier eingestellte Vorauswahl bleibt davon jedoch unverändert.
-- **Zuordnung zu Mitarbeiter** bestimmt, welche Nutzer die Aussonderungen der abgebenden Stelle in ihrer Aussonderung-Liste sehen und bei neuen Nachrichten per E-Mail benachrichtigt werden. Administratoren haben die Möglichkeit, in der Aussonderungs-Liste auch Aussonderungen von abgebenden Stellen anzuzeigen, die ihnen nicht zugeordnet sind.
-- **Kontakt** ermöglicht das Speichern einer E-Mail-Adresse, an die bei Fehlern E-Mails an die abgebende Stelle gesendet werden können. x-man stellt Vorlagen für E-Mails bereit, auf deren Grundlage Administratoren E-Mails verfassen können, sendet jedoch nicht eigenständig E-Mails an abgebende Stellen.
-- **Transferverzeichnis** ist ein Ordner auf dem lokalen Dateisystem oder eine WebDav-Freigabe, der/die zur Übertragung von xdomea-Nachrichten genutzt wird. Abgebende Stellen sowie x-man legen Nachrichten in Form von Zip-Dateien nach dem xdomea-Standard in dieses Verzeichnis ab, um sie von der Gegenseite abholen zu lassen. x-man überprüft selbstständig regelmäßig die hier konfigurierten Transferverzeichnisse auf neue Nachrichten. Nach abgeschlossener Archivierung und dem Verstreichen einer einstellbaren Frist löscht x-man sowohl die von x-man selbst erstellten, wie auch die von der abgebenden Stelle empfangenen Nachrichten aus dem Transferverzeichnis.
+-   **Name** und **Kürzel** werden in der Anwendung angezeigt und in den Übernahmebericht übernommen, um die abgebende Stelle zu identifizieren.
+-   **Behördenkennung** (Präfix und Behördenschlüssel) wird mit den Daten von empfangenen xdomea-Nachrichten abgeglichen. Bei Nichtübereinstimmung wird ein Fehler für die Steuerungsstelle erzeugt.
+-   **Zuordnung zu Bestand** ist die Vorauswahl für den DIMAG-Bestand, in den die Abgaben der abgebenden Stelle standardmäßig für die dauerhafte Archivierung übertragen werden. Der Bestand kann bei der Archivierung durch die Archivarin angepasst werden, die hier eingestellte Vorauswahl bleibt davon jedoch unverändert.
+-   **Zuordnung zu Mitarbeiter** bestimmt, welche Nutzer die Aussonderungen der abgebenden Stelle in ihrer Aussonderung-Liste sehen und bei neuen Nachrichten per E-Mail benachrichtigt werden. Administratoren haben die Möglichkeit, in der Aussonderungs-Liste auch Aussonderungen von abgebenden Stellen anzuzeigen, die ihnen nicht zugeordnet sind.
+-   **Kontakt** ermöglicht das Speichern einer E-Mail-Adresse, an die bei Fehlern E-Mails an die abgebende Stelle gesendet werden können. x-man stellt Vorlagen für E-Mails bereit, auf deren Grundlage Administratoren E-Mails verfassen können, sendet jedoch nicht eigenständig E-Mails an abgebende Stellen.
+-   **Transferverzeichnis** ist ein Ordner auf dem lokalen Dateisystem oder eine WebDav-Freigabe, der/die zur Übertragung von xdomea-Nachrichten genutzt wird. Abgebende Stellen sowie x-man legen Nachrichten in Form von Zip-Dateien nach dem xdomea-Standard in dieses Verzeichnis ab, um sie von der Gegenseite abholen zu lassen. x-man überprüft selbstständig regelmäßig die hier konfigurierten Transferverzeichnisse auf neue Nachrichten. Nach abgeschlossener Archivierung und dem Verstreichen einer einstellbaren Frist löscht x-man sowohl die von x-man selbst erstellten, wie auch die von der abgebenden Stelle empfangenen Nachrichten aus dem Transferverzeichnis.
 
 ### Bestände
 

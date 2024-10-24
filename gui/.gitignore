@@ -1,5 +1,4 @@
 # allow project files
-!/.editorconfig
 !/angular.json
 !/package-lock.json
 !/package.json
