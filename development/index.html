@@ -62,6 +62,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#generating-documentation">Generating Documentation</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#server-package-layout">Server Package Layout</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a>
     </li>
     </ul>
@@ -121,6 +123,19 @@ mkdocs serve
 # Generate and upload to GitHub Pages
 mkdocs gh-deploy
 </code></pre>
+<h2 id="server-package-layout">Server Package Layout</h2>
+<ul>
+<li><code>main</code> (cmd/server.go)<br />
+  Entry point. Not imported by any package.</li>
+<li><code>archive</code>, <code>report</code>, <code>routines</code><br />
+  High-level packages. Only imported by the <code>main</code> package.</li>
+<li><code>xdomea</code><br />
+  Main application logic. Imported by high-level packages and <code>main</code>.</li>
+<li><code>auth</code>, <code>errors</code>, <code>mail</code>, <code>tasks</code>, <code>verification</code><br />
+  Low-level packages. Imported by higher packages. Depend only on <code>db</code> or each other.</li>
+<li><code>db</code><br />
+  Database and types. Imported by all other packages. No dependencies to internal packages.</li>
+</ul>
 <h2 id="error-handling">Error Handling</h2>
 <p><strong>Error and panic.</strong>
 In the server, we use a combination of go <code>error</code> return values and <code>panic</code>. In general, expected problems—such as connection issues or invalid files—should be returned as <code>error</code> while unexpected problems due to programming errors can <code>panic</code>.

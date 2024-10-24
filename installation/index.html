@@ -160,11 +160,28 @@ docker compose up --build -d
 <p>In case you are behind a http proxy, you will need to provide its address with
 <code>HTTP_PROXY</code> in <code>.env</code> before running the last command.</p>
 <p>The application will be exposed on <a href="http://localhost:8080">localhost:8080</a>.</p>
-<p>Login:</p>
-<ul>
-<li>fry / fry (user)</li>
-<li>hermes / hermes (administrator)</li>
-</ul>
+<h3 id="login">Login</h3>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Password</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fry</td>
+<td>fry</td>
+<td>Archivist</td>
+</tr>
+<tr>
+<td>hermes</td>
+<td>hermes</td>
+<td>Admin</td>
+</tr>
+</tbody>
+</table>
 <h3 id="tear-down">Tear Down</h3>
 <pre><code class="language-sh">docker compose down --volumes
 </code></pre>
