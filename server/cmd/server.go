@@ -739,6 +739,9 @@ func getAgencies(c *gin.Context) {
 	} else {
 		agencies = db.FindAgencies(c)
 	}
+	if agencies == nil {
+		agencies = make([]db.Agency, 0)
+	}
 	c.JSON(http.StatusOK, agencies)
 }
 
