@@ -27,7 +27,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
     volumes:
-      - mongo:/data/db
+      - ./data/mongo:/data/db
     restart: unless-stopped
 
   server:
@@ -87,7 +87,7 @@ services:
       - DIMAG_CORE_PASSWORD=${DIMAG_CORE_PASSWORD}
     volumes:
       - certs:/etc/ssl/certs
-      - message_store:/xman/message_store
+      - ./data/message_store:/xman/message_store
       - ./data/transfer_dir:/xman/transfer_dir
       - ./data/archive:/xman/archive
     restart: unless-stopped
@@ -114,6 +114,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  message_store:
-  mongo:
   certs:
