@@ -1,6 +1,6 @@
 # allow project files
 !/angular.json
-!/package-lock.json
+!/pnpm-lock.yaml
 !/package.json
 !/README.md
 !/tsconfig.app.json

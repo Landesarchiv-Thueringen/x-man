@@ -9,9 +9,9 @@ To start an auto-refreshing server for frontend development, run
 ```sh
 cd gui
 # Install dependencies
-npm install
+pnpm install
 # Start the frontend development server
-npm start
+pnpm start
 ```
 
 ## Debugging the Database

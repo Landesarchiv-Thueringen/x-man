@@ -27,6 +27,7 @@
 -   Intern: Migration zum Signals-Mechanismus in Angular
 -   Intern: Konfigurierbare Ports für Dienste
 -   Intern: Binde Volumes für persistente Daten ins Dateisystem
+-   Intern: Migration auf PNPM
 
 ## v1.0.0
 

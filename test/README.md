@@ -7,8 +7,8 @@ Build and run the application as described in [Getting Started](https://landesar
 In this directory, run
 
 ```sh
-npm install
-npx playwright install
+pnpm install
+pnpm exec playwright install
 ```
 
 ### Playwright Dependencies
@@ -16,7 +16,7 @@ npx playwright install
 Ubuntu:
 
 ```sh
-sudo npx playwright install-deps
+sudo pnpm exec playwright install-deps
 ```
 
 Arch Linux:
@@ -29,16 +29,16 @@ sudo pacman -S nss nspr atkmm cups libdrm libxcomposite libxdamage libxrandr mes
 
 ```sh
 # Run all tests in headless mode
-npx playwright test
+pnpm exec playwright test
 # Open Playwright UI
-npx playwright test --ui
+pnpm exec playwright test --ui
 ```
 
 ## Writing Tests
 
 ```sh
 # Open Playwright's interactive code generator
-npx playwright codegen http://localhost:8080
+pnpm exec playwright codegen http://localhost:8080
 ```
 
 Visit https://playwright.dev/docs/intro for more information on Playwright.

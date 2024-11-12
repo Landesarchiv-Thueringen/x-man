@@ -13,7 +13,7 @@ x-man runs on any Linux system that provides the following dependencies:
     -   Podman
 -   Docker Compose (for both, Docker and Podman)
 -   OpenSSL (for testing setup)
--   NodeJS and NPM (for frontend development)
+-   NodeJS and PNPM (for frontend development)
 
 Testing on Windows is possible with a Linux virtual machine or using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) version 2 (WSL 2).
 

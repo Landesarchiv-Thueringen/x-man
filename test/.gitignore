@@ -1,7 +1,7 @@
 # Allow core files
 !/README.md
 !/package.json
-!/package-lock.json
+!/pnpm-lock.yaml
 !/.editorconfig
 
 # Allow playwright config
