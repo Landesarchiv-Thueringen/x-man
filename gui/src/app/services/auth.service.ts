@@ -60,7 +60,7 @@ export class AuthService {
 
   async login(username: string, password: string): Promise<void> {
     const headers = new HttpHeaders({
-      Authorization: 'Basic ' + btoa(`${username}:${password}`),
+      Authorization: 'Basic ' + toBase64(`${username}:${password}`),
     });
     const observable = this.httpClient
       .get<LoginInformation>(environment.endpoint + '/login', { headers })
@@ -81,4 +81,15 @@ export class AuthService {
     localStorage.removeItem('loginInformation');
     this.router.navigate(['login']);
   }
+}
+
+/**
+ * Converts the a string to base64, correctly handling unicode characters.
+ */
+function toBase64(s: string): string {
+  // Adapted from
+  // https://developer.mozilla.org/en-US/docs/Web/API/Window/btoa#unicode_strings.
+  const bytes = new TextEncoder().encode(s);
+  const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join('');
+  return btoa(binString);
 }
