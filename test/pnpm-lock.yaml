@@ -9,16 +9,16 @@ importers:
   .:
     devDependencies:
       '@playwright/test':
-        specifier: ^1.43.1
+        specifier: ^1.48.2
         version: 1.48.2
       '@types/node':
-        specifier: ^20.12.7
-        version: 20.17.6
+        specifier: ^22.9.0
+        version: 22.9.0
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
       webdav:
-        specifier: ^5.6.0
+        specifier: ^5.7.1
         version: 5.7.1
 
 packages:
@@ -31,8 +31,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@types/node@20.17.6':
-    resolution: {integrity: sha512-VEI7OdvK2wP7XHnsuXbAJnEpEkF6NjSN45QJlL4VGqZSXsnicpesdTWsg9RISeSdYd3yeRj/y3k5KGjUXYnFwQ==}
+  '@types/node@22.9.0':
+    resolution: {integrity: sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -158,7 +158,7 @@ snapshots:
     dependencies:
       playwright: 1.48.2
 
-  '@types/node@20.17.6':
+  '@types/node@22.9.0':
     dependencies:
       undici-types: 6.19.8
 
