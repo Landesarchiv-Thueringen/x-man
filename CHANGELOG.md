@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v1.1.0
 
 -   Feature: Anpassbare Paketierung
 -   Feature: Bestätige Erhalt der Abgabe mit 0507-Nachricht (xdomea >= 3.0)
