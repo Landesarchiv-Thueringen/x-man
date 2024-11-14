@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+
+-   Intern: Docker-Image von Server optimieren
+
 ## v1.1.0
 
 -   Feature: Anpassbare Paketierung

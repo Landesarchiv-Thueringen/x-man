@@ -1,6 +1,6 @@
 services:
   gui:
-    image: localhost/xman-gui
+    image: ${IMAGE_PREFIX}/gui:${IMAGE_VERSION}
     build:
       context: ./gui
       args:
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
 
   server:
-    image: localhost/xman-server
+    image: ${IMAGE_PREFIX}/server:${IMAGE_VERSION}
     build:
       context: ./server
       args:
@@ -101,7 +101,7 @@ services:
       update-ca-certificates
 
   report:
-    image: localhost/xman-report
+    image: ${IMAGE_PREFIX}/report:${IMAGE_VERSION}
     build:
       context: ./report
       args:

@@ -11,6 +11,6 @@ COPY src ./src
 ARG CONFIGURATION
 RUN pnpm run build --configuration $CONFIGURATION
 
-FROM docker.io/nginx:alpine3.19 AS prod
+FROM docker.io/nginx:alpine3.20 AS prod
 COPY --from=build /build/dist/xdomea_appraisal_frontend /app/
 COPY build/nginx/default.conf.template /etc/nginx/templates/default.conf.template
