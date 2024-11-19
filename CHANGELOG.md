@@ -3,6 +3,7 @@
 ## Next
 
 -   Intern: Docker-Image von Server optimieren
+-   Fix: Fehler beim Einlesen von nicht UTF-8 kodierten Dateiennamen aus der Nachricht
 
 ## v1.1.0
 
