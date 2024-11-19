@@ -23,7 +23,7 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-var transferFileExists = fmt.Errorf("transfer file exists")
+var errTransferFileExists = fmt.Errorf("transfer file exists")
 
 func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	log.Println("Processing new message " + transferDirMessagePath)
@@ -64,11 +64,11 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 	}
 	errorData.ProcessID = processID
 	errorData.MessageType = messageType
-	err = compareAgencyFields(agency, message, process)
+	err = compareAgencyFields(agency, message)
 	if err != nil {
 		errors.AddProcessingErrorWithData(err, errorData)
 	}
-	err = checkMaxRecordObjectDepth(agency, process, message)
+	err = checkMaxRecordObjectDepth(message)
 	if err != nil {
 		errors.AddProcessingErrorWithData(err, errorData)
 	}
@@ -118,7 +118,7 @@ func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db
 	if messageType == db.MessageType0501 {
 		err := Send0504Message(agency, message)
 		if err != nil {
-			if err == transferFileExists {
+			if err == errTransferFileExists {
 				// Ignore. This can occur when re-importing the message.
 			} else {
 				errorData.Title = "Fehler beim Senden der 0504-Nachricht"
@@ -128,7 +128,7 @@ func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db
 	} else if messageType == db.MessageType0503 {
 		err := Send0507Message(agency, message)
 		if err != nil {
-			if err == transferFileExists {
+			if err == errTransferFileExists {
 				// Ignore. This can occur when re-importing the message.
 			} else {
 				errorData.Title = "Fehler beim Senden der 0507-Nachricht"
@@ -254,7 +254,7 @@ func addMessage(
 		StoreDir:     storeDir,
 		MessagePath:  messagePath,
 	}
-	err = checkMessageValidity(agency, messageType, storagePaths)
+	err = checkMessageValidity(messageType, storagePaths)
 	if err != nil {
 		e := errors.FromError("Schema-Validierung ungültig", err)
 		return db.SubmissionProcess{}, db.Message{}, nil, &e
@@ -281,7 +281,7 @@ func addMessage(
 }
 
 // checkMessageValidity performs a xsd schema validation against the message XML file.
-func checkMessageValidity(agency db.Agency, messageType db.MessageType, storagePaths db.StoragePaths) error {
+func checkMessageValidity(messageType db.MessageType, storagePaths db.StoragePaths) error {
 	xdomeaVersion, err := extractXdomeaVersion(messageType, storagePaths.MessagePath)
 	if err != nil {
 		return err
@@ -410,7 +410,7 @@ func checkRecordsOfMessage0503(
 // and returns a processing error if not.
 //
 // Only values that are set in `agency` are checked.
-func compareAgencyFields(agency db.Agency, message db.Message, process db.SubmissionProcess) error {
+func compareAgencyFields(agency db.Agency, message db.Message) error {
 	if agency.Prefix == "" && agency.Code == "" {
 		return nil
 	}
@@ -428,22 +428,22 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Submis
 	if a.Prefix != "" {
 		info += fmt.Sprintf("Präfix der Nachricht: %s\n", a.Prefix)
 	} else {
-		info += fmt.Sprintf("Präfix der Nachricht: (kein Wert)\n")
+		info += "Präfix der Nachricht: (kein Wert)\n"
 	}
 	if a.Code != "" {
 		info += fmt.Sprintf("Behördenschlüssel der Nachricht: %s\n\n", a.Code)
 	} else {
-		info += fmt.Sprintf("Behördenschlüssel der Nachricht: (kein Wert)\n\n")
+		info += "Behördenschlüssel der Nachricht: (kein Wert)\n\n"
 	}
 	if agency.Prefix != "" {
 		info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: %s\n", agency.Prefix)
 	} else {
-		info += fmt.Sprintf("Präfix der konfigurierten abgebenden Stelle: (kein Wert)\n")
+		info += "Präfix der konfigurierten abgebenden Stelle: (kein Wert)\n"
 	}
 	if agency.Code != "" {
 		info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: %s", agency.Code)
 	} else {
-		info += fmt.Sprintf("Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)")
+		info += "Behördenschlüssel der konfigurierten abgebenden Stelle: (kein Wert)"
 	}
 	return &db.ProcessingError{
 		Title: "Behördenkennung der Nachricht stimmt nicht mit der konfigurierten abgebenden Stelle überein",
@@ -453,7 +453,7 @@ func compareAgencyFields(agency db.Agency, message db.Message, process db.Submis
 
 // checkMaxRecordObjectDepth checks if the configured maximal depth of record objects in the message
 // comply with the configuration. The xdomea specification allows a maximal depth of 5.
-func checkMaxRecordObjectDepth(agency db.Agency, process db.SubmissionProcess, message db.Message) error {
+func checkMaxRecordObjectDepth(message db.Message) error {
 	maxDepthConfig := os.Getenv("MAX_RECORD_DEPTH")
 	// This configuration does not need to be set.
 	if maxDepthConfig == "" {

@@ -50,7 +50,6 @@ func getRecordMap(r *db.RootRecords) recordMap {
 			appendProcesses(f.RecordID, f.Processes, false)
 			appendDocuments(f.RecordID, f.Documents, false)
 		}
-		return
 	}
 	appendProcesses = func(parent uuid.UUID, processes []db.ProcessRecord, subProcesses bool) {
 		for _, p := range processes {
@@ -62,7 +61,6 @@ func getRecordMap(r *db.RootRecords) recordMap {
 			appendProcesses(p.RecordID, p.Subprocesses, true)
 			appendDocuments(p.RecordID, p.Documents, false)
 		}
-		return
 	}
 	appendDocuments = func(parent uuid.UUID, documents []db.DocumentRecord, attachments bool) {
 		for _, d := range documents {
@@ -73,7 +71,6 @@ func getRecordMap(r *db.RootRecords) recordMap {
 			}
 			appendDocuments(d.RecordID, d.Attachments, true)
 		}
-		return
 	}
 	appendFiles(uuid.Nil, r.Files, false)
 	appendProcesses(uuid.Nil, r.Processes, false)

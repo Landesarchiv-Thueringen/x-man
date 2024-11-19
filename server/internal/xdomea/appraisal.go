@@ -59,7 +59,7 @@ func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 func AreAllRecordObjectsAppraised(ctx context.Context, processID uuid.UUID) bool {
 	rootRecords := db.FindAllRootRecords(ctx, processID, db.MessageType0501)
 	m := appraisableRecords(&rootRecords)
-	for id, _ := range m {
+	for id := range m {
 		a, _ := db.FindAppraisal(processID, id)
 		if a.Decision != "A" && a.Decision != "V" {
 			return false
@@ -264,7 +264,7 @@ func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message
 
 func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
 	rootRecords := db.FindAllRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
-	for id, _ := range appraisableRecords(&rootRecords) {
+	for id := range appraisableRecords(&rootRecords) {
 		a, _ := db.FindAppraisal(message.MessageHead.ProcessID, id)
 		if a.Decision != "A" && a.Decision != "V" {
 			db.UpsertAppraisalDecision(message.MessageHead.ProcessID, id, "V")

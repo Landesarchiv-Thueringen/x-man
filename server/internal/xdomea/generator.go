@@ -135,7 +135,7 @@ func Generate0502Message(message db.Message) string {
 		context.Background(), message.MessageHead.ProcessID, message.MessageType,
 	)
 	m := appraisableRecords(&rootRecords)
-	for id, _ := range m {
+	for id := range m {
 		appraisedObject := generateAppraisedObject(messageHead.ProcessID, id, xdomeaVersion)
 		message0502.AppraisedObjects = append(message0502.AppraisedObjects, appraisedObject)
 	}

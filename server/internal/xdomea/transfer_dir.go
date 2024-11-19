@@ -31,7 +31,6 @@ const (
 
 // control of the watch loop for the transfer directories
 var ticker time.Ticker
-var stop chan bool
 
 type unknownFilesError []string
 
@@ -290,7 +289,7 @@ func CopyMessageToTransferDirectory(agency db.Agency, processID uuid.UUID, messa
 	}
 	ok := db.InsertTransferFile(agency.ID, processID, filepath.Base(messagePath))
 	if !ok {
-		return transferFileExists
+		return errTransferFileExists
 	}
 	switch transferDirURL.Scheme {
 	case string(Local):
@@ -362,7 +361,7 @@ func CopyMessageFromTransferDirectory(agency db.Agency, messagePath string) stri
 }
 
 // copMessageFromWebDAV copies the file specified by webDAVFilePath from a webDAV to a temporary directory.
-// The copied file is localy stored in a temporary directory.
+// The copied file is locally stored in a temporary directory.
 // The caller of this function should remove the temporary directory.
 //
 // Returns the local path of the copied file.

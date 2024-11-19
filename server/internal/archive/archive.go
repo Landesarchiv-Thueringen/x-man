@@ -69,8 +69,7 @@ func taskItemsForFiles(
 ) []db.TaskItem {
 	var items []db.TaskItem
 	for _, f := range files {
-		var title string
-		title = xdomea.FileRecordTitle(f, len(path) > 0)
+		title := xdomea.FileRecordTitle(f, len(path) > 0)
 		switch m[f.RecordID] {
 		case xdomea.PackagingDecisionSingle:
 			items = append(items, db.TaskItem{

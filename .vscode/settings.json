@@ -30,12 +30,18 @@
     "bagit",
     "Bemerkungsnotiz",
     "bson",
+    "charmap",
+    "davs",
     "dimag",
     "DIMAG",
     "Discardable",
     "Echtdaten",
     "etree",
     "Formatverifikation",
+    "github",
+    "gowebdav",
+    "IDSGO",
+    "lestrrat",
     "Metadatum",
     "mongodb",
     "Paketierung",
@@ -45,6 +51,7 @@
     "Primärdokumente",
     "puid",
     "PUID",
+    "Rueckgabeparameter",
     "Schriftgutobjekt",
     "Schriftgutobjekte",
     "Schriftgutobjekten",
@@ -73,6 +80,9 @@
     "analyses": {
       "composites": false // allow query syntax for mongodb driver
     }
+  },
+  "go.toolsEnvVars": {
+    "CGO_ENABLED": "1" // Fix staticcheck error
   },
   "cSpell.checkOnlyEnabledFileTypes": false
 }
