@@ -16,9 +16,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
+	"golang.org/x/text/encoding/charmap"
 )
 
 var transferFileExists = fmt.Errorf("transfer file exists")
@@ -184,13 +186,24 @@ func extractMessageToMessageStore(
 		panic(err)
 	}
 	defer archive.Close()
+	var invalidFilenames []string
 	for _, f := range archive.File {
+		fileName := f.Name
+		// file name is nor UTF-8 encoded
+		if f.NonUTF8 {
+			// try reading file name as IBM code page 437
+			fileName, err = charmap.CodePage437.NewDecoder().String(f.Name)
+			// file name could not be encoded as UTF-8
+			if err != nil || !utf8.ValidString(fileName) {
+				invalidFilenames = append(invalidFilenames, fileName)
+			}
+		}
 		fileInArchive, err := f.Open()
 		if err != nil {
 			panic(err)
 		}
 		defer fileInArchive.Close()
-		fileStorePath := path.Join(messageStoreDir, f.Name)
+		fileStorePath := path.Join(messageStoreDir, fileName)
 		fileInStore, err := os.Create(fileStorePath)
 		if err != nil {
 			panic(err)
@@ -200,6 +213,20 @@ func extractMessageToMessageStore(
 		if err != nil {
 			panic(err)
 		}
+	}
+	// create a processing error for all invalid encoded file names
+	if len(invalidFilenames) > 0 {
+		errorInfo := "Die Dateinamen in der ZIP-Datei konnten nicht dekodiert werden.\n"
+		errorInfo += "Der ZIP-Standard erlaubt nur UTF-8 und IBM Code Page 437 als Textkodierungen für Dateinamen.\n\n"
+		errorInfo += "Fehlerhaft kodierte Dateinamen:\n"
+		errorInfo += strings.Join(invalidFilenames, ",\n")
+		procErr := db.ProcessingError{
+			Title:        "ungültige Zeichenkodierung",
+			Agency:       &agency,
+			TransferPath: transferDirMessagePath,
+			Info:         errorInfo,
+		}
+		errors.AddProcessingError(procErr)
 	}
 	return
 }
