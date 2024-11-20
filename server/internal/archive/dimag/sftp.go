@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -93,7 +94,7 @@ func InitConnection() (Connection, error) {
 		sshClient.Close()
 		return Connection{}, err
 	}
-	err = testUploadDir(sftpClient)
+	err = createUploadDir(sftpClient)
 	if err != nil {
 		return Connection{}, err
 	}
@@ -103,14 +104,34 @@ func InitConnection() (Connection, error) {
 	}, nil
 }
 
-func testUploadDir(c *sftp.Client) error {
-	uploadDir := os.Getenv("DIMAG_SFTP_UPLOAD_DIR")
-	if uploadDir == "" {
-		return fmt.Errorf("missing env variable DIMAG_SFTP_UPLOAD_DIR")
+// createUploadDir creates the upload directory on the SFTP remote if it doesn't
+// exist.
+func createUploadDir(c *sftp.Client) error {
+	sftpDir := os.Getenv("DIMAG_SFTP_DIR")
+	if sftpDir == "" {
+		return fmt.Errorf("missing env variable DIMAG_SFTP_DIR")
 	}
+	_, err := c.Stat(sftpDir)
+	if err != nil {
+		return fmt.Errorf("failed to access DIMAG_SFTP_DIR: sftp: stat %s: %w", sftpDir, err)
+	}
+	uploadDir := path.Join(sftpDir, "Import")
+	_, err = c.Stat(uploadDir)
+	if err != nil {
+		err = c.Mkdir(uploadDir)
+		if err != nil {
+			return fmt.Errorf("failed create upload dir: sftp: mkdir %s: %w", uploadDir, err)
+		}
+	}
+	return nil
+}
+
+func testUploadDir(c *sftp.Client) error {
+	sftpDir := os.Getenv("DIMAG_SFTP_DIR")
+	uploadDir := path.Join(sftpDir, "Import")
 	_, err := c.Stat(uploadDir)
 	if err != nil {
-		return fmt.Errorf("failed to access DIMAG_SFTP_UPLOAD_DIR: sftp: stat %s: %w", uploadDir, err)
+		return fmt.Errorf("failed to access upload dir: sftp: stat %s: %w", sftpDir, err)
 	}
 	return nil
 }
@@ -129,7 +150,7 @@ func CloseConnection(c Connection) {
 // getUploadDir returns the remote directory name as which the BagIt will be
 // uploaded.
 func getUploadDir(bagit bagitHandle) string {
-	return "xman_bagit_" + bagit.ID().String()
+	return "Import/xman_bagit_" + bagit.ID().String()
 }
 
 // uploadBagit creates a remote import directory on the DIMAG server
@@ -140,7 +161,7 @@ func uploadBagit(
 	bagit bagitHandle,
 ) (remotePath string, err error) {
 	uploadDir := getUploadDir(bagit)
-	remotePath = filepath.Join(os.Getenv("DIMAG_SFTP_UPLOAD_DIR"), uploadDir)
+	remotePath = filepath.Join(os.Getenv("DIMAG_SFTP_DIR"), uploadDir)
 	log.Printf("Uploading %s...\n", uploadDir)
 	err = uploadDirRecursive(ctx, c, bagit.Path(), remotePath)
 	log.Println("Upload done")

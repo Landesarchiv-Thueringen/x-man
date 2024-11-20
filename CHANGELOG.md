@@ -2,8 +2,9 @@
 
 ## Next
 
+-   Fix: Fehler beim Einlesen von nicht UTF-8 kodierten Dateinamen aus der Nachricht
+-   Intern: Benutze "Import"-Ordner für Upload zu DIMAG
 -   Intern: Docker-Image von Server optimieren
--   Fix: Fehler beim Einlesen von nicht UTF-8 kodierten Dateiennamen aus der Nachricht
 
 ## v1.1.0
 
