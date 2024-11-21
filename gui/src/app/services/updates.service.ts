@@ -34,7 +34,9 @@ export class UpdatesService {
   /**
    * The connection state of the event source.
    *
-   * Will be updated to 'failed' or 'connected' when either state is reached. While reconnecting, the previous state is kept until there is
+   * Will be updated to 'failed' or 'connected' when either state is reached.
+   * While reconnecting, the previous state is kept until the connection is
+   * reestablished or a timeout is reached.
    */
   state = signal<null | 'failed' | 'connected'>(null);
 
