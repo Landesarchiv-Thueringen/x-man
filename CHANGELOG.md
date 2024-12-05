@@ -4,6 +4,7 @@
 
 -   Fix: Fehler beim Einlesen von nicht UTF-8 kodierten Dateinamen aus der Nachricht
 -   Fix: Setze Dateiname für Meta-Dateien beim Import nach DIMAG
+-   Fix: Kleinere UI-Fixes
 -   Intern: Benutze "Import"-Ordner für Upload zu DIMAG
 -   Intern: Docker-Image von Server optimieren
 
