@@ -68,6 +68,11 @@ export class UpdatesService {
         this.subscribe();
       }
     });
+    // Prevent error when leaving or reloading the page.
+    //
+    // Note that this inhibits the browser's back/forward cache, but this is not
+    // particularly useful for a single-page application anyway.
+    addEventListener('beforeunload', () => this.unsubscribe());
   }
 
   // Emits each time the given database collection could have changed.
