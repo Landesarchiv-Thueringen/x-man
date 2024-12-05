@@ -18,7 +18,7 @@ type AppraisableRecordRelations struct {
 
 type AppraisableRecordsMap map[uuid.UUID]AppraisableRecordRelations
 
-func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
+func AppraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 	m := make(AppraisableRecordsMap)
 	var appendFileRecords func(parent uuid.UUID, files []db.FileRecord) (childIDs []uuid.UUID)
 	var appendProcessRecords func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID)
@@ -58,7 +58,7 @@ func appraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 // with either an 'A' (de: archivieren) or 'V' (de: vernichten).
 func AreAllRecordObjectsAppraised(ctx context.Context, processID uuid.UUID) bool {
 	rootRecords := db.FindAllRootRecords(ctx, processID, db.MessageType0501)
-	m := appraisableRecords(&rootRecords)
+	m := AppraisableRecords(&rootRecords)
 	for id := range m {
 		a, _ := db.FindAppraisal(processID, id)
 		if a.Decision != "A" && a.Decision != "V" {
@@ -101,7 +101,7 @@ func SetAppraisalDecisionRecursive(
 	if !ok {
 		return fmt.Errorf("record object not found: %v", recordID)
 	}
-	m := appraisableRecords(&rootRecords)
+	m := AppraisableRecords(&rootRecords)
 	previousAppraisal, _ := db.FindAppraisal(processID, recordID)
 	db.UpsertAppraisalDecision(processID, recordID, decision)
 	if decision == db.AppraisalDecisionA {
@@ -174,7 +174,7 @@ func SetAppraisals(
 		return fmt.Errorf("appraisal already finished for process \"%s\"", processID)
 	}
 	rootRecords := db.FindAllRootRecords(context.Background(), processID, db.MessageType0501)
-	m := appraisableRecords(&rootRecords)
+	m := AppraisableRecords(&rootRecords)
 	isSubAppraisal := map[int]bool{}
 	// Mark all record objects as sub appraisals that have an ancestor of which
 	// we are setting the appraisal.
@@ -264,7 +264,7 @@ func FinalizeMessageAppraisal(message db.Message, completedBy string) db.Message
 
 func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
 	rootRecords := db.FindAllRootRecords(context.Background(), message.MessageHead.ProcessID, message.MessageType)
-	for id := range appraisableRecords(&rootRecords) {
+	for id := range AppraisableRecords(&rootRecords) {
 		a, _ := db.FindAppraisal(message.MessageHead.ProcessID, id)
 		if a.Decision != "A" && a.Decision != "V" {
 			db.UpsertAppraisalDecision(message.MessageHead.ProcessID, id, "V")

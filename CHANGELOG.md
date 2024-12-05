@@ -2,6 +2,7 @@
 
 ## Next
 
+-   Feature: Bewertungsbericht
 -   Fix: Fehler beim Einlesen von nicht UTF-8 kodierten Dateinamen aus der Nachricht
 -   Fix: Setze Dateiname für Meta-Dateien beim Import nach DIMAG
 -   Fix: Kleinere UI-Fixes

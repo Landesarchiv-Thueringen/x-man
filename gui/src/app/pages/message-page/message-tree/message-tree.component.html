@@ -179,21 +179,21 @@
     <button
       mat-flat-button
       class="tertiary-button"
-      *ngIf="process()?.processState?.archiving?.complete"
-      (click)="downloadReport()"
-    >
-      <mat-icon>summarize</mat-icon>
-      <span>Übernahmebericht herunterladen</span>
-    </button>
-    <button
-      mat-flat-button
-      class="tertiary-button"
       *ngIf="message()?.messageType === '0501' && !process()?.processState?.appraisal?.complete"
       (click)="sendAppraisalMessage()"
       [disabled]="hasUnresolvedError()"
     >
       <mat-icon>forward_to_inbox</mat-icon>
       <span>Bewertung senden</span>
+    </button>
+    <button
+      mat-flat-button
+      class="tertiary-button"
+      *ngIf="message()?.messageType === '0501' && process()?.processState?.appraisal?.complete"
+      (click)="downloadAppraisalReport()"
+    >
+      <mat-icon>summarize</mat-icon>
+      <span>Bewertungsbericht herunterladen</span>
     </button>
     <button
       mat-flat-button
@@ -210,6 +210,15 @@
     >
       <mat-icon>archive</mat-icon>
       <span>Abgabe archivieren</span>
+    </button>
+    <button
+      mat-flat-button
+      class="tertiary-button"
+      *ngIf="message()?.messageType === '0503' && process()?.processState?.archiving?.complete"
+      (click)="downloadSubmissionReport()"
+    >
+      <mat-icon>summarize</mat-icon>
+      <span>Übernahmebericht herunterladen</span>
     </button>
   </div>
 

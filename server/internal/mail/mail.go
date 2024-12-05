@@ -76,7 +76,16 @@ func SendMailNewMessagePostOffice(to string, agencyName string, message db.Messa
 	}})
 }
 
-func SendMailReport(to string, process db.SubmissionProcess, report Attachment) error {
+func SendMailAppraisalReport(to string, process db.SubmissionProcess, report Attachment) error {
+	agencyName := process.Agency.Name
+	body := "<p>Die Bewertung der Anbietung von " + agencyName + " wurde versendet.</p>"
+	origin := os.Getenv("ORIGIN")
+	body += "<p>Sie bekommen diese E-Mail, weil Sie die Bewertung der Aussonderung abgeschlossen haben.<br>\n" +
+		fmt.Sprintf("Sie können Ihre Einstellungen für E-Mail-Benachrichtigungen unter <a href=\"%s\">%s</a> ändern.</p>", origin, origin)
+	return sendMail(to, "Bewertungsbericht für Anbietung von "+agencyName, body, []Attachment{report})
+}
+
+func SendMailSubmissionReport(to string, process db.SubmissionProcess, report Attachment) error {
 	agencyName := process.Agency.Name
 	body := "<p>Die Abgabe von " + agencyName + " wurde erfolgreich archiviert.</p>"
 	origin := os.Getenv("ORIGIN")

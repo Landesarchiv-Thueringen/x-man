@@ -27,10 +27,9 @@ const (
 // be possible.~~
 // Leaf nodes and only leaf nodes contain AIP data.
 type ArchivePackageStructure struct {
-	Title         string                    // iff AIP == nil
-	Children      []ArchivePackageStructure // iff AIP == nil
-	AIP           *ArchivePackageData
-	AppraisalNote string
+	Title    string                    // iff AIP == nil
+	Children []ArchivePackageStructure // iff AIP == nil
+	AIP      *ArchivePackageData
 }
 
 type ArchivePackageData struct {
@@ -81,7 +80,6 @@ func archivePackagesInfoForFile(
 					TotalFileSize: getTotalFileSize(context.Background(), aip),
 					PackageID:     aip.PackageID,
 				},
-				AppraisalNote: getAppraisalNote(aip),
 			}
 		} else if len(aip.RecordPath) >= len(fullPath) &&
 			reflect.DeepEqual(aip.RecordPath[:len(fullPath)], fullPath) {
@@ -101,11 +99,9 @@ func archivePackagesInfoForFile(
 	if len(file.Documents) > 0 {
 		children = append(children, archivePackagesInfoForDocuments(file.Documents[:], subAIPs[:], fullPath))
 	}
-	appraisal, _ := db.FindAppraisal(aips[0].ProcessID, file.RecordID)
 	return ArchivePackageStructure{
-		Title:         xdomea.FileRecordTitle(file, len(path) > 0),
-		Children:      children,
-		AppraisalNote: appraisal.Note,
+		Title:    xdomea.FileRecordTitle(file, len(path) > 0),
+		Children: children,
 	}
 }
 
@@ -127,7 +123,6 @@ func archivePackagesInfoForProcess(
 					TotalFileSize: getTotalFileSize(context.Background(), aip),
 					PackageID:     aip.PackageID,
 				},
-				AppraisalNote: getAppraisalNote(aip),
 			}
 		} else if len(aip.RecordPath) >= len(fullPath) &&
 			reflect.DeepEqual(aip.RecordPath[:len(fullPath)], fullPath) {
@@ -144,11 +139,9 @@ func archivePackagesInfoForProcess(
 	if len(process.Documents) > 0 {
 		children = append(children, archivePackagesInfoForDocuments(process.Documents[:], subAIPs[:], fullPath))
 	}
-	appraisal, _ := db.FindAppraisal(aips[0].ProcessID, process.RecordID)
 	return ArchivePackageStructure{
-		Title:         xdomea.ProcessRecordTitle(process, false),
-		Children:      children,
-		AppraisalNote: appraisal.Note,
+		Title:    xdomea.ProcessRecordTitle(process, false),
+		Children: children,
 	}
 }
 
@@ -175,16 +168,6 @@ func archivePackagesInfoForDocuments(
 		}
 	}
 	panic(fmt.Sprintf("no archive package found for documents in path %s", path))
-}
-
-// getAppraisalNote returns the appraisal note of the first record object that
-// belongs to the archive package.
-func getAppraisalNote(aip db.ArchivePackage) string {
-	if len(aip.RecordIDs) > 0 {
-		a, _ := db.FindAppraisal(aip.ProcessID, aip.RecordIDs[0])
-		return a.Note
-	}
-	return ""
 }
 
 // getTotalFileSize returns the total file size in bytes of all files that

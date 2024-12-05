@@ -53,7 +53,8 @@ func main() {
 	authorized.GET("api/primary-document", getPrimaryDocument)
 	authorized.GET("api/primary-documents-info/:processId", getPrimaryDocumentsInfo)
 	authorized.GET("api/primary-document-data/:processId/:filename", getPrimaryDocumentData)
-	authorized.GET("api/report/:processId", getReport)
+	authorized.GET("api/report/appraisal/:processId", getAppraisalReport)
+	authorized.GET("api/report/submission/:processId", getSubmissionReport)
 	authorized.GET("api/archive-collections", getCollections)
 	authorized.GET("api/user-info", getUserInformation)
 	authorized.POST("api/user-preferences", setUserPreferences)
@@ -471,6 +472,42 @@ func finalizeMessageAppraisal(c *gin.Context) {
 		}
 		errors.AddProcessingErrorWithData(err, errorData)
 		c.AbortWithStatus(http.StatusInternalServerError)
+	} else {
+		preferences := db.FindUserPreferencesWithDefault(context.Background(), userID)
+		if preferences.ReportByEmail {
+			defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
+				ProcessID: message.MessageHead.ProcessID,
+			})
+			process, ok := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
+			if !ok {
+				panic("failed to find process:" + process.ProcessID.String())
+			}
+			_, contentType, reader := report.GetAppraisalReport(context.Background(), process)
+			body, err := io.ReadAll(reader)
+			if err != nil {
+				panic(err)
+			}
+			errorData := db.ProcessingError{
+				Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
+				ProcessID: message.MessageHead.ProcessID,
+			}
+			address, err := auth.GetMailAddress(userID)
+			if err != nil {
+				errors.AddProcessingErrorWithData(err, errorData)
+			} else {
+				filename := fmt.Sprintf(
+					"Bewertungsbericht %s %s.pdf",
+					process.Agency.Abbreviation, process.CreatedAt,
+				)
+				err = mail.SendMailAppraisalReport(
+					address, process,
+					mail.Attachment{Filename: filename, ContentType: contentType, Body: body},
+				)
+				if err != nil {
+					errors.AddProcessingErrorWithData(err, errorData)
+				}
+			}
+		}
 	}
 }
 
@@ -625,7 +662,7 @@ func getPrimaryDocumentData(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func getReport(c *gin.Context) {
+func getAppraisalReport(c *gin.Context) {
 	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -636,7 +673,22 @@ func getReport(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	contentLength, contentType, body := report.GetReport(c.Request.Context(), process)
+	contentLength, contentType, body := report.GetAppraisalReport(c.Request.Context(), process)
+	c.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
+}
+
+func getSubmissionReport(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	process, found := db.FindProcess(c.Request.Context(), processID)
+	if !found {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+	contentLength, contentType, body := report.GetSubmissionReport(c.Request.Context(), process)
 	c.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
 }
 

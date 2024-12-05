@@ -1,31 +1,9 @@
-#import "@preview/cetz:0.2.1"
+
+#import "shared.typ": formatDate, formatDateTime, formatContentStatsElement, appraisalStatsTable, appraisalStatsGraph
 
 #let fallback(input, fallback: "-") = {
   if input == "" or input == none or input == 0 { fallback } else { input }
 }
-
-#let formatDate(dateString) = [
-  #let values = dateString.split(regex("[-T]"))
-  #let date = datetime(
-    year: int(values.at(0)),
-    month: int(values.at(1)),
-    day: int(values.at(2)),
-  )
-  #date.display("[day].[month].[year]")
-]
-
-#let formatDateTime(dateString) = [
-  #let values = dateString.split(regex("[-T:.Z]"))
-  #let date = datetime(
-    year: int(values.at(0)),
-    month: int(values.at(1)),
-    day: int(values.at(2)),
-    hour: int(values.at(3)),
-    minute: int(values.at(4)),
-    second: int(values.at(5)),
-  )
-  #date.display("[day].[month].[year] [hour]:[minute] Uhr")
-]
 
 #let formatFloat(f, digitsAfterPoint) = {
   let factor = calc.pow(10, digitsAfterPoint)
@@ -34,8 +12,8 @@
   str(beforePoint) + "," + str(calc.round(afterPoint * factor))
 }
 
-#let formatFilesize(nbytes) = {
-  let v = nbytes
+#let formatFileSize(nBytes) = {
+  let v = nBytes
   let suffix = [B]
   for c in "KMGTPE" {
     let newV = v / 1024
@@ -49,29 +27,6 @@
   [#formatFloat(v, 2) #suffix]
 }
 
-#let formatContentStatsElement(type, number) = {
-  if number == 1 {
-    "1 " + (
-      Files: "Akte",
-      SubFiles: "Teilakte",
-      Processes: "Vorgang",
-      SubProcesses: "Teilvorgang",
-      Documents: "Dokument",
-      Attachments: "Anhang",
-    ).at(type)
-  } else {
-    str(number) + " " + (
-      Files: "Akten",
-      SubFiles: "Teilakten",
-      Processes: "Vorgänge",
-      SubProcesses: "Teilvorgänge",
-      Documents: "Dokumente",
-      Attachments: "Anähnge",
-    ).at(type)
-  }
-}
-
-#let formatAppraisalCode(code) = (A: "Archivieren", V: "Vernichten").at(code)
 
 #let formatValidity(validity) = {
   if (validity == none) { "-" } else if (validity) { "valide" } else { "invalide" }
@@ -140,7 +95,7 @@
   = Übersicht
   #if data.AppraisalStats == none [
     #table(
-      columns: (1fr),
+      columns: 1fr,
       stroke: none,
       [*Übernommen*],
       ..if data.Message0503Stats.Files > 0 {
@@ -160,110 +115,21 @@
     #table(
       columns: 2,
       stroke: none,
-      [Gesamt-?speicher-?volumen übernommen:],
-      [#formatFilesize(data.FileStats.TotalBytes)],
+      [Gesamt-?speicher-?volumen übernommen:], [#formatFileSize(data.FileStats.TotalBytes)],
     )
     #v(10fr)
   ] else [
-    #let columns = ()
-    #let all = (
-      data.AppraisalStats.Files,
-      data.AppraisalStats.Processes,
-      data.AppraisalStats.Documents,
-    )
-    #columns.push((label: "Angeboten", key: "Offered"))
-    #if all.any(el => el.PartiallyArchived > 0) [
-      #columns.push((label: "Vollständig übernommen", key: "Archived"))
-      #columns.push((label: "Teilweise übernommen", key: "PartiallyArchived"))
-    ] else [
-      #columns.push((label: "Übernommen", key: "Archived"))
-    ]
-    #columns.push((label: "Kassiert", key: "Discarded"))
-    #if all.any(el => el.Missing > 0) [
-      #columns.push((label: "Fehlend", key: "Missing"))
-    ]
-    #if all.any(el => el.Surplus > 0) [
-      #columns.push((label: "Zusätzlich", key: "Surplus"))
-    ]
-    #table(
-      columns: range(columns.len()).map(_ => 1fr),
-      stroke: none,
-      ..columns.map(c => [*#c.label*]),
-      ..if data.AppraisalStats.Files.Total > 0 {
-        columns.map(
-          c => [#formatContentStatsElement("Files", data.AppraisalStats.Files.at(c.key))],
-        )
-      },
-      ..if data.AppraisalStats.Processes.Total > 0 {
-        columns.map(
-          c => [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.at(c.key))],
-        )
-      },
-      ..if data.AppraisalStats.Documents.Total > 0 {
-        columns.map(
-          c => [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.at(c.key))],
-        )
-      },
-    )
+    #appraisalStatsTable(data)
 
     #table(
       columns: 2,
       stroke: none,
-      [Gesamt-?speicher-?volumen übernommen:],
-      [#formatFilesize(data.FileStats.TotalBytes)],
+      [Gesamt-?speicher-?volumen übernommen:], [#formatFileSize(data.FileStats.TotalBytes)],
     )
 
     #[
       #v(1fr)
-      #set align(center)
-      #cetz.canvas(
-        {
-          let values = ((
-            label: [übernommen],
-            value: all.map(el => el.Archived).sum(),
-            backgroundColor: rgb("#005cbb"),
-            textColor: rgb("#ffffff"),
-          ), (
-            label: [teilweise],
-            value: all.map(el => el.PartiallyArchived).sum(),
-            backgroundColor: rgb("#0074e9"),
-            textColor: rgb("#ffffff"),
-          ), (
-            label: [kassiert],
-            value: all.map(el => el.Discarded).sum(),
-            backgroundColor: rgb("#d7e3ff"),
-            textColor: rgb("#410002"),
-          ), (
-            label: [fehlend],
-            value: all.map(el => el.Missing).sum(),
-            backgroundColor: rgb("#ffdad6"),
-            textColor: rgb("#001b3f"),
-          ), (
-            label: [zusätzlich],
-            value: all.map(el => el.Surplus).sum(),
-            backgroundColor: rgb("#ba1a1a"),
-            textColor: rgb("#ffffff"),
-          )).filter(v => v.value > 0)
-          cetz.chart.piechart(
-            values,
-            label-key: "label",
-            value-key: "value",
-            radius: 4,
-            slice-style: (
-              index => (
-                // slice-style has a somewhat peculiar indexing strategy...
-                fill: values.at(calc.rem-euclid(values.len() - index - 1, values.len())).backgroundColor,
-                stroke: none,
-              )
-            ),
-            inner-label: (
-              content: (value, label) => [#text(values.find(v => v.label == label).textColor, label)],
-              radius: 120%,
-            ),
-            outer-label: (content: "%", radius: 120%),
-          )
-        },
-      )
+      #appraisalStatsGraph(data)
       #v(2fr)
     ]
   ]
@@ -359,7 +225,7 @@
       [],
       [],
       [Speicher-?volumen:],
-      formatFilesize(aipData.TotalFileSize),
+      formatFileSize(aipData.TotalFileSize),
       [Paket-ID:],
       fallback(aipData.PackageID),
     ),
@@ -368,18 +234,12 @@
 
 #let archivePackageSection(structureData, level) = [
   #heading(level: level + 1, structureData.Title)
-  #if structureData.AppraisalNote != "" [
-    Bewertungsnotiz: #structureData.AppraisalNote
-  ]
 
   #for el in structureData.Children [
     #if el.AIP == none [
       #archivePackageSection(el, level + 1)
     ] else [
       #archivePackage(el.AIP)
-      #if el.AppraisalNote != "" [
-        Bewertungsnotiz: #el.AppraisalNote
-      ]
     ]
   ]
 ]
@@ -391,9 +251,6 @@
       #archivePackageSection(el, 1)
     ] else [
       #archivePackage(el.AIP)
-      #if el.AppraisalNote != "" [
-        Bewertungsnotiz: #el.AppraisalNote
-      ]
     ]
   ]
 ]
@@ -406,13 +263,17 @@
   ]
 
   #set document(title: title)
-  #set page(numbering: "1", margin: (x: 2cm), header: locate(loc => {
-    let (page,) = counter(page).at(loc)
-    if page > 1 {
-      show sym.dash.en: "/"
-      [#h(1fr) #title]
-    }
-  }))
+  #set page(
+    numbering: "1",
+    margin: (x: 2cm),
+    header: context {
+      let (page,) = counter(page).at(here())
+      if page > 1 {
+        show sym.dash.en: "/"
+        [#h(1fr) #title]
+      }
+    },
+  )
   #set text(lang: "de", font: "Noto Sans", size: 10pt)
 
   #topMatter(data)
@@ -427,4 +288,4 @@
   // #fileStats(data.FileStats)
 ]
 
-#report(json("data.json"))
+#report(json("submission-data.json"))

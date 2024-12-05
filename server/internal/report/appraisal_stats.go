@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type ObjectAppraisalStats struct {
+type objectAppraisalStats struct {
 	Total             int
 	Offered           int
 	Archived          int
@@ -17,10 +17,10 @@ type ObjectAppraisalStats struct {
 	Surplus           int
 }
 
-type AppraisalStats struct {
-	Files     ObjectAppraisalStats
-	Processes ObjectAppraisalStats
-	Documents ObjectAppraisalStats
+type appraisalStats struct {
+	Files     objectAppraisalStats
+	Processes objectAppraisalStats
+	Documents objectAppraisalStats
 }
 
 type appraisalMap = map[uuid.UUID]db.Appraisal
@@ -51,7 +51,12 @@ func processHasDiscardedChildren(process db.ProcessRecord, m appraisalMap) bool 
 // processFiles adds the given files to the appraisal stats.
 //
 // Files have to be on the root level of submission message.
-func (a *AppraisalStats) processFiles(offeredFiles, submittedFiles []db.FileRecord, m appraisalMap) {
+//
+// If submittedFiles is nil, stats to surplus and missing files are omitted.
+func (a *appraisalStats) processFiles(
+	offeredFiles, submittedFiles []db.FileRecord,
+	m appraisalMap,
+) {
 	offeredFilesMap := make(map[uuid.UUID]bool)
 	for _, f := range offeredFiles {
 		offeredFilesMap[f.RecordID] = true
@@ -63,7 +68,7 @@ func (a *AppraisalStats) processFiles(offeredFiles, submittedFiles []db.FileReco
 	for _, f := range offeredFiles {
 		switch d := m[f.RecordID].Decision; d {
 		case db.AppraisalDecisionA:
-			if !submittedFilesMap[f.RecordID] {
+			if submittedFiles != nil && !submittedFilesMap[f.RecordID] {
 				a.Files.Missing++
 			} else if fileHasDiscardedChildren(f, m) {
 				a.Files.PartiallyArchived++
@@ -93,7 +98,12 @@ func (a *AppraisalStats) processFiles(offeredFiles, submittedFiles []db.FileReco
 // processProcesses adds the given processes to the appraisal stats.
 //
 // Processes have to be on the root level of submission message.
-func (a *AppraisalStats) processProcesses(offeredProcesses, submittedProcesses []db.ProcessRecord, m appraisalMap) {
+//
+// If submittedProcesses is nil, stats to surplus and missing files are omitted.
+func (a *appraisalStats) processProcesses(
+	offeredProcesses, submittedProcesses []db.ProcessRecord,
+	m appraisalMap,
+) {
 	offeredProcessesMap := make(map[uuid.UUID]bool)
 	for _, p := range offeredProcesses {
 		offeredProcessesMap[p.RecordID] = true
@@ -105,7 +115,7 @@ func (a *AppraisalStats) processProcesses(offeredProcesses, submittedProcesses [
 	for _, p := range offeredProcesses {
 		switch d := m[p.RecordID].Decision; d {
 		case db.AppraisalDecisionA:
-			if !submittedProcessesMap[p.RecordID] {
+			if submittedProcesses != nil && !submittedProcessesMap[p.RecordID] {
 				a.Processes.Missing++
 			} else if processHasDiscardedChildren(p, m) {
 				a.Processes.PartiallyArchived++
@@ -135,7 +145,7 @@ func (a *AppraisalStats) processProcesses(offeredProcesses, submittedProcesses [
 // processDocuments adds the given documents to the appraisal stats.
 //
 // Documents have to be on the root level of submission message.
-func (a *AppraisalStats) processDocuments(
+func (a *appraisalStats) processDocuments(
 	offeredDocuments, submittedDocuments []db.DocumentRecord,
 ) {
 	offeredDocumentsMap := make(map[uuid.UUID]bool)
@@ -149,7 +159,7 @@ func (a *AppraisalStats) processDocuments(
 	// Documents on the root level cannot be appraised and are therefore
 	// automatically archived.
 	for _, d := range offeredDocuments {
-		if submittedDocumentsMap[d.RecordID] {
+		if submittedDocuments == nil && submittedDocumentsMap[d.RecordID] {
 			a.Documents.Archived++
 		} else {
 			a.Documents.Missing++
@@ -174,12 +184,18 @@ func getAppraisalsMap(processID uuid.UUID) appraisalMap {
 	return m
 }
 
-func getAppraisalStats(ctx context.Context, message0501, message0503 db.Message) (a AppraisalStats) {
+func getAppraisalStats(ctx context.Context, message0501 db.Message, message0503 *db.Message) (a appraisalStats) {
 	m := getAppraisalsMap(message0501.MessageHead.ProcessID)
 	offeredRootRecords := db.FindAllRootRecords(ctx, message0501.MessageHead.ProcessID, message0501.MessageType)
-	submittedRootRecords := db.FindAllRootRecords(ctx, message0503.MessageHead.ProcessID, message0503.MessageType)
-	a.processFiles(offeredRootRecords.Files, submittedRootRecords.Files, m)
-	a.processProcesses(offeredRootRecords.Processes, submittedRootRecords.Processes, m)
-	a.processDocuments(offeredRootRecords.Documents, submittedRootRecords.Documents)
+	if message0503 != nil {
+		submittedRootRecords := db.FindAllRootRecords(ctx, message0503.MessageHead.ProcessID, message0503.MessageType)
+		a.processFiles(offeredRootRecords.Files, submittedRootRecords.Files, m)
+		a.processProcesses(offeredRootRecords.Processes, submittedRootRecords.Processes, m)
+		a.processDocuments(offeredRootRecords.Documents, submittedRootRecords.Documents)
+	} else {
+		a.processFiles(offeredRootRecords.Files, nil, m)
+		a.processProcesses(offeredRootRecords.Processes, nil, m)
+		a.processDocuments(offeredRootRecords.Documents, nil)
+	}
 	return
 }

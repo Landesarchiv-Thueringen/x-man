@@ -91,8 +91,16 @@ export class ProcessService {
       .pipe(map(() => void 0));
   }
 
-  getReport(processId: string): Observable<Blob> {
-    return this.httpClient.get(this.apiEndpoint + '/report/' + processId, { responseType: 'blob' });
+  getAppraisalReport(processId: string): Observable<Blob> {
+    return this.httpClient.get(this.apiEndpoint + '/report/appraisal/' + processId, {
+      responseType: 'blob',
+    });
+  }
+
+  getSubmissionReport(processId: string): Observable<Blob> {
+    return this.httpClient.get(this.apiEndpoint + '/report/submission/' + processId, {
+      responseType: 'blob',
+    });
   }
 
   deleteProcess(processId: string): Observable<void> {
