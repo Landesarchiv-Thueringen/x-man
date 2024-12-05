@@ -26,7 +26,7 @@ func GetSubmissionReport(
 	ctx context.Context,
 	process db.SubmissionProcess,
 ) (contentLength int64, contentType string, body io.Reader) {
-	values, err := getReportData(ctx, process)
+	values, err := getSubmissionReportData(ctx, process)
 	if err != nil {
 		panic(err)
 	}
@@ -48,8 +48,8 @@ func GetSubmissionReport(
 	return
 }
 
-// getReportData accumulates process data for use by the report service.
-func getReportData(
+// getSubmissionReportData accumulates process data for use by the report service.
+func getSubmissionReportData(
 	ctx context.Context,
 	process db.SubmissionProcess,
 ) (reportData ReportData, err error) {
