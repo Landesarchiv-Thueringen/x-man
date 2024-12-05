@@ -21,8 +21,8 @@ type ReportData struct {
 	Discrepancies    Discrepancies
 }
 
-// GetReport sends process data to the report service and returns the generated PDF.
-func GetReport(
+// GetSubmissionReport sends process data to the report service and returns the generated PDF.
+func GetSubmissionReport(
 	ctx context.Context,
 	process db.SubmissionProcess,
 ) (contentLength int64, contentType string, body io.Reader) {
@@ -32,7 +32,7 @@ func GetReport(
 	}
 	jsonValue, _ := json.Marshal(values)
 	resp, err := http.Post(
-		os.Getenv("REPORT_URL")+"/render", "application/json",
+		os.Getenv("REPORT_URL")+"/render/submission", "application/json",
 		bytes.NewBuffer(jsonValue),
 	)
 	if err != nil {

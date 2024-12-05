@@ -636,7 +636,7 @@ func getReport(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	contentLength, contentType, body := report.GetReport(c.Request.Context(), process)
+	contentLength, contentType, body := report.GetSubmissionReport(c.Request.Context(), process)
 	c.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
 }
 

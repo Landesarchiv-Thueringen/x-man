@@ -313,7 +313,7 @@ func (h *ArchiveHandler) AfterDone() {
 		if !ok {
 			panic("failed to find process:" + process.ProcessID.String())
 		}
-		_, contentType, reader := report.GetReport(context.Background(), process)
+		_, contentType, reader := report.GetSubmissionReport(context.Background(), process)
 		body, err := io.ReadAll(reader)
 		if err != nil {
 			panic(err)
