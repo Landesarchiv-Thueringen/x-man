@@ -58,6 +58,7 @@ func generateControlFile(
 	messageIndexItem := indexItem{
 		ItemType: itemTypeFile,
 		Title:    filepath.Base(message.MessagePath),
+		FileName: filepath.Base(message.MessagePath),
 		FilePath: filepath.Join(importDir, filepath.Base(message.MessagePath)),
 	}
 	fileIndexItems = append(fileIndexItems, messageIndexItem)
@@ -65,6 +66,7 @@ func generateControlFile(
 		verificationResultsIndexItem := indexItem{
 			ItemType: itemTypeDocumentation,
 			Title:    "Ergebnisse der Formatverifikation",
+			FileName: verificationResultsFilename,
 			FilePath: filepath.Join(importDir, verificationResultsFilename),
 		}
 		fileIndexItems = append(fileIndexItems, verificationResultsIndexItem)
