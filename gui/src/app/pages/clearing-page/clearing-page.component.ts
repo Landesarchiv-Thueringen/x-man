@@ -13,19 +13,18 @@ import { ClearingService, ProcessingError } from '../../services/clearing.servic
 import { ClearingDetailsComponent } from './clearing-details.component';
 
 @Component({
-  selector: 'app-clearing-page',
-  templateUrl: './clearing-page.component.html',
-  styleUrls: ['./clearing-page.component.scss'],
-  standalone: true,
-  imports: [
-    DatePipe,
-    MatButtonModule,
-    MatPaginatorModule,
-    MatSlideToggleModule,
-    MatSortModule,
-    MatTableModule,
-    ReactiveFormsModule,
-  ],
+    selector: 'app-clearing-page',
+    templateUrl: './clearing-page.component.html',
+    styleUrls: ['./clearing-page.component.scss'],
+    imports: [
+        DatePipe,
+        MatButtonModule,
+        MatPaginatorModule,
+        MatSlideToggleModule,
+        MatSortModule,
+        MatTableModule,
+        ReactiveFormsModule,
+    ]
 })
 export class ClearingPageComponent implements AfterViewInit {
   dataSource: MatTableDataSource<ProcessingError>;

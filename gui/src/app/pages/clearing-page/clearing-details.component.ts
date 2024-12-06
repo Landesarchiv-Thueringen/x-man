@@ -16,22 +16,21 @@ import { TasksService } from '../../services/tasks.service';
 import { BreakOpportunitiesPipe } from '../../shared/break-opportunities.pipe';
 
 @Component({
-  selector: 'app-clearing-details',
-  standalone: true,
-  imports: [
-    BreakOpportunitiesPipe,
-    CommonModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatMenuModule,
-    RouterModule,
-  ],
-  templateUrl: './clearing-details.component.html',
-  styleUrl: './clearing-details.component.scss',
+    selector: 'app-clearing-details',
+    imports: [
+        BreakOpportunitiesPipe,
+        CommonModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        RouterModule,
+    ],
+    templateUrl: './clearing-details.component.html',
+    styleUrl: './clearing-details.component.scss'
 })
 export class ClearingDetailsComponent {
   @HostBinding('class.resolved') resolved = this.data.resolved;

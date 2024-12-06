@@ -43,19 +43,18 @@ interface FileFeatures {
 const ALWAYS_VISIBLE_COLUMNS = ['puid', 'mimeType'];
 
 @Component({
-  selector: 'app-file-overview',
-  templateUrl: './file-overview.component.html',
-  styleUrls: ['./file-overview.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FileFeaturePipe,
-    MatButtonModule,
-    MatDialogModule,
-    MatIconModule,
-    MatTableModule,
-    RouterModule,
-  ],
+    selector: 'app-file-overview',
+    templateUrl: './file-overview.component.html',
+    styleUrls: ['./file-overview.component.scss'],
+    imports: [
+        CommonModule,
+        FileFeaturePipe,
+        MatButtonModule,
+        MatDialogModule,
+        MatIconModule,
+        MatTableModule,
+        RouterModule,
+    ]
 })
 export class FileOverviewComponent {
   readonly analysis: FileAnalysis = this.data.analysis;

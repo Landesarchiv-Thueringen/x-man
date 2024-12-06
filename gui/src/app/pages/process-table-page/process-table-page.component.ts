@@ -24,46 +24,42 @@ import { TaskStateIconComponent } from '../../shared/task-state-icon.component';
 import { ProcessStepProgressPipe } from '../message-page/metadata/message-metadata/process-step-progress.pipe';
 
 @Component({
-  selector: 'app-process-table-page',
-  templateUrl: './process-table-page.component.html',
-  styleUrls: ['./process-table-page.component.scss'],
-  animations: [
-    trigger('expand', [
-      state(
-        'false',
-        style({
-          height: 0,
-          paddingTop: 0,
-          paddingBottom: 0,
-          visibility: 'hidden',
-          overflow: 'hidden',
-        }),
-      ),
-      transition('false => true', [
-        style({ visibility: 'visible' }),
-        animate(200, style({ height: '*' })),
-      ]),
-      transition('true => false', [style({ overflow: 'hidden' }), animate(200)]),
-    ]),
-  ],
-  standalone: true,
-  imports: [
-    DatePipe,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatSortModule,
-    MatTableModule,
-    ProcessStepProgressPipe,
-    ReactiveFormsModule,
-    RouterModule,
-    TaskStateIconComponent,
-  ],
+    selector: 'app-process-table-page',
+    templateUrl: './process-table-page.component.html',
+    styleUrls: ['./process-table-page.component.scss'],
+    animations: [
+        trigger('expand', [
+            state('false', style({
+                height: 0,
+                paddingTop: 0,
+                paddingBottom: 0,
+                visibility: 'hidden',
+                overflow: 'hidden',
+            })),
+            transition('false => true', [
+                style({ visibility: 'visible' }),
+                animate(200, style({ height: '*' })),
+            ]),
+            transition('true => false', [style({ overflow: 'hidden' }), animate(200)]),
+        ]),
+    ],
+    imports: [
+        DatePipe,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatPaginatorModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatSlideToggleModule,
+        MatSortModule,
+        MatTableModule,
+        ProcessStepProgressPipe,
+        ReactiveFormsModule,
+        RouterModule,
+        TaskStateIconComponent,
+    ]
 })
 export class ProcessTablePageComponent implements AfterViewInit {
   readonly dataSource: MatTableDataSource<SubmissionProcess> =

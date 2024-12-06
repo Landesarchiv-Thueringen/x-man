@@ -26,18 +26,17 @@ import { confidentialityLevels } from '../confidentiality-level.pipe';
 import { media } from '../medium.pipe';
 
 @Component({
-  selector: 'app-file-metadata',
-  templateUrl: './file-metadata.component.html',
-  styleUrls: ['./file-metadata.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-  ],
+    selector: 'app-file-metadata',
+    templateUrl: './file-metadata.component.html',
+    styleUrls: ['./file-metadata.component.scss'],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+    ]
 })
 export class FileMetadataComponent {
   // Signals

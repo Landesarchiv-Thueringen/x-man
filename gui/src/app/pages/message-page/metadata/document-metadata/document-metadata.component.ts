@@ -14,18 +14,17 @@ import { DocumentVersionMetadataComponent } from '../document-version-metadata/d
 import { media } from '../medium.pipe';
 
 @Component({
-  selector: 'app-document-metadata',
-  templateUrl: './document-metadata.component.html',
-  styleUrls: ['./document-metadata.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    DocumentVersionMetadataComponent,
-    MatExpansionModule,
-    MatInputModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-  ],
+    selector: 'app-document-metadata',
+    templateUrl: './document-metadata.component.html',
+    styleUrls: ['./document-metadata.component.scss'],
+    imports: [
+        CommonModule,
+        DocumentVersionMetadataComponent,
+        MatExpansionModule,
+        MatInputModule,
+        MatFormFieldModule,
+        ReactiveFormsModule,
+    ]
 })
 export class DocumentMetadataComponent {
   readonly record: Signal<DocumentRecord | undefined>;

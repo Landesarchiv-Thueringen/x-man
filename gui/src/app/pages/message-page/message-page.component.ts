@@ -10,12 +10,11 @@ import { MessagePageService } from './message-page.service';
 import { MessageTreeComponent } from './message-tree/message-tree.component';
 
 @Component({
-  selector: 'app-message-page',
-  standalone: true,
-  imports: [RouterModule, MatSidenavModule, MatIconModule, MatButtonModule, MessageTreeComponent],
-  templateUrl: './message-page.component.html',
-  styleUrl: './message-page.component.scss',
-  providers: [MessagePageService],
+    selector: 'app-message-page',
+    imports: [RouterModule, MatSidenavModule, MatIconModule, MatButtonModule, MessageTreeComponent],
+    templateUrl: './message-page.component.html',
+    styleUrl: './message-page.component.scss',
+    providers: [MessagePageService]
 })
 export class MessagePageComponent {
   @ViewChild(MatSidenav) sidenav?: MatSidenav;

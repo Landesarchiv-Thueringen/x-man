@@ -14,17 +14,16 @@ export interface PackagingDialogData {
 }
 
 @Component({
-  selector: 'app-packaging-dialog',
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-  ],
-  templateUrl: './packaging-dialog.component.html',
-  styleUrl: './packaging-dialog.component.scss',
+    selector: 'app-packaging-dialog',
+    imports: [
+        MatDialogModule,
+        MatSelectModule,
+        MatFormFieldModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+    ],
+    templateUrl: './packaging-dialog.component.html',
+    styleUrl: './packaging-dialog.component.scss'
 })
 export class PackagingDialogComponent {
   packagingChoices = [...packagingChoices.map((option) => ({ ...option }))];

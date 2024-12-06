@@ -11,11 +11,10 @@ import { notNull } from '../../../../utils/predicates';
 import { MessagePageService } from '../../message-page.service';
 
 @Component({
-  selector: 'app-primary-documents-table',
-  templateUrl: './primary-documents-table.component.html',
-  styleUrls: ['./primary-documents-table.component.scss'],
-  standalone: true,
-  imports: [FileAnalysisTableComponent],
+    selector: 'app-primary-documents-table',
+    templateUrl: './primary-documents-table.component.html',
+    styleUrls: ['./primary-documents-table.component.scss'],
+    imports: [FileAnalysisTableComponent]
 })
 export class PrimaryDocumentsTableComponent {
   processId = this.messagePage.processId;

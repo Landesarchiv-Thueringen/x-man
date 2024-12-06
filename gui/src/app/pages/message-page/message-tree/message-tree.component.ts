@@ -76,29 +76,28 @@ export interface Filter<T = string> {
 }
 
 @Component({
-  selector: 'app-message-tree',
-  templateUrl: './message-tree.component.html',
-  styleUrls: ['./message-tree.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatChipsModule,
-    MatDialogModule,
-    MatIconModule,
-    MatMenuModule,
-    MatRadioModule,
-    MatRippleModule,
-    MatSelectModule,
-    MatToolbarModule,
-    MatTooltipModule,
-    MatTreeModule,
-    PackagingStatsPipe,
-    RecordAppraisalPipe,
-    RouterModule,
-  ],
+    selector: 'app-message-tree',
+    templateUrl: './message-tree.component.html',
+    styleUrls: ['./message-tree.component.scss'],
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatButtonModule,
+        MatCheckboxModule,
+        MatChipsModule,
+        MatDialogModule,
+        MatIconModule,
+        MatMenuModule,
+        MatRadioModule,
+        MatRippleModule,
+        MatSelectModule,
+        MatToolbarModule,
+        MatTooltipModule,
+        MatTreeModule,
+        PackagingStatsPipe,
+        RecordAppraisalPipe,
+        RouterModule,
+    ]
 })
 export class MessageTreeComponent {
   Math = Math;

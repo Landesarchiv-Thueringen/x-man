@@ -15,19 +15,18 @@ import { MatSelectModule } from '@angular/material/select';
 import { appraisalDescriptions } from '../../../../services/appraisal.service';
 
 @Component({
-  selector: 'app-appraisal-form',
-  templateUrl: './appraisal-form.component.html',
-  styleUrls: ['./appraisal-form.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-  ],
+    selector: 'app-appraisal-form',
+    templateUrl: './appraisal-form.component.html',
+    styleUrls: ['./appraisal-form.component.scss'],
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+    ]
 })
 export class AppraisalFormComponent {
   form: FormGroup;

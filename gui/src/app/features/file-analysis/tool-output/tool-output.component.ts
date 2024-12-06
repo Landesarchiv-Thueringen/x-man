@@ -15,20 +15,19 @@ interface DialogData {
 }
 
 @Component({
-  selector: 'app-tool-output',
-  templateUrl: './tool-output.component.html',
-  styleUrls: ['./tool-output.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FileFeaturePipe,
-    MatButtonModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatTableModule,
-    PrettyPrintCsvPipe,
-    PrettyPrintJsonPipe,
-  ],
+    selector: 'app-tool-output',
+    templateUrl: './tool-output.component.html',
+    styleUrls: ['./tool-output.component.scss'],
+    imports: [
+        CommonModule,
+        FileFeaturePipe,
+        MatButtonModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatTableModule,
+        PrettyPrintCsvPipe,
+        PrettyPrintJsonPipe,
+    ]
 })
 export class ToolOutputComponent {
   readonly toolName = this.data.toolName;

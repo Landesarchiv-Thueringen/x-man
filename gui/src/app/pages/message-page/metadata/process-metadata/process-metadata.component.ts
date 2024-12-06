@@ -19,18 +19,17 @@ import { confidentialityLevels } from '../confidentiality-level.pipe';
 import { media } from '../medium.pipe';
 
 @Component({
-  selector: 'app-process-metadata',
-  templateUrl: './process-metadata.component.html',
-  styleUrls: ['./process-metadata.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-  ],
+    selector: 'app-process-metadata',
+    templateUrl: './process-metadata.component.html',
+    styleUrls: ['./process-metadata.component.scss'],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+    ]
 })
 export class ProcessMetadataComponent {
   // Signals

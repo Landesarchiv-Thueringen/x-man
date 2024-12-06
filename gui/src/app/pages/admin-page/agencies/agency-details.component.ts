@@ -30,24 +30,23 @@ import { TransferDirService } from './transfer-dir.service';
  * Shown in a dialog.
  */
 @Component({
-  selector: 'app-agency-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './agency-details.component.html',
-  styleUrl: './agency-details.component.scss',
+    selector: 'app-agency-details',
+    imports: [
+        CommonModule,
+        MatAutocompleteModule,
+        MatButtonModule,
+        MatChipsModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './agency-details.component.html',
+    styleUrl: './agency-details.component.scss'
 })
 export class AgencyDetailsComponent {
   @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
