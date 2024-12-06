@@ -14,22 +14,21 @@ import { TaskStateIconComponent } from '../../../shared/task-state-icon.componen
 import { TaskTitlePipe } from './task-title.pipe';
 
 @Component({
-  selector: 'app-task-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatIconModule,
-    MatListModule,
-    MatProgressSpinnerModule,
-    RouterModule,
-    ScrollingModule,
-    TaskStateIconComponent,
-    TaskTitlePipe,
-  ],
-  templateUrl: './task-details.component.html',
-  styleUrl: './task-details.component.scss',
+    selector: 'app-task-details',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatIconModule,
+        MatListModule,
+        MatProgressSpinnerModule,
+        RouterModule,
+        ScrollingModule,
+        TaskStateIconComponent,
+        TaskTitlePipe,
+    ],
+    templateUrl: './task-details.component.html',
+    styleUrl: './task-details.component.scss'
 })
 export class TaskDetailsComponent {
   @HostBinding('class.done') resolved = false;

@@ -15,18 +15,17 @@ import { ArchiveCollection, CollectionsService } from '../collections/collection
 import { AgencyDetailsComponent } from './agency-details.component';
 
 @Component({
-  selector: 'app-agencies',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatIconModule,
-    MatSortModule,
-    MatTableModule,
-  ],
-  templateUrl: './agencies.component.html',
-  styleUrl: './agencies.component.scss',
+    selector: 'app-agencies',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatIconModule,
+        MatSortModule,
+        MatTableModule,
+    ],
+    templateUrl: './agencies.component.html',
+    styleUrl: './agencies.component.scss'
 })
 export class AgenciesComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;

@@ -14,19 +14,18 @@ import { User, UsersService } from '../../../services/users.service';
 import { UserDetailsComponent } from './user-details.component';
 
 @Component({
-  selector: 'app-users',
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatSortModule,
-    MatTableModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './users.component.html',
-  styleUrl: './users.component.scss',
+    selector: 'app-users',
+    imports: [
+        MatButtonModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatSortModule,
+        MatTableModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './users.component.html',
+    styleUrl: './users.component.scss'
 })
 export class UsersComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;

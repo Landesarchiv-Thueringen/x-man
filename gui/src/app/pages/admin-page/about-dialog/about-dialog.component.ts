@@ -7,11 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { AboutService } from '../../../services/about.service';
 
 @Component({
-  selector: 'app-about-dialog',
-  standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, A11yModule],
-  templateUrl: './about-dialog.component.html',
-  styleUrl: './about-dialog.component.scss',
+    selector: 'app-about-dialog',
+    imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, A11yModule],
+    templateUrl: './about-dialog.component.html',
+    styleUrl: './about-dialog.component.scss'
 })
 export class AboutDialogComponent {
   aboutInformation = this.aboutService.aboutInformation;

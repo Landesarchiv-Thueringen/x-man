@@ -14,21 +14,20 @@ import { TaskDetailsComponent } from './task-details.component';
 import { TaskTitlePipe } from './task-title.pipe';
 
 @Component({
-  selector: 'app-tasks',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSortModule,
-    TaskTitlePipe,
-    TaskStateIconComponent,
-    RouterModule,
-  ],
-  templateUrl: './tasks.component.html',
-  styleUrl: './tasks.component.scss',
+    selector: 'app-tasks',
+    imports: [
+        CommonModule,
+        MatTableModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSortModule,
+        TaskTitlePipe,
+        TaskStateIconComponent,
+        RouterModule,
+    ],
+    templateUrl: './tasks.component.html',
+    styleUrl: './tasks.component.scss'
 })
 export class TasksComponent implements AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;

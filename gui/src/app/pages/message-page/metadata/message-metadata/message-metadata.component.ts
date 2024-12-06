@@ -35,25 +35,24 @@ interface StateItem {
 }
 
 @Component({
-  selector: 'app-message-metadata',
-  templateUrl: './message-metadata.component.html',
-  styleUrls: ['./message-metadata.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    InstitutMetadataComponent,
-    MatButtonModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatListModule,
-    MatProgressSpinnerModule,
-    TaskStateIconComponent,
-    ProcessStepProgressPipe,
-    ReactiveFormsModule,
-  ],
+    selector: 'app-message-metadata',
+    templateUrl: './message-metadata.component.html',
+    styleUrls: ['./message-metadata.component.scss'],
+    imports: [
+        CommonModule,
+        InstitutMetadataComponent,
+        MatButtonModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatListModule,
+        MatProgressSpinnerModule,
+        TaskStateIconComponent,
+        ProcessStepProgressPipe,
+        ReactiveFormsModule,
+    ]
 })
 export class MessageMetadataComponent {
   @ViewChild('reimportMessageDialog') reimportMessageDialogTemplate!: TemplateRef<unknown>;

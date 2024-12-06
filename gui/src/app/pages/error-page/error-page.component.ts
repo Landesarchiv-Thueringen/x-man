@@ -4,11 +4,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-error-page',
-  standalone: true,
-  imports: [MatDividerModule, MatDialogModule],
-  templateUrl: './error-page.component.html',
-  styleUrl: './error-page.component.scss',
+    selector: 'app-error-page',
+    imports: [MatDividerModule, MatDialogModule],
+    templateUrl: './error-page.component.html',
+    styleUrl: './error-page.component.scss'
 })
 export class ErrorPageComponent {
   code: string | null = null;

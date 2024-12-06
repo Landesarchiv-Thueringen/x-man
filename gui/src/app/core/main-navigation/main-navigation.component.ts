@@ -14,20 +14,19 @@ import { UpdatesService } from '../../services/updates.service';
 import { UsersService } from '../../services/users.service';
 
 @Component({
-  selector: 'app-main-navigation',
-  templateUrl: './main-navigation.component.html',
-  styleUrls: ['./main-navigation.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatBadgeModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatIconModule,
-    MatToolbarModule,
-    RouterModule,
-  ],
+    selector: 'app-main-navigation',
+    templateUrl: './main-navigation.component.html',
+    styleUrls: ['./main-navigation.component.scss'],
+    imports: [
+        CommonModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatDividerModule,
+        MatIconModule,
+        MatToolbarModule,
+        RouterModule,
+    ]
 })
 export class MainNavigationComponent {
   loginInformation = this.auth.observeLoginInformation();

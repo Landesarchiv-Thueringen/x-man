@@ -11,11 +11,10 @@ import { ConfigService } from '../../services/config.service';
 import { AboutDialogComponent } from './about-dialog/about-dialog.component';
 
 @Component({
-  selector: 'app-admin-page',
-  standalone: true,
-  imports: [MatSidenavModule, RouterModule, MatListModule, MatButtonModule, MatIconModule],
-  templateUrl: './admin-page.component.html',
-  styleUrl: './admin-page.component.scss',
+    selector: 'app-admin-page',
+    imports: [MatSidenavModule, RouterModule, MatListModule, MatButtonModule, MatIconModule],
+    templateUrl: './admin-page.component.html',
+    styleUrl: './admin-page.component.scss'
 })
 export class AdminPageComponent {
   readonly config = this.configService.config;

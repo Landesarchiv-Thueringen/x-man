@@ -7,6 +7,7 @@
 -   Fix: Kleinere UI-Fixes
 -   Intern: Benutze "Import"-Ordner für Upload zu DIMAG
 -   Intern: Docker-Image von Server optimieren
+-   Intern: Abhängigkeiten aktualisiert
 
 ## v1.1.0
 

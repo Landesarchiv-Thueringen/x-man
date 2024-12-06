@@ -51,21 +51,20 @@ export interface FilePropertyDefinition {
 }
 
 @Component({
-  selector: 'app-file-analysis-table',
-  templateUrl: './file-analysis-table.component.html',
-  styleUrls: ['./file-analysis-table.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    FileFeaturePipe,
-    MatButtonModule,
-    MatChipsModule,
-    MatIconModule,
-    MatMenuModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatTableModule,
-  ],
+    selector: 'app-file-analysis-table',
+    templateUrl: './file-analysis-table.component.html',
+    styleUrls: ['./file-analysis-table.component.scss'],
+    imports: [
+        CommonModule,
+        FileFeaturePipe,
+        MatButtonModule,
+        MatChipsModule,
+        MatIconModule,
+        MatMenuModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatTableModule,
+    ]
 })
 export class FileAnalysisTableComponent implements AfterViewInit {
   private _results?: FileResult[];

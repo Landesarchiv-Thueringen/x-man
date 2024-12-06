@@ -10,11 +10,10 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'app-finalize-appraisal-dialog',
-  templateUrl: './finalize-appraisal-dialog.component.html',
-  styleUrls: ['./finalize-appraisal-dialog.component.scss'],
-  standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressSpinnerModule],
+    selector: 'app-finalize-appraisal-dialog',
+    templateUrl: './finalize-appraisal-dialog.component.html',
+    styleUrls: ['./finalize-appraisal-dialog.component.scss'],
+    imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressSpinnerModule]
 })
 export class FinalizeAppraisalDialogComponent {
   loading = true;

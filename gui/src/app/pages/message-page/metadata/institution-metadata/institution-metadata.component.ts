@@ -5,11 +5,10 @@ import { MatInputModule } from '@angular/material/input';
 import { Institution } from '../../../../services/message.service';
 
 @Component({
-  selector: 'app-institution-metadata',
-  templateUrl: './institution-metadata.component.html',
-  styleUrls: ['./institution-metadata.component.scss'],
-  standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule],
+    selector: 'app-institution-metadata',
+    templateUrl: './institution-metadata.component.html',
+    styleUrls: ['./institution-metadata.component.scss'],
+    imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule]
 })
 export class InstitutMetadataComponent {
   form: FormGroup;

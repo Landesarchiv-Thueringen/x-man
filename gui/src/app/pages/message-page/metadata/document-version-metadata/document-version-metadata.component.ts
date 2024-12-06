@@ -27,11 +27,10 @@ export interface FlatNode {
 }
 
 @Component({
-  selector: 'app-document-version-metadata',
-  templateUrl: './document-version-metadata.component.html',
-  styleUrls: ['./document-version-metadata.component.scss'],
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, MatExpansionModule, MatTreeModule, MatIconModule],
+    selector: 'app-document-version-metadata',
+    templateUrl: './document-version-metadata.component.html',
+    styleUrls: ['./document-version-metadata.component.scss'],
+    imports: [CommonModule, MatButtonModule, MatExpansionModule, MatTreeModule, MatIconModule]
 })
 export class DocumentVersionMetadataComponent {
   treeControl: FlatTreeControl<FlatNode>;

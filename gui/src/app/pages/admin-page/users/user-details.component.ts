@@ -26,22 +26,21 @@ interface UserDetailsData {
  * Shown in a dialog.
  */
 @Component({
-  selector: 'app-user-details',
-  standalone: true,
-  imports: [
-    A11yModule,
-    CommonModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatListModule,
-    MatSlideToggleModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './user-details.component.html',
-  styleUrl: './user-details.component.scss',
+    selector: 'app-user-details',
+    imports: [
+        A11yModule,
+        CommonModule,
+        MatButtonModule,
+        MatChipsModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatListModule,
+        MatSlideToggleModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './user-details.component.html',
+    styleUrl: './user-details.component.scss'
 })
 export class UserDetailsComponent {
   readonly hasPermissions = Object.values(this.data.user.permissions).some(isTrue);

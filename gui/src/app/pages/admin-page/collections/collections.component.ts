@@ -10,11 +10,10 @@ import { CollectionDetailsComponent } from './collection-details.component';
 import { ArchiveCollection, CollectionsService } from './collections.service';
 
 @Component({
-  selector: 'app-collections',
-  standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatSortModule],
-  templateUrl: './collections.component.html',
-  styleUrl: './collections.component.scss',
+    selector: 'app-collections',
+    imports: [MatTableModule, MatButtonModule, MatIconModule, MatSortModule],
+    templateUrl: './collections.component.html',
+    styleUrl: './collections.component.scss'
 })
 export class CollectionsComponent implements AfterViewInit {
   @ViewChild('newCollectionDialog') newCollectionDialog!: TemplateRef<unknown>;

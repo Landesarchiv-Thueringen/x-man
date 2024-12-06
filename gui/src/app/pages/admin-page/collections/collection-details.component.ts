@@ -23,21 +23,20 @@ import { ArchiveCollection, CollectionsService } from './collections.service';
  * Shown in a dialog.
  */
 @Component({
-  selector: 'app-collection-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatListModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './collection-details.component.html',
-  styleUrl: './collection-details.component.scss',
+    selector: 'app-collection-details',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatListModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './collection-details.component.html',
+    styleUrl: './collection-details.component.scss'
 })
 export class CollectionDetailsComponent {
   @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
