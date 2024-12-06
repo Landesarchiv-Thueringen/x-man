@@ -53,7 +53,8 @@ func main() {
 	authorized.GET("api/primary-document", getPrimaryDocument)
 	authorized.GET("api/primary-documents-info/:processId", getPrimaryDocumentsInfo)
 	authorized.GET("api/primary-document-data/:processId/:filename", getPrimaryDocumentData)
-	authorized.GET("api/report/:processId", getReport)
+	authorized.GET("api/report/appraisal/:processId", getAppraisalReport)
+	authorized.GET("api/report/submission/:processId", getSubmissionReport)
 	authorized.GET("api/archive-collections", getCollections)
 	authorized.GET("api/user-info", getUserInformation)
 	authorized.POST("api/user-preferences", setUserPreferences)
@@ -625,7 +626,22 @@ func getPrimaryDocumentData(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func getReport(c *gin.Context) {
+func getAppraisalReport(c *gin.Context) {
+	processID, err := uuid.Parse(c.Param("processId"))
+	if err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	process, found := db.FindProcess(c.Request.Context(), processID)
+	if !found {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+	contentLength, contentType, body := report.GetAppraisalReport(c.Request.Context(), process)
+	c.DataFromReader(http.StatusOK, contentLength, contentType, body, nil)
+}
+
+func getSubmissionReport(c *gin.Context) {
 	processID, err := uuid.Parse(c.Param("processId"))
 	if err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)

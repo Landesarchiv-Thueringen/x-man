@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-type ReportData struct {
+type SubmissionReportData struct {
 	Process          db.SubmissionProcess
 	ArchivePackages  []ArchivePackageStructure
 	Message0503Stats *ContentStats
@@ -52,7 +52,7 @@ func GetSubmissionReport(
 func getSubmissionReportData(
 	ctx context.Context,
 	process db.SubmissionProcess,
-) (reportData ReportData, err error) {
+) (reportData SubmissionReportData, err error) {
 	messages := make(map[db.MessageType]db.Message)
 	for _, m := range db.FindMessagesForProcess(ctx, process.ProcessID) {
 		messages[m.MessageType] = m
@@ -82,7 +82,7 @@ func getSubmissionReportData(
 
 // writeToFile writes accumulated report data to a json file for use for
 // development of the report service.
-func writeToFile(reportData ReportData, fileName string) {
+func writeToFile(reportData any, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
 		panic(err)

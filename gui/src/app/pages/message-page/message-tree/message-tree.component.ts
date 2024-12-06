@@ -598,8 +598,19 @@ export class MessageTreeComponent {
     }
   }
 
-  downloadReport() {
-    this.processService.getReport(this.process()!.processId).subscribe((report) => {
+  downloadAppraisalReport() {
+    this.processService.getAppraisalReport(this.process()!.processId).subscribe((report) => {
+      const a = document.createElement('a');
+      document.body.appendChild(a);
+      a.download = `Bewertungsbericht ${this.process()!.agency.abbreviation} ${this.process()!.createdAt}.pdf`;
+      a.href = window.URL.createObjectURL(report);
+      a.click();
+      document.body.removeChild(a);
+    });
+  }
+
+  downloadSubmissionReport() {
+    this.processService.getSubmissionReport(this.process()!.processId).subscribe((report) => {
       const a = document.createElement('a');
       document.body.appendChild(a);
       a.download = `Übernahmebericht ${this.process()!.agency.abbreviation} ${this.process()!.createdAt}.pdf`;
