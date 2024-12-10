@@ -24,6 +24,9 @@ $dark-theme: mat.define-theme(
 
 html {
   @include mat.all-component-themes($light-theme);
+}
+
+:root {
   --mat-primary: #{mat.get-theme-color($light-theme, primary)};
   --mat-primary-30: #{mat.get-theme-color($light-theme, primary, 30)};
   --mat-primary-90: #{mat.get-theme-color($light-theme, primary, 90)};

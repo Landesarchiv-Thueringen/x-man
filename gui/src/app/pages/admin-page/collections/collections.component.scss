@@ -1,4 +1,4 @@
-@import "../../../../styles/mixins.scss";
+@use "../../../../styles/mixins.scss";
 
 :host {
   display: flex;
@@ -6,7 +6,7 @@
 }
 
 mat-table {
-  @include tableBorder;
+  @include mixins.tableBorder;
 }
 
 .mat-mdc-row {

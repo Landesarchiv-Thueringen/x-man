@@ -1,5 +1,14 @@
 <mat-sidenav-container>
-  <mat-sidenav #sidenav [mode]="sidenavMode" opened [disableClose]="sidenavMode === 'side'">
+  <!-- The sidenav container doesn't pick up the sidenav's with when set in the
+  stylesheet. This is probably a bug in early Angular 19. Move to stylesheet
+  when fixed. -->
+  <mat-sidenav
+    #sidenav
+    [mode]="sidenavMode"
+    opened
+    [disableClose]="sidenavMode === 'side'"
+    style="width: 880px"
+  >
     <app-message-tree></app-message-tree>
   </mat-sidenav>
 

@@ -1,6 +1,6 @@
 @use "sass:map";
 @use "@angular/material" as mat;
-@import "../../../../styles/mixins";
+@use "../../../../styles/mixins";
 
 .messsage-view {
   display: flex;
@@ -69,7 +69,7 @@ mat-tree-node {
 }
 
 .overlay-button {
-  @include overlayButton;
+  @include mixins.overlayButton;
   &.active {
     // Prevent hover effects that only trigger on the node's padding area
     pointer-events: none;

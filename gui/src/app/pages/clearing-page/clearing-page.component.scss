@@ -1,4 +1,4 @@
-@import "../../../styles/mixins.scss";
+@use "../../../styles/mixins.scss";
 
 :host {
   display: flex;
@@ -23,7 +23,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  @include tableBorder;
+  @include mixins.tableBorder;
 }
 
 .table-container {

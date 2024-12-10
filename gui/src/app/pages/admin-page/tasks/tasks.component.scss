@@ -1,7 +1,7 @@
-@import "../../../../styles/mixins.scss";
+@use "../../../../styles/mixins.scss";
 
 mat-table {
-  @include tableBorder;
+  @include mixins.tableBorder;
 }
 
 .mat-mdc-row {
@@ -9,7 +9,7 @@ mat-table {
 }
 
 .open-details-button {
-  @include overlayButton;
+  @include mixins.overlayButton;
   border-radius: 0;
 }
 

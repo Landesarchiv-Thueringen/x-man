@@ -1,8 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "roboto.scss";
-@import "material-theme.scss";
-@import "material-icons.scss";
+@use "roboto.scss";
+@use "material-theme.scss";
+@use "material-icons.scss";
 
 html,
 body {
