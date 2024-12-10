@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, effect, ViewChild } from '@angular/core';
+import { Component, effect, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,7 +17,7 @@ import { MessageTreeComponent } from './message-tree/message-tree.component';
   providers: [MessagePageService],
 })
 export class MessagePageComponent {
-  @ViewChild(MatSidenav) sidenav?: MatSidenav;
+  readonly sidenav = viewChild(MatSidenav);
   sidenavMode: 'side' | 'over' = 'side';
 
   constructor(
@@ -61,7 +61,7 @@ export class MessagePageComponent {
       .subscribe((result) => {
         if (result.matches) {
           this.sidenavMode = 'side';
-          this.sidenav?.open();
+          this.sidenav()?.open();
         } else {
           this.sidenavMode = 'over';
         }
@@ -74,7 +74,7 @@ export class MessagePageComponent {
       )
       .subscribe((event) => {
         if (this.sidenavMode === 'over' && !event.urlAfterRedirects.endsWith('/details')) {
-          this.sidenav?.close();
+          this.sidenav()?.close();
         }
       });
   }

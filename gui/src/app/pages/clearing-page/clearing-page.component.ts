@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,8 +37,8 @@ export class ClearingPageComponent implements AfterViewInit {
   );
   lastSeenTime = this.clearingService.getLastSeenTime();
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly paginator = viewChild.required(MatPaginator);
+  readonly sort = viewChild.required(MatSort);
 
   constructor(
     private clearingService: ClearingService,
@@ -70,9 +70,9 @@ export class ClearingPageComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.paginator.pageSize = this.getPageSize();
-    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator();
+    this.paginator().pageSize = this.getPageSize();
+    this.dataSource.sort = this.sort();
   }
 
   trackTableRow(index: number, element: ProcessingError): string {

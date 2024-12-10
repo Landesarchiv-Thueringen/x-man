@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, effect, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -28,7 +28,7 @@ import { AgencyDetailsComponent } from './agency-details.component';
     styleUrl: './agencies.component.scss'
 })
 export class AgenciesComponent implements AfterViewInit {
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly sort = viewChild.required(MatSort);
 
   displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users'];
   dataSource = new MatTableDataSource<Agency>();
@@ -58,7 +58,7 @@ export class AgenciesComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
   }
 
   getCollectionName(agency: Agency): Observable<string> {

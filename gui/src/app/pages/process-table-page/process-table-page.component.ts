@@ -1,6 +1,6 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -99,8 +99,8 @@ export class ProcessTablePageComponent implements AfterViewInit {
   showFilters = window.localStorage.getItem('show-process-filters') === 'true';
   config = this.configService.config;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly paginator = viewChild.required(MatPaginator);
+  readonly sort = viewChild.required(MatSort);
 
   constructor(
     private authService: AuthService,
@@ -157,9 +157,9 @@ export class ProcessTablePageComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.paginator.pageSize = this.getPageSize();
-    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator();
+    this.paginator().pageSize = this.getPageSize();
+    this.dataSource.sort = this.sort();
   }
 
   toggleFilters(): void {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, TemplateRef, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -49,9 +49,9 @@ import { TransferDirService } from './transfer-dir.service';
     styleUrl: './agency-details.component.scss'
 })
 export class AgencyDetailsComponent {
-  @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
-  @ViewChild('transferDirPanel') transferDirPanel!: MatExpansionPanel;
-  @ViewChild(MatDialogContent, { read: ElementRef }) dialogContent!: ElementRef<HTMLDivElement>;
+  readonly deleteDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteDialog');
+  readonly transferDirPanel = viewChild.required<MatExpansionPanel>('transferDirPanel');
+  readonly dialogContent = viewChild.required(MatDialogContent, { read: ElementRef });
 
   readonly oldName = this.agency.name;
   form = new FormGroup({
@@ -135,7 +135,7 @@ export class AgencyDetailsComponent {
    */
   async testTransferDirectory() {
     this.fixupTransferDirInputs();
-    this.transferDirPanel.open();
+    this.transferDirPanel().open();
     if (this.form.get('transferDir')?.valid && !this.loadingTestResult) {
       this.loadingTestResult = true;
       const observable = this.transferDirectoryService.testTransferDir(this.getTransferDirURI());
@@ -218,7 +218,7 @@ export class AgencyDetailsComponent {
    * Deletes this agency after getting user confirmation and closes the dialog.
    */
   deleteAgency() {
-    const dialogRef = this.dialog.open(this.deleteDialogTemplate);
+    const dialogRef = this.dialog.open(this.deleteDialogTemplate());
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.agenciesService.deleteAgency(this.agency);
@@ -314,7 +314,7 @@ export class AgencyDetailsComponent {
   }
 
   private scrollToBottom(): void {
-    const scrollParent = this.dialogContent.nativeElement;
+    const scrollParent = this.dialogContent().nativeElement;
     function scroll() {
       scrollParent.scroll({ top: 1000000, behavior: 'smooth' });
     }

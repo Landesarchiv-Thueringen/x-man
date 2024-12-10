@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,7 +28,7 @@ import { UserDetailsComponent } from './user-details.component';
     styleUrl: './users.component.scss'
 })
 export class UsersComponent implements AfterViewInit {
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly sort = viewChild.required(MatSort);
 
   displayedColumns: string[] = ['icon', 'displayName', 'admin'];
   dataSource = new MatTableDataSource<User>();
@@ -56,7 +56,7 @@ export class UsersComponent implements AfterViewInit {
           return item[property as keyof typeof item] as string;
       }
     };
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
   }
 
   async openDetails(user: User) {

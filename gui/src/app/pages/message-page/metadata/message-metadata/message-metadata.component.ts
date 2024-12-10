@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, effect, Signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, computed, effect, Signal, TemplateRef, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -55,10 +55,9 @@ interface StateItem {
     ]
 })
 export class MessageMetadataComponent {
-  @ViewChild('reimportMessageDialog') reimportMessageDialogTemplate!: TemplateRef<unknown>;
-  @ViewChild('deleteMessageDialog') deleteMessageDialogTemplate!: TemplateRef<unknown>;
-  @ViewChild('deleteSubmissionProcessDialog')
-  deleteSubmissionProcessDialogTemplate!: TemplateRef<unknown>;
+  readonly reimportMessageDialogTemplate = viewChild.required<TemplateRef<unknown>>('reimportMessageDialog');
+  readonly deleteMessageDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteMessageDialog');
+  readonly deleteSubmissionProcessDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteSubmissionProcessDialog');
 
   readonly process = this.messagePage.process;
   readonly warnings = this.messagePage.warnings;
@@ -140,7 +139,7 @@ export class MessageMetadataComponent {
 
   reimportMessage() {
     this.dialog
-      .open(this.reimportMessageDialogTemplate)
+      .open(this.reimportMessageDialogTemplate())
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -155,7 +154,7 @@ export class MessageMetadataComponent {
 
   deleteMessage() {
     this.dialog
-      .open(this.deleteMessageDialogTemplate)
+      .open(this.deleteMessageDialogTemplate())
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -176,7 +175,7 @@ export class MessageMetadataComponent {
 
   deleteProcess() {
     this.dialog
-      .open(this.deleteSubmissionProcessDialogTemplate)
+      .open(this.deleteSubmissionProcessDialogTemplate())
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {

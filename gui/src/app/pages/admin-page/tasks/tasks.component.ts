@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -30,7 +30,7 @@ import { TaskTitlePipe } from './task-title.pipe';
     styleUrl: './tasks.component.scss'
 })
 export class TasksComponent implements AfterViewInit {
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly sort = viewChild.required(MatSort);
 
   dataSource = new MatTableDataSource<Task>();
   displayedColumns = [
@@ -68,7 +68,7 @@ export class TasksComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
   }
 
   trackTableRow(index: number, element: Task): string {

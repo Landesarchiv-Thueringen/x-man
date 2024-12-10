@@ -4,12 +4,11 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   Component,
   Inject,
-  QueryList,
   TemplateRef,
-  ViewChild,
-  ViewChildren,
   computed,
   effect,
+  viewChild,
+  viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -101,9 +100,9 @@ export interface Filter<T = string> {
 })
 export class MessageTreeComponent {
   Math = Math;
-  @ViewChild('messageTree') messageTree?: MatTree<StructureNode>;
-  @ViewChildren(MatChipRow) matChipRow?: QueryList<MatChipRow>;
-  @ViewChild('lifetimeFilterDialog') lifetimeFilterDialog!: TemplateRef<unknown>;
+  readonly messageTree = viewChild<MatTree<StructureNode>>('messageTree');
+  readonly matChipRow = viewChildren(MatChipRow);
+  readonly lifetimeFilterDialog = viewChild.required<TemplateRef<unknown>>('lifetimeFilterDialog');
 
   readonly process = this.messagePage.process;
   readonly message = this.messagePage.message;
@@ -213,7 +212,7 @@ export class MessageTreeComponent {
       type: 'lifetime',
       label: 'Laufzeit',
       edit: (value) => {
-        const dialogRef = this.dialog.open(this.lifetimeFilterDialog, {
+        const dialogRef = this.dialog.open(this.lifetimeFilterDialog(), {
           data: value,
         });
         return firstValueFrom(dialogRef.afterClosed());

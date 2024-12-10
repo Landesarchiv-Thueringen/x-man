@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, TemplateRef, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,8 +16,8 @@ import { ArchiveCollection, CollectionsService } from './collections.service';
     styleUrl: './collections.component.scss'
 })
 export class CollectionsComponent implements AfterViewInit {
-  @ViewChild('newCollectionDialog') newCollectionDialog!: TemplateRef<unknown>;
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly newCollectionDialog = viewChild.required<TemplateRef<unknown>>('newCollectionDialog');
+  readonly sort = viewChild.required(MatSort);
 
   dataSource = new MatTableDataSource<ArchiveCollection>();
   displayedColumns: string[] = ['icon', 'name', 'dimagId'];
@@ -34,7 +34,7 @@ export class CollectionsComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
   }
 
   openDetails(collection: ArchiveCollection) {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ItemProgress, TaskState } from '../services/tasks.service';
@@ -7,7 +7,7 @@ import { ItemProgress, TaskState } from '../services/tasks.service';
     selector: 'app-task-state-icon',
     imports: [MatIconModule, MatProgressSpinnerModule],
     template: `
-    @switch (state) {
+    @switch (state()) {
       @case ('pending') {
         <mat-icon>schedule</mat-icon>
       }
@@ -21,7 +21,7 @@ import { ItemProgress, TaskState } from '../services/tasks.service';
         <mat-spinner
           diameter="24"
           mode="determinate"
-          [value]="(progress.done * 100) / progress.total"
+          [value]="(progress().done * 100) / progress().total"
         ></mat-spinner>
       }
       @case ('done') {
@@ -45,6 +45,6 @@ import { ItemProgress, TaskState } from '../services/tasks.service';
   `
 })
 export class TaskStateIconComponent {
-  @Input('state') state!: TaskState;
-  @Input('progress') progress!: ItemProgress;
+  readonly state = input.required<TaskState>();
+  readonly progress = input.required<ItemProgress>();
 }

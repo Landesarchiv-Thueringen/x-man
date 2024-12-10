@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, input, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -81,7 +81,7 @@ export class FileAnalysisTableComponent implements AfterViewInit {
     this.processFileInformation(value ?? []);
   }
 
-  @Input() getDetails!: (id: string) => Promise<FileAnalysis | undefined>;
+  readonly getDetails = input.required<(id: string) => Promise<FileAnalysis | undefined>>();
 
   private _properties: FilePropertyDefinition[] = [
     { key: 'path', label: 'Pfad' },
@@ -112,8 +112,8 @@ export class FileAnalysisTableComponent implements AfterViewInit {
     this.columns = this.tableProperties.map(({ key }) => key);
   }
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly paginator = viewChild.required(MatPaginator);
+  readonly sort = viewChild.required(MatSort);
 
   dataSource: MatTableDataSource<FileOverview>;
   tableProperties = this.properties.filter((p) => p.inTable !== false);
@@ -133,10 +133,10 @@ export class FileAnalysisTableComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
+    this.dataSource.paginator = this.paginator();
     this.dataSource.filterPredicate = (data: FileOverview, filter: string) =>
       this.filterPredicate(data, filter as unknown as Set<Filter>);
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort();
     this.dataSource.sortingDataAccessor = (data, sortHeaderId) => {
       switch (sortHeaderId) {
         case 'status':
@@ -166,7 +166,7 @@ export class FileAnalysisTableComponent implements AfterViewInit {
   }
 
   async openDetails(overview: FileOverview): Promise<void> {
-    const analysis = await this.getDetails(overview.id);
+    const analysis = await this.getDetails()(overview.id);
     if (analysis) {
       this.dialog.open(FileOverviewComponent, {
         data: {

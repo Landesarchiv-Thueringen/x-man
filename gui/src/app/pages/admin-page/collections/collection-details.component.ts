@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Inject, TemplateRef, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -39,7 +39,7 @@ import { ArchiveCollection, CollectionsService } from './collections.service';
     styleUrl: './collection-details.component.scss'
 })
 export class CollectionDetailsComponent {
-  @ViewChild('deleteDialog') deleteDialogTemplate!: TemplateRef<unknown>;
+  readonly deleteDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteDialog');
 
   readonly isNew = this.collection == null;
   readonly form = new FormGroup({
@@ -75,7 +75,7 @@ export class CollectionDetailsComponent {
    * Deletes this collection after getting user confirmation and closes the dialog.
    */
   deleteCollection() {
-    const dialogRef = this.dialog.open(this.deleteDialogTemplate);
+    const dialogRef = this.dialog.open(this.deleteDialogTemplate());
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.collectionsService.deleteCollection(this.collection);
