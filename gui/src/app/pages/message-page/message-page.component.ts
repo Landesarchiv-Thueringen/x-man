@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, effect, viewChild } from '@angular/core';
+import { Component, effect, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,14 +17,14 @@ import { MessageTreeComponent } from './message-tree/message-tree.component';
   providers: [MessagePageService],
 })
 export class MessagePageComponent {
+  private breakpointObserver = inject(BreakpointObserver);
+  private messagePage = inject(MessagePageService);
+  private router = inject(Router);
+
   readonly sidenav = viewChild(MatSidenav);
   sidenavMode: 'side' | 'over' = 'side';
 
-  constructor(
-    private breakpointObserver: BreakpointObserver,
-    private messagePage: MessagePageService,
-    private router: Router,
-  ) {
+  constructor() {
     // Redirect to the latest message when no message is given in the URL.
     effect(() => {
       if (this.messagePage.messageType() === '') {

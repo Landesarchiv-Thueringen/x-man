@@ -1,6 +1,6 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, viewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -62,6 +62,12 @@ import { ProcessStepProgressPipe } from '../message-page/metadata/message-metada
     ]
 })
 export class ProcessTablePageComponent implements AfterViewInit {
+  private authService = inject(AuthService);
+  private configService = inject(ConfigService);
+  private formBuilder = inject(FormBuilder);
+  private processService = inject(ProcessService);
+  private updatesService = inject(UpdatesService);
+
   readonly dataSource: MatTableDataSource<SubmissionProcess> =
     new MatTableDataSource<SubmissionProcess>();
   readonly displayedColumns = [
@@ -102,13 +108,7 @@ export class ProcessTablePageComponent implements AfterViewInit {
   readonly paginator = viewChild.required(MatPaginator);
   readonly sort = viewChild.required(MatSort);
 
-  constructor(
-    private authService: AuthService,
-    private configService: ConfigService,
-    private formBuilder: FormBuilder,
-    private processService: ProcessService,
-    private updatesService: UpdatesService,
-  ) {
+  constructor() {
     this.dataSource.sortingDataAccessor = ((
       process: SubmissionProcess,
       property: ProcessTablePageComponent['displayedColumns'][number],

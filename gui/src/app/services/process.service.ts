@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { first, map, shareReplay, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -51,14 +51,14 @@ export interface ProcessStep {
   providedIn: 'root',
 })
 export class ProcessService {
+  private httpClient = inject(HttpClient);
+  private updates = inject(UpdatesService);
+
   private apiEndpoint: string;
   private cachedProcessId?: string;
   private cachedProcessData?: Observable<ProcessData>;
 
-  constructor(
-    private httpClient: HttpClient,
-    private updates: UpdatesService,
-  ) {
+  constructor() {
     this.apiEndpoint = environment.endpoint;
   }
 

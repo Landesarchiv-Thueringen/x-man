@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,14 +17,12 @@ import { AboutDialogComponent } from './about-dialog/about-dialog.component';
     styleUrl: './admin-page.component.scss'
 })
 export class AdminPageComponent {
+  private aboutService = inject(AboutService);
+  private configService = inject(ConfigService);
+  private dialog = inject(MatDialog);
+
   readonly config = this.configService.config;
   readonly aboutInformation = toSignal(this.aboutService.aboutInformation);
-
-  constructor(
-    private aboutService: AboutService,
-    private configService: ConfigService,
-    private dialog: MatDialog,
-  ) {}
 
   openAboutDialog() {
     this.dialog.open(AboutDialogComponent);

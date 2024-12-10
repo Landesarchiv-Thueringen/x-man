@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -16,14 +16,16 @@ export interface DialogData {
     imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressSpinnerModule]
 })
 export class FinalizeAppraisalDialogComponent {
+  data = inject<DialogData>(MAT_DIALOG_DATA);
+  private dialogRef = inject<MatDialogRef<FinalizeAppraisalDialogComponent>>(MatDialogRef);
+  private messageService = inject(MessageService);
+
   loading = true;
   appraisalComplete?: boolean;
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: DialogData,
-    private dialogRef: MatDialogRef<FinalizeAppraisalDialogComponent>,
-    private messageService: MessageService,
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.messageService
       .areAllRecordObjectsAppraised(data.processId)
       .subscribe((appraisalComplete) => {

@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, effect, Signal, TemplateRef, viewChild } from '@angular/core';
+import { Component, computed, effect, Signal, TemplateRef, viewChild, inject } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -55,6 +55,17 @@ interface StateItem {
     ]
 })
 export class MessageMetadataComponent {
+  private auth = inject(AuthService);
+  private configService = inject(ConfigService);
+  private datePipe = inject(DatePipe);
+  private dialog = inject(MatDialog);
+  private formBuilder = inject(FormBuilder);
+  private notification = inject(NotificationService);
+  private processService = inject(ProcessService);
+  private router = inject(Router);
+  private messagePage = inject(MessagePageService);
+  private messageService = inject(MessageService);
+
   readonly reimportMessageDialogTemplate = viewChild.required<TemplateRef<unknown>>('reimportMessageDialog');
   readonly deleteMessageDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteMessageDialog');
   readonly deleteSubmissionProcessDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteSubmissionProcessDialog');
@@ -76,18 +87,7 @@ export class MessageMetadataComponent {
 
   stateItems: StateItem[] = [];
 
-  constructor(
-    private auth: AuthService,
-    private configService: ConfigService,
-    private datePipe: DatePipe,
-    private dialog: MatDialog,
-    private formBuilder: FormBuilder,
-    private notification: NotificationService,
-    private processService: ProcessService,
-    private router: Router,
-    private messagePage: MessagePageService,
-    private messageService: MessageService,
-  ) {
+  constructor() {
     this.processDeleteTime = computed(() =>
       this.getProcessDeleteTime(this.configService.config(), this.process()),
     );

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -33,7 +33,8 @@ export const appraisalDescriptions = {
   providedIn: 'root',
 })
 export class AppraisalService {
-  constructor(private httpClient: HttpClient) {}
+  private httpClient = inject(HttpClient);
+
 
   getAppraisalDescription(code?: AppraisalCode): AppraisalDescription | undefined {
     if (!code) {

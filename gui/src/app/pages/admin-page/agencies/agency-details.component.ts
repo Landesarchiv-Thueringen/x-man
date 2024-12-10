@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Inject, TemplateRef, viewChild } from '@angular/core';
+import { Component, ElementRef, TemplateRef, viewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -49,6 +49,15 @@ import { TransferDirService } from './transfer-dir.service';
     styleUrl: './agency-details.component.scss'
 })
 export class AgencyDetailsComponent {
+  private dialogRef = inject<MatDialogRef<AgencyDetailsComponent>>(MatDialogRef);
+  private agency = inject<Agency>(MAT_DIALOG_DATA);
+  private agenciesService = inject(AgenciesService);
+  private collectionsService = inject(CollectionsService);
+  private configService = inject(ConfigService);
+  private dialog = inject(MatDialog);
+  private transferDirectoryService = inject(TransferDirService);
+  private usersService = inject(UsersService);
+
   readonly deleteDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteDialog');
   readonly transferDirPanel = viewChild.required<MatExpansionPanel>('transferDirPanel');
   readonly dialogContent = viewChild.required(MatDialogContent, { read: ElementRef });
@@ -98,16 +107,7 @@ export class AgencyDetailsComponent {
   loadingTestResult = false;
   isNew = this.agency.id == null;
 
-  constructor(
-    private dialogRef: MatDialogRef<AgencyDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) private agency: Agency,
-    private agenciesService: AgenciesService,
-    private collectionsService: CollectionsService,
-    private configService: ConfigService,
-    private dialog: MatDialog,
-    private transferDirectoryService: TransferDirService,
-    private usersService: UsersService,
-  ) {
+  constructor() {
     // Reset 'testResult' when the value of 'transferDir' changes
     this.form.get('transferDir')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));
     this.initTransferDirGroup();

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ProcessStep } from './process.service';
@@ -35,10 +35,9 @@ export interface Task {
   providedIn: 'root',
 })
 export class TasksService {
-  constructor(
-    private httpClient: HttpClient,
-    private updates: UpdatesService,
-  ) {}
+  private httpClient = inject(HttpClient);
+  private updates = inject(UpdatesService);
+
 
   observeTasks(): Observable<Task[]> {
     return this.updates

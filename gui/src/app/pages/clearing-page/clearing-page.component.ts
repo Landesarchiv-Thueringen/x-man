@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, viewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,6 +27,9 @@ import { ClearingDetailsComponent } from './clearing-details.component';
     ]
 })
 export class ClearingPageComponent implements AfterViewInit {
+  private clearingService = inject(ClearingService);
+  private dialog = inject(MatDialog);
+
   dataSource: MatTableDataSource<ProcessingError>;
   displayedColumns: string[];
   showResolvedControl = new FormControl(
@@ -40,10 +43,7 @@ export class ClearingPageComponent implements AfterViewInit {
   readonly paginator = viewChild.required(MatPaginator);
   readonly sort = viewChild.required(MatSort);
 
-  constructor(
-    private clearingService: ClearingService,
-    private dialog: MatDialog,
-  ) {
+  constructor() {
     this.displayedColumns = ['createdAt', 'agency', 'title'];
     this.dataSource = new MatTableDataSource<ProcessingError>();
     this.clearingService.markAllSeen();

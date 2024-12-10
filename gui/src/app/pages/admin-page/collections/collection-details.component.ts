@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, TemplateRef, viewChild } from '@angular/core';
+import { Component, TemplateRef, viewChild, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -39,6 +39,11 @@ import { ArchiveCollection, CollectionsService } from './collections.service';
     styleUrl: './collection-details.component.scss'
 })
 export class CollectionDetailsComponent {
+  private dialogRef = inject<MatDialogRef<CollectionDetailsComponent>>(MatDialogRef);
+  collection = inject<ArchiveCollection>(MAT_DIALOG_DATA);
+  private dialog = inject(MatDialog);
+  private collectionsService = inject(CollectionsService);
+
   readonly deleteDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteDialog');
 
   readonly isNew = this.collection == null;
@@ -55,12 +60,9 @@ export class CollectionDetailsComponent {
   readonly dimagIds = this.collectionsService.getDimagIds();
   readonly agencies?: Observable<Agency[]>;
 
-  constructor(
-    private dialogRef: MatDialogRef<CollectionDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) public collection: ArchiveCollection,
-    private dialog: MatDialog,
-    private collectionsService: CollectionsService,
-  ) {
+  constructor() {
+    const collection = this.collection;
+
     if (collection) {
       this.agencies = this.collectionsService.getAgenciesForCollection(this.collection.id);
     }

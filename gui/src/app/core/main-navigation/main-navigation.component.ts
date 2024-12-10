@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -29,17 +29,15 @@ import { UsersService } from '../../services/users.service';
     ]
 })
 export class MainNavigationComponent {
+  private auth = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private users = inject(UsersService);
+  private clearing = inject(ClearingService);
+  private updates = inject(UpdatesService);
+
   loginInformation = this.auth.observeLoginInformation();
   unseenProcessingErrors = this.clearing.observeNumberUnseen();
   connectionState = this.updates.state;
-
-  constructor(
-    private auth: AuthService,
-    private dialog: MatDialog,
-    private users: UsersService,
-    private clearing: ClearingService,
-    private updates: UpdatesService,
-  ) {}
 
   openUserDetails() {
     const user = this.auth.getCurrentLoginInformation()!.user;

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, viewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,17 +28,17 @@ import { UserDetailsComponent } from './user-details.component';
     styleUrl: './users.component.scss'
 })
 export class UsersComponent implements AfterViewInit {
+  private agenciesService = inject(AgenciesService);
+  private usersService = inject(UsersService);
+  private dialog = inject(MatDialog);
+
   readonly sort = viewChild.required(MatSort);
 
   displayedColumns: string[] = ['icon', 'displayName', 'admin'];
   dataSource = new MatTableDataSource<User>();
   filter = new FormControl('');
 
-  constructor(
-    private agenciesService: AgenciesService,
-    private usersService: UsersService,
-    private dialog: MatDialog,
-  ) {
+  constructor() {
     this.usersService
       .getUsers()
       .pipe(takeUntilDestroyed())

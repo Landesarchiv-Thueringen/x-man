@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import {
   Observable,
   Subject,
@@ -26,6 +26,8 @@ export interface Update {
   providedIn: 'root',
 })
 export class UpdatesService {
+  private auth = inject(AuthService);
+
   private readonly updatesSubject = new Subject<Update | 'reconnect'>();
   private eventSource?: EventSource;
   private keepAliveTimer?: number;
@@ -40,7 +42,9 @@ export class UpdatesService {
    */
   state = signal<null | 'failed' | 'connected'>(null);
 
-  constructor(private auth: AuthService) {
+  constructor() {
+    const auth = this.auth;
+
     auth
       .observeLoginInformation()
       .pipe(map(notNull), distinctUntilChanged())

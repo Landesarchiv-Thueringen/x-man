@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Signal, computed, effect } from '@angular/core';
+import { Component, Signal, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -39,6 +39,13 @@ import { media } from '../medium.pipe';
     ]
 })
 export class FileMetadataComponent {
+  private appraisalService = inject(AppraisalService);
+  private formBuilder = inject(FormBuilder);
+  private messagePage = inject(MessagePageService);
+  private messageService = inject(MessageService);
+  private packagingService = inject(PackagingService);
+  private route = inject(ActivatedRoute);
+
   // Signals
   readonly process = this.messagePage.process;
   readonly message = this.messagePage.message;
@@ -84,14 +91,7 @@ export class FileMetadataComponent {
    */
   private packagingChoicesPopulated = '';
 
-  constructor(
-    private appraisalService: AppraisalService,
-    private formBuilder: FormBuilder,
-    private messagePage: MessagePageService,
-    private messageService: MessageService,
-    private packagingService: PackagingService,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
     // Define signals.
     const params = toSignal(this.route.params, { requireSync: true });
     this.recordId = computed<string>(() => params()['id']);

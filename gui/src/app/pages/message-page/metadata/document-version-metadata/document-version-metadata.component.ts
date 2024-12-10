@@ -1,6 +1,6 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule } from '@angular/common';
-import { Component, effect, input } from '@angular/core';
+import { Component, effect, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,6 +33,9 @@ export interface FlatNode {
   imports: [CommonModule, MatButtonModule, MatExpansionModule, MatTreeModule, MatIconModule],
 })
 export class DocumentVersionMetadataComponent {
+  private messageService = inject(MessageService);
+  private messagePageService = inject(MessagePageService);
+
   readonly document = input<DocumentRecord>();
 
   treeControl: FlatTreeControl<FlatNode>;
@@ -40,10 +43,7 @@ export class DocumentVersionMetadataComponent {
   dataSource: MatTreeFlatDataSource<Node, FlatNode>;
   message = this.messagePageService.message;
 
-  constructor(
-    private messageService: MessageService,
-    private messagePageService: MessagePageService,
-  ) {
+  constructor() {
     this.treeControl = new FlatTreeControl<FlatNode>(
       (node) => node.level,
       (node) => node.expandable,

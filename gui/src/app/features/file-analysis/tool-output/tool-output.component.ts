@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -30,8 +30,8 @@ interface DialogData {
     ]
 })
 export class ToolOutputComponent {
+  private data = inject<DialogData>(MAT_DIALOG_DATA);
+
   readonly toolName = this.data.toolName;
   readonly toolResult = this.data.toolResult;
-
-  constructor(@Inject(MAT_DIALOG_DATA) private data: DialogData) {}
 }

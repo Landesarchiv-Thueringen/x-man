@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, Inject } from '@angular/core';
+import { Component, HostBinding, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -33,17 +33,19 @@ import { BreakOpportunitiesPipe } from '../../shared/break-opportunities.pipe';
     styleUrl: './clearing-details.component.scss'
 })
 export class ClearingDetailsComponent {
+  private dialogRef = inject<MatDialogRef<ClearingDetailsComponent>>(MatDialogRef);
+  private data = inject<ProcessingError>(MAT_DIALOG_DATA);
+  private clearingService = inject(ClearingService);
+  private notificationService = inject(NotificationService);
+  private tasksService = inject(TasksService);
+  private authService = inject(AuthService);
+
   @HostBinding('class.resolved') resolved = this.data.resolved;
   processingError: ProcessingError = this.data;
 
-  constructor(
-    private dialogRef: MatDialogRef<ClearingDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) private data: ProcessingError,
-    private clearingService: ClearingService,
-    private notificationService: NotificationService,
-    private tasksService: TasksService,
-    private authService: AuthService,
-  ) {
+  constructor() {
+    const data = this.data;
+
     if (this.authService.isAdmin()) {
       this.clearingService
         .observeProcessingError(data.id)

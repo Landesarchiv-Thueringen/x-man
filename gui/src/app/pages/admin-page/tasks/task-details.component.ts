@@ -1,6 +1,6 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, Inject, Signal, effect } from '@angular/core';
+import { Component, HostBinding, Signal, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -29,17 +29,17 @@ import { TaskTitlePipe } from './task-title.pipe';
   styleUrl: './task-details.component.scss',
 })
 export class TaskDetailsComponent {
+  private dialogRef = inject<MatDialogRef<TaskDetailsComponent>>(MatDialogRef);
+  private taskId = inject(MAT_DIALOG_DATA);
+  private auth = inject(AuthService);
+  private tasksService = inject(TasksService);
+
   @HostBinding('class.done') resolved = false;
   @HostBinding('class.failed') failed = false;
   task: Signal<Task | undefined>;
   isAdmin = this.auth.isAdmin();
 
-  constructor(
-    private dialogRef: MatDialogRef<TaskDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) private taskId: string,
-    private auth: AuthService,
-    private tasksService: TasksService,
-  ) {
+  constructor() {
     const task = this.tasksService.observeTask(this.taskId);
     this.task = toSignal(task);
     effect(() => {

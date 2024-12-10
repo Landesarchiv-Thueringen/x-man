@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
@@ -11,7 +11,8 @@ interface TestResult {
   providedIn: 'root',
 })
 export class TransferDirService {
-  constructor(private httpClient: HttpClient) {}
+  private httpClient = inject(HttpClient);
+
 
   /**
    * Resolves to `result: 'success'` if the given transfer directory can be

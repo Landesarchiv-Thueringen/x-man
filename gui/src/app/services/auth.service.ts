@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -26,12 +26,12 @@ interface LoginInformation {
   providedIn: 'root',
 })
 export class AuthService {
+  private httpClient = inject(HttpClient);
+  private router = inject(Router);
+
   private loginInformation = new BehaviorSubject<LoginInformation | null>(null);
 
-  constructor(
-    private httpClient: HttpClient,
-    private router: Router,
-  ) {
+  constructor() {
     const json = localStorage.getItem('loginInformation');
     if (json) {
       this.loginInformation.next(JSON.parse(json));

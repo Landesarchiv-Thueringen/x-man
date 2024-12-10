@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -57,6 +57,9 @@ const ALWAYS_VISIBLE_COLUMNS = ['puid', 'mimeType'];
     ]
 })
 export class FileOverviewComponent {
+  data = inject<DialogData>(MAT_DIALOG_DATA);
+  private dialog = inject(MatDialog);
+
   readonly analysis: FileAnalysis = this.data.analysis;
   dataSource = new MatTableDataSource<FileFeatures>();
   tableColumnList: string[] = [];
@@ -67,10 +70,7 @@ export class FileOverviewComponent {
       !OVERVIEW_FEATURES.includes(p.key as (typeof OVERVIEW_FEATURES)[number]),
   );
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: DialogData,
-    private dialog: MatDialog,
-  ) {
+  constructor() {
     this.initTableData();
   }
 

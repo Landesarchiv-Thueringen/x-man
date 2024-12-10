@@ -1,4 +1,4 @@
-import { Injectable, Signal, computed, signal } from '@angular/core';
+import { Injectable, Signal, computed, signal, inject } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Map } from 'immutable';
@@ -32,6 +32,14 @@ import { MessageProcessor, StructureNode } from './message-processor';
  */
 @Injectable()
 export class MessagePageService {
+  private appraisalService = inject(AppraisalService);
+  private configService = inject(ConfigService);
+  private messageService = inject(MessageService);
+  private processService = inject(ProcessService);
+  private recordsService = inject(RecordsService);
+  private packagingService = inject(PackagingService);
+  private route = inject(ActivatedRoute);
+
   private readonly params = toSignal(this.route.params, { requireSync: true });
 
   /** The submission process's ID. Constant for the lifetime of the message page.  */
@@ -93,15 +101,7 @@ export class MessagePageService {
   readonly treeRoot: Signal<StructureNode | undefined>;
   readonly treeNodes: Signal<Map<string, StructureNode>>;
 
-  constructor(
-    private appraisalService: AppraisalService,
-    private configService: ConfigService,
-    private messageService: MessageService,
-    private processService: ProcessService,
-    private recordsService: RecordsService,
-    private packagingService: PackagingService,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
     this.registerMessage(this.processId);
     // Fetch appraisals and record options once, will be updated when changed
     // by other functions.

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
@@ -11,10 +11,10 @@ import { MainNavigationComponent } from './core/main-navigation/main-navigation.
     imports: [RouterModule, MainNavigationComponent, MatIconModule]
 })
 export class AppComponent {
-  constructor(
-    private matIconRegistry: MatIconRegistry,
-    private domSanitizer: DomSanitizer,
-  ) {
+  private matIconRegistry = inject(MatIconRegistry);
+  private domSanitizer = inject(DomSanitizer);
+
+  constructor() {
     this.matIconRegistry.addSvgIcon(
       'folders',
       this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/folders.svg'),

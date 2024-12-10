@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -31,7 +31,8 @@ export type PackagingStatsMap = { [option in PackagingChoice]: PackagingStats };
   providedIn: 'root',
 })
 export class PackagingService {
-  constructor(private httpClient: HttpClient) {}
+  private httpClient = inject(HttpClient);
+
 
   getPackaging(processId: string): Observable<PackagingData> {
     return this.httpClient.get<PackagingData>(environment.endpoint + '/packaging/' + processId);

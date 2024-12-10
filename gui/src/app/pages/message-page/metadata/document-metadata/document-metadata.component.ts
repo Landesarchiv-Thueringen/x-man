@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, Signal } from '@angular/core';
+import { Component, computed, effect, Signal, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -27,15 +27,15 @@ import { media } from '../medium.pipe';
     ]
 })
 export class DocumentMetadataComponent {
+  private formBuilder = inject(FormBuilder);
+  private messagePage = inject(MessagePageService);
+  private messageService = inject(MessageService);
+  private route = inject(ActivatedRoute);
+
   readonly record: Signal<DocumentRecord | undefined>;
   readonly form: FormGroup;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private messagePage: MessagePageService,
-    private messageService: MessageService,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
     this.form = this.formBuilder.group({
       recordPlanId: new FormControl<string | null>(null),
       recordPlanSubject: new FormControl<string | null>(null),

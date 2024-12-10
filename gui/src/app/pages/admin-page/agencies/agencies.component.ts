@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, effect, viewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -28,6 +28,12 @@ import { AgencyDetailsComponent } from './agency-details.component';
     styleUrl: './agencies.component.scss'
 })
 export class AgenciesComponent implements AfterViewInit {
+  private agenciesService = inject(AgenciesService);
+  private dialog = inject(MatDialog);
+  private usersService = inject(UsersService);
+  private collectionsService = inject(CollectionsService);
+  private configService = inject(ConfigService);
+
   readonly sort = viewChild.required(MatSort);
 
   displayedColumns: string[] = ['icon', 'abbreviation', 'name', 'users'];
@@ -35,13 +41,7 @@ export class AgenciesComponent implements AfterViewInit {
   agencies = this.agenciesService.observeAgencies();
   collections: ArchiveCollection[] | null = null;
 
-  constructor(
-    private agenciesService: AgenciesService,
-    private dialog: MatDialog,
-    private usersService: UsersService,
-    private collectionsService: CollectionsService,
-    private configService: ConfigService,
-  ) {
+  constructor() {
     this.agenciesService
       .observeAgencies()
       .pipe(takeUntilDestroyed())

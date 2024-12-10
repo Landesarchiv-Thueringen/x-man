@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -26,17 +26,17 @@ export interface PackagingDialogData {
     styleUrl: './packaging-dialog.component.scss'
 })
 export class PackagingDialogComponent {
+  private dialogRef = inject<MatDialogRef<PackagingDialogComponent>>(MatDialogRef);
+  private data = inject<PackagingDialogData>(MAT_DIALOG_DATA);
+  private formBuilder = inject(FormBuilder);
+  private packagingService = inject(PackagingService);
+
   packagingChoices = [...packagingChoices.map((option) => ({ ...option }))];
   form = this.formBuilder.group({
     packaging: 'root',
   });
 
-  constructor(
-    private dialogRef: MatDialogRef<PackagingDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) private data: PackagingDialogData,
-    private formBuilder: FormBuilder,
-    private packagingService: PackagingService,
-  ) {
+  constructor() {
     this.populatePackagingChoices();
   }
 

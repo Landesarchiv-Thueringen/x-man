@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -29,14 +29,14 @@ import { appraisalDescriptions } from '../../../../services/appraisal.service';
     ]
 })
 export class AppraisalFormComponent {
+  private dialogRef = inject<MatDialogRef<AppraisalFormComponent>>(MatDialogRef);
+  private formBuilder = inject(FormBuilder);
+
   form: FormGroup;
   appraisalCodes = Object.entries(appraisalDescriptions).map(([code, d]) => ({ code, ...d }));
   selectedAppraisal?: string;
 
-  constructor(
-    private dialogRef: MatDialogRef<AppraisalFormComponent>,
-    private formBuilder: FormBuilder,
-  ) {
+  constructor() {
     this.form = this.formBuilder.group({
       appraisal: new FormControl<string | null>(null, Validators.required),
       appraisalNote: new FormControl<string | null>(null),

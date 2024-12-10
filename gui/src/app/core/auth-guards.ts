@@ -15,11 +15,10 @@ export const isAdmin: CanActivateFn = (route, state) => inject(AuthGuards).isAdm
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuards {
-  constructor(
-    private auth: AuthService,
-    private login: LoginService,
-    private router: Router,
-  ) {}
+  private auth = inject(AuthService);
+  private login = inject(LoginService);
+  private router = inject(Router);
+
 
   /** Redirects to the login page if the user is not logged in. */
   isLoggedIn(

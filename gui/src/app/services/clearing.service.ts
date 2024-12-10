@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, map, shareReplay, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
@@ -40,13 +40,13 @@ export interface ProcessingError {
   providedIn: 'root',
 })
 export class ClearingService {
+  private httpClient = inject(HttpClient);
+  private updates = inject(UpdatesService);
+
   private seenTime = new BehaviorSubject(0);
   private processingErrors = this.getProcessingErrorsObservable();
 
-  constructor(
-    private httpClient: HttpClient,
-    private updates: UpdatesService,
-  ) {
+  constructor() {
     const seenTime = window.localStorage.getItem('processing-errors-seen-time');
     if (seenTime) {
       this.seenTime.next(parseInt(seenTime));

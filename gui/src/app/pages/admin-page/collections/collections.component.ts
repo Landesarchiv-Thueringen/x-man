@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, viewChild } from '@angular/core';
+import { AfterViewInit, Component, TemplateRef, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +16,9 @@ import { ArchiveCollection, CollectionsService } from './collections.service';
     styleUrl: './collections.component.scss'
 })
 export class CollectionsComponent implements AfterViewInit {
+  private collectionsService = inject(CollectionsService);
+  private dialog = inject(MatDialog);
+
   readonly newCollectionDialog = viewChild.required<TemplateRef<unknown>>('newCollectionDialog');
   readonly sort = viewChild.required(MatSort);
 
@@ -23,10 +26,7 @@ export class CollectionsComponent implements AfterViewInit {
   displayedColumns: string[] = ['icon', 'name', 'dimagId'];
   newCollectionNameControl = new FormControl('', Validators.required);
 
-  constructor(
-    private collectionsService: CollectionsService,
-    private dialog: MatDialog,
-  ) {
+  constructor() {
     this.collectionsService
       .observeCollections()
       .pipe(takeUntilDestroyed())

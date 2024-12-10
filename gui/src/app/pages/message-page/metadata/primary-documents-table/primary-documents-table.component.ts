@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
 import {
@@ -17,6 +17,9 @@ import { MessagePageService } from '../../message-page.service';
     imports: [FileAnalysisTableComponent]
 })
 export class PrimaryDocumentsTableComponent {
+  private messageService = inject(MessageService);
+  private messagePage = inject(MessagePageService);
+
   processId = this.messagePage.processId;
   results?: FileResult[];
   getDetails = async (id: string) => {
@@ -34,10 +37,7 @@ export class PrimaryDocumentsTableComponent {
     { key: 'status' },
   ];
 
-  constructor(
-    private messageService: MessageService,
-    private messagePage: MessagePageService,
-  ) {
+  constructor() {
     this.messageService.getPrimaryDocumentsInfo(this.processId).subscribe((info) => {
       const mapping = primaryDocumentToFileResult.bind(null, this.processId);
       this.results = info.map(mapping).filter(notNull);

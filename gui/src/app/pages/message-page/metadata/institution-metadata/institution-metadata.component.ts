@@ -1,4 +1,4 @@
-import { Component, effect, input } from '@angular/core';
+import { Component, effect, input, inject } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,6 +11,8 @@ import { Institution } from '../../../../services/message.service';
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule],
 })
 export class InstitutMetadataComponent {
+  private formBuilder = inject(FormBuilder);
+
   readonly institution = input<Institution>();
 
   readonly form = this.formBuilder.group({
@@ -18,7 +20,7 @@ export class InstitutMetadataComponent {
     name: new FormControl<string | null>(null),
   });
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor() {
     effect(() => {
       this.form.patchValue({
         abbreviation: this.institution()?.abbreviation,

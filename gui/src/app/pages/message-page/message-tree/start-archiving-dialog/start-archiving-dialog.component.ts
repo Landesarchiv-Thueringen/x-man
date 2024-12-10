@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,19 +30,17 @@ export interface StartArchivingDialogData {
     ]
 })
 export class StartArchivingDialogComponent {
+  private dialogRef = inject<MatDialogRef<StartArchivingDialogComponent>>(MatDialogRef);
+  private data = inject<StartArchivingDialogData>(MAT_DIALOG_DATA);
+  private collectionsService = inject(CollectionsService);
+  private configService = inject(ConfigService);
+
   collectionControl = new FormControl(this.data.agency.collectionId, {
     validators: Validators.required,
   });
   readonly packagingStats = this.data.packagingStats;
   readonly config = this.configService.config;
   readonly collections = toSignal(this.collectionsService.getCollections());
-
-  constructor(
-    private dialogRef: MatDialogRef<StartArchivingDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) private data: StartArchivingDialogData,
-    private collectionsService: CollectionsService,
-    private configService: ConfigService,
-  ) {}
 
   startArchivingProcess() {
     this.dialogRef.close({

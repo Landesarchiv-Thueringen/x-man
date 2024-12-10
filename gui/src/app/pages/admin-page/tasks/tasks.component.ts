@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, viewChild } from '@angular/core';
+import { AfterViewInit, Component, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -30,6 +30,9 @@ import { TaskTitlePipe } from './task-title.pipe';
     styleUrl: './tasks.component.scss'
 })
 export class TasksComponent implements AfterViewInit {
+  private tasksService = inject(TasksService);
+  private dialog = inject(MatDialog);
+
   readonly sort = viewChild.required(MatSort);
 
   dataSource = new MatTableDataSource<Task>();
@@ -43,10 +46,7 @@ export class TasksComponent implements AfterViewInit {
     'error',
   ] as const;
 
-  constructor(
-    private tasksService: TasksService,
-    private dialog: MatDialog,
-  ) {
+  constructor() {
     this.tasksService
       .observeTasks()
       .pipe(takeUntilDestroyed())

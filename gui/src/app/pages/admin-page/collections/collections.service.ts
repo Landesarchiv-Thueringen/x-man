@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, first, map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -16,10 +16,14 @@ export interface ArchiveCollection {
   providedIn: 'root',
 })
 export class CollectionsService {
+  private httpClient = inject(HttpClient);
+
   private readonly collections = new BehaviorSubject<ArchiveCollection[] | null>(null);
   private dimagIds?: Observable<string[]>;
 
-  constructor(private httpClient: HttpClient) {
+  constructor() {
+    const httpClient = this.httpClient;
+
     httpClient
       .get<ArchiveCollection[]>(environment.endpoint + '/archive-collections')
       .subscribe((collections) => this.collections.next(collections));

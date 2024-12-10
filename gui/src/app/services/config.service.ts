@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, Signal } from '@angular/core';
+import { Injectable, Signal, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -21,12 +21,12 @@ export interface Config {
   providedIn: 'root',
 })
 export class ConfigService {
+  private auth = inject(AuthService);
+  private httpClient = inject(HttpClient);
+
   readonly config: Signal<Config | undefined>;
 
-  constructor(
-    private auth: AuthService,
-    private httpClient: HttpClient,
-  ) {
+  constructor() {
     const config = this.auth.observeLoginInformation().pipe(
       map(notNull),
       distinctUntilChanged(),

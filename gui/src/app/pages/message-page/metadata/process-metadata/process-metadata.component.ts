@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, Signal } from '@angular/core';
+import { Component, computed, effect, Signal, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -32,6 +32,12 @@ import { media } from '../medium.pipe';
     ]
 })
 export class ProcessMetadataComponent {
+  private appraisalService = inject(AppraisalService);
+  private formBuilder = inject(FormBuilder);
+  private messagePage = inject(MessagePageService);
+  private messageService = inject(MessageService);
+  private route = inject(ActivatedRoute);
+
   // Signals
   readonly recordId: Signal<string>;
   /** The page's process record. Might update on page changes. */
@@ -64,13 +70,7 @@ export class ProcessMetadataComponent {
     ...d,
   }));
 
-  constructor(
-    private appraisalService: AppraisalService,
-    private formBuilder: FormBuilder,
-    private messagePage: MessagePageService,
-    private messageService: MessageService,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
     // Define signals.
     const params = toSignal(this.route.params, { requireSync: true });
     this.recordId = computed<string>(() => params()['id']);

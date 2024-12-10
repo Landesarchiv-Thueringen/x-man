@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, inject } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute } from '@angular/router';
@@ -14,7 +14,10 @@ export class ErrorPageComponent {
 
   @HostBinding('class.dark-theme') readonly darkTheme = true;
 
-  constructor(route: ActivatedRoute, dialogs: MatDialog) {
+  constructor() {
+    const route = inject(ActivatedRoute);
+    const dialogs = inject(MatDialog);
+
     route.params.subscribe((params) => {
       this.code = params['code'];
     });

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, computed, effect, input, viewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, input, viewChild, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -67,6 +67,8 @@ export interface FilePropertyDefinition {
   ],
 })
 export class FileAnalysisTableComponent implements AfterViewInit {
+  private dialog = inject(MatDialog);
+
   readonly results = input<FileResult[]>();
   readonly getDetails = input.required<(id: string) => Promise<FileAnalysis | undefined>>();
   /**
@@ -110,7 +112,7 @@ export class FileAnalysisTableComponent implements AfterViewInit {
     { key: 'error', label: 'Fehler', icon: 'error' },
   ];
 
-  constructor(private dialog: MatDialog) {
+  constructor() {
     this.dataSource = new MatTableDataSource<FileOverview>([]);
     effect(() => this.processFileInformation(this.results() ?? []));
   }

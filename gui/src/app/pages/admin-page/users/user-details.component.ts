@@ -1,6 +1,6 @@
 import { A11yModule } from '@angular/cdk/a11y';
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -43,19 +43,19 @@ interface UserDetailsData {
     styleUrl: './user-details.component.scss'
 })
 export class UserDetailsComponent {
+  private dialogRef = inject<MatDialogRef<UserDetailsComponent>>(MatDialogRef);
+  data = inject<UserDetailsData>(MAT_DIALOG_DATA);
+  private formBuilder = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private configService = inject(ConfigService);
+  private users = inject(UsersService);
+
   readonly hasPermissions = Object.values(this.data.user.permissions).some(isTrue);
   readonly isAdmin = this.auth.isAdmin();
   readonly config = this.configService.config;
   readonly preferences?: FormGroup;
 
-  constructor(
-    private dialogRef: MatDialogRef<UserDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: UserDetailsData,
-    private formBuilder: FormBuilder,
-    private auth: AuthService,
-    private configService: ConfigService,
-    private users: UsersService,
-  ) {
+  constructor() {
     if (this.data.preferences) {
       this.preferences = this.formBuilder.group(this.data.preferences);
       this.preferences.valueChanges.subscribe((preferences) => {

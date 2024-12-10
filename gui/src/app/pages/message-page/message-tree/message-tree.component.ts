@@ -1,15 +1,7 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import {
-  Component,
-  Inject,
-  TemplateRef,
-  computed,
-  effect,
-  viewChild,
-  viewChildren
-} from '@angular/core';
+import { Component, TemplateRef, computed, effect, viewChild, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -99,6 +91,18 @@ export interface Filter<T = string> {
     ]
 })
 export class MessageTreeComponent {
+  private document = inject<Document>(DOCUMENT);
+  private clipboard = inject(Clipboard);
+  private configService = inject(ConfigService);
+  private dialog = inject(MatDialog);
+  private messagePage = inject(MessagePageService);
+  private messageService = inject(MessageService);
+  private notificationService = inject(NotificationService);
+  private processService = inject(ProcessService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+
   Math = Math;
   readonly messageTree = viewChild<MatTree<StructureNode>>('messageTree');
   readonly matChipRow = viewChildren(MatChipRow);
@@ -282,19 +286,7 @@ export class MessageTreeComponent {
     },
   ];
 
-  constructor(
-    @Inject(DOCUMENT) private document: Document,
-    private clipboard: Clipboard,
-    private configService: ConfigService,
-    private dialog: MatDialog,
-    private messagePage: MessagePageService,
-    private messageService: MessageService,
-    private notificationService: NotificationService,
-    private processService: ProcessService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private authService: AuthService,
-  ) {
+  constructor() {
     // Update currentRecordId with the record ID in the URL.
     this.router.events
       .pipe(

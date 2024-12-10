@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -19,9 +19,11 @@ export interface Agency {
   providedIn: 'root',
 })
 export class AgenciesService {
+  private httpClient = inject(HttpClient);
+
   private readonly agencies = new BehaviorSubject<Agency[]>([]);
 
-  constructor(private httpClient: HttpClient) {
+  constructor() {
     this.fetchAgencies();
   }
 

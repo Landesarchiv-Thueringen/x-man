@@ -1,6 +1,6 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -28,18 +28,16 @@ import { LoginService } from '../../services/login.service';
     ]
 })
 export class LoginPageComponent implements OnInit {
+  private auth = inject(AuthService);
+  private loginService = inject(LoginService);
+  private router = inject(Router);
+
   invalidCredentials = false;
 
   readonly loginForm = new FormGroup({
     username: new FormControl('', Validators.required),
     password: new FormControl('', Validators.required),
   });
-
-  constructor(
-    private auth: AuthService,
-    private loginService: LoginService,
-    private router: Router,
-  ) {}
 
   ngOnInit(): void {
     if (this.auth.isLoggedIn()) {
