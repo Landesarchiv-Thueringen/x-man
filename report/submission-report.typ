@@ -1,31 +1,9 @@
 #import "@preview/cetz:0.2.1"
+#import "shared.typ"
 
 #let fallback(input, fallback: "-") = {
   if input == "" or input == none or input == 0 { fallback } else { input }
 }
-
-#let formatDate(dateString) = [
-  #let values = dateString.split(regex("[-T]"))
-  #let date = datetime(
-    year: int(values.at(0)),
-    month: int(values.at(1)),
-    day: int(values.at(2)),
-  )
-  #date.display("[day].[month].[year]")
-]
-
-#let formatDateTime(dateString) = [
-  #let values = dateString.split(regex("[-T:.Z]"))
-  #let date = datetime(
-    year: int(values.at(0)),
-    month: int(values.at(1)),
-    day: int(values.at(2)),
-    hour: int(values.at(3)),
-    minute: int(values.at(4)),
-    second: int(values.at(5)),
-  )
-  #date.display("[day].[month].[year] [hour]:[minute] Uhr")
-]
 
 #let formatFloat(f, digitsAfterPoint) = {
   let factor = calc.pow(10, digitsAfterPoint)
@@ -47,28 +25,6 @@
     }
   }
   [#formatFloat(v, 2) #suffix]
-}
-
-#let formatContentStatsElement(type, number) = {
-  if number == 1 {
-    "1 " + (
-      Files: "Akte",
-      SubFiles: "Teilakte",
-      Processes: "Vorgang",
-      SubProcesses: "Teilvorgang",
-      Documents: "Dokument",
-      Attachments: "Anhang",
-    ).at(type)
-  } else {
-    str(number) + " " + (
-      Files: "Akten",
-      SubFiles: "Teilakten",
-      Processes: "Vorgänge",
-      SubProcesses: "Teilvorgänge",
-      Documents: "Dokumente",
-      Attachments: "Anähnge",
-    ).at(type)
-  }
 }
 
 #let formatAppraisalCode(code) = (A: "Archivieren", V: "Vernichten").at(code)
@@ -116,20 +72,20 @@
     ..if data.Process.processState.appraisal.complete {
       (
         [Anbietung erhalten:],
-        formatDateTime(data.Process.processState.receive0501.completedAt),
+        shared.formatDateTime(data.Process.processState.receive0501.completedAt),
         [Bewertung versendet:],
-        formatDateTime(data.Process.processState.appraisal.completedAt),
+        shared.formatDateTime(data.Process.processState.appraisal.completedAt),
         [Bewertung durch:],
         data.Process.processState.appraisal.completedBy,
       )
     } else {
       (
         [Abgabe erhalten:],
-        formatDateTime(data.Process.processState.receive0503.completedAt),
+        shared.formatDateTime(data.Process.processState.receive0503.completedAt),
       )
     },
     [Abgabe archiviert:],
-    formatDateTime(data.Process.processState.archiving.completedAt),
+    shared.formatDateTime(data.Process.processState.archiving.completedAt),
     [Archivierung durch:],
     data.Process.processState.archiving.completedBy,
   )
@@ -191,17 +147,17 @@
       ..columns.map(c => [*#c.label*]),
       ..if data.AppraisalStats.Files.Total > 0 {
         columns.map(
-          c => [#formatContentStatsElement("Files", data.AppraisalStats.Files.at(c.key))],
+          c => [#shared.formatContentStatsElement("Files", data.AppraisalStats.Files.at(c.key))],
         )
       },
       ..if data.AppraisalStats.Processes.Total > 0 {
         columns.map(
-          c => [#formatContentStatsElement("Processes", data.AppraisalStats.Processes.at(c.key))],
+          c => [#shared.formatContentStatsElement("Processes", data.AppraisalStats.Processes.at(c.key))],
         )
       },
       ..if data.AppraisalStats.Documents.Total > 0 {
         columns.map(
-          c => [#formatContentStatsElement("Documents", data.AppraisalStats.Documents.at(c.key))],
+          c => [#shared.formatContentStatsElement("Documents", data.AppraisalStats.Documents.at(c.key))],
         )
       },
     )
@@ -402,7 +358,7 @@
   #let title = [
     Übernahmebericht --
     #data.Process.agency.abbreviation -- E-Akte --
-    #formatDate(data.Process.processState.archiving.completedAt)
+    #shared.formatDate(data.Process.processState.archiving.completedAt)
   ]
 
   #set document(title: title)

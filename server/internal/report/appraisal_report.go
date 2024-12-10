@@ -54,7 +54,7 @@ func getAppraisalReportData(
 		return reportData, errors.New("tried to get appraisal report of process without 0501 message")
 	}
 	reportData.Process = process
-	reportData.AppraisalStats = getAppraisalStats(ctx, message)
+	reportData.AppraisalStats = getAppraisalStats(ctx, message, nil)
 	if os.Getenv("DEBUG_MODE") == "true" {
 		writeToFile(reportData, "/debug-data/data.json")
 	}

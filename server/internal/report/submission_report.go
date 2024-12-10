@@ -64,7 +64,7 @@ func getSubmissionReportData(
 	reportData.Process = process
 
 	if message0501, ok := messages[db.MessageType0501]; ok {
-		appraisalStats := getAppraisalStats(ctx, message0501, message0503)
+		appraisalStats := getAppraisalStats(ctx, message0501, &message0503)
 		reportData.AppraisalStats = &appraisalStats
 		reportData.Discrepancies = findDiscrepancies(&message0501, message0503)
 	} else {
