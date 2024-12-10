@@ -11,6 +11,10 @@ services:
     restart: "no"
 
   server:
+    develop:
+      watch:
+        - action: rebuild
+          path: ./server
     depends_on:
       ldap:
         condition: service_healthy
