@@ -30,17 +30,22 @@ func renderAppraisalReport(c *gin.Context) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to read request body: %v", err))
 	}
-	render("appraisal-report.typ", data, func(path string, output string, err error) {
-		if err != nil {
-			c.String(
-				http.StatusUnprocessableEntity,
-				"Failed to compile template with the given data.\n\n"+string(output),
-			)
-			return
-		}
-		// Return the compiled file
-		c.FileAttachment(path, "appraisal-report.pdf")
-	})
+	render(
+		"appraisal-report.typ",
+		"appraisal-data.typ",
+		data,
+		func(path string, output string, err error) {
+			if err != nil {
+				c.String(
+					http.StatusUnprocessableEntity,
+					"Failed to compile template with the given data.\n\n"+string(output),
+				)
+				return
+			}
+			// Return the compiled file
+			c.FileAttachment(path, "appraisal-report.pdf")
+		},
+	)
 }
 
 func renderSubmissionReport(c *gin.Context) {
@@ -48,21 +53,27 @@ func renderSubmissionReport(c *gin.Context) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to read request body: %v", err))
 	}
-	render("submission-report.typ", jsonData, func(path string, output string, err error) {
-		if err != nil {
-			c.String(
-				http.StatusUnprocessableEntity,
-				"Failed to compile template with the given data.\n\n"+string(output),
-			)
-			return
-		}
-		// Return the compiled file
-		c.FileAttachment(path, "submission-report.pdf")
-	})
+	render(
+		"submission-report.typ",
+		"submission-data.json",
+		jsonData,
+		func(path string, output string, err error) {
+			if err != nil {
+				c.String(
+					http.StatusUnprocessableEntity,
+					"Failed to compile template with the given data.\n\n"+string(output),
+				)
+				return
+			}
+			// Return the compiled file
+			c.FileAttachment(path, "submission-report.pdf")
+		},
+	)
 }
 
 func render(
 	templateFileName string,
+	dataFileName string,
 	data []byte,
 	withResult func(path string, output string, err error),
 ) {
@@ -74,12 +85,14 @@ func render(
 	}
 	defer os.RemoveAll(dir)
 	// Create a hard link of the template file inside the temporary directory
-	err = os.Link(templateFileName, dir+"/"+templateFileName)
-	if err != nil {
-		panic(fmt.Sprintf("failed to link template file: %v", err))
+	for _, filename := range []string{templateFileName, "shared.typ"} {
+		err = os.Link(filename, dir+"/"+filename)
+		if err != nil {
+			panic(fmt.Sprintf("failed to link %s: %v", filename, err))
+		}
 	}
 	// Write the received data to a JSON file inside the temporary directory
-	dataFile, err := os.Create(dir + "/data.json")
+	dataFile, err := os.Create(dir + "/" + dataFileName)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create data file: %v", err))
 	}

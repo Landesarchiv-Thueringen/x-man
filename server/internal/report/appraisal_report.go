@@ -56,7 +56,7 @@ func getAppraisalReportData(
 	reportData.Process = process
 	reportData.AppraisalStats = getAppraisalStats(ctx, message, nil)
 	if os.Getenv("DEBUG_MODE") == "true" {
-		writeToFile(reportData, "/debug-data/data.json")
+		writeToFile(reportData, "/debug-data/appraisal-data.json")
 	}
 	return
 }

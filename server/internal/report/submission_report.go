@@ -75,7 +75,7 @@ func getSubmissionReportData(
 	reportData.Message0503Stats = &messageStats
 	reportData.FileStats = getFileStats(ctx, process)
 	if os.Getenv("DEBUG_MODE") == "true" {
-		writeToFile(reportData, "/debug-data/data.json")
+		writeToFile(reportData, "/debug-data/submission-data.json")
 	}
 	return
 }

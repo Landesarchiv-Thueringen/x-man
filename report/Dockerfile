@@ -9,7 +9,7 @@ FROM docker.io/alpine:3.20
 RUN apk add --update typst font-noto
 WORKDIR /app
 COPY --from=build /app/report .
-COPY appraisal-report.typ submission-report.typ .
+COPY *.typ .
 # Preload Typst packages 
 RUN typst compile submission-report.typ || true
 CMD ["./report"]
