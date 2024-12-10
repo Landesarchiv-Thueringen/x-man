@@ -1,6 +1,6 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, effect, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,12 +27,14 @@ export interface FlatNode {
 }
 
 @Component({
-    selector: 'app-document-version-metadata',
-    templateUrl: './document-version-metadata.component.html',
-    styleUrls: ['./document-version-metadata.component.scss'],
-    imports: [CommonModule, MatButtonModule, MatExpansionModule, MatTreeModule, MatIconModule]
+  selector: 'app-document-version-metadata',
+  templateUrl: './document-version-metadata.component.html',
+  styleUrls: ['./document-version-metadata.component.scss'],
+  imports: [CommonModule, MatButtonModule, MatExpansionModule, MatTreeModule, MatIconModule],
 })
 export class DocumentVersionMetadataComponent {
+  readonly document = input<DocumentRecord>();
+
   treeControl: FlatTreeControl<FlatNode>;
   treeFlattener: MatTreeFlattener<Node, FlatNode>;
   dataSource: MatTreeFlatDataSource<Node, FlatNode>;
@@ -53,6 +55,7 @@ export class DocumentVersionMetadataComponent {
       (node) => node.children,
     );
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+    effect(() => this.initTree(this.document()));
   }
 
   private _transformer = (node: Node, level: number): FlatNode => {
@@ -67,18 +70,10 @@ export class DocumentVersionMetadataComponent {
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-  documentRecord?: DocumentRecord;
-  @Input() set document(d: DocumentRecord | null | undefined) {
-    if (d) {
-      this.documentRecord = d;
-      this.initTree();
-    }
-  }
-
-  initTree(): void {
-    if (this.documentRecord && this.documentRecord.versions) {
+  initTree(document?: DocumentRecord): void {
+    if (document && document.versions) {
       const treeData: Node[] = [];
-      for (let version of this.documentRecord.versions) {
+      for (let version of document.versions) {
         const formatNodes: Node[] = [];
         for (let format of version.formats) {
           const formatNode: Node = {
@@ -105,7 +100,7 @@ export class DocumentVersionMetadataComponent {
   }
 
   downloadPrimaryFile(node: FlatNode): void {
-    if (this.documentRecord) {
+    if (this.document()) {
       this.messageService
         .getPrimaryDocument(this.message()!.messageHead.processID, node.filename!)
         .subscribe((file) => {
