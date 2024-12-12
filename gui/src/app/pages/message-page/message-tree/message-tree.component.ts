@@ -13,6 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipRow, MatChipsModule } from '@angular/material/chips';
 import { MatRippleModule } from '@angular/material/core';
@@ -82,6 +83,7 @@ export interface Filter<T = string> {
     CommonModule,
     FormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCheckboxModule,
     MatChipsModule,
     MatDialogModule,

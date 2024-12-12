@@ -2,10 +2,24 @@
 @use "@angular/material" as mat;
 @use "../../../../styles/mixins";
 
-.messsage-view {
+:host {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.message-view {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.message-toggle {
+  z-index: 1;
+  margin-top: 1.5em;
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .actions {
@@ -17,9 +31,9 @@
 }
 
 .message-tree {
+  z-index: 0; // draw below .message-toggle
   flex-grow: 1;
-  overflow: auto;
-  margin-top: 2em;
+  margin-top: 1em;
   margin-left: 2em;
 }
 
@@ -33,7 +47,9 @@ mat-tree-node {
 
 .root-node {
   position: sticky;
-  top: 0px;
+  top: 0;
+  padding-top: 1.5em;
+  margin-top: -1.5em;
   z-index: 2;
   background-color: var(--mat-app-background-color);
 }
@@ -159,29 +175,6 @@ mat-tree-node {
 
 mat-checkbox.hidden {
   visibility: hidden;
-}
-
-::ng-deep .message-tree-menu {
-  .active {
-    background-color: rgba(0, 0, 0, 0.04);
-    span,
-    mat-icon {
-      color: var(--mat-primary);
-    }
-  }
-  span {
-    flex-grow: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .mat-icon.active-checkmark {
-    margin-right: 0;
-    margin-left: 2em;
-  }
-  a:not(.active) .active-checkmark {
-    visibility: hidden;
-  }
 }
 
 .lifetime-filter-content {
