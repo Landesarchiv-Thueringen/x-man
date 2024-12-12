@@ -232,27 +232,25 @@
   )
 ]
 
-#let archivePackageSection(structureData, level) = [
-  #heading(level: level + 1, structureData.Title)
 
-  #for el in structureData.Children [
-    #if el.AIP == none [
-      #archivePackageSection(el, level + 1)
-    ] else [
+#let archivePackagesInner(elements, level) = [
+  // Sort AIPs before sub sections, so it is clear they don't belong to a sub section.
+  #for el in elements [
+    #if el.AIP != none [
       #archivePackage(el.AIP)
+    ]
+  ]
+  #for el in elements [
+    #if el.AIP == none [
+      #heading(level: level + 1, el.Title)
+      #archivePackagesInner(el.Children, level + 1)
     ]
   ]
 ]
 
 #let archivePackages(elements) = [
   = Archivierte Pakete
-  #for el in elements [
-    #if el.AIP == none [
-      #archivePackageSection(el, 1)
-    ] else [
-      #archivePackage(el.AIP)
-    ]
-  ]
+  #archivePackagesInner(elements, 1)
 ]
 
 #let report(data) = [
