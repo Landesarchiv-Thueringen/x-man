@@ -37,10 +37,14 @@ func Init() {
 		Username: os.Getenv("MONGODB_USER"),
 		Password: os.Getenv("MONGODB_PASSWORD"),
 	}
+	bsonOpts := &options.BSONOptions{
+		UseLocalTimeZone: true,
+	}
 	clientOpts := options.Client().
 		ApplyURI(os.Getenv("MONGODB_URL")).
 		SetAuth(credential).
-		SetTimeout(10 * time.Second)
+		SetTimeout(10 * time.Second).
+		SetBSONOptions(bsonOpts)
 	client, err := mongo.Connect(context.Background(), clientOpts)
 	if err != nil {
 		panic(err)
