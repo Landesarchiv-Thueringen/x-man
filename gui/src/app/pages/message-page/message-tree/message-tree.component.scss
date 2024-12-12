@@ -8,18 +8,9 @@
   height: 100%;
 }
 
-.message-view {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  overflow: auto;
-}
-
 .message-toggle {
-  z-index: 1;
-  margin-top: 1.5em;
-  align-self: center;
-  flex-shrink: 0;
+  margin-left: 1em;
+  background-color: var(--mat-app-background-color);
 }
 
 .actions {
@@ -31,10 +22,10 @@
 }
 
 .message-tree {
-  z-index: 0; // draw below .message-toggle
   flex-grow: 1;
-  margin-top: 1em;
+  margin-top: 2em;
   margin-left: 2em;
+  overflow: auto;
 }
 
 mat-tree-node {
@@ -48,8 +39,6 @@ mat-tree-node {
 .root-node {
   position: sticky;
   top: 0;
-  padding-top: 1.5em;
-  margin-top: -1.5em;
   z-index: 2;
   background-color: var(--mat-app-background-color);
 }

@@ -1,143 +1,142 @@
-<div class="message-view">
-  <mat-button-toggle-group class="message-toggle" [hideSingleSelectionIndicator]="true">
-    <mat-button-toggle
-      [routerLink]="['/nachricht', process()?.processId, '0501']"
-      routerLinkActive
-      [checked]="button0501.isActive"
-      #button0501="routerLinkActive"
-      [disabled]="!process()?.processState?.receive0501?.complete"
-      >Anbietung</mat-button-toggle
-    >
-    <mat-button-toggle
-      [routerLink]="['/nachricht', process()?.processId, '0503']"
-      routerLinkActive
-      [checked]="button0503.isActive"
-      #button0503="routerLinkActive"
-      [disabled]="!process()?.processState?.receive0503?.complete"
-      >Abgabe</mat-button-toggle
-    >
-  </mat-button-toggle-group>
+<mat-tree
+  #messageTree
+  [dataSource]="dataSource"
+  [treeControl]="treeControl"
+  class="message-tree"
+  [trackBy]="trackTree"
+>
+  <!-- This is the tree node template for leaf nodes -->
+  <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding>
+    <div class="node" [class.secondary-text]="isDisabled() || node.type === 'filtered'">
+      <div class="node-info">
+        <!-- use a disabled button to provide padding for tree leaf -->
+        <button mat-icon-button disabled></button>
+        <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
+        <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
+      </div>
+      <ng-container *ngTemplateOutlet="rightMatter; context: { $implicit: node }"></ng-container>
+    </div>
+  </mat-tree-node>
 
-  <mat-tree
-    #messageTree
-    [dataSource]="dataSource"
-    [treeControl]="treeControl"
-    class="message-tree"
-    [trackBy]="trackTree"
+  <!-- This is the tree node template for expandable nodes -->
+  <mat-tree-node
+    *matTreeNodeDef="let node; when: hasChild"
+    id="{{ node.id }}"
+    [ngClass]="node.type === 'message' ? 'root-node' : ''"
+    matTreeNodePadding
   >
-    <!-- This is the tree node template for leaf nodes -->
-    <mat-tree-node *matTreeNodeDef="let node" id="{{ node.id }}" matTreeNodePadding>
-      <div class="node" [class.secondary-text]="isDisabled() || node.type === 'filtered'">
-        <div class="node-info">
-          <!-- use a disabled button to provide padding for tree leaf -->
-          <button mat-icon-button disabled></button>
-          <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
-          <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
-        </div>
-        <ng-container *ngTemplateOutlet="rightMatter; context: { $implicit: node }"></ng-container>
+    <div class="node" [class.secondary-text]="isDisabled()">
+      <div class="node-info">
+        <button
+          class="expand-button"
+          *ngIf="node.type !== 'message'"
+          mat-icon-button
+          matTreeNodeToggle
+          [attr.aria-label]="'Toggle ' + node.name"
+          [disabled]="isDisabled()"
+        >
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+          </mat-icon>
+        </button>
+
+        <!-- use a disabled button to provide padding for tree leaf -->
+        <button *ngIf="node.type === 'message'" mat-icon-button disabled></button>
+        <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
+        <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
       </div>
-    </mat-tree-node>
 
-    <!-- This is the tree node template for expandable nodes -->
-    <mat-tree-node
-      *matTreeNodeDef="let node; when: hasChild"
-      id="{{ node.id }}"
-      [ngClass]="node.type === 'message' ? 'root-node' : ''"
-      matTreeNodePadding
-    >
-      <div class="node" [class.secondary-text]="isDisabled()">
-        <div class="node-info">
-          <button
-            class="expand-button"
-            *ngIf="node.type !== 'message'"
-            mat-icon-button
-            matTreeNodeToggle
-            [attr.aria-label]="'Toggle ' + node.name"
-            [disabled]="isDisabled()"
-          >
-            <mat-icon class="mat-icon-rtl-mirror">
-              {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
-            </mat-icon>
-          </button>
-
-          <!-- use a disabled button to provide padding for tree leaf -->
-          <button *ngIf="node.type === 'message'" mat-icon-button disabled></button>
-          <ng-container *ngTemplateOutlet="nodeIcon; context: { $implicit: node }"></ng-container>
-          <ng-container *ngTemplateOutlet="nodeTitle; context: { $implicit: node }"></ng-container>
-        </div>
-
-        @if (node.type === "message" && !selectionActive()) {
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="filterMenu"
-            (click)="$event.stopPropagation()"
-            aria-label="Filter"
-            [disabled]="isDisabled()"
-          >
-            <mat-icon [class.material-icons-outlined]="activeFilters.length === 0">
-              filter_alt
-            </mat-icon>
-          </button>
-          <mat-menu #filterMenu="matMenu">
-            @for (filter of availableFilters; track filter) {
-              @if (filter.showIf?.() ?? true) {
-                @if (filter.values) {
-                  <button
-                    mat-menu-item
-                    [disabled]="hasFilter(filter)"
-                    [matMenuTriggerFor]="filterValuesMenu"
-                    [matMenuTriggerData]="{ filter }"
-                  >
-                    {{ filter.label }}
-                  </button>
-                } @else {
-                  <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
-                    {{ filter.label }}
-                  </button>
-                }
-              }
-            }
-          </mat-menu>
-        }
-        <ng-container *ngTemplateOutlet="rightMatter; context: { $implicit: node }"></ng-container>
-      </div>
-      @if (node.type === "message" && activeFilters.length > 0) {
-        <div class="filters">
-          <mat-chip-set>
-            @for (filter of activeFilters; track filter) {
+      @if (node.type === "message" && !selectionActive()) {
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="filterMenu"
+          (click)="$event.stopPropagation()"
+          aria-label="Filter"
+          [disabled]="isDisabled()"
+        >
+          <mat-icon [class.material-icons-outlined]="activeFilters.length === 0">
+            filter_alt
+          </mat-icon>
+        </button>
+        <mat-menu #filterMenu="matMenu">
+          @for (filter of availableFilters; track filter) {
+            @if (filter.showIf?.() ?? true) {
               @if (filter.values) {
-                <mat-chip-row
-                  (removed)="removeFilter(filter)"
+                <button
+                  mat-menu-item
+                  [disabled]="hasFilter(filter)"
                   [matMenuTriggerFor]="filterValuesMenu"
                   [matMenuTriggerData]="{ filter }"
                 >
-                  {{ filter.label }}: {{ filter.value || "ohne Angabe" }}
-                  <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
-                    <mat-icon>cancel</mat-icon>
-                  </button>
-                </mat-chip-row>
+                  {{ filter.label }}
+                </button>
               } @else {
-                <mat-chip-row (removed)="removeFilter(filter)" (click)="editFilter(filter)">
-                  @if (filter.value && filter.printValue) {
-                    {{ filter.label }}: {{ filter.printValue(filter.value) }}
-                  } @else {
-                    {{ filter.label }}
-                  }
-                  <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
-                    <mat-icon>cancel</mat-icon>
-                  </button>
-                </mat-chip-row>
+                <button mat-menu-item [disabled]="hasFilter(filter)" (click)="addFilter(filter)">
+                  {{ filter.label }}
+                </button>
               }
             }
-          </mat-chip-set>
-          @if (filtersHint) {
-            <p class="filters-hint">{{ filtersHint }}</p>
           }
-        </div>
+        </mat-menu>
       }
-    </mat-tree-node>
-  </mat-tree>
-</div>
+      <ng-container *ngTemplateOutlet="rightMatter; context: { $implicit: node }"></ng-container>
+      @if (node.type === "message") {
+        <mat-button-toggle-group class="message-toggle" [hideSingleSelectionIndicator]="true">
+          <mat-button-toggle
+            [routerLink]="['/nachricht', process()?.processId, '0501']"
+            routerLinkActive
+            [checked]="button0501.isActive"
+            #button0501="routerLinkActive"
+            [disabled]="!process()?.processState?.receive0501?.complete"
+            >Anbietung</mat-button-toggle
+          >
+          <mat-button-toggle
+            [routerLink]="['/nachricht', process()?.processId, '0503']"
+            routerLinkActive
+            [checked]="button0503.isActive"
+            #button0503="routerLinkActive"
+            [disabled]="!process()?.processState?.receive0503?.complete"
+            >Abgabe</mat-button-toggle
+          >
+        </mat-button-toggle-group>
+      }
+    </div>
+    @if (node.type === "message" && activeFilters.length > 0) {
+      <div class="filters">
+        <mat-chip-set>
+          @for (filter of activeFilters; track filter) {
+            @if (filter.values) {
+              <mat-chip-row
+                (removed)="removeFilter(filter)"
+                [matMenuTriggerFor]="filterValuesMenu"
+                [matMenuTriggerData]="{ filter }"
+              >
+                {{ filter.label }}: {{ filter.value || "ohne Angabe" }}
+                <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            } @else {
+              <mat-chip-row (removed)="removeFilter(filter)" (click)="editFilter(filter)">
+                @if (filter.value && filter.printValue) {
+                  {{ filter.label }}: {{ filter.printValue(filter.value) }}
+                } @else {
+                  {{ filter.label }}
+                }
+                <button matChipRemove [attr.aria-label]="'Filter ' + filter.label + 'entfernen'">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            }
+          }
+        </mat-chip-set>
+        @if (filtersHint) {
+          <p class="filters-hint">{{ filtersHint }}</p>
+        }
+      </div>
+    }
+  </mat-tree-node>
+</mat-tree>
 
 <div *ngIf="process() && message() && !selectionActive()" class="actions">
   <button mat-flat-button (click)="copyMessageUrl()">
