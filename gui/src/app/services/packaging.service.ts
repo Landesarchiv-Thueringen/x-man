@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export const packagingChoices: { value: PackagingChoice; label: string; disabled?: boolean }[] = [
@@ -33,7 +33,6 @@ export type PackagingStatsMap = { [option in PackagingChoice]: PackagingStats };
 export class PackagingService {
   private httpClient = inject(HttpClient);
 
-
   getPackaging(processId: string): Observable<PackagingData> {
     return this.httpClient.get<PackagingData>(environment.endpoint + '/packaging/' + processId);
   }
@@ -50,10 +49,12 @@ export class PackagingService {
     });
   }
 
-  getPackagingStats(processId: string, rootRecords: string[]): Observable<PackagingStatsMap> {
-    return this.httpClient.post<PackagingStatsMap>(
-      environment.endpoint + '/packaging-stats/' + processId,
-      rootRecords,
+  getPackagingStats(processId: string, rootRecords: string[]): Promise<PackagingStatsMap> {
+    return firstValueFrom(
+      this.httpClient.post<PackagingStatsMap>(
+        environment.endpoint + '/packaging-stats/' + processId,
+        rootRecords,
+      ),
     );
   }
 }

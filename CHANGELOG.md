@@ -11,6 +11,7 @@
 -   Intern: Benutze "Import"-Ordner für Upload zu DIMAG
 -   Intern: Docker-Image von Server optimieren
 -   Intern: Abhängigkeiten aktualisiert
+-   Intern: Netzwerkanfragen optimiert
 
 ## v1.1.0
 

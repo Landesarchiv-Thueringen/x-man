@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, effect, Signal, TemplateRef, viewChild, inject } from '@angular/core';
+import { Component, computed, effect, inject, Signal, TemplateRef, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -35,24 +35,24 @@ interface StateItem {
 }
 
 @Component({
-    selector: 'app-message-metadata',
-    templateUrl: './message-metadata.component.html',
-    styleUrls: ['./message-metadata.component.scss'],
-    imports: [
-        CommonModule,
-        InstitutMetadataComponent,
-        MatButtonModule,
-        MatDialogModule,
-        MatExpansionModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        MatListModule,
-        MatProgressSpinnerModule,
-        TaskStateIconComponent,
-        ProcessStepProgressPipe,
-        ReactiveFormsModule,
-    ]
+  selector: 'app-message-metadata',
+  templateUrl: './message-metadata.component.html',
+  styleUrls: ['./message-metadata.component.scss'],
+  imports: [
+    CommonModule,
+    InstitutMetadataComponent,
+    MatButtonModule,
+    MatDialogModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatListModule,
+    MatProgressSpinnerModule,
+    TaskStateIconComponent,
+    ProcessStepProgressPipe,
+    ReactiveFormsModule,
+  ],
 })
 export class MessageMetadataComponent {
   private auth = inject(AuthService);
@@ -66,9 +66,13 @@ export class MessageMetadataComponent {
   private messagePage = inject(MessagePageService);
   private messageService = inject(MessageService);
 
-  readonly reimportMessageDialogTemplate = viewChild.required<TemplateRef<unknown>>('reimportMessageDialog');
-  readonly deleteMessageDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteMessageDialog');
-  readonly deleteSubmissionProcessDialogTemplate = viewChild.required<TemplateRef<unknown>>('deleteSubmissionProcessDialog');
+  readonly reimportMessageDialogTemplate =
+    viewChild.required<TemplateRef<unknown>>('reimportMessageDialog');
+  readonly deleteMessageDialogTemplate =
+    viewChild.required<TemplateRef<unknown>>('deleteMessageDialog');
+  readonly deleteSubmissionProcessDialogTemplate = viewChild.required<TemplateRef<unknown>>(
+    'deleteSubmissionProcessDialog',
+  );
 
   readonly process = this.messagePage.process;
   readonly warnings = this.messagePage.warnings;

@@ -4,7 +4,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { firstValueFrom } from 'rxjs';
 import { packagingChoices, PackagingService } from '../../../../services/packaging.service';
 import { printPackagingStats } from '../../packaging-stats.pipe';
 
@@ -14,16 +13,16 @@ export interface PackagingDialogData {
 }
 
 @Component({
-    selector: 'app-packaging-dialog',
-    imports: [
-        MatDialogModule,
-        MatSelectModule,
-        MatFormFieldModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-    ],
-    templateUrl: './packaging-dialog.component.html',
-    styleUrl: './packaging-dialog.component.scss'
+  selector: 'app-packaging-dialog',
+  imports: [
+    MatDialogModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+  ],
+  templateUrl: './packaging-dialog.component.html',
+  styleUrl: './packaging-dialog.component.scss',
 })
 export class PackagingDialogComponent {
   private dialogRef = inject<MatDialogRef<PackagingDialogComponent>>(MatDialogRef);
@@ -45,8 +44,9 @@ export class PackagingDialogComponent {
   }
 
   private async populatePackagingChoices() {
-    const statsMap = await firstValueFrom(
-      this.packagingService.getPackagingStats(this.data.processId, this.data.recordIds),
+    const statsMap = await this.packagingService.getPackagingStats(
+      this.data.processId,
+      this.data.recordIds,
     );
     for (const choice of this.packagingChoices) {
       choice.disabled = !statsMap[choice.value].deepestLevelHasItems;
