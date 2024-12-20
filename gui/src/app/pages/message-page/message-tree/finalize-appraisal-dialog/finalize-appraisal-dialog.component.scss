@@ -1,6 +1,3 @@
-@use "sass:map";
-@use "@angular/material" as mat;
-
 :host {
   display: block;
 }
@@ -17,6 +14,6 @@
 }
 
 .appraisal-warning {
-  color: mat.m2-get-color-from-palette(mat.$m2-red-palette, 500);
+  color: #f44336;
   font-weight: 500;
 }
