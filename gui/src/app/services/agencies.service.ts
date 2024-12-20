@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 
 export interface Agency {
   id: string;
@@ -29,7 +28,7 @@ export class AgenciesService {
 
   private fetchAgencies() {
     this.httpClient
-      .get<Agency[]>(environment.endpoint + '/agencies')
+      .get<Agency[]>('/api/agencies')
       .subscribe((agencies) => this.agencies.next(agencies));
   }
 
@@ -38,11 +37,9 @@ export class AgenciesService {
   }
 
   createAgency(agency: Omit<Agency, 'id'>) {
-    this.httpClient
-      .put<{ id: string }>(environment.endpoint + '/agency', agency)
-      .subscribe(({ id }) => {
-        this.agencies.next([...this.agencies.value, { ...agency, id }]);
-      });
+    this.httpClient.put<{ id: string }>('/api/agency', agency).subscribe(({ id }) => {
+      this.agencies.next([...this.agencies.value, { ...agency, id }]);
+    });
   }
 
   updateAgency(id: string, updatedValues: Omit<Agency, 'id'>) {
@@ -50,12 +47,12 @@ export class AgenciesService {
     if (found) {
       Object.assign(found, updatedValues);
       this.agencies.next(this.agencies.value);
-      this.httpClient.post(environment.endpoint + '/agency', found).subscribe();
+      this.httpClient.post('/api/agency', found).subscribe();
     }
   }
 
   deleteAgency(agency: Agency) {
     this.agencies.next(this.agencies.value.filter((i) => i !== agency));
-    this.httpClient.delete(environment.endpoint + '/agency/' + agency.id).subscribe();
+    this.httpClient.delete('/api/agency/' + agency.id).subscribe();
   }
 }

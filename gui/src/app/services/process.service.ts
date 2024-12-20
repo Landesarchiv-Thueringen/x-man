@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { first, map, shareReplay, switchMap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 import { Agency } from './agencies.service';
 import { ProcessingError } from './clearing.service';
 import { ItemProgress, TaskState } from './tasks.service';
@@ -54,19 +53,14 @@ export class ProcessService {
   private httpClient = inject(HttpClient);
   private updates = inject(UpdatesService);
 
-  private apiEndpoint: string;
   private cachedProcessId?: string;
   private cachedProcessData?: Observable<ProcessData>;
 
-  constructor() {
-    this.apiEndpoint = environment.endpoint;
-  }
-
   getProcesses(allUsers: boolean) {
     if (allUsers) {
-      return this.httpClient.get<SubmissionProcess[]>(this.apiEndpoint + '/processes');
+      return this.httpClient.get<SubmissionProcess[]>('/api/processes');
     } else {
-      return this.httpClient.get<SubmissionProcess[]>(this.apiEndpoint + '/processes/my');
+      return this.httpClient.get<SubmissionProcess[]>('/api/processes/my');
     }
   }
 
@@ -74,7 +68,7 @@ export class ProcessService {
     if (id !== this.cachedProcessId) {
       this.cachedProcessId = id;
       this.cachedProcessData = this.updates.observeSubmissionProcess(id).pipe(
-        switchMap(() => this.httpClient.get<ProcessData>(this.apiEndpoint + '/process/' + id)),
+        switchMap(() => this.httpClient.get<ProcessData>('/api/process/' + id)),
         shareReplay({ bufferSize: 1, refCount: true }),
       );
     }
@@ -86,26 +80,22 @@ export class ProcessService {
   }
 
   setNote(processId: string, note: string): Observable<void> {
-    return this.httpClient
-      .patch(this.apiEndpoint + '/process-note/' + processId, note)
-      .pipe(map(() => void 0));
+    return this.httpClient.patch('/api/process-note/' + processId, note).pipe(map(() => void 0));
   }
 
   getAppraisalReport(processId: string): Observable<Blob> {
-    return this.httpClient.get(this.apiEndpoint + '/report/appraisal/' + processId, {
+    return this.httpClient.get('/api/report/appraisal/' + processId, {
       responseType: 'blob',
     });
   }
 
   getSubmissionReport(processId: string): Observable<Blob> {
-    return this.httpClient.get(this.apiEndpoint + '/report/submission/' + processId, {
+    return this.httpClient.get('/api/report/submission/' + processId, {
       responseType: 'blob',
     });
   }
 
   deleteProcess(processId: string): Observable<void> {
-    return this.httpClient
-      .delete(this.apiEndpoint + '/process/' + processId)
-      .pipe(map(() => void 0));
+    return this.httpClient.delete('/api/process/' + processId).pipe(map(() => void 0));
   }
 }

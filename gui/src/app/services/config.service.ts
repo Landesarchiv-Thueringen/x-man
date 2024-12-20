@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { notNull } from '../utils/predicates';
 import { AuthService } from './auth.service';
 
@@ -32,7 +31,7 @@ export class ConfigService {
       distinctUntilChanged(),
       switchMap((isLoggedIn) => {
         if (isLoggedIn) {
-          return this.httpClient.get<Config>(environment.endpoint + '/config');
+          return this.httpClient.get<Config>('/api/config');
         } else {
           return of(undefined);
         }

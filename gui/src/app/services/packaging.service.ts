@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 
 export const packagingChoices: { value: PackagingChoice; label: string; disabled?: boolean }[] = [
   { value: 'root', label: 'Wurzelebene' },
@@ -34,7 +33,7 @@ export class PackagingService {
   private httpClient = inject(HttpClient);
 
   getPackaging(processId: string): Observable<PackagingData> {
-    return this.httpClient.get<PackagingData>(environment.endpoint + '/packaging/' + processId);
+    return this.httpClient.get<PackagingData>('/api/packaging/' + processId);
   }
 
   setPackagingChoice(
@@ -42,7 +41,7 @@ export class PackagingService {
     recordIds: string[],
     packagingChoice: PackagingChoice,
   ): Observable<PackagingData> {
-    return this.httpClient.post<PackagingData>(environment.endpoint + '/packaging', {
+    return this.httpClient.post<PackagingData>('/api/packaging', {
       processId,
       recordIds,
       packagingChoice,
@@ -51,10 +50,7 @@ export class PackagingService {
 
   getPackagingStats(processId: string, rootRecords: string[]): Promise<PackagingStatsMap> {
     return firstValueFrom(
-      this.httpClient.post<PackagingStatsMap>(
-        environment.endpoint + '/packaging-stats/' + processId,
-        rootRecords,
-      ),
+      this.httpClient.post<PackagingStatsMap>('/api/packaging-stats/' + processId, rootRecords),
     );
   }
 }

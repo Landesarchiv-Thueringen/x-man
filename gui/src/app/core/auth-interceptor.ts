@@ -2,7 +2,6 @@ import { HttpErrorResponse, HttpHandlerFn, HttpRequest } from '@angular/common/h
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 import { AuthService } from '../services/auth.service';
 import { LoginService } from '../services/login.service';
 
@@ -50,5 +49,5 @@ export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) 
 }
 
 function isApiRequest(req: HttpRequest<unknown>): boolean {
-  return req.url.startsWith(environment.endpoint + '/');
+  return req.url.startsWith('/api/');
 }

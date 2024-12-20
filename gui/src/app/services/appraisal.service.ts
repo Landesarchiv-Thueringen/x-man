@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 
 export type AppraisalCode = 'A' | 'V' | 'B' | '';
 
@@ -35,7 +34,6 @@ export const appraisalDescriptions = {
 export class AppraisalService {
   private httpClient = inject(HttpClient);
 
-
   getAppraisalDescription(code?: AppraisalCode): AppraisalDescription | undefined {
     if (!code) {
       return undefined;
@@ -44,7 +42,7 @@ export class AppraisalService {
   }
 
   getAppraisals(processId: string): Observable<Appraisal[]> {
-    return this.httpClient.get<Appraisal[]>(environment.endpoint + '/appraisals/' + processId);
+    return this.httpClient.get<Appraisal[]>('/api/appraisals/' + processId);
   }
 
   setDecision(
@@ -52,13 +50,9 @@ export class AppraisalService {
     recordId: string,
     decision: AppraisalCode,
   ): Observable<Appraisal[]> {
-    return this.httpClient.post<Appraisal[]>(
-      environment.endpoint + '/appraisal-decision',
-      decision,
-      {
-        params: { processId, recordId },
-      },
-    );
+    return this.httpClient.post<Appraisal[]>('/api/appraisal-decision', decision, {
+      params: { processId, recordId },
+    });
   }
 
   setInternalNote(
@@ -66,13 +60,9 @@ export class AppraisalService {
     recordId: string,
     internalNote: string,
   ): Observable<Appraisal[]> {
-    return this.httpClient.post<Appraisal[]>(
-      environment.endpoint + '/appraisal-note',
-      internalNote,
-      {
-        params: { processId, recordId },
-      },
-    );
+    return this.httpClient.post<Appraisal[]>('/api/appraisal-note', internalNote, {
+      params: { processId, recordId },
+    });
   }
 
   setAppraisals(
@@ -81,7 +71,7 @@ export class AppraisalService {
     decision: AppraisalCode,
     internalNote: string,
   ): Observable<Appraisal[]> {
-    return this.httpClient.post<Appraisal[]>(environment.endpoint + '/appraisals', {
+    return this.httpClient.post<Appraisal[]>('/api/appraisals', {
       processId,
       recordObjectIds,
       decision,

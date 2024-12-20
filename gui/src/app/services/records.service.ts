@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { AppraisalCode } from './appraisal.service';
 import { MessageType } from './message.service';
 
@@ -95,9 +94,8 @@ export interface PrimaryDocument {
 export class RecordsService {
   private httpClient = inject(HttpClient);
 
-
   getRootRecords(processId: string, messageType: MessageType): Observable<Records> {
-    const url = environment.endpoint + '/root-records/' + processId + '/' + messageType;
+    const url = '/api/root-records/' + processId + '/' + messageType;
     return this.httpClient.get<Records>(url);
   }
 }

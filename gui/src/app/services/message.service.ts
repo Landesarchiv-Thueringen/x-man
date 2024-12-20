@@ -2,7 +2,6 @@ import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { FileAnalysis, Summary } from '../features/file-analysis/results';
 
 export interface Message {
@@ -86,8 +85,6 @@ export class MessageService {
   private datePipe = inject(DatePipe);
   private httpClient = inject(HttpClient);
 
-  private apiEndpoint: string;
-
   private featureOrder: Map<string, number>;
   private overviewFeatures: string[];
 
@@ -98,7 +95,6 @@ export class MessageService {
   private cachedMessage?: Observable<Message>;
 
   constructor() {
-    this.apiEndpoint = environment.endpoint;
     this.overviewFeatures = [
       'relativePath',
       'fileName',
@@ -132,14 +128,14 @@ export class MessageService {
     ) {
       this.cachedMessageId = { processId, messageType };
       this.cachedMessage = this.httpClient
-        .get<Message>(this.apiEndpoint + '/message/' + processId + '/' + messageType)
+        .get<Message>('/api/message/' + processId + '/' + messageType)
         .pipe(shareReplay({ bufferSize: 1, refCount: true }));
     }
     return this.cachedMessage!;
   }
 
   getPrimaryDocument(processId: string, filename: string): Observable<Blob> {
-    const url = this.apiEndpoint + '/primary-document';
+    const url = '/api/primary-document';
     const options = {
       params: new HttpParams().set('processID', processId).set('filename', filename),
       responseType: 'blob' as 'json', // https://github.com/angular/angular/issues/18586
@@ -151,7 +147,7 @@ export class MessageService {
     if (!processId) {
       throw new Error('called getPrimaryDocuments with null ID');
     }
-    const url = this.apiEndpoint + '/primary-documents-info/' + processId;
+    const url = '/api/primary-documents-info/' + processId;
     return this.httpClient.get<PrimaryDocumentInfo[]>(url);
   }
 
@@ -159,20 +155,19 @@ export class MessageService {
     if (!processId) {
       throw new Error('called getPrimaryDocuments with null ID');
     }
-    const url =
-      this.apiEndpoint + '/primary-document-data/' + processId + '/' + encodeURIComponent(filename);
+    const url = '/api/primary-document-data/' + processId + '/' + encodeURIComponent(filename);
     return this.httpClient.get<PrimaryDocumentData>(url);
   }
 
   finalizeMessageAppraisal(messageId: string): Observable<void> {
-    const url = this.apiEndpoint + '/finalize-message-appraisal/' + messageId;
+    const url = '/api/finalize-message-appraisal/' + messageId;
     const body = {};
     const options = {};
     return this.httpClient.patch<void>(url, body, options);
   }
 
   archive0503Message(processId: string, collectionId: string): Observable<void> {
-    let url = this.apiEndpoint + '/archive-0503-message/' + processId;
+    let url = '/api/archive-0503-message/' + processId;
     if (collectionId) {
       url += '?collectionId=' + collectionId;
     }
@@ -182,9 +177,7 @@ export class MessageService {
   }
 
   areAllRecordObjectsAppraised(processId: string): Observable<boolean> {
-    return this.httpClient.get<boolean>(
-      this.apiEndpoint + '/all-record-objects-appraised/' + processId,
-    );
+    return this.httpClient.get<boolean>('/api/all-record-objects-appraised/' + processId);
   }
 
   sortFeatures(features: string[]): string[] {
@@ -236,13 +229,11 @@ export class MessageService {
 
   reimportMessage(processId: string, type: MessageType): Observable<void> {
     return this.httpClient
-      .post(this.apiEndpoint + '/message/' + processId + '/' + type + '/reimport', null)
+      .post('/api/message/' + processId + '/' + type + '/reimport', null)
       .pipe(map(() => void 0));
   }
 
   deleteMessage(processId: string, type: MessageType): Observable<void> {
-    return this.httpClient
-      .delete(this.apiEndpoint + '/message/' + processId + '/' + type)
-      .pipe(map(() => void 0));
+    return this.httpClient.delete('/api/message/' + processId + '/' + type).pipe(map(() => void 0));
   }
 }

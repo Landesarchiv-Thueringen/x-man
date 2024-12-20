@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
-import { environment } from '../../environments/environment';
 
 interface AboutInformation {
   version: string;
@@ -12,12 +11,12 @@ interface AboutInformation {
 })
 export class AboutService {
   readonly aboutInformation: Observable<AboutInformation>;
-  readonly versionSuffix = environment.production ? '' : '-dev';
+  readonly versionSuffix = isDevMode() ? '-dev' : '';
 
   constructor() {
     const httpClient = inject(HttpClient);
 
-    this.aboutInformation = httpClient.get<AboutInformation>(environment.endpoint + '/about').pipe(
+    this.aboutInformation = httpClient.get<AboutInformation>('/api/about').pipe(
       map(({ version, ...aboutInfo }) => ({ ...aboutInfo, version: version + this.versionSuffix })),
       shareReplay(1),
     );

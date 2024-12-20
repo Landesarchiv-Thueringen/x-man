@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import {
   Observable,
   Subject,
@@ -8,7 +8,6 @@ import {
   startWith,
   throttleTime,
 } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { NIL_UUID } from '../utils/constants';
 import { notNull } from '../utils/predicates';
 import { AuthService } from './auth.service';
@@ -126,7 +125,7 @@ export class UpdatesService {
     const token = this.auth.getToken();
     // EventSource doesn't support the authorization header, so we append the
     // token as query parameter.
-    this.eventSource = new EventSource(environment.endpoint + '/updates?token=' + token, {});
+    this.eventSource = new EventSource('/api/updates?token=' + token, {});
     this.eventSource.addEventListener('message', (event) => {
       const messageData: Update = JSON.parse(event.data);
       this.updatesSubject.next(messageData);

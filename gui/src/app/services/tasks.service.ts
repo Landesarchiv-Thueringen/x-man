@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { ProcessStep } from './process.service';
 import { UpdatesService } from './updates.service';
 
@@ -38,32 +37,31 @@ export class TasksService {
   private httpClient = inject(HttpClient);
   private updates = inject(UpdatesService);
 
-
   observeTasks(): Observable<Task[]> {
     return this.updates
       .observeCollection('tasks')
-      .pipe(switchMap(() => this.httpClient.get<Task[]>(environment.endpoint + '/tasks')));
+      .pipe(switchMap(() => this.httpClient.get<Task[]>('/api/tasks')));
   }
 
   observeTask(id: string): Observable<Task> {
     return this.updates
       .observeCollection('tasks')
-      .pipe(switchMap(() => this.httpClient.get<Task>(environment.endpoint + '/task/' + id)));
+      .pipe(switchMap(() => this.httpClient.get<Task>('/api/task/' + id)));
   }
 
   pauseTask(id: string) {
-    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'pause');
+    return this.httpClient.post<void>('/api/task/action/' + id, 'pause');
   }
 
   resumeTask(id: string) {
-    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'resume');
+    return this.httpClient.post<void>('/api/task/action/' + id, 'resume');
   }
 
   retryTask(id: string) {
-    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'retry');
+    return this.httpClient.post<void>('/api/task/action/' + id, 'retry');
   }
 
   cancelTask(id: string) {
-    return this.httpClient.post<void>(environment.endpoint + '/task/action/' + id, 'cancel');
+    return this.httpClient.post<void>('/api/task/action/' + id, 'cancel');
   }
 }

@@ -3,7 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 import { User } from './users.service';
 
 export interface Permissions {
@@ -62,14 +61,12 @@ export class AuthService {
     const headers = new HttpHeaders({
       Authorization: 'Basic ' + toBase64(`${username}:${password}`),
     });
-    const observable = this.httpClient
-      .get<LoginInformation>(environment.endpoint + '/login', { headers })
-      .pipe(
-        tap((loginInformation) => {
-          this.loginInformation.next(loginInformation);
-          localStorage.setItem('loginInformation', JSON.stringify(loginInformation));
-        }),
-      );
+    const observable = this.httpClient.get<LoginInformation>('/api/login', { headers }).pipe(
+      tap((loginInformation) => {
+        this.loginInformation.next(loginInformation);
+        localStorage.setItem('loginInformation', JSON.stringify(loginInformation));
+      }),
+    );
     await firstValueFrom(observable);
   }
 

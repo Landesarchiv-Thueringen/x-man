@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, first, map, shareReplay } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 import { Agency } from '../../../services/agencies.service';
 import { notNull } from '../../../utils/predicates';
 
@@ -25,7 +24,7 @@ export class CollectionsService {
     const httpClient = this.httpClient;
 
     httpClient
-      .get<ArchiveCollection[]>(environment.endpoint + '/archive-collections')
+      .get<ArchiveCollection[]>('/api/archive-collections')
       .subscribe((collections) => this.collections.next(collections));
   }
 
@@ -44,14 +43,14 @@ export class CollectionsService {
   }
 
   getAgenciesForCollection(collectionId: string): Observable<Agency[]> {
-    return this.httpClient.get<Agency[]>(environment.endpoint + '/agencies', {
+    return this.httpClient.get<Agency[]>('/api/agencies', {
       params: { collectionId },
     });
   }
 
   createCollection(collection: Omit<ArchiveCollection, 'id'>) {
     this.httpClient
-      .put<{ id: string }>(environment.endpoint + '/archive-collection', collection)
+      .put<{ id: string }>('/api/archive-collection', collection)
       .subscribe(({ id }) => {
         this.collections.next([...(this.collections.value ?? []), { ...collection, id }]);
       });
@@ -59,29 +58,25 @@ export class CollectionsService {
 
   updateCollection(id: string, collection: Omit<ArchiveCollection, 'id'>) {
     const newCollection = { ...collection, id };
-    this.httpClient
-      .post<void>(environment.endpoint + '/archive-collection', newCollection)
-      .subscribe(() => {
-        const collections = [...(this.collections.value ?? [])];
-        const index = collections.findIndex((c) => c.id === id);
-        if (index >= 0) {
-          collections[index] = newCollection;
-        }
-        this.collections.next(collections);
-      });
+    this.httpClient.post<void>('/api/archive-collection', newCollection).subscribe(() => {
+      const collections = [...(this.collections.value ?? [])];
+      const index = collections.findIndex((c) => c.id === id);
+      if (index >= 0) {
+        collections[index] = newCollection;
+      }
+      this.collections.next(collections);
+    });
   }
 
   deleteCollection(collection: ArchiveCollection) {
     this.collections.next(this.collections.value!.filter((c) => c !== collection));
-    this.httpClient
-      .delete(environment.endpoint + '/archive-collection/' + collection.id)
-      .subscribe();
+    this.httpClient.delete('/api/archive-collection/' + collection.id).subscribe();
   }
 
   getDimagIds(): Observable<string[]> {
     if (!this.dimagIds) {
       this.dimagIds = this.httpClient
-        .get<string[]>(environment.endpoint + '/dimag-collection-ids')
+        .get<string[]>('/api/dimag-collection-ids')
         .pipe(shareReplay(1));
     }
     return this.dimagIds;

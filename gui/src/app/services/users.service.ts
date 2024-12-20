@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, filter, map, shareReplay } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { Agency } from './agencies.service';
 import { Permissions } from './auth.service';
 
@@ -28,9 +27,7 @@ export interface UserPreferences {
 export class UsersService {
   private httpClient = inject(HttpClient);
 
-  private readonly users = this.httpClient
-    .get<User[]>(environment.endpoint + '/users')
-    .pipe(shareReplay(1));
+  private readonly users = this.httpClient.get<User[]>('/api/users').pipe(shareReplay(1));
 
   getUsers(): Observable<User[]> {
     return this.users.pipe(filter((a) => a.length > 0));
@@ -45,11 +42,11 @@ export class UsersService {
   }
 
   getUserInformation(): Observable<UserInformation> {
-    return this.httpClient.get<UserInformation>(environment.endpoint + '/user-info');
+    return this.httpClient.get<UserInformation>('/api/user-info');
   }
 
   updateUserPreferences(preferences: UserPreferences): Observable<void> {
-    return this.httpClient.post<void>(environment.endpoint + '/user-preferences', preferences);
+    return this.httpClient.post<void>('/api/user-preferences', preferences);
   }
 
   private findById(user: User[], id: string): User {

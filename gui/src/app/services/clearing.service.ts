@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, map, shareReplay, switchMap } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { Agency } from '../services/agencies.service';
 import { MessageType } from '../services/message.service';
 import { UpdatesService } from './updates.service';
@@ -97,11 +96,11 @@ export class ClearingService {
   }
 
   private getProcessingErrors() {
-    return this.httpClient.get<ProcessingError[]>(environment.endpoint + '/processing-errors');
+    return this.httpClient.get<ProcessingError[]>('/api/processing-errors');
   }
 
   resolveError(errorId: string, resolution: ProcessingErrorResolution): Observable<void> {
-    const url = environment.endpoint + '/processing-errors/resolve/' + errorId;
+    const url = '/api/processing-errors/resolve/' + errorId;
     return this.httpClient.post<void>(url, resolution);
   }
 }
