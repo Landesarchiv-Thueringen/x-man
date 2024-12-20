@@ -131,7 +131,6 @@ export class MessageTreeComponent {
   dataSource = new MessageTreeDataSource(this.treeControl);
   readonly appraisals = this.messagePage.appraisals;
   activeFilters: Filter<any>[] = [];
-  filtersHint: string | null = null;
   currentRecordId?: string;
   config = this.configService.config;
 

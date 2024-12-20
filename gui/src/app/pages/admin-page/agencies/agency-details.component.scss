@@ -1,3 +1,5 @@
+@use "@angular/material" as mat;
+
 .mat-mdc-dialog-title + .mat-mdc-dialog-content {
   // Make room for overflowing elements
   padding-top: 5px;
@@ -32,10 +34,12 @@ mat-form-field {
     display: inline-flex;
     align-items: center;
     gap: 1em;
-    .mat-mdc-progress-spinner {
-      --mdc-circular-progress-active-indicator-color: currentColor;
-    }
   }
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: currentColor,
+    )
+  );
 }
 
 .message {

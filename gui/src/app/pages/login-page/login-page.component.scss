@@ -3,10 +3,12 @@
 :host {
   display: grid;
   height: 100%;
-  background-color: var(--mat-primary-30);
+  color-scheme: dark;
+  background-color: var(--mat-sys-primary-container);
 }
 
 mat-card {
+  color-scheme: light;
   margin: auto;
   width: min(400px, 90vw);
 }

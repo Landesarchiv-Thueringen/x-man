@@ -18,11 +18,7 @@ mat-sidenav-container mat-sidenav-content.mode-over {
     flex-shrink: 0;
     flex-grow: 0;
     height: 100%;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 12px;
-    border-top-right-radius: var(--mat-sidenav-container-shape);
-    border-bottom-right-radius: var(--mat-sidenav-container-shape);
+    border-radius: var(--mat-sys-corner-large-end);
     mat-icon {
       margin: 0;
     }

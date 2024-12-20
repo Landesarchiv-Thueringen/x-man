@@ -4,9 +4,14 @@ mat-toolbar {
   position: relative;
   z-index: 2;
   @include mat.elevation(4);
-  background: var(--mat-primary);
+  color: var(--mat-sys-on-primary);
+  background-color: var(--mat-sys-primary);
   &.failed {
-    background: var(--mat-error);
+    color: var(--mat-sys-on-error);
+    background: var(--mat-sys-error);
+  }
+  > * {
+    color-scheme: dark;
   }
 }
 

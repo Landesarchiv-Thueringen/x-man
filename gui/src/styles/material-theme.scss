@@ -1,64 +1,43 @@
 @use "@angular/material" as mat;
 
-@include mat.elevation-classes();
-@include mat.app-background();
-
-$light-theme: mat.define-theme(
-  (
-    color: (
-      theme-type: light,
-      primary: mat.$azure-palette,
-      tertiary: mat.$magenta-palette,
-    ),
-  )
-);
-
-$dark-theme: mat.define-theme(
-  (
-    color: (
-      theme-type: dark,
-      primary: mat.$azure-palette,
-    ),
-  )
-);
-
 html {
-  @include mat.all-component-themes($light-theme);
+  color-scheme: light;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$magenta-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
 }
 
-:root {
-  --mat-primary: #{mat.get-theme-color($light-theme, primary)};
-  --mat-primary-30: #{mat.get-theme-color($light-theme, primary, 30)};
-  --mat-primary-90: #{mat.get-theme-color($light-theme, primary, 90)};
-  --mat-primary-95: #{mat.get-theme-color($light-theme, primary, 95)};
-  --mat-secondary: #{mat.get-theme-color($light-theme, secondary)};
-  --mat-error: #{mat.get-theme-color($light-theme, error)};
-}
-
-.mat-typography h1 {
-  font:
-    400 2.25rem / 2.75rem Roboto,
-    sans-serif;
-  letter-spacing: -0.016rem;
-}
-
-.dark-theme,
-mat-toolbar {
-  @include mat.all-component-colors($dark-theme);
-}
-
-.secondary-button {
-  @include mat.button-color($light-theme, $color-variant: secondary);
+h1 {
+  font: var(--mat-sys-display-small);
 }
 
 .tertiary-button {
-  @include mat.button-color($light-theme, $color-variant: tertiary);
+  @include mat.theme-overrides(
+    (
+      primary: var(--mat-sys-tertiary),
+    )
+  );
 }
 
 .error-button {
-  @include mat.button-color($light-theme, $color-variant: error);
+  @include mat.theme-overrides(
+    (
+      primary: var(--mat-sys-error),
+    )
+  );
 }
 
 .secondary-progress-spinner {
-  @include mat.progress-spinner-color($light-theme, $color-variant: secondary);
+  @include mat.theme-overrides(
+    (
+      primary: var(--mat-sys-secondary),
+    )
+  );
 }

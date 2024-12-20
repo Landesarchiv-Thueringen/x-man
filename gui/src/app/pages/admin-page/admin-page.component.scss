@@ -18,11 +18,11 @@ mat-list {
   button {
     width: 100%;
     justify-content: flex-start;
-    padding: 0 var(--mat-filled-button-horizontal-padding, 16px);
+    padding: 0 24px;
   }
   a.active {
-    background-color: var(--mdc-filled-button-container-color);
-    color: var(--mdc-filled-button-label-text-color);
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
   }
   .spacer {
     flex-grow: 1;

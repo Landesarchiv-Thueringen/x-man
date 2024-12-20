@@ -4,9 +4,9 @@
 :host {
   display: grid;
   height: 100%;
-  color: var(--mat-app-text-color);
-  background-color: var(--mat-primary-30);
-  --mat-divider-color: var(--mat-app-text-color);
+  color-scheme: dark;
+  color: var(--mat-sys-on-primary-container);
+  background-color: var(--mat-sys-primary-container);
 }
 
 .container {

@@ -17,7 +17,7 @@ mat-table {
 .cdk-column-icon {
   flex: 0 0 24px;
   box-sizing: content-box;
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .cdk-column-admin {

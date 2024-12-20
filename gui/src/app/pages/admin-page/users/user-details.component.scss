@@ -1,3 +1,5 @@
+@use "@angular/material" as mat;
+
 [mat-dialog-content] {
   display: flex;
   flex-direction: column;
@@ -20,7 +22,10 @@ mat-chip-set {
   gap: 1em;
 }
 
-.mat-mdc-list-item-icon {
-  --mdc-list-list-item-leading-icon-color: rgba(0, 0, 0, 0.54);
-  --mdc-list-list-item-hover-leading-icon-color: rgba(0, 0, 0, 0.54);
+mat-list {
+  @include mat.list-overrides(
+    (
+      list-item-hover-leading-icon-color: var(--mat-sys-on-surface-variant),
+    )
+  );
 }

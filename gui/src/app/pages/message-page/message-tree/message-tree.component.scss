@@ -35,16 +35,11 @@ mat-tree-node {
   position: sticky;
   top: 0px;
   z-index: 2;
-  background-color: var(--mat-app-background-color);
+  background-color: var(--mat-sys-surface);
 }
 
 .filters {
   margin-left: 40px;
-}
-
-.filters-hint {
-  margin-top: 0.5em;
-  color: var(--mat-secondary);
 }
 
 .node {
@@ -60,7 +55,7 @@ mat-tree-node {
 }
 
 .secondary-text {
-  color: var(--mat-secondary);
+  color: var(--mat-sys-secondary);
 }
 
 .expand-button {
@@ -75,7 +70,7 @@ mat-tree-node {
     pointer-events: none;
     // Draw a background behind the node
     z-index: -1;
-    background-color: var(--mat-primary-90);
+    background-color: var(--mat-sys-primary-container);
   }
 }
 
@@ -124,7 +119,7 @@ mat-tree-node {
     color: orange;
   }
   mat-icon {
-    color: var(--mdc-icon-button-icon-color);
+    color: var(--mat-sys-on-surface-variant);
   }
 }
 
@@ -166,7 +161,7 @@ mat-checkbox.hidden {
     background-color: rgba(0, 0, 0, 0.04);
     span,
     mat-icon {
-      color: var(--mat-primary);
+      color: var(--mat-sys-primary);
     }
   }
   span {

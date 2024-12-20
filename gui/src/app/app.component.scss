@@ -4,8 +4,8 @@
   height: 100%;
   align-content: flex-start;
   flex-direction: column;
-  color: var(--mat-app-text-color);
-  background-color: var(--mat-app-background-color);
+  color: var(--mat-sys-on-surface);
+  background-color: var(--mat-sys-surface);
 }
 
 :host ::ng-deep > router-outlet + * {
