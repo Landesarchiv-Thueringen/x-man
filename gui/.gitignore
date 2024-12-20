@@ -14,7 +14,7 @@
 !/src/**/*.scss
 
 # allow assets
-!/src/assets/**/*.*
+!/public/**/*.*
 
 # allow dockerfile
 !Dockerfile

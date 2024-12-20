@@ -5,10 +5,10 @@ import { RouterModule } from '@angular/router';
 import { MainNavigationComponent } from './core/main-navigation/main-navigation.component';
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss'],
-    imports: [RouterModule, MainNavigationComponent, MatIconModule]
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+  imports: [RouterModule, MainNavigationComponent, MatIconModule],
 })
 export class AppComponent {
   private matIconRegistry = inject(MatIconRegistry);
@@ -17,15 +17,15 @@ export class AppComponent {
   constructor() {
     this.matIconRegistry.addSvgIcon(
       'folders',
-      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/folders.svg'),
+      this.domSanitizer.bypassSecurityTrustResourceUrl('/icons/folders.svg'),
     );
     this.matIconRegistry.addSvgIcon(
       'articles',
-      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/articles.svg'),
+      this.domSanitizer.bypassSecurityTrustResourceUrl('/icons/articles.svg'),
     );
     this.matIconRegistry.addSvgIcon(
       'boxes',
-      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/boxes.svg'),
+      this.domSanitizer.bypassSecurityTrustResourceUrl('/icons/boxes.svg'),
     );
   }
 }
