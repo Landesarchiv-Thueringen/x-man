@@ -28,17 +28,17 @@
 </div>
 
 @if (activeFilters.size > 0) {
-  <mat-chip-listbox class="filter-chips">
+  <mat-chip-set class="filter-chips">
     @for (filter of activeFilters.values(); track filter.key) {
-      <mat-chip-option (removed)="removeFilter(filter)">
+      <mat-chip (removed)="removeFilter(filter)">
         <mat-icon matChipAvatar class="{{ filter.key }}-icon">{{ filter.icon }}</mat-icon>
         {{ filter.label }} ({{ nItemsForFilter(filter) }})
         <button matChipRemove>
           <mat-icon>cancel</mat-icon>
         </button>
-      </mat-chip-option>
+      </mat-chip>
     }
-  </mat-chip-listbox>
+  </mat-chip-set>
 }
 
 <div class="table-container">
