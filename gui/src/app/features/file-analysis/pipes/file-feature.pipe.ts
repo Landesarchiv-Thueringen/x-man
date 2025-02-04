@@ -10,6 +10,7 @@ const labelMap: { [key in string]?: string } = {
   valid: 'Valide',
   wellFormed: 'Wohlgeformt',
   encoding: 'Zeichenkodierung',
+  isText: "textbasiertes Dateiformat",
   error: 'Fehler',
   status: 'Status',
 };

@@ -95,10 +95,12 @@
     >
       <mat-header-cell *matHeaderCellDef>{{ tableColumn | fileFeature }}</mat-header-cell>
       <mat-cell *matCellDef="let fileInfo">
-        <div *ngIf="fileInfo[tableColumn]?.value as value" class="feature-info">
-          <mat-icon *ngIf="value === 'true'">check</mat-icon>
-          <mat-icon *ngIf="value === 'false'">close</mat-icon>
-          <ng-container *ngIf="value !== 'false' && value !== 'true'">
+        <div class="feature-info">
+          <mat-icon *ngIf="fileInfo[tableColumn]?.value === true">check</mat-icon>
+          <mat-icon *ngIf="fileInfo[tableColumn]?.value === false">close</mat-icon>
+          <ng-container
+            *ngIf="fileInfo[tableColumn]?.value !== false && fileInfo[tableColumn]?.value !== true"
+          >
             <span *ngIf="fileInfo[tableColumn]">{{ fileInfo[tableColumn].value }}</span>
           </ng-container>
           <span *ngIf="fileInfo[tableColumn]?.confidence != null" class="confidence-value">

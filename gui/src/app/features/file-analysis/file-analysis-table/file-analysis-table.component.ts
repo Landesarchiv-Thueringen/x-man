@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, computed, effect, input, viewChild, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,6 +17,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { FileOverviewComponent } from '../file-overview/file-overview.component';
+import { BreakOpportunitiesPipe } from '../pipes/break-opportunities.pipe';
 import { FileFeaturePipe } from '../pipes/file-feature.pipe';
 import { FileAnalysis, FileResult, RowValue } from '../results';
 
@@ -55,6 +64,7 @@ export interface FilePropertyDefinition {
   templateUrl: './file-analysis-table.component.html',
   styleUrls: ['./file-analysis-table.component.scss'],
   imports: [
+    BreakOpportunitiesPipe,
     CommonModule,
     FileFeaturePipe,
     MatButtonModule,

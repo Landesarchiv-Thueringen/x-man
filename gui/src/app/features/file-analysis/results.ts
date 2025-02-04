@@ -36,7 +36,7 @@ export interface Summary {
 }
 
 export interface FeatureValue {
-  value: string;
+  value: string | boolean | number;
   score: number;
   supportingTools: { [key: string]: number };
 }

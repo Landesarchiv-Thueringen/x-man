@@ -31,7 +31,7 @@ interface DialogData {
 }
 
 interface FileFeature {
-  value?: string;
+  value?: string | boolean | number;
   confidence?: number;
   icon?: string;
 }
@@ -43,18 +43,18 @@ interface FileFeatures {
 const ALWAYS_VISIBLE_COLUMNS = ['puid', 'mimeType'];
 
 @Component({
-    selector: 'app-file-overview',
-    templateUrl: './file-overview.component.html',
-    styleUrls: ['./file-overview.component.scss'],
-    imports: [
-        CommonModule,
-        FileFeaturePipe,
-        MatButtonModule,
-        MatDialogModule,
-        MatIconModule,
-        MatTableModule,
-        RouterModule,
-    ]
+  selector: 'app-file-overview',
+  templateUrl: './file-overview.component.html',
+  styleUrls: ['./file-overview.component.scss'],
+  imports: [
+    CommonModule,
+    FileFeaturePipe,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTableModule,
+    RouterModule,
+  ],
 })
 export class FileOverviewComponent {
   data = inject<DialogData>(MAT_DIALOG_DATA);

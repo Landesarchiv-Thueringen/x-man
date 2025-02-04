@@ -60,7 +60,12 @@
             aria-label="Details anzeigen"
           ></button>
         } @else if (row.values[column.key]) {
-          {{ row.values[column.key].displayString ?? row.values[column.key].value }}
+          <span
+            [innerHTML]="
+              row.values[column.key].displayString ?? row.values[column.key].value
+                | breakOpportunities
+            "
+          ></span>
         }
       </mat-cell>
     </ng-container>

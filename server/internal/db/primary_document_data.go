@@ -36,19 +36,19 @@ type Summary struct {
 }
 
 type FeatureValue struct {
-	Value           string             `bson:"value" json:"value"`
+	Value           interface{}        `bson:"value" json:"value"`
 	Score           float64            `bson:"score" json:"score"`
 	SupportingTools map[string]float64 `bson:"supporting_tools" json:"supportingTools"`
 }
 
 type ToolResult struct {
-	ToolName     string            `bson:"tool_name" json:"toolName"`
-	ToolType     string            `bson:"tool_type" json:"toolType"`
-	ToolVersion  string            `bson:"tool_version" json:"toolVersion"`
-	ToolOutput   string            `bson:"tool_output" json:"toolOutput"`
-	OutputFormat string            `bson:"output_format" json:"outputFormat"`
-	Features     map[string]string `bson:"features" json:"features"`
-	Error        string            `bson:"error" json:"error"`
+	ToolName     string                 `bson:"tool_name" json:"toolName"`
+	ToolType     string                 `bson:"tool_type" json:"toolType"`
+	ToolVersion  string                 `bson:"tool_version" json:"toolVersion"`
+	ToolOutput   string                 `bson:"tool_output" json:"toolOutput"`
+	OutputFormat string                 `bson:"output_format" json:"outputFormat"`
+	Features     map[string]interface{} `bson:"features" json:"features"`
+	Error        string                 `bson:"error" json:"error"`
 }
 
 // InsertPrimaryDocumentsData inserts multiple primary-document-data entries.
