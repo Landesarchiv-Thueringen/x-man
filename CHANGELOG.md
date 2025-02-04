@@ -8,6 +8,7 @@
 -   Fix: Setze Dateiname für Meta-Dateien beim Import nach DIMAG
 -   Fix: Kleinere UI-Fixes
 -   Fix: Zeitangaben teilweise in UTC
+-   Fix: Kompatibilität Borg Version 1.4.0
 -   Intern: Benutze "Import"-Ordner für Upload zu DIMAG
 -   Intern: Docker-Image von Server optimieren
 -   Intern: Abhängigkeiten aktualisiert
