@@ -12,3 +12,12 @@ body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+// shrink rows status and format version for the format verification table
+// difference to Borg 
+.cdk-column-formatVersion {
+  flex: 0.5 0 0;
+}
+.cdk-column-status {
+  flex: 0.3 0 0;
+}
