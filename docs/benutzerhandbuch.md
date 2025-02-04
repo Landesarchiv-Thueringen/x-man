@@ -13,7 +13,7 @@ Für eine kurze Beschreibung der Anwendung und ihrer Funkionen siehe [Readme](ht
 **Bildung der Archivpakete.** Die Archivpakete werden für Schriftgutobjekte auf der Wurzelebene der Abgabenachricht gebildet. Für jede Akte bzw. für jeden Vorgang auf Wurzelebene wird ein Archivpaket erstellt. Falls es in der Abgabe Dokumente gibt, die keiner Akte oder keinem Vorgang zugeordnet sind, wird für alle diese Dokumente ein gemeinsames Archivpaket erstellt.  
 Ein Archivpaket enthält alle Primärdateien, der zugehörigen Schriftgutobjekte, eine Protokolldatei und die gekürzte Abgabenachricht. Alle Schriftgutobjekte die nicht zum Archivpaket gehören werden automatisch aus der Abgabenachricht entfernt. Die Metadaten der Archivpakete werden aus den Metadaten der zugehörigen Schriftgutobjekte gebildet.
 
-**Protokollierung von Ereignissen und Fehlern.** Die wichtigsten Ereignisse und Fehler werden dem Archivpaket in einer Textdatei beigelegt. In DIMAG wird die Protokolldatei als Primärdatei angelegt. Eine Übernahme als Protokoll nach DIMAG wird zurzeit nicht unterstützt.
+**Protokollierung von Ereignissen und Fehlern.** Die wichtigsten Ereignisse und Fehler werden dem Archivpaket beigelegt. In DIMAG werden die Informationen an das bestehende DIMAG-Protokoll angehängt. Bei einer Archivierung auf einem Dateisystem werden die Informationen in einer Textdatei gespeichert.
 
 **Anmeldung.** Sie sollten Zugang zu x-man über Ihre üblichen Windows-Login-Daten erhalten. Sollte der Zugang nicht funktionieren, wenden Sie sich bitte an einen Administrator. Nach erfolgreicher Anmeldung sehen sie Ihren Namen in der Titel-Leiste am oberen Rand der Web-Anwendung. Hier können Sie sich jederzeit wieder abmelden.
 
