@@ -2,6 +2,10 @@
 
 ## Next
 
+-
+
+## v1.2.0
+
 -   Feature: Bewertungsbericht
 -   Feature: Unterstützung für tiefere Paketierungsebenen in Übernahmebericht
 -   Fix: Fehler beim Einlesen von nicht UTF-8 kodierten Dateinamen aus der Nachricht
