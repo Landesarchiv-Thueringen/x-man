@@ -1,6 +1,8 @@
 FROM node:22-alpine3.20 AS build
 
 RUN corepack enable
+# next command can be removed if issue: https://github.com/pnpm/pnpm/issues/9029 was fixed
+RUN corepack prepare pnpm@10.0.0 --activate
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /build
