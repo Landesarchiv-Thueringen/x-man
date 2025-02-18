@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   mongo:
-    image: docker.io/mongo
+    image: docker.io/mongo:8.0
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 3s
@@ -93,7 +93,7 @@ services:
     restart: unless-stopped
 
   server-init:
-    image: docker.io/golang
+    image: docker.io/golang:1.23
     volumes:
       - certs:/etc/ssl/certs
       - ./data/ca-certificates:/usr/local/share/ca-certificates

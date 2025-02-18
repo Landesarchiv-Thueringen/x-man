@@ -1,4 +1,4 @@
-FROM node:22-alpine3.20 AS build
+FROM node:22-alpine3.21 AS build
 
 RUN corepack enable
 # next command can be removed if issue: https://github.com/pnpm/pnpm/issues/9029 was fixed
@@ -14,6 +14,6 @@ COPY public ./public
 ARG CONFIGURATION
 RUN pnpm run build --configuration $CONFIGURATION
 
-FROM docker.io/nginx:alpine3.20 AS prod
+FROM docker.io/nginx:alpine3.21 AS prod
 COPY --from=build /build/dist/xdomea_appraisal_frontend /app/
 COPY build/nginx/default.conf.template /etc/nginx/templates/default.conf.template

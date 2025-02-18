@@ -4,6 +4,8 @@
 
 -   Fix: Version in `/api/about`
 -   Fix: Version check for Borg
+-   Intern: Abhängigkeiten aktualisiert
+-   Intern: Versionen für Docker-Images festgeschrieben
 
 ## v1.2.0
 
