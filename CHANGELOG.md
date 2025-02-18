@@ -2,7 +2,7 @@
 
 ## Next
 
--
+-   Fix: Version in `/api/about`
 
 ## v1.2.0
 
