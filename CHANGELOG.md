@@ -2,8 +2,9 @@
 
 ## Next
 
--   Fix: Version in `/api/about`
--   Fix: Version check for Borg
+-   Feature: Berichte als PDF/A-2b
+-   Fix: Versionsangabe
+-   Fix: Versionsprüfung für Borg
 -   Intern: Abhängigkeiten aktualisiert
 -   Intern: Versionen für Docker-Images festgeschrieben
 

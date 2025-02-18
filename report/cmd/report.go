@@ -105,6 +105,7 @@ func render(
 	cmd := exec.Command(
 		"typst",
 		"compile",
+		"--pdf-standard", "a-2b",
 		templateFileName,
 		outputFileName,
 	)
