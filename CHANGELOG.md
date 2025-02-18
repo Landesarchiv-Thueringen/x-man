@@ -3,6 +3,7 @@
 ## Next
 
 -   Fix: Version in `/api/about`
+-   Fix: Version check for Borg
 
 ## v1.2.0
 

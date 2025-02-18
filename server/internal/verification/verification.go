@@ -177,8 +177,8 @@ func checkBorgVersion(version string) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse version: %s", version)
 	}
-	if major < 1 || major == 1 && minor < 1 { // >= 1.1.0
-		return fmt.Errorf("require version >= 1.1.0, has: %s", version)
+	if major < 1 || major == 1 && minor < 4 { // >= 1.4.0
+		return fmt.Errorf("require version >= 1.4.0, has: %s", version)
 	}
 	return nil
 }
