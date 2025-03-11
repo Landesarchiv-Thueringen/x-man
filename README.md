@@ -15,11 +15,12 @@ Siehe [Dokumentation](https://landesarchiv-thueringen.github.io/x-man/) für wei
 
 - Annahme von Aussonderungen und Austausch von Nachrichten mit abgebenden Stellen nach dem [xdomea-Standard](https://www.xrepository.de/details/urn:xoev-de:xdomea:kosit:standard:xdomea) (Versionen 2.3 bis 3.1)
 - Ansicht und Bewertung von Anbietungen in der Weboberfläche
-- Datei-Validierung mit Hilfe von [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg)
+- Formaterkennung und -validierung mit Hilfe von [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg)
 - Import von Abgaben in das [DIMAG Kernmodul](https://gitlab.la-bw.de/dimag/core/kernmodul) für die dauerhafte Archivierung
 
 ### Ergänzende Funktionen
 
+- Erstellen eines Bewertungsberichtes nach Abschluss der archivischen Bewertung
 - Erstellen eines Übernahmeberichtes nach erfolgreicher Archivierung
 - E-Mail-Benachrichtigungen bei neuen xdomea-Nachrichten oder im Fehlerfall
 - Nutzerverwaltung über ein bestehendes LDAP / Active Directory
