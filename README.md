@@ -13,7 +13,7 @@ Siehe [Dokumentation](https://landesarchiv-thueringen.github.io/x-man/) für wei
 
 ### Hauptfunktionen
 
-- Annahme von Aussonderungen und Austausch von Nachrichten mit abgebenden Stellen nach dem [xdomea-Standard](https://www.xrepository.de/details/urn:xoev-de:xdomea:kosit:standard:xdomea) (Versionen 2.3 bis 3.1)
+- Annahme von Aussonderungen und Austausch von Nachrichten mit abgebenden Stellen nach dem [xdomea-Standard](https://www.xrepository.de/details/urn:xoev-de:xdomea:kosit:standard:xdomea) (Versionen 2.3 bis 3.1) im zwei- und vierstufigen Aussonderungsverfahren
 - Ansicht und Bewertung von Anbietungen in der Weboberfläche
 - Formaterkennung und -validierung mit Hilfe von [BorgFormat](https://github.com/Landesarchiv-Thueringen/borg)
 - Import von Abgaben in das [DIMAG Kernmodul](https://gitlab.la-bw.de/dimag/core/kernmodul) für die dauerhafte Archivierung
