@@ -1,12 +1,13 @@
 # Changelog
 
-## Next
+## v1.2.1
 
 -   Feature: Berichte als PDF/A-2b
 -   Fix: Versionsangabe
 -   Fix: Versionsprüfung für Borg
 -   Intern: Abhängigkeiten aktualisiert
 -   Intern: Versionen für Docker-Images festgeschrieben
+-   Security: Patch für https://nvd.nist.gov/vuln/detail/CVE-2025-30204
 
 ## v1.2.0
 
