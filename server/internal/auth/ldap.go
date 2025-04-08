@@ -31,9 +31,6 @@ const (
 	GRANTED // 2
 )
 
-var LDAP_ACCESS_GROUP = os.Getenv("LDAP_ACCESS_GROUP")
-var LDAP_ADMIN_GROUP = os.Getenv("LDAP_ADMIN_GROUP")
-
 // permissions grants additional permissions based an LDAP group memberships
 type permissions struct {
 	Admin bool `json:"admin,omitempty"`
@@ -57,10 +54,19 @@ type authorizationResult struct {
 	UserEntry *userEntry
 }
 
+var LDAP_ACCESS_GROUP_CN string
+var LDAP_ADMIN_GROUP_CN string
+var LDAP_ACCESS_GROUP_DN string
+var LDAP_ADMIN_GROUP_DN string
+
 func TestConnection() {
 	l := connectReadonly()
 	defer l.Close()
-	getLdapUserEntries(l, LDAP_ACCESS_GROUP)
+	LDAP_ACCESS_GROUP_CN = os.Getenv("LDAP_ACCESS_GROUP")
+	LDAP_ADMIN_GROUP_CN = os.Getenv("LDAP_ADMIN_GROUP")
+	LDAP_ACCESS_GROUP_DN = getGroupDN(l, LDAP_ACCESS_GROUP_CN)
+	LDAP_ADMIN_GROUP_DN = getGroupDN(l, LDAP_ADMIN_GROUP_CN)
+	getLdapUserEntries(l, LDAP_ACCESS_GROUP_DN)
 }
 
 func GetDisplayName(userID string) string {
@@ -114,8 +120,8 @@ func authorizeUser(username string, password string) authorizationResult {
 	}
 
 	// Check basic access rights
-	isAccessMember := isGroupMember(l, user.DN, LDAP_ACCESS_GROUP)
-	isAdminMember := isGroupMember(l, user.DN, LDAP_ADMIN_GROUP)
+	isAccessMember := isGroupMember(l, user.DN, LDAP_ACCESS_GROUP_CN)
+	isAdminMember := isGroupMember(l, user.DN, LDAP_ADMIN_GROUP_CN)
 	if !isAccessMember && !isAdminMember {
 		return authorizationResult{Predicate: DENIED}
 	}
@@ -143,20 +149,24 @@ func ListUsers() []userEntry {
 	l := connectReadonly()
 	defer l.Close()
 	// Get all users with access and admin privileges.
-	usersAccess := getLdapUserEntries(l, LDAP_ACCESS_GROUP)
-	usersAdmin := getLdapUserEntries(l, LDAP_ADMIN_GROUP)
+	usersAccess := getLdapUserEntries(l, LDAP_ACCESS_GROUP_DN)
+	usersAdmin := getLdapUserEntries(l, LDAP_ADMIN_GROUP_DN)
 	userEntries := make([]userEntry, 0)
 	for _, user := range usersAccess {
+		permissions := permissions{
+			Admin: false,
+		}
 		userEntry := userEntry{
 			ID:          getID(user),
 			DisplayName: getDisplayName(user),
+			Permissions: &permissions,
 		}
 		userEntries = append(userEntries, userEntry)
 	}
-	permissions := permissions{
-		Admin: true,
-	}
 	for _, user := range usersAdmin {
+		permissions := permissions{
+			Admin: true,
+		}
 		userEntry := userEntry{
 			ID:          getID(user),
 			DisplayName: getDisplayName(user),
@@ -167,11 +177,11 @@ func ListUsers() []userEntry {
 	return userEntries
 }
 
-func GetGroupMembers(l *ldap.Conn, groupName string) []string {
+func GetGroupMembers(l *ldap.Conn, groupCn string) []string {
 	searchRequest := ldap.NewSearchRequest(
 		os.Getenv("LDAP_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(cn=%s)(objectClass=group))", ldap.EscapeFilter(groupName)),
+		fmt.Sprintf("(&(cn=%s)(objectClass=group))", ldap.EscapeFilter(groupCn)),
 		[]string{"member"},
 		nil,
 	)
@@ -180,7 +190,7 @@ func GetGroupMembers(l *ldap.Conn, groupName string) []string {
 		panic(err)
 	}
 	if len(sr.Entries) != 1 {
-		panic("ldap group not found: " + groupName)
+		panic("ldap group not found: " + groupCn)
 	}
 	return sr.Entries[0].GetAttributeValues("member")
 }
@@ -291,6 +301,24 @@ func getLdapUserEntryWithAttributes(l *ldap.Conn, filter string, attributes []st
 	return sr.Entries[0]
 }
 
+func getGroupDN(l *ldap.Conn, groupCn string) string {
+	searchRequest := ldap.NewSearchRequest(
+		os.Getenv("LDAP_BASE_DN"),
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 1, 0, false,
+		fmt.Sprintf("(&(objectClass=group)(cn=%s))", groupCn),
+		[]string{"distinguishedName"},
+		nil,
+	)
+	searchResult, err := l.Search(searchRequest)
+	if err != nil {
+		panic(err)
+	}
+	if len(searchResult.Entries) != 1 {
+		panic("more than one entry for group")
+	}
+	return searchResult.Entries[0].DN
+}
+
 func getFilter(key string, value string) string {
 	if value == "" {
 		panic("called getFilter with empty value")
@@ -357,7 +385,7 @@ func getUserNameFilter(username string) string {
 func getUserGroupFilter(groupName string) string {
 	// 1.2.840.113556.1.4.1941 nested group membership filter
 	return fmt.Sprintf(
-		"(&(objectClass=organizationalPerson)(memberOf:1.2.840.113556.1.4.1941:=%s))",
+		"(&(objectClass=organizationalPerson)(memberOf:=%s))",
 		ldap.EscapeFilter(groupName),
 	)
 }
