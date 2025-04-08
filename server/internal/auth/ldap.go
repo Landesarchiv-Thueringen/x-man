@@ -31,6 +31,9 @@ const (
 	GRANTED // 2
 )
 
+var LDAP_ACCESS_GROUP = os.Getenv("LDAP_ACCESS_GROUP")
+var LDAP_ADMIN_GROUP = os.Getenv("LDAP_ADMIN_GROUP")
+
 // permissions grants additional permissions based an LDAP group memberships
 type permissions struct {
 	Admin bool `json:"admin,omitempty"`
@@ -57,7 +60,7 @@ type authorizationResult struct {
 func TestConnection() {
 	l := connectReadonly()
 	defer l.Close()
-	getLdapUserEntries(l)
+	getLdapUserEntries(l, LDAP_ACCESS_GROUP)
 }
 
 func GetDisplayName(userID string) string {
@@ -111,8 +114,8 @@ func authorizeUser(username string, password string) authorizationResult {
 	}
 
 	// Check basic access rights
-	isAccessMember := isGroupMember(l, user.DN, os.Getenv("LDAP_ACCESS_GROUP"))
-	isAdminMember := isGroupMember(l, user.DN, os.Getenv("LDAP_ADMIN_GROUP"))
+	isAccessMember := isGroupMember(l, user.DN, LDAP_ACCESS_GROUP)
+	isAdminMember := isGroupMember(l, user.DN, LDAP_ADMIN_GROUP)
 	if !isAccessMember && !isAdminMember {
 		return authorizationResult{Predicate: DENIED}
 	}
@@ -139,36 +142,21 @@ func authorizeUser(username string, password string) authorizationResult {
 func ListUsers() []userEntry {
 	l := connectReadonly()
 	defer l.Close()
-
-	// Get relevant groups
-	accessGroupMembers := getGroupMembers(l, os.Getenv("LDAP_ACCESS_GROUP"))
-	adminGroupMembers := getGroupMembers(l, os.Getenv("LDAP_ADMIN_GROUP"))
-
-	// Get all users
-	users := getLdapUserEntries(l)
-
+	// Get all users with access and admin privileges.
+	usersAccess := getLdapUserEntries(l, LDAP_ACCESS_GROUP)
+	usersAdmin := getLdapUserEntries(l, LDAP_ADMIN_GROUP)
 	userEntries := make([]userEntry, 0)
-	for _, user := range users {
-		isAccessGroupMember := false
-		for _, userDn := range accessGroupMembers {
-			if user.DN == userDn {
-				isAccessGroupMember = true
-				break
-			}
+	for _, user := range usersAccess {
+		userEntry := userEntry{
+			ID:          getID(user),
+			DisplayName: getDisplayName(user),
 		}
-		isAdminGroupMember := false
-		for _, userDn := range adminGroupMembers {
-			if user.DN == userDn {
-				isAdminGroupMember = true
-				break
-			}
-		}
-		if !isAccessGroupMember && !isAdminGroupMember {
-			continue
-		}
-		permissions := permissions{
-			Admin: isAdminGroupMember,
-		}
+		userEntries = append(userEntries, userEntry)
+	}
+	permissions := permissions{
+		Admin: true,
+	}
+	for _, user := range usersAdmin {
 		userEntry := userEntry{
 			ID:          getID(user),
 			DisplayName: getDisplayName(user),
@@ -179,7 +167,7 @@ func ListUsers() []userEntry {
 	return userEntries
 }
 
-func getGroupMembers(l *ldap.Conn, groupName string) []string {
+func GetGroupMembers(l *ldap.Conn, groupName string) []string {
 	searchRequest := ldap.NewSearchRequest(
 		os.Getenv("LDAP_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
@@ -262,13 +250,13 @@ func getLdapUserEntry(l *ldap.Conn, filter string) *ldap.Entry {
 	return getLdapUserEntryWithAttributes(l, filter, attributes)
 }
 
-func getLdapUserEntries(l *ldap.Conn) []*ldap.Entry {
+func getLdapUserEntries(l *ldap.Conn, groupName string) []*ldap.Entry {
 	config := getConfiguration()
 	attributes := []string{"dn", config.IDAttribute, config.DisplayNameAttribute}
 	searchRequest := ldap.NewSearchRequest(
 		os.Getenv("LDAP_BASE_DN"),
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		"(objectClass=organizationalPerson)",
+		getUserGroupFilter(groupName),
 		attributes,
 		nil,
 	)
@@ -362,6 +350,16 @@ func getIDFilter(id string) string {
 func getUserNameFilter(username string) string {
 	config := getConfiguration()
 	return getFilter(config.UsernameAttribute, username)
+}
+
+// getUserGroupFilter returns a filter string to be used in an LDAP search
+// for all users with given group membership.
+func getUserGroupFilter(groupName string) string {
+	// 1.2.840.113556.1.4.1941 nested group membership filter
+	return fmt.Sprintf(
+		"(&(objectClass=organizationalPerson)(memberOf:1.2.840.113556.1.4.1941:=%s))",
+		ldap.EscapeFilter(groupName),
+	)
 }
 
 func getDisplayName(user *ldap.Entry) string {
