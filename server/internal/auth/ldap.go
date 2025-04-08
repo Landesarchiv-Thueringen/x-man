@@ -383,11 +383,20 @@ func getUserNameFilter(username string) string {
 // getUserGroupFilter returns a filter string to be used in an LDAP search
 // for all users with given group membership.
 func getUserGroupFilter(groupName string) string {
-	// 1.2.840.113556.1.4.1941 nested group membership filter
-	return fmt.Sprintf(
-		"(&(objectClass=organizationalPerson)(memberOf:=%s))",
-		ldap.EscapeFilter(groupName),
-	)
+	switch ldapType := os.Getenv("LDAP_CONFIG"); ldapType {
+	case "active-directory":
+		// 1.2.840.113556.1.4.1941 nested group membership filter
+		// works only with active directory
+		return fmt.Sprintf(
+			"(&(objectClass=organizationalPerson)(memberOf:1.2.840.113556.1.4.1941:=%s))",
+			ldap.EscapeFilter(groupName),
+		)
+	default:
+		return fmt.Sprintf(
+			"(&(objectClass=organizationalPerson)(memberOf:=%s))",
+			ldap.EscapeFilter(groupName),
+		)
+	}
 }
 
 func getDisplayName(user *ldap.Entry) string {
