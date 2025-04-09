@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+
+-   Fix: Suche nach Gruppenmitgliedern im LDAP
+
 ## v1.2.1
 
 -   Feature: Berichte als PDF/A-2b
