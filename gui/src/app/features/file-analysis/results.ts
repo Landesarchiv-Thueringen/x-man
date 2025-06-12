@@ -20,7 +20,7 @@ export interface RowValue {
 
 export interface FileAnalysis {
   summary: Summary;
-  features: { [key: string]: FeatureValue[] };
+  featureSets: FeatureSet[];
   toolResults: ToolResult[];
 }
 
@@ -35,18 +35,29 @@ export interface Summary {
   formatVersion: string;
 }
 
+export interface FeatureSet {
+  score: number;
+  supportingTools: string[];
+  features: { [key: string]: FeatureValue | undefined };
+}
+
 export interface FeatureValue {
   value: string | boolean | number;
-  score: number;
-  supportingTools: { [key: string]: number };
+  label: string | null;
+  supportingTools: string[];
 }
 
 export interface ToolResult {
-  toolName: string;
-  toolType: 'identification' | 'validation';
+  id: string;
+  title: string;
   toolVersion: string;
   toolOutput: string;
-  outputFormat: 'text' | 'json' | 'csv';
-  features: { [key: string]: string };
+  outputFormat: 'text' | 'json' | 'csv' | 'xml';
+  features: { [key: string]: ToolFeatureValue | undefined };
   error: string | null;
+}
+
+export interface ToolFeatureValue {
+  value: string | boolean | number;
+  label: string | null;
 }

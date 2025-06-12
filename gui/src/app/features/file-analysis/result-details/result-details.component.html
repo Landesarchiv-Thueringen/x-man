@@ -1,0 +1,71 @@
+<h1 mat-dialog-title>Werkzeugergebnisse</h1>
+
+<mat-dialog-content>
+  <mat-table [dataSource]="rows" class="mat-elevation-z8">
+    <!-- tools column -->
+    <ng-container matColumnDef="tool">
+      <mat-header-cell *matHeaderCellDef> Werkzeug </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{ element.toolName }} </mat-cell>
+    </ng-container>
+    <!-- PUID Column -->
+    <ng-container matColumnDef="puid">
+      <mat-header-cell *matHeaderCellDef> PUID </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{ element.puid | featureValue }} </mat-cell>
+    </ng-container>
+
+    <!-- MIME type Column -->
+    <ng-container matColumnDef="mimeType">
+      <mat-header-cell *matHeaderCellDef> MIME-Type </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <span
+          [innerHTML]="element.mimeType ? (element.mimeType.value | breakOpportunities) : ''"
+        ></span>
+      </mat-cell>
+    </ng-container>
+
+    <!-- format version Column -->
+    <ng-container matColumnDef="formatVersion">
+      <mat-header-cell *matHeaderCellDef> Formatversion </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{ element.formatVersion | featureValue }} </mat-cell>
+    </ng-container>
+
+    <!-- valid Column -->
+    <ng-container matColumnDef="valid">
+      <mat-header-cell *matHeaderCellDef> Valide </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        @if (element.valid?.value === true) {
+          <mat-icon class="valid-icon">check</mat-icon>
+        } @else if (element.valid?.value === false) {
+          <mat-icon class="invalid-icon">close</mat-icon>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <!-- error column -->
+    <ng-container matColumnDef="error">
+      <mat-header-cell *matHeaderCellDef> Fehler </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        @if (element.error) {
+          <mat-icon class="error-icon">error</mat-icon>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row
+      *matRowDef="let row; columns: displayedColumns; let i = index"
+      matRipple
+      [matRippleDisabled]="i === 0"
+      [class.summary-row]="i === 0"
+      [class.tool-row]="i !== 0"
+      [attr.tabindex]="i !== 0 ? 0 : null"
+      [attr.role]="i !== 0 ? 'button' : null"
+      (click)="showToolOutput(row.toolName, $event)"
+      (keydown.enter)="showToolOutput(row.toolName, $event)"
+    ></mat-row>
+  </mat-table>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button mat-dialog-close>Schließen</button>
+</mat-dialog-actions>

@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.category {
+  margin-bottom: 2em;
+}
+
+h3 {
+  font: var(--mat-sys-title-medium);
+}
+
+mat-header-row {
+  min-height: 2.5em;
+}
+
+mat-row {
+  min-height: 0;
+}
+
+mat-cell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-bottom-style: none;
+}
+
+.mat-column-value {
+  flex-grow: 2;
+}

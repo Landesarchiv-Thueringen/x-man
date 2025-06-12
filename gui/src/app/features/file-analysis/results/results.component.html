@@ -1,8 +1,8 @@
 <div class="heading-row">
   <h1>
     Geprüfte Dateien
-    @if (dataSource.connect() | async; as data) {
-      ({{ data.length }})
+    @if (dataSource.connect() | async) {
+      ({{ dataSource.data.length }})
     }
   </h1>
   <button
@@ -45,7 +45,7 @@
   <mat-table [dataSource]="dataSource" matSort>
     <ng-container *ngFor="let column of tableProperties()" matColumnDef="{{ column.key }}">
       <mat-header-cell *matHeaderCellDef mat-sort-header>{{
-        column.label ?? (column.key | fileFeature)
+        column.label ?? column.key
       }}</mat-header-cell>
       <mat-cell *matCellDef="let row">
         @if (column.key === "status") {

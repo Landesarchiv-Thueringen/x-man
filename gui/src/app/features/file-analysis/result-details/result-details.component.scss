@@ -1,0 +1,34 @@
+.summary-row {
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+.tool-row:hover {
+  background-color: var(--mat-sys-primary-container);
+  cursor: pointer;
+}
+.tool-row:focus-visible {
+  outline: none;
+  background-color: var(--mat-sys-primary-container);
+}
+.cdk-cell.cdk-column-mimeType {
+  overflow-wrap: anywhere;
+}
+
+mat-dialog-actions {
+  .button-left {
+    margin-right: auto;
+  }
+}
+
+.uncertain-icon {
+  color: #ff6600;
+}
+.valid-icon {
+  color: #00a000;
+}
+.invalid-icon {
+  color: #c00000;
+}
+.error-icon {
+  color: #c00000;
+}

@@ -37,31 +37,6 @@ export interface Institution {
 
 export type FormatVerification = FileAnalysis;
 
-export interface ToolResult {
-  toolName: string;
-  toolVersion: string;
-  toolOutput: string;
-  outputFormat: 'text' | 'json' | 'csv';
-  extractedFeatures: { [key: string]: string };
-  error: string;
-}
-
-export interface Feature {
-  key: string;
-  values: FeatureValue[];
-}
-
-export interface FeatureValue {
-  value: string;
-  score: number;
-  tools: ToolConfidence[];
-}
-
-export interface ToolConfidence {
-  confidence: number;
-  toolName: string;
-}
-
 export interface PrimaryDocumentInfo {
   recordId: string;
   filename: string;
@@ -85,38 +60,11 @@ export class MessageService {
   private datePipe = inject(DatePipe);
   private httpClient = inject(HttpClient);
 
-  private featureOrder: Map<string, number>;
-  private overviewFeatures: string[];
-
   private cachedMessageId?: {
     processId: string;
     messageType: MessageType;
   };
   private cachedMessage?: Observable<Message>;
-
-  constructor() {
-    this.overviewFeatures = [
-      'relativePath',
-      'fileName',
-      'fileSize',
-      'puid',
-      'mimeType',
-      'formatVersion',
-      'valid',
-    ];
-    this.featureOrder = new Map<string, number>([
-      ['relativePath', 1],
-      ['fileName', 2],
-      ['fileSize', 3],
-      ['puid', 4],
-      ['mimeType', 5],
-      ['formatVersion', 6],
-      ['encoding', 7],
-      ['', 101],
-      ['wellFormed', 1001],
-      ['valid', 1002],
-    ]);
-  }
 
   getMessage(processId: string, messageType: MessageType): Observable<Message> {
     if (!processId || !messageType) {
@@ -178,34 +126,6 @@ export class MessageService {
 
   areAllRecordObjectsAppraised(processId: string): Observable<boolean> {
     return this.httpClient.get<boolean>('/api/all-record-objects-appraised/' + processId);
-  }
-
-  sortFeatures(features: string[]): string[] {
-    features = [...new Set(features)];
-    return features.sort((f1: string, f2: string) => {
-      const featureOrder = this.featureOrder;
-      let orderF1: number | undefined = featureOrder.get(f1);
-      if (!orderF1) {
-        orderF1 = featureOrder.get('');
-      }
-      let orderF2: number | undefined = featureOrder.get(f2);
-      if (!orderF2) {
-        orderF2 = featureOrder.get('');
-      }
-      if (orderF1! < orderF2!) {
-        return -1;
-      } else if (orderF1! > orderF2!) {
-        return 1;
-      }
-      return 0;
-    });
-  }
-
-  selectOverviewFeatures(features: string[]): string[] {
-    const overviewFeatures: string[] = this.overviewFeatures;
-    return features.filter((feature: string) => {
-      return overviewFeatures.includes(feature);
-    });
   }
 
   /**

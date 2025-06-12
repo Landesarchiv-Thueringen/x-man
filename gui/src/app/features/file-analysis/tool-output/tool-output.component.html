@@ -1,47 +1,47 @@
 <h1 mat-dialog-title>{{ toolName }} ({{ toolResult.toolVersion }})</h1>
 
 <mat-dialog-content>
-  <mat-accordion multi="true">
-    <mat-expansion-panel *ngIf="toolResult.features as features" expanded="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Extrahierte Eigenschaften</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <mat-table [dataSource]="features | keyvalue">
-        <ng-container matColumnDef="key">
-          <mat-header-cell *matHeaderCellDef>Eigenschaft</mat-header-cell>
-          <mat-cell *matCellDef="let element">{{ element.key | fileFeature }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="value">
-          <mat-header-cell *matHeaderCellDef>Wert</mat-header-cell>
-          <mat-cell *matCellDef="let element">{{ element.value }}</mat-cell>
-        </ng-container>
-        <mat-header-row *matHeaderRowDef="['key', 'value']"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: ['key', 'value']"></mat-row>
-      </mat-table>
-    </mat-expansion-panel>
-
-    <mat-expansion-panel *ngIf="toolResult.toolOutput">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Werkzeug-Ausgabe</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <pre *ngIf="toolResult.outputFormat === 'csv'">{{
-        toolResult.toolOutput | prettyPrintCsv
-      }}</pre>
-      <pre *ngIf="toolResult.outputFormat === 'json'">{{
-        toolResult.toolOutput | prettyPrintJson
-      }}</pre>
-      <pre *ngIf="toolResult.outputFormat === 'text'">{{ toolResult.toolOutput }}</pre>
-    </mat-expansion-panel>
-
-    <mat-expansion-panel *ngIf="toolResult.error as error" expanded="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Fehler</mat-panel-title>
-      </mat-expansion-panel-header>
-      <pre>{{ error }}</pre>
-    </mat-expansion-panel>
-  </mat-accordion>
+  <mat-tab-group animationDuration="0ms">
+    @if (showFeatures) {
+      <mat-tab label="Extrahierte Eigenschaften">
+        <mat-table [dataSource]="toolResult.features | keyvalue">
+          <ng-container matColumnDef="key">
+            <mat-header-cell *matHeaderCellDef>Eigenschaft</mat-header-cell>
+            <mat-cell *matCellDef="let element">{{ element.key }}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="value">
+            <mat-header-cell *matHeaderCellDef>Wert</mat-header-cell>
+            <mat-cell *matCellDef="let element">{{ element.value.value }}</mat-cell>
+          </ng-container>
+          <mat-header-row *matHeaderRowDef="['key', 'value']"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: ['key', 'value']"></mat-row>
+        </mat-table>
+      </mat-tab>
+    }
+    @if (toolResult.toolOutput) {
+      <mat-tab label="Werkzeug-Ausgabe">
+        @switch (toolResult.outputFormat) {
+          @case ("csv") {
+            <pre>{{ toolResult.toolOutput | prettyPrintCsv }}</pre>
+          }
+          @case ("json") {
+            <pre>{{ toolResult.toolOutput | prettyPrintJson }}</pre>
+          }
+          @case ("xml") {
+            <pre>{{ toolResult.toolOutput | prettyPrintXml }}</pre>
+          }
+          @case ("text") {
+            <pre>{{ toolResult.toolOutput }}</pre>
+          }
+        }
+      </mat-tab>
+    }
+    @if (toolResult.error) {
+      <mat-tab label="Fehler">
+        <pre>{{ toolResult.error }}</pre>
+      </mat-tab>
+    }
+  </mat-tab-group>
 </mat-dialog-content>
 
 <mat-dialog-actions>

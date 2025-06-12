@@ -1,0 +1,31 @@
+@for (category of categories; track category.id) {
+  <div class="category">
+    <h3>{{ category.id | category }}</h3>
+    <mat-table [dataSource]="category.dataSource!" matSort>
+      <!-- Feature Key Column -->
+      <ng-container matColumnDef="key">
+        <mat-header-cell *matHeaderCellDef mat-sort-header="key"> Eigenschaft </mat-header-cell>
+        <mat-cell *matCellDef="let feature">
+          {{ feature.label ?? feature.key }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Value Column -->
+      <ng-container matColumnDef="value">
+        <mat-header-cell *matHeaderCellDef mat-sort-header="value"> Wert </mat-header-cell>
+        <mat-cell *matCellDef="let feature"> {{ feature.value }} </mat-cell>
+      </ng-container>
+
+      <!-- Tools Column -->
+      <ng-container matColumnDef="tools">
+        <mat-header-cell *matHeaderCellDef mat-sort-header="tools"> Werkzeuge </mat-header-cell>
+        <mat-cell *matCellDef="let feature">
+          {{ feature.supportingTools | tools: toolResults }}
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
+  </div>
+}

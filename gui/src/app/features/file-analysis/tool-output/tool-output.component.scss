@@ -1,7 +1,4 @@
 .mat-mdc-dialog-container :host mat-dialog-content {
-  // Make room for box shadows.
-  padding-top: 3px;
-  padding-bottom: 4px;
   // Reserve space for the scrollbar.
   //
   // Otherwise, space for the scrollbar will be missing when determining the
@@ -9,14 +6,31 @@
   scrollbar-gutter: stable;
 }
 
-.cdk-column-key {
-  flex-basis: 10em;
+::ng-deep mat-tab-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2;
+  background-color: var(--mat-sys-surface);
+}
+
+.cdk-cell {
+  overflow-wrap: anywhere;
 }
 
 .cdk-column-value {
-  flex-grow: 5;
+  flex-grow: 2;
 }
 
 pre {
   overflow: auto;
+}
+
+mat-row {
+  min-height: 0;
+}
+
+mat-cell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-bottom-style: none;
 }

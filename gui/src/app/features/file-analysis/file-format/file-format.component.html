@@ -1,0 +1,64 @@
+<h3>Erkannte Dateiformate</h3>
+<mat-table [dataSource]="rows" class="mat-elevation-z8">
+  <!-- PUID Column -->
+  <ng-container matColumnDef="puid">
+    <mat-header-cell *matHeaderCellDef> PUID </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{ element.puid | featureValue }} </mat-cell>
+  </ng-container>
+
+  <!-- MIME type Column -->
+  <ng-container matColumnDef="mimeType">
+    <mat-header-cell *matHeaderCellDef> MIME-Type </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <span
+        [innerHTML]="element.mimeType ? (element.mimeType.value | breakOpportunities) : ''"
+      ></span>
+    </mat-cell>
+  </ng-container>
+
+  <!-- format version Column -->
+  <ng-container matColumnDef="formatVersion">
+    <mat-header-cell *matHeaderCellDef> Formatversion </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{ element.formatVersion | featureValue }} </mat-cell>
+  </ng-container>
+
+  <!-- valid Column -->
+  <ng-container matColumnDef="valid">
+    <mat-header-cell *matHeaderCellDef> Valide </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      @if (element.valid?.value === true) {
+        <mat-icon class="valid-icon">check</mat-icon>
+      } @else if (element.valid?.value === false) {
+        <mat-icon class="invalid-icon">close</mat-icon>
+      }
+    </mat-cell>
+  </ng-container>
+
+  <!-- tools column -->
+  <ng-container matColumnDef="tools">
+    <mat-header-cell *matHeaderCellDef> Werkzeuge </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{ element.tools | tools: toolResults }} </mat-cell>
+  </ng-container>
+
+  <!-- score column -->
+  <ng-container matColumnDef="score">
+    <mat-header-cell *matHeaderCellDef> Bewertung </mat-header-cell>
+    <mat-cell *matCellDef="let element; let i = index">
+      <span>{{ element.score | percent }}</span>
+      @if (i === 0 && resultUncertain) {
+        <mat-icon class="uncertain-icon">warning</mat-icon>
+      }
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row
+    *matRowDef="let row; columns: displayedColumns; let i = index"
+    matRipple
+    [class.summary-row]="i === 0"
+    tabindex="0"
+    role="button"
+    (click)="showResultDetails(row.setIndex, $event)"
+    (keydown.enter)="showResultDetails(row.setIndex, $event)"
+  ></mat-row>
+</mat-table>

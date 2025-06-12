@@ -1,0 +1,63 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+}
+
+h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+h3 {
+  font: var(--mat-sys-title-medium);
+}
+
+::ng-deep mat-tab-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2;
+  background-color: var(--mat-sys-surface);
+}
+
+.state {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  .icon-explanation {
+    display: flex;
+    gap: 2em;
+    margin-top: 1em;
+    margin-left: 2em;
+    margin-right: 25%;
+    margin-bottom: 1em;
+    p {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+    mat-icon {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.mat-mdc-row {
+  position: relative;
+}
+
+mat-dialog-actions {
+  .button-left {
+    margin-right: auto;
+  }
+}
+
+.uncertain-icon {
+  color: #ff6600;
+}
+.valid-icon {
+  color: #00a000;
+}
+.invalid-icon {
+  color: #c00000;
+}
+.error-icon {
+  color: #c00000;
+}

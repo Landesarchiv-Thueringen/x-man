@@ -1,0 +1,32 @@
+h3 {
+  font: var(--mat-sys-title-medium);
+}
+mat-row:hover {
+  background-color: var(--mat-sys-primary-container);
+  cursor: pointer;
+}
+mat-row:focus-visible {
+  outline: none;
+  background-color: var(--mat-sys-primary-container);
+}
+.summary-row {
+  font-weight: 500;
+}
+.cdk-cell.cdk-column-tools,
+.cdk-cell.cdk-column-mimeType {
+  overflow-wrap: anywhere;
+}
+
+.uncertain-icon {
+  margin-left: 10px;
+  color: #ff6600;
+}
+.valid-icon {
+  color: #00a000;
+}
+.invalid-icon {
+  color: #c00000;
+}
+.error-icon {
+  color: #c00000;
+}

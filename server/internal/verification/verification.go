@@ -85,7 +85,7 @@ func (h *VerificationHandler) HandleItem(
 		return err
 	}
 	writer.Close()
-	url := borgURL + "/api/analyze-file"
+	url := borgURL + "/api/analyze"
 	request, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return err
@@ -177,8 +177,8 @@ func checkBorgVersion(version string) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse version: %s", version)
 	}
-	if major < 1 || major == 1 && minor < 4 { // >= 1.4.0
-		return fmt.Errorf("require version >= 1.4.0, has: %s", version)
+	if major < 2 || major == 2 && minor < 1 { // >= 2.1.0
+		return fmt.Errorf("require version >= 2.1.0, has: %s", version)
 	}
 	return nil
 }

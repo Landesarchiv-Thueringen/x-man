@@ -1,20 +1,20 @@
 import { Component, inject } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
-import {
-  FileAnalysisTableComponent,
-  FilePropertyDefinition,
-} from '../../../../features/file-analysis/file-analysis-table/file-analysis-table.component';
 import { FileResult } from '../../../../features/file-analysis/results';
+import {
+  FilePropertyDefinition,
+  ResultsComponent,
+} from '../../../../features/file-analysis/results/results.component';
 import { MessageService, PrimaryDocumentInfo } from '../../../../services/message.service';
 import { notNull } from '../../../../utils/predicates';
 import { MessagePageService } from '../../message-page.service';
 
 @Component({
-    selector: 'app-primary-documents-table',
-    templateUrl: './primary-documents-table.component.html',
-    styleUrls: ['./primary-documents-table.component.scss'],
-    imports: [FileAnalysisTableComponent]
+  selector: 'app-primary-documents-table',
+  templateUrl: './primary-documents-table.component.html',
+  styleUrls: ['./primary-documents-table.component.scss'],
+  imports: [ResultsComponent],
 })
 export class PrimaryDocumentsTableComponent {
   private messageService = inject(MessageService);
@@ -31,10 +31,10 @@ export class PrimaryDocumentsTableComponent {
   properties: FilePropertyDefinition[] = [
     { key: 'filenameComplete', label: 'Dateiname', inTable: false },
     { key: 'recordId', label: 'Dokument', inTable: false },
-    { key: 'filename' },
-    { key: 'mimeType' },
-    { key: 'formatVersion' },
-    { key: 'status' },
+    { key: 'filename', label: 'Dateiname' },
+    { key: 'mimeType', label: 'MIME-Type' },
+    { key: 'formatVersion', label: 'Formatversion' },
+    { key: 'status', label: 'Status' },
   ];
 
   constructor() {

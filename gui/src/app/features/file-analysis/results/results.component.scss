@@ -41,23 +41,6 @@
   gap: 0.5em;
 }
 
-:host,
-.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled),
-::ng-deep .file-analysis-results-filter-menu .mat-mdc-menu-item {
-  .valid-icon {
-    color: #00a000;
-  }
-  .invalid-icon {
-    color: #c00000;
-  }
-  .warning-icon {
-    color: #ff6600;
-  }
-  .error-icon {
-    color: #c00000;
-  }
-}
-
 .open-details-button {
   position: absolute;
   border-radius: 0;
@@ -89,5 +72,22 @@
   mat-paginator {
     background: transparent;
     margin-left: auto;
+  }
+}
+
+:host,
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled),
+::ng-deep .file-analysis-results-filter-menu .mat-mdc-menu-item {
+  .valid-icon {
+    color: #00a000;
+  }
+  .invalid-icon {
+    color: #c00000;
+  }
+  .warning-icon {
+    color: #ff6600;
+  }
+  .error-icon {
+    color: #c00000;
   }
 }

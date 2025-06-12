@@ -16,9 +16,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { FileOverviewComponent } from '../file-overview/file-overview.component';
+import { FileDetailsComponent } from '../file-details/file-details.component';
 import { BreakOpportunitiesPipe } from '../pipes/break-opportunities.pipe';
-import { FileFeaturePipe } from '../pipes/file-feature.pipe';
 import { FileAnalysis, FileResult, RowValue } from '../results';
 
 export interface StatusIcons {
@@ -60,13 +59,12 @@ export interface FilePropertyDefinition {
 }
 
 @Component({
-  selector: 'app-file-analysis-table',
-  templateUrl: './file-analysis-table.component.html',
-  styleUrls: ['./file-analysis-table.component.scss'],
+  selector: 'app-results',
+  templateUrl: './results.component.html',
+  styleUrls: ['./results.component.scss'],
   imports: [
     BreakOpportunitiesPipe,
     CommonModule,
-    FileFeaturePipe,
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
@@ -76,11 +74,12 @@ export interface FilePropertyDefinition {
     MatTableModule,
   ],
 })
-export class FileAnalysisTableComponent implements AfterViewInit {
+export class ResultsComponent implements AfterViewInit {
   private dialog = inject(MatDialog);
 
   readonly results = input<FileResult[]>();
   readonly getDetails = input.required<(id: string) => Promise<FileAnalysis | undefined>>();
+
   /**
    * Properties to be displayed in the table and in the details dialog.
    *
@@ -93,12 +92,12 @@ export class FileAnalysisTableComponent implements AfterViewInit {
    */
   readonly properties = input<FilePropertyDefinition[]>([
     { key: 'path', label: 'Pfad' },
-    { key: 'filename' },
+    { key: 'filename', label: 'Dateiname' },
     { key: 'fileSize', label: 'Dateigröße' },
-    { key: 'puid' },
-    { key: 'mimeType' },
-    { key: 'formatVersion' },
-    { key: 'status' },
+    { key: 'puid', label: 'PUID' },
+    { key: 'mimeType', label: 'MIME-Type' },
+    { key: 'formatVersion', label: 'Formatversion' },
+    { key: 'status', label: 'Status' },
   ]);
 
   readonly paginator = viewChild.required(MatPaginator);
@@ -163,7 +162,7 @@ export class FileAnalysisTableComponent implements AfterViewInit {
   async openDetails(overview: FileOverview): Promise<void> {
     const analysis = await this.getDetails()(overview.id);
     if (analysis) {
-      this.dialog.open(FileOverviewComponent, {
+      this.dialog.open(FileDetailsComponent, {
         data: {
           filename: overview.values['filename']!.value,
           info: this.resultsMap()[overview.id].info,
@@ -171,7 +170,7 @@ export class FileAnalysisTableComponent implements AfterViewInit {
           properties: this.properties(),
         },
         autoFocus: false,
-        width: '1200px',
+        width: '1250px',
         maxWidth: '80vw',
       });
     } else {
