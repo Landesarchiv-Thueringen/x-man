@@ -62,7 +62,7 @@ function primaryDocumentToFileResult(
     filename:
       primaryDocument.filenameOriginal ||
       primaryDocument.filename.replace(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/,
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_/,
         '',
       ),
     resourceLink: {
