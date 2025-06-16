@@ -6,7 +6,7 @@
 
 ## v1.3.0
 
--   Feature: Borg Version 2.1.0
+-   Feature: Integration Borg Version 2.1.0
 -   Fix: Suche nach Gruppenmitgliedern im LDAP
 
 ## v1.2.1
