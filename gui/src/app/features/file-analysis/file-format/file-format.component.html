@@ -3,7 +3,15 @@
   <!-- PUID Column -->
   <ng-container matColumnDef="puid">
     <mat-header-cell *matHeaderCellDef> PUID </mat-header-cell>
-    <mat-cell *matCellDef="let element"> {{ element.puid | featureValue }} </mat-cell>
+    <mat-cell *matCellDef="let element">
+      <button
+        mat-button
+        class="open-details-button"
+        (click)="showResultDetails(element.setIndex)"
+        aria-label="Details anzeigen"
+      ></button>
+      {{ element.puid | featureValue }}
+    </mat-cell>
   </ng-container>
 
   <!-- MIME type Column -->
@@ -52,13 +60,5 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row
-    *matRowDef="let row; columns: displayedColumns; let i = index"
-    matRipple
-    [class.summary-row]="i === 0"
-    tabindex="0"
-    role="button"
-    (click)="showResultDetails(row.setIndex, $event)"
-    (keydown.enter)="showResultDetails(row.setIndex, $event)"
-  ></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
 </mat-table>

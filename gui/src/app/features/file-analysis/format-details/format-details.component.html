@@ -5,8 +5,19 @@
     <!-- tools column -->
     <ng-container matColumnDef="tool">
       <mat-header-cell *matHeaderCellDef> Werkzeug </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{ element.toolName }} </mat-cell>
+      <mat-cell *matCellDef="let element">
+        @if (element.toolName !== "Gesamtergebnis") {
+          <button
+            mat-button
+            class="open-details-button"
+            (click)="showToolOutput(element.toolName)"
+            aria-label="Details anzeigen"
+          ></button>
+        }
+        {{ element.toolName }}
+      </mat-cell>
     </ng-container>
+
     <!-- PUID Column -->
     <ng-container matColumnDef="puid">
       <mat-header-cell *matHeaderCellDef> PUID </mat-header-cell>
@@ -52,17 +63,7 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row
-      *matRowDef="let row; columns: displayedColumns; let i = index"
-      matRipple
-      [matRippleDisabled]="i === 0"
-      [class.summary-row]="i === 0"
-      [class.tool-row]="i !== 0"
-      [attr.tabindex]="i !== 0 ? 0 : null"
-      [attr.role]="i !== 0 ? 'button' : null"
-      (click)="showToolOutput(row.toolName, $event)"
-      (keydown.enter)="showToolOutput(row.toolName, $event)"
-    ></mat-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
   </mat-table>
 </mat-dialog-content>
 

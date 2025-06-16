@@ -16,9 +16,9 @@ interface DialogData {
 }
 
 @Component({
-  selector: 'app-tool-output',
-  templateUrl: './tool-output.component.html',
-  styleUrls: ['./tool-output.component.scss'],
+  selector: 'app-tool-details',
+  templateUrl: './tool-details.component.html',
+  styleUrls: ['./tool-details.component.scss'],
   imports: [
     CommonModule,
     MatButtonModule,
@@ -31,7 +31,7 @@ interface DialogData {
     MatTabsModule,
   ],
 })
-export class ToolOutputComponent {
+export class ToolDetailsComponent {
   private data = inject<DialogData>(MAT_DIALOG_DATA);
 
   readonly toolName = this.data.toolName;

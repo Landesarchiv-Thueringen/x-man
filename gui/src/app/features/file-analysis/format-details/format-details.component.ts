@@ -10,7 +10,7 @@ import { RouterModule } from '@angular/router';
 import { BreakOpportunitiesPipe } from '../pipes/break-opportunities.pipe';
 import { FeatureValuePipe } from '../pipes/feature-value.pipe';
 import { FeatureSet, FileAnalysis, ToolFeatureValue, ToolResult } from '../results';
-import { ToolOutputComponent } from '../tool-output/tool-output.component';
+import { ToolDetailsComponent } from '../tool-details/tool-details.component';
 
 export interface DialogData {
   featureSet: FeatureSet;
@@ -28,7 +28,7 @@ interface ToolRow {
 }
 
 @Component({
-  selector: 'app-result-details',
+  selector: 'app-format-details',
   imports: [
     CommonModule,
     MatButtonModule,
@@ -41,10 +41,10 @@ interface ToolRow {
     MatRippleModule,
     BreakOpportunitiesPipe,
   ],
-  templateUrl: './result-details.component.html',
-  styleUrl: './result-details.component.scss',
+  templateUrl: './format-details.component.html',
+  styleUrl: './format-details.component.scss',
 })
-export class ResultDetailsComponent implements OnInit {
+export class FormatDetailsComponent implements OnInit {
   private readonly data = inject<DialogData>(MAT_DIALOG_DATA);
   private readonly dialog = inject(MatDialog);
   private readonly featureSet: FeatureSet = this.data.featureSet;
@@ -87,10 +87,10 @@ export class ResultDetailsComponent implements OnInit {
     };
   }
 
-  showToolOutput(toolName: string, event: Event): void {
+  showToolOutput(toolName: string): void {
     const toolResult = this.toolResults.find((r) => r.title === toolName);
     if (toolResult) {
-      this.dialog.open(ToolOutputComponent, {
+      this.dialog.open(ToolDetailsComponent, {
         data: {
           toolName,
           toolResult,
@@ -100,11 +100,6 @@ export class ResultDetailsComponent implements OnInit {
         width: '70em',
         maxWidth: '80vw',
       });
-    }
-    // Remove focus after click
-    const target = event.currentTarget as HTMLElement;
-    if (target?.blur) {
-      target.blur();
     }
   }
 }

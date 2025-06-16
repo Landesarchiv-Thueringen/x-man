@@ -1,9 +1,10 @@
 import { AfterViewInit, Component, input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { BreakOpportunitiesPipe } from '../pipes/break-opportunities.pipe';
 import { CategoryPipe } from '../pipes/category.pipe';
 import { ToolsPipe } from '../pipes/tools.pipe';
-import { FileAnalysis, ToolResult } from '../results';
+import { FeatureValue, FileAnalysis, FileResult, ToolResult } from '../results';
 
 interface Category {
   id: string;
@@ -19,12 +20,13 @@ interface Feature {
 }
 
 @Component({
-  selector: 'app-metadata-table',
-  imports: [MatTableModule, CategoryPipe, ToolsPipe, MatSortModule],
-  templateUrl: './metadata.component.html',
-  styleUrl: './metadata.component.scss',
+  selector: 'app-file-metadata',
+  imports: [MatTableModule, CategoryPipe, ToolsPipe, MatSortModule, BreakOpportunitiesPipe],
+  templateUrl: './file-metadata.component.html',
+  styleUrl: './file-metadata.component.scss',
 })
-export class MetadataComponent implements OnInit, AfterViewInit {
+export class FileMetadataComponent implements OnInit, AfterViewInit {
+  readonly result = input.required<FileResult>();
   readonly fileAnalysis = input.required<FileAnalysis>();
   toolResults: ToolResult[] = [];
   displayedColumns: string[] = ['key', 'value', 'tools'];
@@ -42,35 +44,46 @@ export class MetadataComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     if (this.fileAnalysis().featureSets.length > 0) {
       this.toolResults = this.fileAnalysis().toolResults;
-      for (let key in this.fileAnalysis().featureSets[0].features) {
-        const parts = key.split(':');
-        if (parts.length !== 2) {
-          console.error('Could not extract category and attribute key from: ' + key);
-          continue;
-        }
-        const categoryKey = parts[0];
-        const featureKey = parts[1];
-        const feature: Feature = {
-          key: featureKey,
-          label: this.fileAnalysis().featureSets[0].features[key]!.label,
-          value: this.fileAnalysis().featureSets[0].features[key]!.value,
-          supportingTools: this.fileAnalysis().featureSets[0].features[key]!.supportingTools,
-        };
-        const category = this.categories.find((c) => c.id === categoryKey);
-        if (!category) {
-          this.categories.push({
-            id: categoryKey,
-            features: [feature],
-          });
-        } else {
-          category.features.push(feature);
-        }
-      }
-      this.sortCategories();
+      // merge extracted and additional features
+      const features = Object.assign(
+        this.fileAnalysis().featureSets[0].features,
+        this.result().additionalMetadata,
+      );
+      let categories = this.getCategories(features);
+      this.categories = this.sortCategories(categories);
       for (let category of this.categories) {
         category.dataSource = new MatTableDataSource<Feature>(category.features);
       }
     }
+  }
+
+  getCategories(features: { [key: string]: FeatureValue | undefined }): Category[] {
+    const categories: Category[] = [];
+    for (let key in features) {
+      const parts = key.split(':');
+      if (parts.length !== 2) {
+        console.error('Could not extract category and attribute key from: ' + key);
+        continue;
+      }
+      const categoryKey = parts[0];
+      const featureKey = parts[1];
+      const feature: Feature = {
+        key: featureKey,
+        label: features[key]!.label,
+        value: features[key]!.value,
+        supportingTools: features[key]!.supportingTools,
+      };
+      const category = categories.find((c) => c.id === categoryKey);
+      if (!category) {
+        categories.push({
+          id: categoryKey,
+          features: [feature],
+        });
+      } else {
+        category.features.push(feature);
+      }
+    }
+    return categories;
   }
 
   ngAfterViewInit(): void {
@@ -99,8 +112,8 @@ export class MetadataComponent implements OnInit, AfterViewInit {
     });
   }
 
-  sortCategories(): void {
-    this.categories = this.categories.sort((a, b) => {
+  sortCategories(categories: Category[]): Category[] {
+    return categories.sort((a, b) => {
       const oa = this.categoryOrder[a.id];
       const ob = this.categoryOrder[b.id];
       if (oa && ob) {

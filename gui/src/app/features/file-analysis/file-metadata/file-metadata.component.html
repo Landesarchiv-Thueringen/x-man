@@ -13,7 +13,9 @@
       <!-- Value Column -->
       <ng-container matColumnDef="value">
         <mat-header-cell *matHeaderCellDef mat-sort-header="value"> Wert </mat-header-cell>
-        <mat-cell *matCellDef="let feature"> {{ feature.value }} </mat-cell>
+        <mat-cell *matCellDef="let feature">
+          <span [innerHTML]="feature.value | breakOpportunities"></span>
+        </mat-cell>
       </ng-container>
 
       <!-- Tools Column -->

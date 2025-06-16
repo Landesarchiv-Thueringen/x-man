@@ -1,11 +1,7 @@
 import { Component, inject } from '@angular/core';
-
 import { firstValueFrom } from 'rxjs';
-import { FileResult } from '../../../../features/file-analysis/results';
-import {
-  FilePropertyDefinition,
-  ResultsComponent,
-} from '../../../../features/file-analysis/results/results.component';
+import { FileResultsComponent } from '../../../../features/file-analysis/file-results/file-results.component';
+import { FeatureValue, FileResult } from '../../../../features/file-analysis/results';
 import { MessageService, PrimaryDocumentInfo } from '../../../../services/message.service';
 import { notNull } from '../../../../utils/predicates';
 import { MessagePageService } from '../../message-page.service';
@@ -14,7 +10,7 @@ import { MessagePageService } from '../../message-page.service';
   selector: 'app-primary-documents-table',
   templateUrl: './primary-documents-table.component.html',
   styleUrls: ['./primary-documents-table.component.scss'],
-  imports: [ResultsComponent],
+  imports: [FileResultsComponent],
 })
 export class PrimaryDocumentsTableComponent {
   private messageService = inject(MessageService);
@@ -28,14 +24,6 @@ export class PrimaryDocumentsTableComponent {
     );
     return data.formatVerification;
   };
-  properties: FilePropertyDefinition[] = [
-    { key: 'filenameComplete', label: 'Dateiname', inTable: false },
-    { key: 'recordId', label: 'Dokument', inTable: false },
-    { key: 'filename', label: 'Dateiname' },
-    { key: 'mimeType', label: 'MIME-Type' },
-    { key: 'formatVersion', label: 'Formatversion' },
-    { key: 'status', label: 'Status' },
-  ];
 
   constructor() {
     this.messageService.getPrimaryDocumentsInfo(this.processId).subscribe((info) => {
@@ -52,6 +40,23 @@ function primaryDocumentToFileResult(
   if (!primaryDocument.formatVerificationSummary) {
     return undefined;
   }
+  const additionalMetadata: {
+    [key: string]: FeatureValue | undefined;
+  } = {};
+  if (primaryDocument.filenameOriginal) {
+    additionalMetadata['general:filenameOriginal'] = {
+      value: primaryDocument.filenameOriginal,
+      label: 'ursprünglicher Dateiname',
+      supportingTools: ['x-man'],
+    };
+  }
+  if (primaryDocument.filename) {
+    additionalMetadata['general:filenameComplete'] = {
+      value: primaryDocument.filename,
+      label: 'vollständiger Dateiname',
+      supportingTools: ['x-man'],
+    };
+  }
   return {
     id: primaryDocument.filename,
     filename:
@@ -60,14 +65,12 @@ function primaryDocumentToFileResult(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/,
         '',
       ),
-    info: {
-      recordId: {
-        value: primaryDocument.recordId,
-        routerLink: ['nachricht', processId, '0503', 'dokument', primaryDocument.recordId],
-      },
-      filenameOriginal: { value: primaryDocument.filenameOriginal },
-      filenameComplete: { value: primaryDocument.filename },
+    resourceLink: {
+      sectionLabel: 'Dokument',
+      linkLabel: primaryDocument.recordId,
+      routerLink: ['nachricht', processId, '0503', 'dokument', primaryDocument.recordId],
     },
+    additionalMetadata: additionalMetadata,
     summary: primaryDocument.formatVerificationSummary,
   };
 }

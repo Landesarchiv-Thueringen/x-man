@@ -4,13 +4,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import { RouterModule } from '@angular/router';
 import { FileFormatComponent } from '../file-format/file-format.component';
-import { MetadataComponent } from '../metadata/metadata-table.component';
-import { FileAnalysis, RowValue } from '../results';
+import { FileMetadataComponent } from '../file-metadata/file-metadata.component';
+import { FileAnalysis, FileResult } from '../results';
 
-interface DialogData {
-  filename: string;
-  info: { [key: string]: RowValue };
+export interface DialogData {
+  result: FileResult;
   analysis: FileAnalysis;
 }
 
@@ -24,12 +24,14 @@ interface DialogData {
     MatDialogModule,
     MatIconModule,
     MatTabsModule,
-    MetadataComponent,
+    FileMetadataComponent,
     FileFormatComponent,
+    RouterModule,
   ],
 })
 export class FileDetailsComponent {
   data = inject<DialogData>(MAT_DIALOG_DATA);
+  readonly result: FileResult = this.data.result;
   readonly analysis: FileAnalysis = this.data.analysis;
 
   exportResult(): void {

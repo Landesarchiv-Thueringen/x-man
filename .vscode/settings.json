@@ -15,6 +15,7 @@
   },
 
   // Spell checking
+  "cSpell.language": "en,de-de",
   "cSpell.words": [
     "aips",
     "aktenführende",

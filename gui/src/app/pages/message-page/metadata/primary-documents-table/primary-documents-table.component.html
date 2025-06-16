@@ -1,1 +1,5 @@
-<app-results [results]="results" [getDetails]="getDetails" [properties]="properties"></app-results>
+<app-file-results
+  [results]="results"
+  [getDetails]="getDetails"
+  [columns]="['filename', 'mimeType', 'formatVersion', 'status']"
+></app-file-results>

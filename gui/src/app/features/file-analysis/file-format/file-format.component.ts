@@ -1,13 +1,14 @@
 import { PercentPipe } from '@angular/common';
 import { Component, inject, input, OnInit } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatRippleModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
+import { DialogData, FormatDetailsComponent } from '../format-details/format-details.component';
 import { BreakOpportunitiesPipe } from '../pipes/break-opportunities.pipe';
 import { FeatureValuePipe } from '../pipes/feature-value.pipe';
 import { ToolsPipe } from '../pipes/tools.pipe';
-import { DialogData, ResultDetailsComponent } from '../result-details/result-details.component';
 import { FeatureValue, FileAnalysis, ToolResult } from '../results';
 
 interface FormatRow {
@@ -30,6 +31,7 @@ interface FormatRow {
     MatRippleModule,
     BreakOpportunitiesPipe,
     ToolsPipe,
+    MatButtonModule,
   ],
   templateUrl: './file-format.component.html',
   styleUrl: './file-format.component.scss',
@@ -60,7 +62,7 @@ export class FileFormatComponent implements OnInit {
     }
   }
 
-  showResultDetails(setIndex: number, event: Event): void {
+  showResultDetails(setIndex: number): void {
     const featureSet = this.fileAnalysis().featureSets[setIndex];
     const toolResults = this.fileAnalysis().toolResults;
     if (featureSet && toolResults) {
@@ -69,17 +71,12 @@ export class FileFormatComponent implements OnInit {
         featureSet: featureSet,
         toolResults: toolResults,
       };
-      this.dialog.open(ResultDetailsComponent, {
+      this.dialog.open(FormatDetailsComponent, {
         data: data,
         autoFocus: false,
         width: '70em',
         maxWidth: '80vw',
       });
-    }
-    // Remove focus after click
-    const target = event.currentTarget as HTMLElement;
-    if (target?.blur) {
-      target.blur();
     }
   }
 }

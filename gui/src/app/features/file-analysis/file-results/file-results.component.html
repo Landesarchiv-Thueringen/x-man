@@ -1,0 +1,125 @@
+<div class="heading-row">
+  <h1>
+    Geprüfte Dateien
+    @if (dataSource.connect() | async) {
+      ({{ dataSource.data.length }})
+    }
+  </h1>
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="filterMenu"
+    (click)="$event.stopPropagation()"
+    aria-label="Filter"
+  >
+    <mat-icon [class.material-icons-outlined]="activeFilters.size === 0">filter_alt</mat-icon>
+  </button>
+  <mat-menu #filterMenu="matMenu" class="file-analysis-results-filter-menu">
+    @for (filter of availableFilters; track filter.key) {
+      <button
+        mat-menu-item
+        [disabled]="activeFilters.has(filter) || nItemsForFilter(filter) === 0"
+        (click)="addFilter(filter)"
+      >
+        <mat-icon class="{{ filter.key }}-icon">{{ filter.icon }}</mat-icon>
+        {{ filter.label }} ({{ nItemsForFilter(filter) }})
+      </button>
+    }
+  </mat-menu>
+</div>
+
+@if (activeFilters.size > 0) {
+  <mat-chip-set class="filter-chips">
+    @for (filter of activeFilters.values(); track filter.key) {
+      <mat-chip (removed)="removeFilter(filter)">
+        <mat-icon matChipAvatar class="{{ filter.key }}-icon">{{ filter.icon }}</mat-icon>
+        {{ filter.label }} ({{ nItemsForFilter(filter) }})
+        <button matChipRemove>
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip>
+    }
+  </mat-chip-set>
+}
+
+<div class="table-container">
+  <mat-table [dataSource]="dataSource" matSort>
+    <!-- path column -->
+    <ng-container matColumnDef="path">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Pfad </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <span [innerHTML]="row.path | breakOpportunities"></span>
+      </mat-cell>
+    </ng-container>
+
+    <!-- filename column -->
+    <ng-container matColumnDef="filename">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Dateiname </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <span [innerHTML]="row.filename | breakOpportunities"></span>
+      </mat-cell>
+    </ng-container>
+
+    <!-- fileSize column -->
+    <ng-container matColumnDef="fileSize">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Dateigröße </mat-header-cell>
+      <mat-cell *matCellDef="let row"> {{ row.fileSize }} </mat-cell>
+    </ng-container>
+
+    <!-- PUID column -->
+    <ng-container matColumnDef="puid">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> PUID </mat-header-cell>
+      <mat-cell *matCellDef="let row"> {{ row.puid }} </mat-cell>
+    </ng-container>
+
+    <!-- MIME type column -->
+    <ng-container matColumnDef="mimeType">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> MIME-Type </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <span [innerHTML]="row.mimeType | breakOpportunities"></span>
+      </mat-cell>
+    </ng-container>
+
+    <!-- format version column -->
+    <ng-container matColumnDef="formatVersion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Formatversion </mat-header-cell>
+      <mat-cell *matCellDef="let row"> {{ row.formatVersion }} </mat-cell>
+    </ng-container>
+
+    <!-- status column -->
+    <ng-container matColumnDef="status">
+      <mat-header-cell *matHeaderCellDef mat-sort-header="status"> Status </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        @if (row.status.valid) {
+          <mat-icon class="valid-icon">check</mat-icon>
+        }
+        @if (row.status.invalid) {
+          <mat-icon class="invalid-icon">close</mat-icon>
+        }
+        @if (row.status.warning) {
+          <mat-icon class="warning-icon">warning</mat-icon>
+        }
+        @if (row.status.error) {
+          <mat-icon class="error-icon">error</mat-icon>
+        }
+        <button
+          mat-button
+          class="open-details-button"
+          (click)="openDetails(row)"
+          aria-label="Details anzeigen"
+        ></button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns()"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns()"></mat-row>
+  </mat-table>
+
+  <div class="table-toolbar">
+    <ng-content select="[toolbar-button]"></ng-content>
+    <mat-paginator
+      [pageSize]="10"
+      [pageSizeOptions]="[5, 10, 15]"
+      showFirstLastButtons
+    ></mat-paginator>
+  </div>
+</div>

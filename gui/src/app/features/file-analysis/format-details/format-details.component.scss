@@ -1,5 +1,6 @@
-h3 {
-  font: var(--mat-sys-title-medium);
+.summary-row {
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .mat-mdc-row {
@@ -24,16 +25,17 @@ h3 {
   }
 }
 
-.summary-row {
-  font-weight: 500;
-}
-.cdk-cell.cdk-column-tools,
 .cdk-cell.cdk-column-mimeType {
   overflow-wrap: anywhere;
 }
 
+mat-dialog-actions {
+  .button-left {
+    margin-right: auto;
+  }
+}
+
 .uncertain-icon {
-  margin-left: 10px;
   color: #ff6600;
 }
 .valid-icon {

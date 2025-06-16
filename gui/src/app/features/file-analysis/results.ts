@@ -1,21 +1,15 @@
 export interface FileResult {
   id: string;
   filename: string;
-  info: { [key: string]: RowValue };
+  resourceLink?: ResourceLink;
   summary: Summary;
+  additionalMetadata?: { [key: string]: FeatureValue | undefined };
 }
 
-export interface RowValue {
-  /**
-   * The field's value.
-   *
-   * Used for sorting and display if `displayString` is not set.
-   */
-  value: string | number;
-  /** A string to display instead of `value`. Optional. */
-  displayString?: string;
-  /** Makes the field a router link to open in a new tab. Optional. */
-  routerLink?: any;
+export interface ResourceLink {
+  sectionLabel: string;
+  linkLabel: string;
+  routerLink: string[];
 }
 
 export interface FileAnalysis {
@@ -30,9 +24,9 @@ export interface Summary {
   formatUncertain: boolean;
   validityConflict: boolean;
   error: boolean;
-  puid: string;
-  mimeType: string;
-  formatVersion: string;
+  puid: string | null;
+  mimeType: string | null;
+  formatVersion: string | null;
 }
 
 export interface FeatureSet {
