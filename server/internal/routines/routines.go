@@ -4,9 +4,9 @@ package routines
 import (
 	"context"
 	"fmt"
+	"lath/xman/internal/core"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
-	"lath/xman/internal/xdomea"
 	"log"
 	"os"
 	"strconv"
@@ -85,7 +85,7 @@ func cleanupErrors() {
 // deleteProcess deletes the given process and all associated data from the
 // database and removes all associated message files from the message store.
 func deleteProcess(process db.SubmissionProcess) {
-	found := xdomea.DeleteProcess(process.ProcessID)
+	found := core.DeleteProcess(process.ProcessID)
 	if !found {
 		panic(fmt.Sprintf("failed to delete process %v: not found", process.ProcessID))
 	}

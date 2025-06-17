@@ -3,8 +3,8 @@ package report
 import (
 	"context"
 	"fmt"
+	"lath/xman/internal/core"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 
 	"github.com/google/uuid"
 )
@@ -21,7 +21,7 @@ func appraisalInfo(
 	process db.SubmissionProcess,
 ) []AppraisalStructure {
 	rootRecords := db.FindAllRootRecords(ctx, process.ProcessID, db.MessageType0501)
-	records := xdomea.AppraisableRecords(&rootRecords)
+	records := core.AppraisableRecords(&rootRecords)
 	appraisals := getAppraisalsMap(process.ProcessID)
 	return appraisalInfoNodes("", rootRecords.Files, rootRecords.Processes, records, appraisals)
 }
@@ -30,7 +30,7 @@ func appraisalInfoNodes(
 	parentType db.RecordType,
 	files []db.FileRecord,
 	processes []db.ProcessRecord,
-	records xdomea.AppraisableRecordsMap,
+	records core.AppraisableRecordsMap,
 	appraisals appraisalMap,
 ) []AppraisalStructure {
 	var result []AppraisalStructure
@@ -46,7 +46,7 @@ func appraisalInfoNodes(
 			children = filterHasChildren(children)
 		}
 		result = append(result, AppraisalStructure{
-			Title:             xdomea.FileRecordTitle(file, parentType == db.RecordTypeFile),
+			Title:             core.FileRecordTitle(file, parentType == db.RecordTypeFile),
 			AppraisalDecision: appraisals[file.RecordID].Decision,
 			AppraisalNote:     appraisals[file.RecordID].Note,
 			Children:          children,
@@ -58,7 +58,7 @@ func appraisalInfoNodes(
 			children = filterHasChildren(children)
 		}
 		result = append(result, AppraisalStructure{
-			Title:             xdomea.ProcessRecordTitle(process, parentType == db.RecordTypeProcess),
+			Title:             core.ProcessRecordTitle(process, parentType == db.RecordTypeProcess),
 			AppraisalDecision: appraisals[process.RecordID].Decision,
 			AppraisalNote:     appraisals[process.RecordID].Note,
 			Children:          children,
@@ -82,7 +82,7 @@ func filterHasChildren(nodes []AppraisalStructure) []AppraisalStructure {
 // children with a different appraisal decision than itself.
 func hasDivergentAppraisals(
 	recordID uuid.UUID,
-	records xdomea.AppraisableRecordsMap,
+	records core.AppraisableRecordsMap,
 	appraisals appraisalMap,
 ) bool {
 	fmt.Println("hasDivergentAppraisals", recordID, records[recordID].Type, appraisals[recordID].Decision)

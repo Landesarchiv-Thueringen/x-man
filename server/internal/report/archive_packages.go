@@ -3,8 +3,8 @@ package report
 import (
 	"context"
 	"fmt"
+	"lath/xman/internal/core"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 	"reflect"
 
 	"github.com/google/uuid"
@@ -100,7 +100,7 @@ func archivePackagesInfoForFile(
 		children = append(children, archivePackagesInfoForDocuments(file.Documents[:], subAIPs[:], fullPath))
 	}
 	return ArchivePackageStructure{
-		Title:    xdomea.FileRecordTitle(file, len(path) > 0),
+		Title:    core.FileRecordTitle(file, len(path) > 0),
 		Children: children,
 	}
 }
@@ -140,7 +140,7 @@ func archivePackagesInfoForProcess(
 		children = append(children, archivePackagesInfoForDocuments(process.Documents[:], subAIPs[:], fullPath))
 	}
 	return ArchivePackageStructure{
-		Title:    xdomea.ProcessRecordTitle(process, false),
+		Title:    core.ProcessRecordTitle(process, false),
 		Children: children,
 	}
 }

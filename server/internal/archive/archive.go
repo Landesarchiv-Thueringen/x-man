@@ -7,12 +7,12 @@ import (
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/archive/filesystem"
 	"lath/xman/internal/auth"
+	"lath/xman/internal/core"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
 	"lath/xman/internal/mail"
 	"lath/xman/internal/report"
 	"lath/xman/internal/tasks"
-	"lath/xman/internal/xdomea"
 	"os"
 	"time"
 
@@ -43,7 +43,7 @@ func ArchiveSubmission(
 		context.Background(), process.ProcessID, db.MessageType0503,
 	)
 	var items []db.TaskItem
-	m, _, _ := xdomea.Packaging(process.ProcessID)
+	m, _, _ := core.Packaging(process.ProcessID)
 	items = append(items, taskItemsForFiles(m, []uuid.UUID{}, rootRecords.Files)...)
 	items = append(items, taskItemsForProcesses(m, []uuid.UUID{}, rootRecords.Processes)...)
 	items = append(items, taskItemsForDocuments(
@@ -63,15 +63,15 @@ func ArchiveSubmission(
 }
 
 func taskItemsForFiles(
-	m map[uuid.UUID]xdomea.PackagingDecision,
+	m map[uuid.UUID]core.PackagingDecision,
 	path []uuid.UUID,
 	files []db.FileRecord,
 ) []db.TaskItem {
 	var items []db.TaskItem
 	for _, f := range files {
-		title := xdomea.FileRecordTitle(f, len(path) > 0)
+		title := core.FileRecordTitle(f, len(path) > 0)
 		switch m[f.RecordID] {
-		case xdomea.PackagingDecisionSingle:
+		case core.PackagingDecisionSingle:
 			items = append(items, db.TaskItem{
 				Label: title,
 				State: db.TaskStatePending,
@@ -82,7 +82,7 @@ func taskItemsForFiles(
 					RecordID:   f.RecordID,
 				},
 			})
-		case xdomea.PackagingDecisionSub:
+		case core.PackagingDecisionSub:
 			items = append(items,
 				taskItemsForFiles(m, append(path, f.RecordID), f.Subfiles)...)
 			items = append(items,
@@ -97,15 +97,15 @@ func taskItemsForFiles(
 }
 
 func taskItemsForProcesses(
-	m map[uuid.UUID]xdomea.PackagingDecision,
+	m map[uuid.UUID]core.PackagingDecision,
 	path []uuid.UUID,
 	processes []db.ProcessRecord,
 ) []db.TaskItem {
 	var items []db.TaskItem
 	for _, p := range processes {
 		switch m[p.RecordID] {
-		case xdomea.PackagingDecisionSingle:
-			title := xdomea.ProcessRecordTitle(p, false)
+		case core.PackagingDecisionSingle:
+			title := core.ProcessRecordTitle(p, false)
 			items = append(items, db.TaskItem{
 				Label: title,
 				State: db.TaskStatePending,
@@ -116,7 +116,7 @@ func taskItemsForProcesses(
 					RecordID:   p.RecordID,
 				},
 			})
-		case xdomea.PackagingDecisionSub:
+		case core.PackagingDecisionSub:
 			panic("unexpected packaging decision for process record " +
 				p.RecordID.String() + ": \"sub\"",
 			)
@@ -296,7 +296,7 @@ func (h *ArchiveHandler) AfterDone() {
 	if h.t.State != db.TaskStateDone {
 		return
 	}
-	err := xdomea.Send0506Message(h.process, h.message)
+	err := core.Send0506Message(h.process, h.message)
 	if err != nil {
 		errorData := db.ProcessingError{
 			Title:     "Fehler beim Senden der 0506-Nachricht",
@@ -375,8 +375,8 @@ func createAipFromFileRecord(
 	f db.FileRecord,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
-	primaryDocuments := xdomea.GetPrimaryDocumentsForFile(&f)
-	primaryDocuments, _ = xdomea.FilterMissingPrimaryDocuments(
+	primaryDocuments := core.GetPrimaryDocumentsForFile(&f)
+	primaryDocuments, _ = core.FilterMissingPrimaryDocuments(
 		process.ProcessID, primaryDocuments,
 	)
 	archivePackageData := db.ArchivePackage{
@@ -401,8 +401,8 @@ func createAipFromProcessRecord(
 	p db.ProcessRecord,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
-	primaryDocuments := xdomea.GetPrimaryDocumentsForProcess(&p)
-	primaryDocuments, _ = xdomea.FilterMissingPrimaryDocuments(
+	primaryDocuments := core.GetPrimaryDocumentsForProcess(&p)
+	primaryDocuments, _ = core.FilterMissingPrimaryDocuments(
 		process.ProcessID, primaryDocuments,
 	)
 	archivePackageData := db.ArchivePackage{
@@ -448,9 +448,9 @@ func createAipFromDocumentRecords(
 	var primaryDocuments []db.PrimaryDocumentContext
 	for _, d := range documents {
 		primaryDocuments = append(primaryDocuments,
-			xdomea.GetPrimaryDocumentsForDocument(&d)...)
+			core.GetPrimaryDocumentsForDocument(&d)...)
 	}
-	primaryDocuments, _ = xdomea.FilterMissingPrimaryDocuments(
+	primaryDocuments, _ = core.FilterMissingPrimaryDocuments(
 		process.ProcessID, primaryDocuments,
 	)
 	var recordIDs []uuid.UUID

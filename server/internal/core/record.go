@@ -1,4 +1,4 @@
-package xdomea
+package core
 
 import (
 	"lath/xman/internal/db"

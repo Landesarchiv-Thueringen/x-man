@@ -8,6 +8,7 @@ import (
 	"lath/xman/internal/archive"
 	"lath/xman/internal/archive/dimag"
 	"lath/xman/internal/auth"
+	"lath/xman/internal/core"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
 	"lath/xman/internal/mail"
@@ -15,7 +16,6 @@ import (
 	"lath/xman/internal/routines"
 	"lath/xman/internal/tasks"
 	"lath/xman/internal/verification"
-	"lath/xman/internal/xdomea"
 	"log"
 	"net/http"
 	"os"
@@ -28,7 +28,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var defaultResponse = fmt.Sprintf("x-man server %s is running", xdomea.XMAN_VERSION)
+var defaultResponse = fmt.Sprintf("x-man server %s is running", core.XMAN_VERSION)
 
 func main() {
 	initServer()
@@ -99,7 +99,7 @@ func initServer() {
 	auth.Init()
 	migrateData()
 	testConfiguration()
-	go xdomea.MonitorTransferDirs()
+	go core.MonitorTransferDirs()
 }
 
 func migrateData() {
@@ -107,13 +107,13 @@ func migrateData() {
 	if s.Version == "" {
 		if os.Getenv("INIT_TEST_SETUP") == "true" {
 			log.Println("Initializing database with test data...")
-			xdomea.InitTestSetup()
+			core.InitTestSetup()
 			log.Println("done")
 		}
 	} else {
-		log.Printf("Database is up do date with X-Man version %s\n", xdomea.XMAN_VERSION)
+		log.Printf("Database is up do date with X-Man version %s\n", core.XMAN_VERSION)
 	}
-	db.UpsertServerStateXmanVersion(xdomea.XMAN_VERSION)
+	db.UpsertServerStateXmanVersion(core.XMAN_VERSION)
 }
 
 func testConfiguration() {
@@ -153,7 +153,7 @@ func getDefaultResponse(c *gin.Context) {
 
 func getAbout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"version": xdomea.XMAN_VERSION,
+		"version": core.XMAN_VERSION,
 	})
 }
 
@@ -240,7 +240,7 @@ func resolveProcessingError(c *gin.Context) {
 	}
 	userID := c.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
-	xdomea.Resolve(processingError, db.ProcessingErrorResolution(body), userName)
+	core.Resolve(processingError, db.ProcessingErrorResolution(body), userName)
 	c.Status(http.StatusAccepted)
 }
 
@@ -287,7 +287,7 @@ func deleteProcess(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	if found := xdomea.DeleteProcess(processID); found {
+	if found := core.DeleteProcess(processID); found {
 		c.Status(http.StatusAccepted)
 	} else {
 		c.Status(http.StatusNotFound)
@@ -301,7 +301,7 @@ func reimportMessage(c *gin.Context) {
 		return
 	}
 	messageType := c.Param("messageType")
-	err = xdomea.DeleteMessage(processID, db.MessageType(messageType), true)
+	err = core.DeleteMessage(processID, db.MessageType(messageType), true)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -315,7 +315,7 @@ func deleteMessage(c *gin.Context) {
 		return
 	}
 	messageType := c.Param("messageType")
-	err = xdomea.DeleteMessage(processID, db.MessageType(messageType), false)
+	err = core.DeleteMessage(processID, db.MessageType(messageType), false)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -373,7 +373,7 @@ func setAppraisalDecision(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	err = xdomea.SetAppraisalDecisionRecursive(processID,
+	err = core.SetAppraisalDecisionRecursive(processID,
 		recordID,
 		db.AppraisalDecisionOption((appraisalDecision)))
 	if err != nil {
@@ -399,7 +399,7 @@ func setAppraisalNote(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	err = xdomea.SetAppraisalInternalNote(processID, recordID, string(appraisalNote))
+	err = core.SetAppraisalInternalNote(processID, recordID, string(appraisalNote))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -427,7 +427,7 @@ func setAppraisals(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	err = xdomea.SetAppraisals(
+	err = core.SetAppraisals(
 		parsedBody.ProcessID,
 		parsedBody.RecordObjectIDs,
 		parsedBody.Decision,
@@ -463,8 +463,8 @@ func finalizeMessageAppraisal(c *gin.Context) {
 	}
 	userID := c.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
-	message = xdomea.FinalizeMessageAppraisal(message, userName)
-	err = xdomea.Send0502Message(process.Agency, message)
+	message = core.FinalizeMessageAppraisal(message, userName)
+	err = core.Send0502Message(process.Agency, message)
 	if err != nil {
 		errorData := db.ProcessingError{
 			Title:     "Fehler beim Senden der 0502-Nachricht",
@@ -517,7 +517,7 @@ func areAllRecordObjectsAppraised(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	appraisalComplete := xdomea.AreAllRecordObjectsAppraised(c.Request.Context(), processID)
+	appraisalComplete := core.AreAllRecordObjectsAppraised(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisalComplete)
 }
 
@@ -527,7 +527,7 @@ func getPackaging(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	decisions, stats, choices := xdomea.Packaging(processID)
+	decisions, stats, choices := core.Packaging(processID)
 	c.JSON(http.StatusOK, gin.H{
 		"decisions": decisions,
 		"stats":     stats,
@@ -560,7 +560,7 @@ func getPackagingStatsForOptions(c *gin.Context) {
 		return
 	}
 	rootRecords := db.FindRootRecords(c.Request.Context(), processID, db.MessageType0503, recordIDs)
-	statsMap := xdomea.PackagingStatsForChoices(rootRecords.Files)
+	statsMap := core.PackagingStatsForChoices(rootRecords.Files)
 	c.JSON(http.StatusOK, statsMap)
 }
 
@@ -583,7 +583,7 @@ func setPackagingChoice(c *gin.Context) {
 	for _, id := range data.RecordIDs {
 		db.UpsertPackagingChoice(data.ProcessID, id, data.Packaging)
 	}
-	decisions, stats, choices := xdomea.Packaging(data.ProcessID)
+	decisions, stats, choices := core.Packaging(data.ProcessID)
 	c.JSON(http.StatusOK, gin.H{
 		"decisions": decisions,
 		"stats":     stats,
@@ -905,7 +905,7 @@ func testTransferDir(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	success := xdomea.TestTransferDir(string(body))
+	success := core.TestTransferDir(string(body))
 	if success {
 		c.JSON(http.StatusOK, gin.H{"result": "success"})
 	} else {

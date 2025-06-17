@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/xml"
 	"lath/xman/internal/auth"
+	"lath/xman/internal/core"
 	"lath/xman/internal/db"
-	"lath/xman/internal/xdomea"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -59,7 +59,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0501.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID.String() + xdomea.Message0501MessageSuffix + ".zip",
+			Reference:   process.ProcessID.String() + core.Message0501MessageSuffix + ".zip",
 			Info:        "Anbietung empfangen",
 		})
 	}
@@ -68,7 +68,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 			CompletedAt: s.Appraisal.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			CompletedBy: s.Appraisal.CompletedBy,
 			Action:      "Bewertung",
-			Reference:   process.ProcessID.String() + xdomea.Message0501MessageSuffix + ".zip",
+			Reference:   process.ProcessID.String() + core.Message0501MessageSuffix + ".zip",
 			Info:        "Anbietung bewerten",
 		})
 	}
@@ -76,7 +76,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0505.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID.String() + xdomea.Message0505MessageSuffix + ".zip",
+			Reference:   process.ProcessID.String() + core.Message0505MessageSuffix + ".zip",
 			Info:        "Empfangsbestätigung für Bewertung erhalten",
 		})
 	}
@@ -84,7 +84,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0503.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID.String() + xdomea.Message0503MessageSuffix + ".zip",
+			Reference:   process.ProcessID.String() + core.Message0503MessageSuffix + ".zip",
 			Info:        "Abgabe empfangen",
 		})
 	}
