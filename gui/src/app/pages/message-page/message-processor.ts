@@ -202,6 +202,12 @@ export class MessageProcessor {
         children.push(this.getProcessStructureNode(process, fileNode, messageType, nodesMap));
       }
     }
+    // generate child nodes for all documents (de: Dokumente)
+    if (fileRecord.documents) {
+      for (let document of fileRecord.documents) {
+        children.push(this.getDocumentStructureNode(document, fileNode, messageType, nodesMap));
+      }
+    }
     nodesMap.set(fileNode.id, fileNode);
     return fileNode;
   }

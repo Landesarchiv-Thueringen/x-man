@@ -2,7 +2,7 @@
 
 ## Next
 
--
+-   Fix: Anzeige von Dokumenten direkt innerhalb einer Akte
 
 ## v1.3.0
 

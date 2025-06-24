@@ -18,6 +18,7 @@ export interface FileRecord {
   type: string;
   subfiles: FileRecord[];
   processes: ProcessRecord[];
+  documents: DocumentRecord[];
 }
 
 export interface ProcessRecord {

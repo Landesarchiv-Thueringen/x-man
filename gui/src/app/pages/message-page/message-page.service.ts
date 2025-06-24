@@ -1,4 +1,4 @@
-import { Injectable, Signal, computed, signal, inject } from '@angular/core';
+import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Map } from 'immutable';
@@ -183,6 +183,7 @@ export class MessagePageService {
       fileRecords = fileRecords.set(file.recordId, file);
       file.subfiles?.forEach(processFile);
       file.processes?.forEach(processProcess);
+      file.documents?.forEach(processDocument);
     };
     rootRecords?.files?.forEach(processFile);
     rootRecords?.processes?.forEach(processProcess);
