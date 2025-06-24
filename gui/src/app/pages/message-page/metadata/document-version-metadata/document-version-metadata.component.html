@@ -9,14 +9,15 @@
       <!-- use a disabled button to provide padding for tree leaf -->
       <button mat-icon-button disabled></button>
       <div class="node-text">
-        {{ node.text }}
+        @if (node.type === "format") {
+          <a mat-button (click)="downloadPrimaryFile(node)">
+            <span>{{ node.text }}</span>
+            <mat-icon iconPositionEnd>open_in_new</mat-icon>
+          </a>
+        } @else {
+          <span>{{ node.text }}</span>
+        }
       </div>
-      @if (node.type === "format") {
-        <button mat-button (click)="downloadPrimaryFile(node)" class="download-button">
-          <span>Download</span>
-          <mat-icon>download</mat-icon>
-        </button>
-      }
     </mat-tree-node>
 
     <!-- This is the tree node template for expandable nodes -->
