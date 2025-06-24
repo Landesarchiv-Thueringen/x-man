@@ -3,6 +3,7 @@
 ## Next
 
 -   Fix: Anzeige von Dokumenten direkt innerhalb einer Akte
+-   Fix: Kleinere UI-Fixes
 
 ## v1.3.0
 
