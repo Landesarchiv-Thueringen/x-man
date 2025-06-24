@@ -11,14 +11,12 @@
       <div class="node-text">
         {{ node.text }}
       </div>
-      <button
-        mat-icon-button
-        *ngIf="node.type === 'format'"
-        (click)="downloadPrimaryFile(node)"
-        class="download-button"
-      >
-        <mat-icon>download</mat-icon>
-      </button>
+      @if (node.type === "format") {
+        <button mat-button (click)="downloadPrimaryFile(node)" class="download-button">
+          <span>Download</span>
+          <mat-icon>download</mat-icon>
+        </button>
+      }
     </mat-tree-node>
 
     <!-- This is the tree node template for expandable nodes -->
