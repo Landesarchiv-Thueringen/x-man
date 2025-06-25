@@ -2,7 +2,6 @@ package report
 
 import (
 	"context"
-	"fmt"
 	"lath/xman/internal/core"
 	"lath/xman/internal/db"
 )
@@ -83,13 +82,11 @@ func hasDivergentAppraisals(
 	records core.AppraisableRecordsMap,
 	appraisals appraisalMap,
 ) bool {
-	fmt.Println("hasDivergentAppraisals", recordID, records[recordID].Type, appraisals[recordID].Decision)
 	if appraisals[recordID].Decision != db.AppraisalDecisionA {
 		// All sub records of discarded records are discarded as well.
 		return false
 	}
 	for _, childID := range records[recordID].Children {
-		fmt.Println("  child", childID, appraisals[childID].Decision)
 		if appraisals[childID].Decision != db.AppraisalDecisionA {
 			return true
 		}
