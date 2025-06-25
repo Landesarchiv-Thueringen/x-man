@@ -2,7 +2,8 @@
 
 ## Next
 
--   Fix: Anzeige von Dokumenten direkt innerhalb einer Akte
+-   Fix: Erhalt der originalen Groß-/Kleinschreibung von UUIDs aus eingehenden Nachrichten
+-   Fix: Anzeige von Dokumenten innerhalb einer Akte
 -   Fix: Kleinere UI-Fixes
 
 ## v1.3.0
