@@ -16,8 +16,6 @@ import (
 	"path"
 	"regexp"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 type Attachment struct {
@@ -41,7 +39,7 @@ func SendMailNewMessageNotification(to string, agencyName string, message db.Mes
 	body := "<p>Es ist eine neue " + messageType + " von \"" + agencyName + "\" eingegangen.</p>\n"
 	origin := os.Getenv("ORIGIN")
 	if message.MessageType == "0501" || message.MessageType == "0503" {
-		url := origin + "/nachricht/" + message.MessageHead.ProcessID.String() + "/" + string(message.MessageType)
+		url := origin + "/nachricht/" + message.MessageHead.ProcessID + "/" + string(message.MessageType)
 		body += fmt.Sprintf("<p>Der Inhalt steht unter folgendem Link zur Verfügung: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
 	body += "<p>Diese E-Mail stellt eine reine Benachrichtigung dar und sollte nicht veraktet werden.</p>\n"
@@ -98,8 +96,8 @@ func SendMailProcessingError(to string, e db.ProcessingError) error {
 	origin := os.Getenv("ORIGIN")
 	message := "<p>Ein Fehler wurde in der Steuerungsstelle eingetragen.</p>\n"
 	message += fmt.Sprintf("<p><strong>%s</strong></p>\n", e.Title)
-	if e.ProcessID != uuid.Nil {
-		url := origin + "/nachricht/" + e.ProcessID.String()
+	if e.ProcessID != nil {
+		url := origin + "/nachricht/" + *e.ProcessID
 		message += fmt.Sprintf("<p>Nachricht: <a href=\"%s\">%s</a></p>\n", url, url)
 	}
 	if e.Info != "" {

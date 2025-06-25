@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"lath/xman/internal/core"
 	"lath/xman/internal/db"
-
-	"github.com/google/uuid"
 )
 
 type AppraisalStructure struct {
@@ -81,7 +79,7 @@ func filterHasChildren(nodes []AppraisalStructure) []AppraisalStructure {
 // hasDivergentAppraisals returns true if the given record has any direct
 // children with a different appraisal decision than itself.
 func hasDivergentAppraisals(
-	recordID uuid.UUID,
+	recordID string,
 	records core.AppraisableRecordsMap,
 	appraisals appraisalMap,
 ) bool {

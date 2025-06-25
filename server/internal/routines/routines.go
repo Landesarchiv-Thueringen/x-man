@@ -11,8 +11,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // interval is the time interval between scheduled routine runs.
@@ -70,12 +68,12 @@ func cleanupErrors() {
 	deleteBeforeTime := time.Now().Add(-1 * time.Hour * 24 * time.Duration(deleteDeltaDays))
 	// Delete resolved process errors, that are not associated with a still
 	// existing submission process.
-	processIDs := make(map[uuid.UUID]bool)
+	processIDs := make(map[string]bool)
 	for _, p := range db.FindProcesses(context.Background()) {
 		processIDs[p.ProcessID] = true
 	}
 	for _, e := range db.FindResolvedProcessingErrorsOlderThan(context.Background(), deleteBeforeTime) {
-		if e.ProcessID == uuid.Nil || !processIDs[e.ProcessID] {
+		if e.ProcessID == nil || !processIDs[*e.ProcessID] {
 			log.Println("Deleting processing error", e.Title)
 			db.DeleteProcessingError(e.ID)
 		}

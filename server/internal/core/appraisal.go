@@ -5,28 +5,27 @@ import (
 	"fmt"
 	"lath/xman/internal/db"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AppraisableRecordRelations struct {
-	Parent       uuid.UUID // uuid.Nil for root-level records
-	Children     []uuid.UUID
+	Parent       *string // nil for root-level records
+	Children     []string
 	HasDocuments bool
 	Type         db.RecordType
 }
 
-type AppraisableRecordsMap map[uuid.UUID]AppraisableRecordRelations
+type AppraisableRecordsMap map[string]AppraisableRecordRelations
 
 func AppraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 	m := make(AppraisableRecordsMap)
-	var appendFileRecords func(parent uuid.UUID, files []db.FileRecord) (childIDs []uuid.UUID)
-	var appendProcessRecords func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID)
-	appendFileRecords = func(parent uuid.UUID, files []db.FileRecord) (childIDs []uuid.UUID) {
+	var appendFileRecords func(parent *string, files []db.FileRecord) (childIDs []string)
+	var appendProcessRecords func(parent *string, processes []db.ProcessRecord) (childIDs []string)
+	appendFileRecords = func(parent *string, files []db.FileRecord) (childIDs []string) {
 		for _, f := range files {
 			childIDs = append(childIDs, f.RecordID)
-			innerChildIDs := appendFileRecords(f.RecordID, f.Subfiles)
-			innerChildIDs = append(innerChildIDs, appendProcessRecords(f.RecordID, f.Processes)...)
+			innerChildIDs := appendFileRecords(&f.RecordID, f.Subfiles)
+			innerChildIDs = append(innerChildIDs, appendProcessRecords(&f.RecordID, f.Processes)...)
 			m[f.RecordID] = AppraisableRecordRelations{
 				Parent:       parent,
 				Children:     innerChildIDs,
@@ -36,10 +35,10 @@ func AppraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 		}
 		return
 	}
-	appendProcessRecords = func(parent uuid.UUID, processes []db.ProcessRecord) (childIDs []uuid.UUID) {
+	appendProcessRecords = func(parent *string, processes []db.ProcessRecord) (childIDs []string) {
 		for _, p := range processes {
 			childIDs = append(childIDs, p.RecordID)
-			innerChildIDs := appendProcessRecords(p.RecordID, p.Subprocesses)
+			innerChildIDs := appendProcessRecords(&p.RecordID, p.Subprocesses)
 			m[p.RecordID] = AppraisableRecordRelations{
 				Parent:       parent,
 				Children:     innerChildIDs,
@@ -49,14 +48,14 @@ func AppraisableRecords(r *db.RootRecords) AppraisableRecordsMap {
 		}
 		return
 	}
-	appendFileRecords(uuid.Nil, r.Files)
-	appendProcessRecords(uuid.Nil, r.Processes)
+	appendFileRecords(nil, r.Files)
+	appendProcessRecords(nil, r.Processes)
 	return m
 }
 
 // AreAllRecordObjectsAppraised verifies whether every file, subfile, process, and subprocess has been appraised
 // with either an 'A' (de: archivieren) or 'V' (de: vernichten).
-func AreAllRecordObjectsAppraised(ctx context.Context, processID uuid.UUID) bool {
+func AreAllRecordObjectsAppraised(ctx context.Context, processID string) bool {
 	rootRecords := db.FindAllRootRecords(ctx, processID, db.MessageType0501)
 	m := AppraisableRecords(&rootRecords)
 	for id := range m {
@@ -87,8 +86,8 @@ func AreAllRecordObjectsAppraised(ctx context.Context, processID uuid.UUID) bool
 // updates the parent to match the decision, repeating the process for further
 // ancestors.
 func SetAppraisalDecisionRecursive(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	decision db.AppraisalDecisionOption,
 ) error {
 	process, found := db.FindProcess(context.Background(), processID)
@@ -117,8 +116,8 @@ func SetAppraisalDecisionRecursive(
 // propagateAppraisalDecisionDown recursively propagates an appraisal decision
 // as described in SetAppraisalDecisionRecursive.
 func propagateAppraisalDecisionDown(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	m AppraisableRecordsMap,
 	decision db.AppraisalDecisionOption,
 	previousAppraisal db.Appraisal,
@@ -135,8 +134,8 @@ func propagateAppraisalDecisionDown(
 // SetAppraisalDecisionRecursive saves an internal appraisal note for a record
 // object to the database.
 func SetAppraisalInternalNote(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	internalNote string,
 ) error {
 	process, found := db.FindProcess(context.Background(), processID)
@@ -160,8 +159,8 @@ func SetAppraisalInternalNote(
 // If the decision to set is "A", it makes sure that for all sub objects, all
 // ancestors are also set to "A".
 func SetAppraisals(
-	processID uuid.UUID,
-	recordIDs []uuid.UUID,
+	processID string,
+	recordIDs []string,
 	decision db.AppraisalDecisionOption,
 	internalNote string,
 ) error {
@@ -214,39 +213,39 @@ func SetAppraisals(
 // parent. If the parent has been modified, the process is repeated for the
 // parent.
 func matchParentForEqualSiblings(
-	processID uuid.UUID,
+	processID string,
 	m AppraisableRecordsMap,
-	id uuid.UUID,
+	id string,
 	decision db.AppraisalDecisionOption,
 ) {
 	parent := m[id].Parent
-	if parent != uuid.Nil {
+	if parent != nil {
 		// If the record has documents as siblings, these documents
 		// automatically assume the parent's appraisal decision since documents
 		// themselves are not appraisable. Therefore, there we can never update
 		// the parent's appraisal in this case.
-		if m[parent].HasDocuments {
+		if m[*parent].HasDocuments {
 			return
 		}
-		parentAppraisal, _ := db.FindAppraisal(processID, parent)
+		parentAppraisal, _ := db.FindAppraisal(processID, *parent)
 		if parentAppraisal.Decision != decision {
-			for _, sibling := range m[parent].Children {
+			for _, sibling := range m[*parent].Children {
 				a, _ := db.FindAppraisal(processID, sibling)
 				if a.Decision != decision {
 					return
 				}
 			}
-			db.UpsertAppraisal(processID, parent, decision, "")
-			matchParentForEqualSiblings(processID, m, parent, decision)
+			db.UpsertAppraisal(processID, *parent, decision, "")
+			matchParentForEqualSiblings(processID, m, *parent, decision)
 		}
 	}
 }
 
-func markAncestorsToBeArchived(processID uuid.UUID, m AppraisableRecordsMap, id uuid.UUID) {
-	for parent := m[id].Parent; parent != uuid.Nil; parent = m[parent].Parent {
-		a, _ := db.FindAppraisal(processID, parent)
+func markAncestorsToBeArchived(processID string, m AppraisableRecordsMap, id string) {
+	for parent := m[id].Parent; parent != nil; parent = m[*parent].Parent {
+		a, _ := db.FindAppraisal(processID, *parent)
 		if a.Decision != db.AppraisalDecisionA {
-			db.UpsertAppraisal(processID, parent, db.AppraisalDecisionA, "")
+			db.UpsertAppraisal(processID, *parent, db.AppraisalDecisionA, "")
 		}
 	}
 }
@@ -272,13 +271,13 @@ func markUnappraisedRecordObjectsAsDiscardable(message db.Message) {
 	}
 }
 
-func updateAppraisalProcessStep(processID uuid.UUID) {
+func updateAppraisalProcessStep(processID string) {
 	process, found := db.FindProcess(context.Background(), processID)
 	if !found {
 		panic(fmt.Errorf("process not found: %s", processID))
 	}
 	rootRecords := db.FindAllRootRecords(context.Background(), processID, db.MessageType0501)
-	var appraisableRootRecordIDs []uuid.UUID
+	var appraisableRootRecordIDs []string
 	for _, r := range rootRecords.Files {
 		appraisableRootRecordIDs = append(appraisableRootRecordIDs, r.RecordID)
 	}

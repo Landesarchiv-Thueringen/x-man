@@ -5,7 +5,6 @@ import (
 	"lath/xman/internal/db"
 	"lath/xman/internal/tasks"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -19,18 +18,18 @@ func Resolve(e db.ProcessingError, r db.ProcessingErrorResolution, user string) 
 	case db.ErrorResolutionIgnoreProblem:
 		// Do nothing
 	case db.ErrorResolutionSkipTask:
-		err = db.UpdateProcessStepCompletion(e.ProcessID, e.ProcessStep, true, user)
+		err = db.UpdateProcessStepCompletion(*e.ProcessID, e.ProcessStep, true, user)
 	case db.ErrorResolutionRetryTask:
-		err = tasks.Action(e.TaskID, db.TaskActionRetry)
+		err = tasks.Action(*e.TaskID, db.TaskActionRetry)
 	case db.ErrorResolutionReimportMessage:
-		err = DeleteMessage(e.ProcessID, e.MessageType, true)
+		err = DeleteMessage(*e.ProcessID, e.MessageType, true)
 	case db.ErrorResolutionDeleteMessage:
-		err = DeleteMessage(e.ProcessID, e.MessageType, false)
+		err = DeleteMessage(*e.ProcessID, e.MessageType, false)
 	case db.ErrorResolutionDeleteTransferFile:
 		RemoveFileFromTransferDir(*e.Agency, e.TransferPath)
 	case db.ErrorResolutionIgnoreTransferFile:
 		for _, f := range e.Data.(primitive.A) {
-			db.InsertTransferFile(e.Agency.ID, uuid.Nil, f.(string))
+			db.InsertTransferFile(e.Agency.ID, nil, f.(string))
 		}
 	case db.ErrorResolutionDeleteTransferFiles:
 		for _, f := range e.Data.(primitive.A) {

@@ -3,8 +3,6 @@ package core
 import (
 	"context"
 	"lath/xman/internal/db"
-
-	"github.com/google/uuid"
 )
 
 type Discrepancies struct {
@@ -15,66 +13,66 @@ type Discrepancies struct {
 type recordNode struct {
 	Title  string
 	Type   db.RecordType
-	Parent uuid.UUID // uuid.Nil for root-level records
+	Parent *string // nil for root-level records
 }
 
-type recordMap map[uuid.UUID]recordNode
+type recordMap map[string]recordNode
 
 // appraisableID returns the record ID of the record of whose appraisal decision
 // is relevant for the given record. In case of file and process records, this
 // is the record itself. In case of documents, it is the nearest appraisable
 // parent.
-func (m recordMap) appraisableID(recordID uuid.UUID) uuid.UUID {
+func (m recordMap) appraisableID(recordID string) string {
 	for {
 		r := m[recordID]
 		if r.Type != db.RecordTypeDocument {
 			return recordID
 		}
-		recordID = r.Parent
+		recordID = *r.Parent
 	}
 }
 
 func getRecordMap(r *db.RootRecords) recordMap {
 	m := make(recordMap)
-	var appendFiles func(parent uuid.UUID, files []db.FileRecord, isSubFile bool)
-	var appendProcesses func(parent uuid.UUID, processes []db.ProcessRecord, subProcesses bool)
-	var appendDocuments func(parent uuid.UUID, documents []db.DocumentRecord, attachments bool)
-	appendFiles = func(parent uuid.UUID, files []db.FileRecord, subFiles bool) {
+	var appendFiles func(parent *string, files []db.FileRecord, isSubFile bool)
+	var appendProcesses func(parent *string, processes []db.ProcessRecord, subProcesses bool)
+	var appendDocuments func(parent *string, documents []db.DocumentRecord, attachments bool)
+	appendFiles = func(parent *string, files []db.FileRecord, subFiles bool) {
 		for _, f := range files {
 			m[f.RecordID] = recordNode{
 				Parent: parent,
 				Type:   db.RecordTypeFile,
 				Title:  FileRecordTitle(f, subFiles),
 			}
-			appendFiles(f.RecordID, f.Subfiles, true)
-			appendProcesses(f.RecordID, f.Processes, false)
-			appendDocuments(f.RecordID, f.Documents, false)
+			appendFiles(&f.RecordID, f.Subfiles, true)
+			appendProcesses(&f.RecordID, f.Processes, false)
+			appendDocuments(&f.RecordID, f.Documents, false)
 		}
 	}
-	appendProcesses = func(parent uuid.UUID, processes []db.ProcessRecord, subProcesses bool) {
+	appendProcesses = func(parent *string, processes []db.ProcessRecord, subProcesses bool) {
 		for _, p := range processes {
 			m[p.RecordID] = recordNode{
 				Parent: parent,
 				Type:   db.RecordTypeProcess,
 				Title:  ProcessRecordTitle(p, subProcesses),
 			}
-			appendProcesses(p.RecordID, p.Subprocesses, true)
-			appendDocuments(p.RecordID, p.Documents, false)
+			appendProcesses(&p.RecordID, p.Subprocesses, true)
+			appendDocuments(&p.RecordID, p.Documents, false)
 		}
 	}
-	appendDocuments = func(parent uuid.UUID, documents []db.DocumentRecord, attachments bool) {
+	appendDocuments = func(parent *string, documents []db.DocumentRecord, attachments bool) {
 		for _, d := range documents {
 			m[d.RecordID] = recordNode{
 				Parent: parent,
 				Type:   db.RecordTypeDocument,
 				Title:  DocumentRecordTitle(d, attachments),
 			}
-			appendDocuments(d.RecordID, d.Attachments, true)
+			appendDocuments(&d.RecordID, d.Attachments, true)
 		}
 	}
-	appendFiles(uuid.Nil, r.Files, false)
-	appendProcesses(uuid.Nil, r.Processes, false)
-	appendDocuments(uuid.Nil, r.Documents, false)
+	appendFiles(nil, r.Files, false)
+	appendProcesses(nil, r.Processes, false)
+	appendDocuments(nil, r.Documents, false)
 	return m
 }
 
@@ -92,9 +90,9 @@ func FindDiscrepancies(
 	// Gather data
 	var result Discrepancies
 	processID := message0501.MessageHead.ProcessID
-	appraisals := make(map[uuid.UUID]db.Appraisal)
-	// uuid.Nil represents the root record and is implicitly marked 'A'.
-	appraisals[uuid.Nil] = db.Appraisal{Decision: db.AppraisalDecisionA}
+	appraisals := make(map[string]db.Appraisal)
+	// represents the root record and is implicitly marked 'A'.
+	appraisals["root"] = db.Appraisal{Decision: db.AppraisalDecisionA}
 	for _, a := range db.FindAppraisalsForProcess(context.Background(), processID) {
 		appraisals[a.RecordID] = a
 	}
@@ -118,9 +116,9 @@ L1:
 			// Not missing.
 			continue
 		}
-		for ancestorID := r.Parent; ancestorID != uuid.Nil; ancestorID = appraisedRecords[ancestorID].Parent {
+		for ancestorID := r.Parent; ancestorID != nil; ancestorID = appraisedRecords[*ancestorID].Parent {
 			// Missing...
-			if _, ok := submittedRecords[ancestorID]; !ok {
+			if _, ok := submittedRecords[*ancestorID]; !ok {
 				// ...but an ancestor is also missing and will be printed.
 				continue L1
 			}
@@ -137,8 +135,8 @@ L2:
 			continue
 		}
 		// Surplus...
-		for ancestorID := r.Parent; ancestorID != uuid.Nil; ancestorID = submittedRecords[ancestorID].Parent {
-			if appraisals[ancestorID].Decision == db.AppraisalDecisionV {
+		for ancestorID := r.Parent; ancestorID != nil; ancestorID = submittedRecords[*ancestorID].Parent {
+			if appraisals[*ancestorID].Decision == db.AppraisalDecisionV {
 				// ...but an ancestor was appraised "V" and will be printed.
 				continue L2
 			}

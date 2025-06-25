@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +12,7 @@ import (
 
 type SubmissionProcess struct {
 	// ProcessID is the process ID as parsed from an Xdomea message (ProzessID).
-	ProcessID    uuid.UUID    `bson:"process_id" json:"processId"`
+	ProcessID    string       `bson:"process_id" json:"processId"`
 	CreatedAt    time.Time    `bson:"created_at" json:"createdAt"`
 	Agency       Agency       `json:"agency"` // Copy, needs to be kept in sync
 	StoreDir     string       `json:"-"`
@@ -87,7 +86,7 @@ func findProcesses(ctx context.Context, filter interface{}) []SubmissionProcess 
 }
 
 func FindOrInsertProcess(
-	processID uuid.UUID,
+	processID string,
 	agency Agency,
 	storeDir string,
 ) SubmissionProcess {
@@ -98,17 +97,17 @@ func FindOrInsertProcess(
 	return process
 }
 
-func FindProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, bool) {
+func FindProcess(ctx context.Context, processID string) (SubmissionProcess, bool) {
 	process, err := findProcess(ctx, processID)
 	return process, handleError(ctx, err)
 }
 
-func TryFindProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, bool) {
+func TryFindProcess(ctx context.Context, processID string) (SubmissionProcess, bool) {
 	process, err := findProcess(ctx, processID)
 	return process, err == nil
 }
 
-func findProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, error) {
+func findProcess(ctx context.Context, processID string) (SubmissionProcess, error) {
 	coll := mongoDatabase.Collection("submission_processes")
 	var process SubmissionProcess
 	filter := bson.D{{"process_id", processID}}
@@ -117,7 +116,7 @@ func findProcess(ctx context.Context, processID uuid.UUID) (SubmissionProcess, e
 }
 
 func insertProcess(
-	processID uuid.UUID,
+	processID string,
 	agency Agency,
 	storeDir string,
 ) SubmissionProcess {
@@ -134,7 +133,7 @@ func insertProcess(
 	}
 	broadcastUpdate(Update{
 		Collection: "submission_processes",
-		ProcessID:  processID,
+		ProcessID:  &processID,
 		Operation:  UpdateOperationInsert,
 	})
 	return process
@@ -143,7 +142,7 @@ func insertProcess(
 // DeleteProcess deletes the given submission process from the database.
 //
 // Do not call directly, instead use `xdomea.DeleteProcess`.
-func DeleteProcess(processID uuid.UUID) (ok bool) {
+func DeleteProcess(processID string) (ok bool) {
 	coll := mongoDatabase.Collection("submission_processes")
 	filter := bson.D{{"process_id", processID}}
 	result, err := coll.DeleteOne(context.Background(), filter)
@@ -155,14 +154,14 @@ func DeleteProcess(processID uuid.UUID) (ok bool) {
 	}
 	broadcastUpdate(Update{
 		Collection: "submission_processes",
-		ProcessID:  processID,
+		ProcessID:  &processID,
 		Operation:  UpdateOperationDelete,
 	})
 	return true
 }
 
 func UpdateProcessNote(
-	processID uuid.UUID,
+	processID string,
 	note string,
 ) (ok bool) {
 	update := bson.D{{"$set", bson.D{{"note", note}}}}
@@ -170,7 +169,7 @@ func UpdateProcessNote(
 }
 
 func UpdateProcessStepCompletion(
-	processID uuid.UUID,
+	processID string,
 	step ProcessStepType,
 	complete bool,
 	completedBy string,
@@ -191,7 +190,7 @@ func UpdateProcessStepCompletion(
 }
 
 func MustUpdateProcessStepCompletion(
-	processID uuid.UUID,
+	processID string,
 	step ProcessStepType,
 	complete bool,
 	completedBy string,
@@ -203,7 +202,7 @@ func MustUpdateProcessStepCompletion(
 }
 
 func MustUpdateProcessStepProgress(
-	processID uuid.UUID,
+	processID string,
 	step ProcessStepType,
 	progress *ItemProgress,
 	taskID primitive.ObjectID,
@@ -219,11 +218,11 @@ func MustUpdateProcessStepProgress(
 	}}}
 	ok := updateProcess(processID, update)
 	if !ok {
-		panic("failed to update process step for process " + processID.String() + ": not found")
+		panic("failed to update process step for process " + processID + ": not found")
 	}
 }
 
-func updateProcess(processID uuid.UUID, update interface{}) (ok bool) {
+func updateProcess(processID string, update interface{}) (ok bool) {
 	coll := mongoDatabase.Collection("submission_processes")
 	filter := bson.D{{"process_id", processID}}
 	result, err := coll.UpdateOne(context.Background(), filter, update)
@@ -234,7 +233,7 @@ func updateProcess(processID uuid.UUID, update interface{}) (ok bool) {
 	if ok {
 		broadcastUpdate(Update{
 			Collection: "submission_processes",
-			ProcessID:  processID,
+			ProcessID:  &processID,
 			Operation:  UpdateOperationUpdate,
 		})
 	}
@@ -257,7 +256,7 @@ func updateAgencyForProcesses(agency Agency) {
 	})
 }
 
-func updateUnresolvedErrorsForProcess(processID uuid.UUID, unresolvedErrors []ProcessingError) {
+func updateUnresolvedErrorsForProcess(processID string, unresolvedErrors []ProcessingError) {
 	coll := mongoDatabase.Collection("submission_processes")
 	filter := bson.D{{"process_id", processID}}
 	old, err := coll.FindOne(context.Background(), filter).Raw()
@@ -301,7 +300,7 @@ func updateUnresolvedErrorsForProcess(processID uuid.UUID, unresolvedErrors []Pr
 	}
 	broadcastUpdate(Update{
 		Collection: "submission_processes",
-		ProcessID:  processID,
+		ProcessID:  &processID,
 		Operation:  UpdateOperationUpdate,
 	})
 }

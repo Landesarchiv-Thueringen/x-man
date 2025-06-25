@@ -16,7 +16,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -44,11 +43,11 @@ func ArchiveSubmission(
 	)
 	var items []db.TaskItem
 	m, _, _ := core.Packaging(process.ProcessID)
-	items = append(items, taskItemsForFiles(m, []uuid.UUID{}, rootRecords.Files)...)
-	items = append(items, taskItemsForProcesses(m, []uuid.UUID{}, rootRecords.Processes)...)
+	items = append(items, taskItemsForFiles(m, []string{}, rootRecords.Files)...)
+	items = append(items, taskItemsForProcesses(m, []string{}, rootRecords.Processes)...)
 	items = append(items, taskItemsForDocuments(
-		"Aussonderung "+process.ProcessID.String(),
-		[]uuid.UUID{}, rootRecords.Documents)...,
+		"Aussonderung "+process.ProcessID,
+		[]string{}, rootRecords.Documents)...,
 	)
 	task := db.InsertTask(db.Task{
 		Type:      db.ProcessStepArchiving,
@@ -63,8 +62,8 @@ func ArchiveSubmission(
 }
 
 func taskItemsForFiles(
-	m map[uuid.UUID]core.PackagingDecision,
-	path []uuid.UUID,
+	m map[string]core.PackagingDecision,
+	path []string,
 	files []db.FileRecord,
 ) []db.TaskItem {
 	var items []db.TaskItem
@@ -90,15 +89,15 @@ func taskItemsForFiles(
 			items = append(items,
 				taskItemsForDocuments(title, append(path, f.RecordID), f.Documents)...)
 		default:
-			panic("no packaging decision for file record " + f.RecordID.String())
+			panic("no packaging decision for file record " + f.RecordID)
 		}
 	}
 	return items
 }
 
 func taskItemsForProcesses(
-	m map[uuid.UUID]core.PackagingDecision,
-	path []uuid.UUID,
+	m map[string]core.PackagingDecision,
+	path []string,
 	processes []db.ProcessRecord,
 ) []db.TaskItem {
 	var items []db.TaskItem
@@ -118,10 +117,10 @@ func taskItemsForProcesses(
 			})
 		case core.PackagingDecisionSub:
 			panic("unexpected packaging decision for process record " +
-				p.RecordID.String() + ": \"sub\"",
+				p.RecordID + ": \"sub\"",
 			)
 		default:
-			panic("no packaging decision for process record " + p.RecordID.String())
+			panic("no packaging decision for process record " + p.RecordID)
 		}
 	}
 	return items
@@ -129,7 +128,7 @@ func taskItemsForProcesses(
 
 func taskItemsForDocuments(
 	parentTitle string,
-	path []uuid.UUID,
+	path []string,
 	documents []db.DocumentRecord,
 ) []db.TaskItem {
 	var items []db.TaskItem
@@ -155,14 +154,14 @@ type ArchiveTaskData struct {
 type ArchiveItemData struct {
 	Title      string
 	RecordType db.RecordType
-	RecordPath []uuid.UUID
-	RecordID   uuid.UUID
+	RecordPath []string
+	RecordID   string
 	JobID      int
 }
 
 type recordsMap struct {
-	Files         map[uuid.UUID]db.FileRecord
-	Processes     map[uuid.UUID]db.ProcessRecord
+	Files         map[string]db.FileRecord
+	Processes     map[string]db.ProcessRecord
 	RootDocuments []db.DocumentRecord
 }
 
@@ -186,11 +185,11 @@ type ArchiveHandler struct {
 func initArchiveHandler(t *db.Task) (tasks.ItemHandler, error) {
 	process, ok := db.FindProcess(context.Background(), t.ProcessID)
 	if !ok {
-		panic("failed to find process " + t.ProcessID.String())
+		panic("failed to find process " + t.ProcessID)
 	}
 	message, ok := db.FindMessage(context.Background(), t.ProcessID, db.MessageType0503)
 	if !ok {
-		panic("failed to find 0503 message for process " + t.ProcessID.String())
+		panic("failed to find 0503 message for process " + t.ProcessID)
 	}
 	d := db.UnmarshalData[ArchiveTaskData](t.Data)
 	var collection db.ArchiveCollection
@@ -300,18 +299,18 @@ func (h *ArchiveHandler) AfterDone() {
 	if err != nil {
 		errorData := db.ProcessingError{
 			Title:     "Fehler beim Senden der 0506-Nachricht",
-			ProcessID: h.process.ProcessID,
+			ProcessID: &h.process.ProcessID,
 		}
 		errors.AddProcessingErrorWithData(err, errorData)
 	}
 	preferences := db.FindUserPreferencesWithDefault(context.Background(), h.t.UserID)
 	if preferences.ReportByEmail {
 		defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
-			ProcessID: h.process.ProcessID,
+			ProcessID: &h.process.ProcessID,
 		})
 		process, ok := db.FindProcess(context.Background(), h.process.ProcessID)
 		if !ok {
-			panic("failed to find process:" + process.ProcessID.String())
+			panic("failed to find process:" + process.ProcessID)
 		}
 		_, contentType, reader := report.GetSubmissionReport(context.Background(), process)
 		body, err := io.ReadAll(reader)
@@ -320,7 +319,7 @@ func (h *ArchiveHandler) AfterDone() {
 		}
 		errorData := db.ProcessingError{
 			Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
-			ProcessID: h.process.ProcessID,
+			ProcessID: &h.process.ProcessID,
 		}
 		address, err := auth.GetMailAddress(h.t.UserID)
 		if err != nil {
@@ -343,8 +342,8 @@ func (h *ArchiveHandler) AfterDone() {
 
 func makeRecordsMap(r db.RootRecords) recordsMap {
 	m := recordsMap{
-		Files:         make(map[uuid.UUID]db.FileRecord),
-		Processes:     make(map[uuid.UUID]db.ProcessRecord),
+		Files:         make(map[string]db.FileRecord),
+		Processes:     make(map[string]db.ProcessRecord),
 		RootDocuments: r.Documents,
 	}
 	var processFiles func(files []db.FileRecord)
@@ -371,7 +370,7 @@ func makeRecordsMap(r db.RootRecords) recordsMap {
 func createAipFromFileRecord(
 	title string,
 	process db.SubmissionProcess,
-	path []uuid.UUID,
+	path []string,
 	f db.FileRecord,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
@@ -385,7 +384,7 @@ func createAipFromFileRecord(
 		IOLifetime:       f.Lifetime,
 		REPTitle:         "Original",
 		PrimaryDocuments: primaryDocuments,
-		RecordIDs:        []uuid.UUID{f.RecordID},
+		RecordIDs:        []string{f.RecordID},
 		RecordPath:       path,
 		CollectionID:     collectionID,
 	}
@@ -397,7 +396,7 @@ func createAipFromFileRecord(
 func createAipFromProcessRecord(
 	title string,
 	process db.SubmissionProcess,
-	path []uuid.UUID,
+	path []string,
 	p db.ProcessRecord,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
@@ -411,7 +410,7 @@ func createAipFromProcessRecord(
 		IOLifetime:       p.Lifetime,
 		REPTitle:         "Original",
 		PrimaryDocuments: primaryDocuments,
-		RecordIDs:        []uuid.UUID{p.RecordID},
+		RecordIDs:        []string{p.RecordID},
 		RecordPath:       path,
 		CollectionID:     collectionID,
 	}
@@ -423,7 +422,7 @@ func createAipFromProcessRecord(
 func createAipFromDocumentRecords(
 	title string,
 	process db.SubmissionProcess,
-	path []uuid.UUID,
+	path []string,
 	records recordsMap,
 	collectionID primitive.ObjectID,
 ) db.ArchivePackage {
@@ -442,7 +441,7 @@ func createAipFromDocumentRecords(
 			documents = parent.Documents
 			lifetime = parent.Lifetime
 		} else {
-			panic("could not find parent record: " + parentRecordID.String())
+			panic("could not find parent record: " + parentRecordID)
 		}
 	}
 	var primaryDocuments []db.PrimaryDocumentContext
@@ -453,7 +452,7 @@ func createAipFromDocumentRecords(
 	primaryDocuments, _ = core.FilterMissingPrimaryDocuments(
 		process.ProcessID, primaryDocuments,
 	)
-	var recordIDs []uuid.UUID
+	var recordIDs []string
 	for _, r := range documents {
 		recordIDs = append(recordIDs, r.RecordID)
 	}

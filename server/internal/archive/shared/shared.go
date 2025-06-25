@@ -30,9 +30,7 @@ func GenerateProtocol(process db.SubmissionProcess) []byte {
 // archive package.
 func PruneMessage(message db.Message, aip db.ArchivePackage) []byte {
 	recordIDs := make([]string, len(aip.RecordIDs))
-	for i, id := range aip.RecordIDs {
-		recordIDs[i] = id.String()
-	}
+	copy(recordIDs, aip.RecordIDs)
 	doc := etree.NewDocument()
 	if err := doc.ReadFromFile(message.MessagePath); err != nil {
 		panic(err)
@@ -41,9 +39,9 @@ func PruneMessage(message db.Message, aip db.ArchivePackage) []byte {
 	var file *etree.Element
 	for i, id := range aip.RecordPath {
 		if i == 0 {
-			file = pruneRootRecords(root, []string{id.String()})
+			file = pruneRootRecords(root, []string{id})
 		} else {
-			file = pruneSubRecords(file, []string{id.String()})
+			file = pruneSubRecords(file, []string{id})
 		}
 	}
 	if len(aip.RecordPath) == 0 {

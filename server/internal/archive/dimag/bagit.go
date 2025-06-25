@@ -22,12 +22,12 @@ Tag-File-Character-Encoding: UTF-8
 //
 // When done, call `Remove` to clean up the filesystem.
 type bagitHandle struct {
-	id uuid.UUID
+	id string
 }
 
 func makeBagit() bagitHandle {
 	bagIt := bagitHandle{
-		id: uuid.New(),
+		id: uuid.NewString(),
 	}
 	err := os.MkdirAll(bagIt.Path(), 0755)
 	if err != nil {
@@ -40,16 +40,16 @@ func makeBagit() bagitHandle {
 	return bagIt
 }
 
-func (h *bagitHandle) ID() uuid.UUID {
+func (h *bagitHandle) ID() string {
 	return h.id
 }
 
 // Path returns the BagIt's path on the local filesystem.
 func (h *bagitHandle) Path() string {
 	if os.Getenv("DEBUG_MODE") == "true" {
-		return "/debug-data/bagit_" + h.id.String()
+		return "/debug-data/bagit_" + h.id
 	} else {
-		return filepath.Join(os.TempDir(), "bagit_"+h.id.String())
+		return filepath.Join(os.TempDir(), "bagit_"+h.id)
 	}
 }
 

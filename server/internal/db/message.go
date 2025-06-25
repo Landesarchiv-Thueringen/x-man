@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -42,11 +41,11 @@ type Message struct {
 }
 
 type MessageHead struct {
-	XMLName      xml.Name  `xml:"Kopf" bson:"-" json:"-"`
-	ProcessID    uuid.UUID `xml:"ProzessID" bson:"process_id" json:"processID"`
-	CreationTime string    `xml:"Erstellungszeitpunkt" bson:"creation_time" json:"creationTime"`
-	Sender       Contact   `xml:"Absender" json:"sender"`
-	Receiver     Contact   `xml:"Empfaenger" json:"receiver"`
+	XMLName      xml.Name `xml:"Kopf" bson:"-" json:"-"`
+	ProcessID    string   `xml:"ProzessID" bson:"process_id" json:"processID"`
+	CreationTime string   `xml:"Erstellungszeitpunkt" bson:"creation_time" json:"creationTime"`
+	Sender       Contact  `xml:"Absender" json:"sender"`
+	Receiver     Contact  `xml:"Empfaenger" json:"receiver"`
 }
 
 type Contact struct {
@@ -75,7 +74,7 @@ func InsertMessage(message Message) {
 
 // FindMessagesForProcess returns all messages for the given submission process.
 // It returns an empty array, if there is no matching submission process.
-func FindMessagesForProcess(ctx context.Context, processID uuid.UUID) []Message {
+func FindMessagesForProcess(ctx context.Context, processID string) []Message {
 	coll := mongoDatabase.Collection("messages")
 	filter := bson.D{{"message_head.process_id", processID}}
 	var messages []Message
@@ -89,7 +88,7 @@ func FindMessagesForProcess(ctx context.Context, processID uuid.UUID) []Message 
 // FindMessage returns the message of the given type for the given process.
 func FindMessage(
 	ctx context.Context,
-	processID uuid.UUID,
+	processID string,
 	messageType MessageType,
 ) (message Message, found bool) {
 	message, err := findMessage(ctx, processID, messageType)
@@ -99,7 +98,7 @@ func FindMessage(
 // TryFindMessage is like FindMessage, but doesn't panic.
 func TryFindMessage(
 	ctx context.Context,
-	processID uuid.UUID,
+	processID string,
 	messageType MessageType,
 ) (message Message, found bool) {
 	message, err := findMessage(ctx, processID, messageType)
@@ -108,7 +107,7 @@ func TryFindMessage(
 
 func findMessage(
 	ctx context.Context,
-	processID uuid.UUID,
+	processID string,
 	messageType MessageType,
 ) (message Message, err error) {
 	coll := mongoDatabase.Collection("messages")
@@ -139,7 +138,7 @@ func DeleteMessage(message Message) (ok bool) {
 	return true
 }
 
-func DeleteMessagesForProcess(processID uuid.UUID) {
+func DeleteMessagesForProcess(processID string) {
 	coll := mongoDatabase.Collection("messages")
 	filter := bson.D{
 		{"message_head.process_id", processID},

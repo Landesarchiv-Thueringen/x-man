@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -28,14 +27,14 @@ const (
 // PackagingRecord is a database entry that describes a user's packaging choice
 // for a given root record.
 type PackagingRecord struct {
-	ProcessID uuid.UUID `bson:"process_id" json:"-"`
-	RecordID  uuid.UUID `bson:"record_id" json:"recordId"`
+	ProcessID string `bson:"process_id" json:"-"`
+	RecordID  string `bson:"record_id" json:"recordId"`
 	// PackagingChoice is the packaging option selected by the user. It affects
 	// packaging of the given record and its sub records.
 	PackagingChoice PackagingChoice `bson:"packaging_choice" json:"packagingChoice"`
 }
 
-func FindPackagingChoicesForProcess(ctx context.Context, processID uuid.UUID) []PackagingRecord {
+func FindPackagingChoicesForProcess(ctx context.Context, processID string) []PackagingRecord {
 	coll := mongoDatabase.Collection("packaging_choices")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)
@@ -47,8 +46,8 @@ func FindPackagingChoicesForProcess(ctx context.Context, processID uuid.UUID) []
 }
 
 func UpsertPackagingChoice(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	packagingChoice PackagingChoice,
 ) {
 	coll := mongoDatabase.Collection("packaging_choices")
@@ -68,7 +67,7 @@ func UpsertPackagingChoice(
 	}
 }
 
-func DeletePackagingChoicesForProcess(processID uuid.UUID) {
+func DeletePackagingChoicesForProcess(processID string) {
 	coll := mongoDatabase.Collection("packaging_choices")
 	filter := bson.D{{"process_id", processID}}
 	_, err := coll.DeleteMany(context.Background(), filter)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -52,7 +51,7 @@ type Task struct {
 	CreatedAt time.Time          `bson:"created_at" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updated_at" json:"updatedAt"`
 	// ProcessID is the submission process that the task is for.
-	ProcessID uuid.UUID `bson:"process_id" json:"processId"`
+	ProcessID string `bson:"process_id" json:"processId"`
 	// Type is the process step that the task is associated with.
 	Type ProcessStepType `json:"type"`
 	// State describes the current condition of the task.
@@ -87,7 +86,7 @@ func FindTasks(ctx context.Context) []Task {
 	return findTasks(ctx, filter)
 }
 
-func FindTasksForProcess(ctx context.Context, processID uuid.UUID) []Task {
+func FindTasksForProcess(ctx context.Context, processID string) []Task {
 	filter := bson.D{{"process_id", processID}}
 	return findTasks(ctx, filter)
 }
@@ -120,7 +119,7 @@ func InsertTask(task Task) Task {
 	task.ID = result.InsertedID.(primitive.ObjectID)
 	broadcastUpdate(Update{
 		Collection: "tasks",
-		ProcessID:  task.ProcessID,
+		ProcessID:  &task.ProcessID,
 		Operation:  UpdateOperationInsert,
 	})
 	return task
@@ -139,7 +138,7 @@ func MustReplaceTask(t Task) {
 	}
 	broadcastUpdate(Update{
 		Collection: "tasks",
-		ProcessID:  t.ProcessID,
+		ProcessID:  &t.ProcessID,
 		Operation:  UpdateOperationUpdate,
 	})
 }

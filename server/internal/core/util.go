@@ -5,8 +5,6 @@ import (
 	"lath/xman/internal/db"
 	"path/filepath"
 	"regexp"
-
-	"github.com/google/uuid"
 )
 
 const uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -43,17 +41,16 @@ func getMessageTypeImpliedByPath(path string) (db.MessageType, error) {
 	return "", errors.New("unknown message type: " + path)
 }
 
-func getProcessID(path string) uuid.UUID {
+func getProcessID(path string) string {
 	fileName := filepath.Base(path)
-	s := uuidRegex.FindString(fileName)
-	processID, err := uuid.Parse(s)
-	if err != nil {
-		panic("failed to parse process id: " + err.Error())
+	processID := uuidRegex.FindString(fileName)
+	if processID == "" {
+		panic("failed to read process id from: " + fileName)
 	}
 	return processID
 }
 
-func getMessageName(id uuid.UUID, messageType db.MessageType) string {
+func getMessageName(id string, messageType db.MessageType) string {
 	messageSuffix := ""
 	switch messageType {
 	case "0501":
@@ -65,5 +62,5 @@ func getMessageName(id uuid.UUID, messageType db.MessageType) string {
 	default:
 		panic("message type not supported: " + messageType)
 	}
-	return id.String() + messageSuffix + ".xml"
+	return id + messageSuffix + ".xml"
 }

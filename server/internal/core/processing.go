@@ -18,7 +18,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
 	"golang.org/x/text/encoding/charmap"
 )
@@ -62,7 +61,7 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 		errors.AddProcessingErrorWithData(err, errorData)
 		return
 	}
-	errorData.ProcessID = processID
+	errorData.ProcessID = &processID
 	errorData.MessageType = messageType
 	err = compareAgencyFields(agency, message)
 	if err != nil {
@@ -104,14 +103,14 @@ func ProcessNewMessage(agency db.Agency, transferDirMessagePath string) {
 
 // confirmMessageReceipt sends the appropriate xdomea message (if any) and an
 // e-mail notification to the post office and the archivist(s) in charge.
-func confirmMessageReceipt(agency db.Agency, processID uuid.UUID, messageType db.MessageType) {
+func confirmMessageReceipt(agency db.Agency, processID string, messageType db.MessageType) {
 	message, ok := db.FindMessage(context.Background(), processID, messageType)
 	if !ok {
 		panic(fmt.Sprintf("failed to find message %s for process %s", messageType, processID))
 	}
 	errorData := db.ProcessingError{
 		Agency:      &agency,
-		ProcessID:   processID,
+		ProcessID:   &processID,
 		MessageType: messageType,
 	}
 	// Send the confirmation message that the 0501 message was received.
@@ -170,10 +169,10 @@ func extractMessageToMessageStore(
 	agency db.Agency,
 	transferDirMessagePath string,
 	localMessagePath string,
-	processID uuid.UUID,
+	processID string,
 	messageType db.MessageType,
 ) (processStoreDir string, messageStoreDir string) {
-	processStoreDir = path.Join("message_store", processID.String())
+	processStoreDir = path.Join("message_store", processID)
 	// Create the message store directory if necessary.
 	messageStoreDir = path.Join(processStoreDir, string(messageType))
 	err := os.MkdirAll(messageStoreDir, 0700)
@@ -237,7 +236,7 @@ func extractMessageToMessageStore(
 // to errors within the message file.
 func addMessage(
 	agency db.Agency,
-	processID uuid.UUID,
+	processID string,
 	messageType db.MessageType,
 	processStoreDir string,
 	storeDir string,
@@ -524,18 +523,18 @@ func Send0507Message(agency db.Agency, message0503 db.Message) error {
 // Returns the location of the message in the transfer directory.
 func sendMessage(
 	agency db.Agency,
-	processID uuid.UUID,
+	processID string,
 	messageXml string,
 	messageSuffix string,
 ) error {
 	// Create temporary directory. The name of the directory ist the message ID.
-	tempDir, err := os.MkdirTemp("", processID.String())
+	tempDir, err := os.MkdirTemp("", processID)
 	if err != nil {
 		panic(err)
 	}
 	defer os.RemoveAll(tempDir)
-	xmlName := processID.String() + messageSuffix + ".xml"
-	messageName := processID.String() + messageSuffix + ".zip"
+	xmlName := processID + messageSuffix + ".xml"
+	messageName := processID + messageSuffix + ".zip"
 	messagePath := path.Join(tempDir, messageName)
 	messageArchive, err := os.Create(messagePath)
 	if err != nil {
@@ -556,7 +555,7 @@ func sendMessage(
 	// important close zip writer and message archive so it can be written on disk
 	zipWriter.Close()
 	messageArchive.Close()
-	return CopyMessageToTransferDirectory(agency, processID, messagePath)
+	return CopyMessageToTransferDirectory(agency, &processID, messagePath)
 }
 
 // getMaxRecordDepth returns the nesting level of the deepest nesting within the

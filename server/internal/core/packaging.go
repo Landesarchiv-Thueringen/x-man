@@ -3,8 +3,6 @@ package core
 import (
 	"context"
 	"lath/xman/internal/db"
-
-	"github.com/google/uuid"
 )
 
 // PackagingDecision is the computed decision of how to package a record, based
@@ -49,24 +47,24 @@ func (s *PackagingStats) add(s2 PackagingStats) {
 // - `decisions` indicates the calculated packaging decision for each record.
 // - `stats` gives information about the content of each packaged record.
 // - `options` contains the packaging options as selected by the user.
-func Packaging(processID uuid.UUID) (
-	decisions map[uuid.UUID]PackagingDecision,
-	stats map[uuid.UUID]PackagingStats,
-	choices map[uuid.UUID]db.PackagingChoice,
+func Packaging(processID string) (
+	decisions map[string]PackagingDecision,
+	stats map[string]PackagingStats,
+	choices map[string]db.PackagingChoice,
 ) {
-	choices = make(map[uuid.UUID]db.PackagingChoice)
+	choices = make(map[string]db.PackagingChoice)
 	for _, c := range db.FindPackagingChoicesForProcess(context.Background(), processID) {
 		choices[c.RecordID] = c.PackagingChoice
 	}
 	rootRecords := db.FindAllRootRecords(context.Background(), processID, db.MessageType0503)
-	decisions = make(map[uuid.UUID]PackagingDecision)
-	stats = make(map[uuid.UUID]PackagingStats)
+	decisions = make(map[string]PackagingDecision)
+	stats = make(map[string]PackagingStats)
 	for _, f := range rootRecords.Files {
 		stats[f.RecordID] = packagingFileRecord(f, db.PackagingChoiceRoot, 0, choices, decisions)
 	}
 	// Add an entry for the message root to the stats map, so stats are included
 	// when calculating the combined stats.
-	stats[uuid.Nil] = PackagingStats{
+	stats["root"] = PackagingStats{
 		Processes: packagingProcessRecords(rootRecords.Processes, decisions),
 		Other:     packagingDocumentRecords(rootRecords.Documents),
 	}
@@ -75,7 +73,7 @@ func Packaging(processID uuid.UUID) (
 
 func PackagingStatsForChoices(rootRecords []db.FileRecord) map[db.PackagingChoice]PackagingStats {
 	result := make(map[db.PackagingChoice]PackagingStats)
-	dummyDecisions := make(map[uuid.UUID]PackagingDecision)
+	dummyDecisions := make(map[string]PackagingDecision)
 	for _, c := range []db.PackagingChoice{
 		db.PackagingChoiceRoot,
 		db.PackagingChoiceLevel1,
@@ -97,8 +95,8 @@ func packagingFileRecord(
 	record db.FileRecord,
 	choice db.PackagingChoice,
 	level int,
-	choices map[uuid.UUID]db.PackagingChoice,
-	decisions map[uuid.UUID]PackagingDecision,
+	choices map[string]db.PackagingChoice,
+	decisions map[string]PackagingDecision,
 ) PackagingStats {
 	if choices[record.RecordID] != "" {
 		choice = choices[record.RecordID]
@@ -146,7 +144,7 @@ func choiceLevel(c db.PackagingChoice) int {
 // given process records. Returns the number of packages to be created.
 func packagingProcessRecords(
 	records []db.ProcessRecord,
-	decisions map[uuid.UUID]PackagingDecision,
+	decisions map[string]PackagingDecision,
 ) (nPackages int) {
 	for _, p := range records {
 		// Process is the minimal record type building a package. No sub

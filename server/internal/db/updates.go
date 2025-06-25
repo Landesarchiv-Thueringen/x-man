@@ -1,9 +1,5 @@
 package db
 
-import (
-	"github.com/google/uuid"
-)
-
 // Update notifies interested parties of updates in the database.
 //
 // Not all collections broadcast updates. Add broadcast functions for
@@ -12,7 +8,7 @@ type Update struct {
 	// Collection is the database collection that has been updated.
 	Collection string `json:"collection"`
 	// ProcessID is set if the update can be attributed to one single process.
-	ProcessID uuid.UUID `json:"processId"`
+	ProcessID *string `json:"processId"`
 	// Operation is the kind of database operation that ocurred.
 	Operation UpdateOperation `json:"operation"`
 }

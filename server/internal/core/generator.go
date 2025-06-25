@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/lestrrat-go/libxml2/xsd"
 )
 
@@ -49,7 +48,7 @@ type generatorMessage0507 struct {
 
 type generatorAppraisedObject struct {
 	XMLName         xml.Name                 `xml:"xdomea:BewertetesObjekt"`
-	RecordID        uuid.UUID                `xml:"xdomea:ID"`
+	RecordID        string                   `xml:"xdomea:ID"`
 	ObjectAppraisal generatorObjectAppraisal `xml:"xdomea:Aussonderungsart"`
 }
 
@@ -60,7 +59,7 @@ type generatorObjectAppraisal struct {
 }
 
 type generatorMessageHead0502 struct {
-	ProcessID        uuid.UUID              `xml:"xdomea:ProzessID"`
+	ProcessID        string                 `xml:"xdomea:ProzessID"`
 	MessageType      generatorCode          `xml:"xdomea:Nachrichtentyp"`
 	CreationTime     string                 `xml:"xdomea:Erstellungszeitpunkt"`
 	Sender           generatorContact       `xml:"xdomea:Absender"`
@@ -70,7 +69,7 @@ type generatorMessageHead0502 struct {
 }
 
 type generatorMessageHead struct {
-	ProcessID     uuid.UUID              `xml:"xdomea:ProzessID"`
+	ProcessID     string                 `xml:"xdomea:ProzessID"`
 	MessageType   generatorCode          `xml:"xdomea:Nachrichtentyp"`
 	CreationTime  string                 `xml:"xdomea:Erstellungszeitpunkt"`
 	Sender        generatorContact       `xml:"xdomea:Absender"`
@@ -157,7 +156,7 @@ func Generate0502Message(message db.Message) string {
 	return messageXml
 }
 
-func generateMessageHead0502(processID uuid.UUID, sender db.Contact) generatorMessageHead0502 {
+func generateMessageHead0502(processID string, sender db.Contact) generatorMessageHead0502 {
 	messageType := generatorCode{
 		Code: "0502",
 	}
@@ -275,7 +274,7 @@ func Generate0507Message(message0503 db.Message) (message string, ok bool) {
 }
 
 func generateMessageHead(
-	processID uuid.UUID, sender db.Contact, messageCode db.MessageType,
+	processID string, sender db.Contact, messageCode db.MessageType,
 ) generatorMessageHead {
 	messageType := generatorCode{
 		Code: string(messageCode),
@@ -296,8 +295,8 @@ func generateMessageHead(
 
 // generateAppraisedObject returns xdomea version dependent appraised object.
 func generateAppraisedObject(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	xdomeaVersion XdomeaVersion,
 ) generatorAppraisedObject {
 	var appraisedObject generatorAppraisedObject
@@ -336,7 +335,7 @@ func getArchivingInfoPre300(archivePackages []db.ArchivePackage) generatorArchiv
 		for _, aip := range archivePackages {
 			for _, recordID := range aip.RecordIDs {
 				idMapping := generatorRecordArchiveMapping{
-					RecordID:  recordID.String(),
+					RecordID:  recordID,
 					ArchiveID: aip.PackageID,
 				}
 				recordArchiveMapping = append(recordArchiveMapping, idMapping)
@@ -351,7 +350,7 @@ func archivedRecordInfo(archivePackages []db.ArchivePackage) []generatorArchived
 	var info []generatorArchivedRecordInfo
 	for _, aip := range archivePackages {
 		for _, recordID := range aip.RecordIDs {
-			info = append(info, archivedRecordIDMapping(recordID.String(), aip))
+			info = append(info, archivedRecordIDMapping(recordID, aip))
 		}
 	}
 	return info

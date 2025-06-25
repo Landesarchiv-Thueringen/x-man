@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -11,8 +10,8 @@ import (
 // PrimaryDocumentData represents data we gathered for a primary document in
 // addition to the metadata given in an xdomea message.
 type PrimaryDocumentData struct {
-	ProcessID          uuid.UUID `bson:"process_id" json:"processId"`
-	RecordID           uuid.UUID `bson:"record_id" json:"recordId"`
+	ProcessID          string `bson:"process_id" json:"processId"`
+	RecordID           string `bson:"record_id" json:"recordId"`
 	PrimaryDocument    `bson:"inline"`
 	FileSize           int64               `bson:"file_size" json:"fileSize"`
 	FormatVerification *FormatVerification `bson:"format_verification" json:"formatVerification"`
@@ -77,7 +76,7 @@ func InsertPrimaryDocumentsData(data []PrimaryDocumentData) {
 	}
 }
 
-func UpdatePrimaryDocumentFormatVerification(processID uuid.UUID, filename string, formatVerification *FormatVerification) {
+func UpdatePrimaryDocumentFormatVerification(processID string, filename string, formatVerification *FormatVerification) {
 	coll := mongoDatabase.Collection("primary_documents_data")
 	filter := bson.D{{"process_id", processID}, {"filename", filename}}
 	update := bson.D{{"$set", bson.D{{"format_verification", formatVerification}}}}
@@ -87,7 +86,7 @@ func UpdatePrimaryDocumentFormatVerification(processID uuid.UUID, filename strin
 	}
 }
 
-func FindPrimaryDocumentsDataForProcess(ctx context.Context, processID uuid.UUID) []PrimaryDocumentData {
+func FindPrimaryDocumentsDataForProcess(ctx context.Context, processID string) []PrimaryDocumentData {
 	coll := mongoDatabase.Collection("primary_documents_data")
 	filter := bson.D{{"process_id", processID}}
 	var data []PrimaryDocumentData
@@ -98,7 +97,7 @@ func FindPrimaryDocumentsDataForProcess(ctx context.Context, processID uuid.UUID
 	return data
 }
 
-func FindPrimaryDocumentData(ctx context.Context, processID uuid.UUID, filename string) (PrimaryDocumentData, bool) {
+func FindPrimaryDocumentData(ctx context.Context, processID string, filename string) (PrimaryDocumentData, bool) {
 	coll := mongoDatabase.Collection("primary_documents_data")
 	filter := bson.D{{"process_id", processID}, {"filename", filename}}
 	var data PrimaryDocumentData
@@ -106,7 +105,7 @@ func FindPrimaryDocumentData(ctx context.Context, processID uuid.UUID, filename 
 	ok := handleError(ctx, err)
 	return data, ok
 }
-func DeletePrimaryDocumentsDataForProcess(processID uuid.UUID) {
+func DeletePrimaryDocumentsDataForProcess(processID string) {
 	coll := mongoDatabase.Collection("primary_documents_data")
 	filter := bson.D{{"process_id", processID}}
 	_, err := coll.DeleteMany(context.Background(), filter)
@@ -115,7 +114,7 @@ func DeletePrimaryDocumentsDataForProcess(processID uuid.UUID) {
 	}
 }
 
-func CalculateTotalFileSize(ctx context.Context, processID uuid.UUID, filenames []string) int64 {
+func CalculateTotalFileSize(ctx context.Context, processID string, filenames []string) int64 {
 	if len(filenames) == 0 {
 		return 0
 	}

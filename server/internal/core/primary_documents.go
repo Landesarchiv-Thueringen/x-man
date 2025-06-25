@@ -3,8 +3,6 @@ package core
 import (
 	"context"
 	"lath/xman/internal/db"
-
-	"github.com/google/uuid"
 )
 
 // GetPrimaryDocuments traverses the given root records and returns all included
@@ -70,7 +68,7 @@ func GetPrimaryDocumentsForDocument(r *db.DocumentRecord) []db.PrimaryDocumentCo
 // FilterMissingPrimaryDocuments segregates primary documents based on whether
 // their files are found in the filesystem.
 func FilterMissingPrimaryDocuments(
-	processID uuid.UUID,
+	processID string,
 	primaryDocument []db.PrimaryDocumentContext,
 ) (found, missing []db.PrimaryDocumentContext) {
 	primaryDocumentsData := db.FindPrimaryDocumentsDataForProcess(

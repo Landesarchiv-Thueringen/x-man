@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -19,13 +18,13 @@ const (
 )
 
 type Appraisal struct {
-	ProcessID uuid.UUID               `bson:"process_id" json:"-"`
-	RecordID  uuid.UUID               `bson:"record_id" json:"recordId"`
+	ProcessID string                  `bson:"process_id" json:"-"`
+	RecordID  string                  `bson:"record_id" json:"recordId"`
 	Decision  AppraisalDecisionOption `json:"decision"`
 	Note      string                  `json:"note"`
 }
 
-func FindAppraisalsForProcess(ctx context.Context, processID uuid.UUID) []Appraisal {
+func FindAppraisalsForProcess(ctx context.Context, processID string) []Appraisal {
 	coll := mongoDatabase.Collection("appraisals")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)
@@ -36,7 +35,7 @@ func FindAppraisalsForProcess(ctx context.Context, processID uuid.UUID) []Apprai
 	return a
 }
 
-func FindAppraisal(processID uuid.UUID, recordID uuid.UUID) (a Appraisal, ok bool) {
+func FindAppraisal(processID string, recordID string) (a Appraisal, ok bool) {
 	coll := mongoDatabase.Collection("appraisals")
 	filter := bson.D{
 		{"process_id", processID},
@@ -52,8 +51,8 @@ func FindAppraisal(processID uuid.UUID, recordID uuid.UUID) (a Appraisal, ok boo
 }
 
 func UpsertAppraisal(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	decision AppraisalDecisionOption,
 	note string,
 ) {
@@ -64,8 +63,8 @@ func UpsertAppraisal(
 }
 
 func UpsertAppraisalDecision(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	decision AppraisalDecisionOption,
 ) {
 	upsertAppraisal(processID, recordID, bson.D{
@@ -74,8 +73,8 @@ func UpsertAppraisalDecision(
 }
 
 func UpsertAppraisalNote(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	note string,
 ) {
 	upsertAppraisal(processID, recordID, bson.D{
@@ -84,8 +83,8 @@ func UpsertAppraisalNote(
 }
 
 func upsertAppraisal(
-	processID uuid.UUID,
-	recordID uuid.UUID,
+	processID string,
+	recordID string,
 	setItems bson.D,
 ) {
 	coll := mongoDatabase.Collection("appraisals")
@@ -104,7 +103,7 @@ func upsertAppraisal(
 	}
 }
 
-func DeleteAppraisalsForProcess(processID uuid.UUID) {
+func DeleteAppraisalsForProcess(processID string) {
 	coll := mongoDatabase.Collection("appraisals")
 	filter := bson.D{{"process_id", processID}}
 	_, err := coll.DeleteMany(context.Background(), filter)

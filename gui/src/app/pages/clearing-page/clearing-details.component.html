@@ -65,7 +65,7 @@
         <div role="cell" [innerHtml]="processingError.transferPath | breakOpportunities"></div>
       </div>
     }
-    @if (processingError.processId != "00000000-0000-0000-0000-000000000000") {
+    @if (!!processingError.processId) {
       <div role="row">
         <div role="cell">Aussonderung</div>
         <div role="cell">
@@ -139,10 +139,7 @@
       <span>E-Mail an Abgebende Stelle</span>
     </button>
   }
-  @if (
-    processingError.processStep === "format_verification" &&
-    processingError.taskId !== "000000000000000000000000"
-  ) {
+  @if (processingError.processStep === "format_verification" && !!processingError.taskId) {
     <button mat-menu-item (click)="skipTask()">
       <mat-icon>skip_next</mat-icon>
       <span>Aufgabe auslassen</span>
@@ -153,7 +150,7 @@
       <span>Problem ignorieren</span>
     </button>
   }
-  @if (processingError.taskId !== "000000000000000000000000") {
+  @if (!!processingError.taskId) {
     <button mat-menu-item (click)="retryTask()">
       <mat-icon>restart_alt</mat-icon>
       <span>Erneut versuchen</span>

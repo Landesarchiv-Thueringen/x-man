@@ -59,7 +59,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0501.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID.String() + core.Message0501MessageSuffix + ".zip",
+			Reference:   process.ProcessID + core.Message0501MessageSuffix + ".zip",
 			Info:        "Anbietung empfangen",
 		})
 	}
@@ -68,7 +68,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 			CompletedAt: s.Appraisal.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			CompletedBy: s.Appraisal.CompletedBy,
 			Action:      "Bewertung",
-			Reference:   process.ProcessID.String() + core.Message0501MessageSuffix + ".zip",
+			Reference:   process.ProcessID + core.Message0501MessageSuffix + ".zip",
 			Info:        "Anbietung bewerten",
 		})
 	}
@@ -76,7 +76,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0505.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID.String() + core.Message0505MessageSuffix + ".zip",
+			Reference:   process.ProcessID + core.Message0505MessageSuffix + ".zip",
 			Info:        "Empfangsbestätigung für Bewertung erhalten",
 		})
 	}
@@ -84,7 +84,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0503.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID.String() + core.Message0503MessageSuffix + ".zip",
+			Reference:   process.ProcessID + core.Message0503MessageSuffix + ".zip",
 			Info:        "Abgabe empfangen",
 		})
 	}
@@ -107,7 +107,7 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.FormatVerification.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Formatverifikation",
-			Reference:   "Aussonderung " + process.ProcessID.String(),
+			Reference:   "Aussonderung " + process.ProcessID,
 			Info:        "Formatverifikation aller Primärdateien: " + status,
 		})
 	}
@@ -130,7 +130,7 @@ func entryForArchiving(process db.SubmissionProcess) protocolEntry {
 		CompletedAt: s.Archiving.UpdatedAt.Local().Format("2006-01-02 15:04:05"),
 		CompletedBy: auth.GetDisplayName(task.UserID),
 		Action:      "Ingest",
-		Reference:   "Aussonderung " + process.ProcessID.String(),
+		Reference:   "Aussonderung " + process.ProcessID,
 		Info:        "Ingest starten",
 	}
 }
@@ -144,7 +144,7 @@ func entriesForProcessingErrors(process db.SubmissionProcess) []protocolEntry {
 		entries = append(entries, protocolEntry{
 			CompletedAt: e.CreatedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Fehler",
-			Reference:   "Aussonderung " + process.ProcessID.String(),
+			Reference:   "Aussonderung " + process.ProcessID,
 			Info:        e.Title + "\nLösung: " + string(e.Resolution),
 		})
 	}

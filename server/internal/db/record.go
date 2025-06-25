@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -19,10 +18,10 @@ const (
 )
 
 type RootRecord struct {
-	ProcessID        uuid.UUID `bson:"process_id"`
+	ProcessID        string `bson:"process_id"`
 	MessageType      `bson:"message_type"`
 	RecordType       `bson:"record_type"`
-	ContainedRecords []uuid.UUID `bson:"contained_records"`
+	ContainedRecords []string `bson:"contained_records"`
 }
 
 type RootFileRecord struct {
@@ -47,7 +46,7 @@ type RootRecords struct {
 }
 
 type FileRecord struct {
-	RecordID        uuid.UUID        `bson:"record_id" json:"recordId"`
+	RecordID        string           `bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	ArchiveMetadata *ArchiveMetadata `bson:"archive_metadata" json:"archiveMetadata"`
 	Lifetime        *Lifetime        `json:"lifetime"`
@@ -58,7 +57,7 @@ type FileRecord struct {
 }
 
 type ProcessRecord struct {
-	RecordID        uuid.UUID        `xml:"Identifikation>ID" bson:"record_id" json:"recordId"`
+	RecordID        string           `xml:"Identifikation>ID" bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	ArchiveMetadata *ArchiveMetadata `bson:"archive_metadata" json:"archiveMetadata"`
 	Lifetime        *Lifetime        `json:"lifetime"`
@@ -69,7 +68,7 @@ type ProcessRecord struct {
 
 type DocumentRecord struct {
 	XMLName         xml.Name         `bson:"-" json:"-"`
-	RecordID        uuid.UUID        `xml:"Identifikation>ID" bson:"record_id" json:"recordId"`
+	RecordID        string           `xml:"Identifikation>ID" bson:"record_id" json:"recordId"`
 	GeneralMetadata *GeneralMetadata `bson:"general_metadata" json:"generalMetadata"`
 	Type            string           `json:"type" xml:"Typ"`
 	IncomingDate    string           `xml:"Posteingangsdatum" bson:"incoming_date" json:"incomingDate"`
@@ -147,7 +146,7 @@ type PrimaryDocument struct {
 
 type PrimaryDocumentContext struct {
 	PrimaryDocument `bson:"inline"`
-	RecordID        uuid.UUID `bson:"record_id" json:"recordId"`
+	RecordID        string `bson:"record_id" json:"recordId"`
 }
 
 type filePlanVersionDifferences struct {
@@ -158,7 +157,7 @@ type filePlanVersionDifferences struct {
 }
 
 type fileRecordVersionDifferences struct {
-	RecordID        uuid.UUID        `xml:"Identifikation>ID"`
+	RecordID        string           `xml:"Identifikation>ID"`
 	GeneralMetadata *GeneralMetadata `xml:"AllgemeineMetadaten"`
 	ArchiveMetadata *ArchiveMetadata `xml:"ArchivspezifischeMetadaten"`
 	Lifetime        *Lifetime        `xml:"Laufzeit"`
@@ -253,7 +252,7 @@ func (archiveMetadata *ArchiveMetadata) UnmarshalXML(d *xml.Decoder, start xml.S
 
 // InsertRootRecords inserts records for files, processes, and documents for a
 // given message into the database.
-func InsertRootRecords(processID uuid.UUID, messageType MessageType, records RootRecords) {
+func InsertRootRecords(processID string, messageType MessageType, records RootRecords) {
 	// Check for existing records
 	coll := mongoDatabase.Collection("root_records")
 	filter := bson.D{
@@ -313,7 +312,7 @@ func InsertRootRecords(processID uuid.UUID, messageType MessageType, records Roo
 // as an array per record type.
 func FindAllRootRecords(
 	ctx context.Context,
-	processID uuid.UUID,
+	processID string,
 	messageType MessageType,
 ) RootRecords {
 	filter := bson.D{
@@ -327,9 +326,9 @@ func FindAllRootRecords(
 // given records and returns them as an array per record type.
 func FindRootRecords(
 	ctx context.Context,
-	processID uuid.UUID,
+	processID string,
 	messageType MessageType,
-	recordIDs []uuid.UUID,
+	recordIDs []string,
 ) RootRecords {
 	filter := bson.D{
 		{"$and",
@@ -380,9 +379,9 @@ func findRootRecords(
 // as the root record itself or as nested record.
 func FindRootRecord(
 	ctx context.Context,
-	processID uuid.UUID,
+	processID string,
 	messageType MessageType,
-	recordID uuid.UUID,
+	recordID string,
 ) (RootRecords, bool) {
 	coll := mongoDatabase.Collection("root_records")
 	filter := bson.D{
@@ -420,7 +419,7 @@ func FindRootRecord(
 	return r, true
 }
 
-func DeleteRecordsForProcess(processID uuid.UUID) {
+func DeleteRecordsForProcess(processID string) {
 	coll := mongoDatabase.Collection("root_records")
 	filter := bson.D{
 		{"process_id", processID},
@@ -431,7 +430,7 @@ func DeleteRecordsForProcess(processID uuid.UUID) {
 	}
 }
 
-func DeleteRecordsForMessage(processID uuid.UUID, messageType MessageType) {
+func DeleteRecordsForMessage(processID string, messageType MessageType) {
 	coll := mongoDatabase.Collection("root_records")
 	filter := bson.D{
 		{"process_id", processID},
@@ -445,8 +444,8 @@ func DeleteRecordsForMessage(processID uuid.UUID, messageType MessageType) {
 
 // containedRecordIDs returns the IDs of all nested records contained in the
 // given root record.
-func containedRecordIDs(r RootRecords) []uuid.UUID {
-	var ids []uuid.UUID
+func containedRecordIDs(r RootRecords) []string {
+	var ids []string
 	var appendDocumentRecords func(documents []DocumentRecord)
 	appendDocumentRecords = func(documents []DocumentRecord) {
 		for _, d := range documents {

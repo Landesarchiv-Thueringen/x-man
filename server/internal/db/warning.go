@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -13,13 +12,13 @@ import (
 type Warning struct {
 	CreatedAt   time.Time   `bson:"created_at" json:"createdAt"`
 	Title       string      `bson:"title" json:"title"`
-	ProcessID   uuid.UUID   `bson:"process_id" json:"processId"`
+	ProcessID   string      `bson:"process_id" json:"processId"`
 	MessageType MessageType `bson:"message_type" json:"-"`
 }
 
 // FindWarningsForProcess returns all warnings for the given submission process
 // from the database.
-func FindWarningsForProcess(ctx context.Context, processID uuid.UUID) []Warning {
+func FindWarningsForProcess(ctx context.Context, processID string) []Warning {
 	coll := mongoDatabase.Collection("warnings")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)
@@ -40,14 +39,14 @@ func InsertWarning(w Warning) {
 	// Update submission process
 	broadcastUpdate(Update{
 		Collection: "warnings",
-		ProcessID:  w.ProcessID,
+		ProcessID:  &w.ProcessID,
 		Operation:  UpdateOperationInsert,
 	})
 }
 
 // DeleteWarningsForProcess deletes all warnings associated with the given
 // submission process.
-func DeleteWarningsForProcess(processID uuid.UUID) {
+func DeleteWarningsForProcess(processID string) {
 	coll := mongoDatabase.Collection("warnings")
 	filter := bson.D{{"process_id", processID}}
 	result, err := coll.DeleteMany(context.Background(), filter)
@@ -57,7 +56,7 @@ func DeleteWarningsForProcess(processID uuid.UUID) {
 	if result.DeletedCount > 0 {
 		broadcastUpdate(Update{
 			Collection: "warnings",
-			ProcessID:  processID,
+			ProcessID:  &processID,
 			Operation:  UpdateOperationDelete,
 		})
 	}
@@ -65,7 +64,7 @@ func DeleteWarningsForProcess(processID uuid.UUID) {
 
 // DeleteWarningsForMessage deletes all warnings associated with the given
 // message.
-func DeleteWarningsForMessage(processID uuid.UUID, messageType MessageType) {
+func DeleteWarningsForMessage(processID string, messageType MessageType) {
 	coll := mongoDatabase.Collection("warnings")
 	filter := bson.D{
 		{"process_id", processID},
@@ -78,7 +77,7 @@ func DeleteWarningsForMessage(processID uuid.UUID, messageType MessageType) {
 	if result.DeletedCount > 0 {
 		broadcastUpdate(Update{
 			Collection: "warnings",
-			ProcessID:  processID,
+			ProcessID:  &processID,
 			Operation:  UpdateOperationDelete,
 		})
 	}

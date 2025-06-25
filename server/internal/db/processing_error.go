@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -43,11 +42,11 @@ type ProcessingError struct {
 	ErrorType    string                    `bson:"error_type" json:"errorType"`
 	Stack        string                    `json:"stack"`
 	Agency       *Agency                   `json:"agency"` // Copy, needs to be kept in sync
-	ProcessID    uuid.UUID                 `bson:"process_id" json:"processId"`
+	ProcessID    *string                   `bson:"process_id" json:"processId"`
 	MessageType  MessageType               `bson:"message_type" json:"messageType"`
 	ProcessStep  ProcessStepType           `bson:"process_step" json:"processStep"`
 	TransferPath string                    `bson:"transfer_path" json:"transferPath"`
-	TaskID       primitive.ObjectID        `bson:"task_id" json:"taskId"`
+	TaskID       *primitive.ObjectID       `bson:"task_id" json:"taskId"`
 }
 
 func (e *ProcessingError) Error() string {
@@ -64,8 +63,8 @@ func InsertProcessingError(e ProcessingError) {
 		panic(err)
 	}
 	// Update submission process
-	if e.ProcessID != uuid.Nil {
-		refreshUnresolvedErrorsForProcess(e.ProcessID)
+	if e.ProcessID != nil {
+		refreshUnresolvedErrorsForProcess(*e.ProcessID)
 	}
 	broadcastUpdate(Update{
 		Collection: "processing_errors",
@@ -99,7 +98,7 @@ func FindProcessingErrors(ctx context.Context) []ProcessingError {
 	return findProcessingErrors(ctx, filter)
 }
 
-func FindProcessingErrorsForProcess(ctx context.Context, processID uuid.UUID) []ProcessingError {
+func FindProcessingErrorsForProcess(ctx context.Context, processID string) []ProcessingError {
 	filter := bson.D{{"process_id", processID}}
 	return findProcessingErrors(ctx, filter)
 }
@@ -168,8 +167,8 @@ func UpdateProcessingErrorResolve(e ProcessingError, r ProcessingErrorResolution
 		return false
 	}
 	// Update submission process
-	if e.ProcessID != uuid.Nil {
-		refreshUnresolvedErrorsForProcess(e.ProcessID)
+	if e.ProcessID != nil {
+		refreshUnresolvedErrorsForProcess(*e.ProcessID)
 	}
 	broadcastUpdate(Update{
 		Collection: "processing_errors",
@@ -218,7 +217,7 @@ func DeleteProcessingError(ID primitive.ObjectID) (ok bool) {
 // with the given process except application errors.
 //
 // It expects the process to be deleted as well and will not update its values.
-func DeleteProcessingErrorsForProcess(processID uuid.UUID) {
+func DeleteProcessingErrorsForProcess(processID string) {
 	coll := mongoDatabase.Collection("processing_errors")
 	filter := bson.D{
 		{"process_id", processID},
@@ -230,12 +229,12 @@ func DeleteProcessingErrorsForProcess(processID uuid.UUID) {
 	}
 	broadcastUpdate(Update{
 		Collection: "processing_errors",
-		ProcessID:  processID,
+		ProcessID:  &processID,
 		Operation:  UpdateOperationDelete,
 	})
 }
 
-func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageType) {
+func DeleteProcessingErrorsForMessage(processID string, messageType MessageType) {
 	coll := mongoDatabase.Collection("processing_errors")
 	filter := bson.D{
 		{"process_id", processID},
@@ -250,13 +249,13 @@ func DeleteProcessingErrorsForMessage(processID uuid.UUID, messageType MessageTy
 		refreshUnresolvedErrorsForProcess(processID)
 		broadcastUpdate(Update{
 			Collection: "processing_errors",
-			ProcessID:  processID,
+			ProcessID:  &processID,
 			Operation:  UpdateOperationDelete,
 		})
 	}
 }
 
-func refreshUnresolvedErrorsForProcess(processID uuid.UUID) {
+func refreshUnresolvedErrorsForProcess(processID string) {
 	coll := mongoDatabase.Collection("processing_errors")
 	filter := bson.D{
 		{"process_id", processID},

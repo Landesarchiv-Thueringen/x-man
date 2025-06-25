@@ -8,13 +8,12 @@ import {
   startWith,
   throttleTime,
 } from 'rxjs';
-import { NIL_UUID } from '../utils/constants';
 import { notNull } from '../utils/predicates';
 import { AuthService } from './auth.service';
 
 export interface Update {
   collection: 'submission_processes' | 'processing_errors' | 'warnings' | 'tasks';
-  processId: string;
+  processId: string | null;
   operation: 'insert' | 'update' | 'delete';
 }
 
@@ -102,7 +101,7 @@ export class UpdatesService {
         (update) =>
           update === 'reconnect' ||
           update.processId === processId ||
-          (update.collection === 'submission_processes' && update.processId === NIL_UUID),
+          (update.collection === 'submission_processes' && !update.processId),
       ),
       map(() => void 0),
       startWith(void 0),

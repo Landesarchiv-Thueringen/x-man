@@ -3,8 +3,6 @@ package report
 import (
 	"context"
 	"lath/xman/internal/db"
-
-	"github.com/google/uuid"
 )
 
 type objectAppraisalStats struct {
@@ -23,7 +21,7 @@ type appraisalStats struct {
 	Documents objectAppraisalStats
 }
 
-type appraisalMap = map[uuid.UUID]db.Appraisal
+type appraisalMap = map[string]db.Appraisal
 
 func fileHasDiscardedChildren(file db.FileRecord, m appraisalMap) bool {
 	for _, s := range file.Subfiles {
@@ -57,11 +55,11 @@ func (a *appraisalStats) processFiles(
 	offeredFiles, submittedFiles []db.FileRecord,
 	m appraisalMap,
 ) {
-	offeredFilesMap := make(map[uuid.UUID]bool)
+	offeredFilesMap := make(map[string]bool)
 	for _, f := range offeredFiles {
 		offeredFilesMap[f.RecordID] = true
 	}
-	submittedFilesMap := make(map[uuid.UUID]bool)
+	submittedFilesMap := make(map[string]bool)
 	for _, f := range submittedFiles {
 		submittedFilesMap[f.RecordID] = true
 	}
@@ -104,11 +102,11 @@ func (a *appraisalStats) processProcesses(
 	offeredProcesses, submittedProcesses []db.ProcessRecord,
 	m appraisalMap,
 ) {
-	offeredProcessesMap := make(map[uuid.UUID]bool)
+	offeredProcessesMap := make(map[string]bool)
 	for _, p := range offeredProcesses {
 		offeredProcessesMap[p.RecordID] = true
 	}
-	submittedProcessesMap := make(map[uuid.UUID]bool)
+	submittedProcessesMap := make(map[string]bool)
 	for _, p := range submittedProcesses {
 		submittedProcessesMap[p.RecordID] = true
 	}
@@ -148,11 +146,11 @@ func (a *appraisalStats) processProcesses(
 func (a *appraisalStats) processDocuments(
 	offeredDocuments, submittedDocuments []db.DocumentRecord,
 ) {
-	offeredDocumentsMap := make(map[uuid.UUID]bool)
+	offeredDocumentsMap := make(map[string]bool)
 	for _, d := range offeredDocuments {
 		offeredDocumentsMap[d.RecordID] = true
 	}
-	submittedDocumentsMap := make(map[uuid.UUID]bool)
+	submittedDocumentsMap := make(map[string]bool)
 	for _, d := range submittedDocuments {
 		submittedDocumentsMap[d.RecordID] = true
 	}
@@ -175,7 +173,7 @@ func (a *appraisalStats) processDocuments(
 	}
 }
 
-func getAppraisalsMap(processID uuid.UUID) appraisalMap {
+func getAppraisalsMap(processID string) appraisalMap {
 	m := make(appraisalMap)
 	appraisals := db.FindAppraisalsForProcess(context.Background(), processID)
 	for _, a := range appraisals {

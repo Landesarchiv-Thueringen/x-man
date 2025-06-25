@@ -7,18 +7,13 @@ import (
 	"lath/xman/internal/tasks"
 	"log"
 	"os"
-
-	"github.com/google/uuid"
 )
 
 // DeleteProcess deletes the given process from the database and removes all
 // associated message files from the file system.
 //
 // Returns true, when an entry was found and deleted.
-func DeleteProcess(processID uuid.UUID) bool {
-	if processID == uuid.Nil {
-		panic("called DeleteProcess with empty string")
-	}
+func DeleteProcess(processID string) bool {
 	process, found := db.FindProcess(context.Background(), processID)
 	if !found {
 		return false
@@ -49,7 +44,7 @@ func DeleteProcess(processID uuid.UUID) bool {
 	return true
 }
 
-func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransferFile bool) error {
+func DeleteMessage(processID string, messageType db.MessageType, keepTransferFile bool) error {
 	message, ok := db.FindMessage(context.Background(), processID, messageType)
 	if !ok {
 		return fmt.Errorf("%s message not found for process %s", messageType, processID)
@@ -92,7 +87,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 	}
 	process, processFound := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
 	if !processFound {
-		panic("process not found " + message.MessageHead.ProcessID.String())
+		panic("process not found " + message.MessageHead.ProcessID)
 	}
 	// Delete transfer file
 	if keepTransferFile {
@@ -108,10 +103,7 @@ func DeleteMessage(processID uuid.UUID, messageType db.MessageType, keepTransfer
 
 // cleanupEmptyProcess deletes the given process if if does not have any
 // messages.
-func cleanupEmptyProcess(processID uuid.UUID) {
-	if processID == uuid.Nil {
-		panic("called cleanupEmptyProcess with empty string")
-	}
+func cleanupEmptyProcess(processID string) {
 	messages := db.FindMessagesForProcess(context.Background(), processID)
 	if len(messages) == 0 {
 		if found := DeleteProcess(processID); !found {

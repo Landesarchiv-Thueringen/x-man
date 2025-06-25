@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -245,11 +244,7 @@ func resolveProcessingError(c *gin.Context) {
 }
 
 func getProcessData(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	process, found := db.FindProcess(c.Request.Context(), processID)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -282,11 +277,7 @@ func getProcesses(c *gin.Context) {
 }
 
 func deleteProcess(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	if found := core.DeleteProcess(processID); found {
 		c.Status(http.StatusAccepted)
 	} else {
@@ -295,13 +286,9 @@ func deleteProcess(c *gin.Context) {
 }
 
 func reimportMessage(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	messageType := c.Param("messageType")
-	err = core.DeleteMessage(processID, db.MessageType(messageType), true)
+	err := core.DeleteMessage(processID, db.MessageType(messageType), true)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -309,13 +296,9 @@ func reimportMessage(c *gin.Context) {
 }
 
 func deleteMessage(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	messageType := c.Param("messageType")
-	err = core.DeleteMessage(processID, db.MessageType(messageType), false)
+	err := core.DeleteMessage(processID, db.MessageType(messageType), false)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -323,11 +306,7 @@ func deleteMessage(c *gin.Context) {
 }
 
 func getMessage(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	messageType := c.Param("messageType")
 	message, found := db.FindMessage(c.Request.Context(), processID, db.MessageType(messageType))
 	if !found {
@@ -338,37 +317,21 @@ func getMessage(c *gin.Context) {
 }
 
 func getRootRecords(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	messageType := c.Param("messageType")
 	rootRecords := db.FindAllRootRecords(c.Request.Context(), processID, db.MessageType(messageType))
 	c.JSON(http.StatusOK, rootRecords)
 }
 
 func getAppraisals(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	appraisals := db.FindAppraisalsForProcess(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisals)
 }
 
 func setAppraisalDecision(c *gin.Context) {
-	processID, err := uuid.Parse(c.Query("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	recordID, err := uuid.Parse(c.Query("recordId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Query("processId")
+	recordID := c.Query("recordId")
 	appraisalDecision, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
@@ -385,16 +348,8 @@ func setAppraisalDecision(c *gin.Context) {
 }
 
 func setAppraisalNote(c *gin.Context) {
-	processID, err := uuid.Parse(c.Query("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	recordID, err := uuid.Parse(c.Query("recordId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Query("processId")
+	recordID := c.Query("recordId")
 	appraisalNote, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
@@ -409,8 +364,8 @@ func setAppraisalNote(c *gin.Context) {
 }
 
 type MultiAppraisalBody struct {
-	ProcessID       uuid.UUID                  `json:"processId"`
-	RecordObjectIDs []uuid.UUID                `json:"recordObjectIds"`
+	ProcessID       string                     `json:"processId"`
+	RecordObjectIDs []string                   `json:"recordObjectIds"`
 	Decision        db.AppraisalDecisionOption `json:"decision"`
 	InternalNote    string                     `json:"internalNote"`
 }
@@ -442,11 +397,7 @@ func setAppraisals(c *gin.Context) {
 }
 
 func finalizeMessageAppraisal(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	message, found := db.FindMessage(c, processID, db.MessageType0501)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -464,11 +415,11 @@ func finalizeMessageAppraisal(c *gin.Context) {
 	userID := c.MustGet("userId").(string)
 	userName := auth.GetDisplayName(userID)
 	message = core.FinalizeMessageAppraisal(message, userName)
-	err = core.Send0502Message(process.Agency, message)
+	err := core.Send0502Message(process.Agency, message)
 	if err != nil {
 		errorData := db.ProcessingError{
 			Title:     "Fehler beim Senden der 0502-Nachricht",
-			ProcessID: processID,
+			ProcessID: &processID,
 		}
 		errors.AddProcessingErrorWithData(err, errorData)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -476,11 +427,11 @@ func finalizeMessageAppraisal(c *gin.Context) {
 		preferences := db.FindUserPreferencesWithDefault(context.Background(), userID)
 		if preferences.ReportByEmail {
 			defer errors.HandlePanic("generate report for e-mail", &db.ProcessingError{
-				ProcessID: message.MessageHead.ProcessID,
+				ProcessID: &message.MessageHead.ProcessID,
 			})
 			process, ok := db.FindProcess(context.Background(), message.MessageHead.ProcessID)
 			if !ok {
-				panic("failed to find process:" + process.ProcessID.String())
+				panic("failed to find process:" + process.ProcessID)
 			}
 			_, contentType, reader := report.GetAppraisalReport(context.Background(), process)
 			body, err := io.ReadAll(reader)
@@ -489,7 +440,7 @@ func finalizeMessageAppraisal(c *gin.Context) {
 			}
 			errorData := db.ProcessingError{
 				Title:     "Fehler beim Versenden einer E-Mail-Benachrichtigung",
-				ProcessID: message.MessageHead.ProcessID,
+				ProcessID: &message.MessageHead.ProcessID,
 			}
 			address, err := auth.GetMailAddress(userID)
 			if err != nil {
@@ -512,21 +463,13 @@ func finalizeMessageAppraisal(c *gin.Context) {
 }
 
 func areAllRecordObjectsAppraised(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	appraisalComplete := core.AreAllRecordObjectsAppraised(c.Request.Context(), processID)
 	c.JSON(http.StatusOK, appraisalComplete)
 }
 
 func getPackaging(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	decisions, stats, choices := core.Packaging(processID)
 	c.JSON(http.StatusOK, gin.H{
 		"decisions": decisions,
@@ -543,17 +486,13 @@ func getPackaging(c *gin.Context) {
 // The methods is invoked via a POST request to be able to retrieve a
 // potentially long list of record IDs as request body.
 func getPackagingStatsForOptions(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	jsonBody, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	var recordIDs []uuid.UUID
+	var recordIDs []string
 	err = json.Unmarshal(jsonBody, &recordIDs)
 	if err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -571,8 +510,8 @@ func setPackagingChoice(c *gin.Context) {
 		return
 	}
 	var data struct {
-		ProcessID uuid.UUID          `json:"processId"`
-		RecordIDs []uuid.UUID        `json:"recordIds"`
+		ProcessID string             `json:"processId"`
+		RecordIDs []string           `json:"recordIds"`
 		Packaging db.PackagingChoice `json:"packagingChoice"`
 	}
 	err = json.Unmarshal(jsonBody, &data)
@@ -592,11 +531,7 @@ func setPackagingChoice(c *gin.Context) {
 }
 
 func setProcessNote(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	note, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		panic(err)
@@ -608,15 +543,11 @@ func setProcessNote(c *gin.Context) {
 }
 
 func getPrimaryDocument(c *gin.Context) {
-	processID, err := uuid.Parse(c.Query("processID"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Query("processID")
 	filename := c.Query("filename")
 	message, ok := db.FindMessage(c.Request.Context(), processID, db.MessageType0503)
 	if !ok {
-		c.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	path := filepath.Join(message.StoreDir, filename)
@@ -627,11 +558,7 @@ func getPrimaryDocument(c *gin.Context) {
 }
 
 func getPrimaryDocumentsInfo(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	primaryDocuments := db.FindPrimaryDocumentsDataForProcess(c.Request.Context(), processID)
 	data := make([]gin.H, len(primaryDocuments))
 	for i, d := range primaryDocuments {
@@ -648,11 +575,7 @@ func getPrimaryDocumentsInfo(c *gin.Context) {
 }
 
 func getPrimaryDocumentData(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	filename := c.Param("filename")
 	data, found := db.FindPrimaryDocumentData(c.Request.Context(), processID, filename)
 	if !found {
@@ -663,11 +586,7 @@ func getPrimaryDocumentData(c *gin.Context) {
 }
 
 func getAppraisalReport(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	process, found := db.FindProcess(c.Request.Context(), processID)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -678,11 +597,7 @@ func getAppraisalReport(c *gin.Context) {
 }
 
 func getSubmissionReport(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	process, found := db.FindProcess(c.Request.Context(), processID)
 	if !found {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -694,14 +609,10 @@ func getSubmissionReport(c *gin.Context) {
 
 // archive0503Message archives all metadata and primary files in the digital archive.
 func archive0503Message(c *gin.Context) {
-	processID, err := uuid.Parse(c.Param("processId"))
-	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
+	processID := c.Param("processId")
 	process, found := db.FindProcess(context.Background(), processID)
 	if !found {
-		c.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	var isArchivable bool
@@ -974,8 +885,8 @@ func handleRecovery(c *gin.Context, err any) {
 		ErrorType: "application-error",
 		Info:      fmt.Sprintf("%s %s\n\n%v", c.Request.Method, c.Request.URL, err),
 	}
-	if processID, err := uuid.Parse(c.Param("processId")); err == nil {
-		e.ProcessID = processID
+	if processID := c.Param("processId"); processID != "" {
+		e.ProcessID = &processID
 	}
 	if messageType := c.Param("messageType"); messageType != "" {
 		e.MessageType = db.MessageType(messageType)

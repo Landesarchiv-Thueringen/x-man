@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"lath/xman/internal/db"
-
-	"github.com/google/uuid"
 )
 
 func GenerateVerificationResults(
-	processID uuid.UUID,
+	processID string,
 	archivePackage db.ArchivePackage,
 ) ([]byte, bool) {
 	results := make(map[string]db.FormatVerification)

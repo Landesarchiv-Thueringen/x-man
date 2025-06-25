@@ -150,7 +150,7 @@ func CloseConnection(c Connection) {
 // getUploadDir returns the remote directory name as which the BagIt will be
 // uploaded.
 func getUploadDir(bagit bagitHandle) string {
-	return "Import/xman_bagit_" + bagit.ID().String()
+	return "Import/xman_bagit_" + bagit.ID()
 }
 
 // uploadBagit creates a remote import directory on the DIMAG server

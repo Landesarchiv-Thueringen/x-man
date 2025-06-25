@@ -6,8 +6,6 @@ import (
 	"lath/xman/internal/core"
 	"lath/xman/internal/db"
 	"reflect"
-
-	"github.com/google/uuid"
 )
 
 type RecordObjectType = string
@@ -49,14 +47,14 @@ func archivePackagesInfo(
 	rootRecords := db.FindAllRootRecords(ctx, process.ProcessID, db.MessageType0503)
 	aips := db.FindArchivePackagesForProcess(ctx, process.ProcessID)
 	for _, f := range rootRecords.Files {
-		result = append(result, archivePackagesInfoForFile(f, aips[:], []uuid.UUID{}))
+		result = append(result, archivePackagesInfoForFile(f, aips[:], []string{}))
 	}
 	for _, p := range rootRecords.Processes {
-		result = append(result, archivePackagesInfoForProcess(p, aips[:], []uuid.UUID{}))
+		result = append(result, archivePackagesInfoForProcess(p, aips[:], []string{}))
 	}
 	if len(rootRecords.Documents) > 0 {
 		result = append(result,
-			archivePackagesInfoForDocuments(rootRecords.Documents[:], aips[:], []uuid.UUID{}),
+			archivePackagesInfoForDocuments(rootRecords.Documents[:], aips[:], []string{}),
 		)
 	}
 	return
@@ -65,7 +63,7 @@ func archivePackagesInfo(
 func archivePackagesInfoForFile(
 	file db.FileRecord,
 	aips []db.ArchivePackage,
-	path []uuid.UUID,
+	path []string,
 ) ArchivePackageStructure {
 	var subAIPs []db.ArchivePackage
 	fullPath := append(path, file.RecordID)
@@ -87,7 +85,7 @@ func archivePackagesInfoForFile(
 		}
 	}
 	if len(subAIPs) == 0 {
-		panic("no archive package found for file " + file.RecordID.String())
+		panic("no archive package found for file " + file.RecordID)
 	}
 	var children []ArchivePackageStructure
 	for _, s := range file.Subfiles {
@@ -108,7 +106,7 @@ func archivePackagesInfoForFile(
 func archivePackagesInfoForProcess(
 	process db.ProcessRecord,
 	aips []db.ArchivePackage,
-	path []uuid.UUID,
+	path []string,
 ) ArchivePackageStructure {
 	var subAIPs []db.ArchivePackage
 	fullPath := append(path, process.RecordID)
@@ -130,7 +128,7 @@ func archivePackagesInfoForProcess(
 		}
 	}
 	if len(subAIPs) == 0 {
-		panic("no archive package found for process " + process.RecordID.String())
+		panic("no archive package found for process " + process.RecordID)
 	}
 	var children []ArchivePackageStructure
 	for _, s := range process.Subprocesses {
@@ -148,9 +146,9 @@ func archivePackagesInfoForProcess(
 func archivePackagesInfoForDocuments(
 	documents []db.DocumentRecord,
 	aips []db.ArchivePackage,
-	path []uuid.UUID,
+	path []string,
 ) ArchivePackageStructure {
-	ids := make(map[uuid.UUID]bool)
+	ids := make(map[string]bool)
 	for _, d := range documents {
 		ids[d.RecordID] = true
 	}

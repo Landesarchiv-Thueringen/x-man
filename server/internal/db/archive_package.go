@@ -3,14 +3,13 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ArchivePackage struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	ProcessID uuid.UUID          `bson:"process_id"`
+	ProcessID string             `bson:"process_id"`
 	// CollectionID references the DIMAG collection (de: Bestand)
 	CollectionID primitive.ObjectID `bson:"collection_id"`
 	// IOTitle is the title of the information object in DIMAG.
@@ -30,10 +29,10 @@ type ArchivePackage struct {
 	// sub records of the record referenced by the last element of RecordPath.
 	//
 	// All segments given by RecordPath must reference file or sub-file records.
-	RecordPath []uuid.UUID `bson:"record_path"`
+	RecordPath []string `bson:"record_path"`
 	// RecordIDs are the RecordIDs of all records contained in the archive
 	// package.
-	RecordIDs []uuid.UUID `bson:"record_ids"`
+	RecordIDs []string `bson:"record_ids"`
 	// PrimaryDocuments are all primary documents contained in the archive
 	// package.
 	PrimaryDocuments []PrimaryDocumentContext `bson:"primary_documents"`
@@ -60,7 +59,7 @@ func ReplaceArchivePackage(aip *ArchivePackage) (ok bool) {
 	return result.MatchedCount == 1
 }
 
-func FindArchivePackagesForProcess(ctx context.Context, processID uuid.UUID) []ArchivePackage {
+func FindArchivePackagesForProcess(ctx context.Context, processID string) []ArchivePackage {
 	coll := mongoDatabase.Collection("archive_packages")
 	filter := bson.D{{"process_id", processID}}
 	cursor, err := coll.Find(ctx, filter)
@@ -73,8 +72,8 @@ func FindArchivePackagesForProcess(ctx context.Context, processID uuid.UUID) []A
 
 func FindArchivePackage(
 	ctx context.Context,
-	processID uuid.UUID,
-	rootRecordIDs []uuid.UUID,
+	processID string,
+	rootRecordIDs []string,
 ) (ArchivePackage, bool) {
 	coll := mongoDatabase.Collection("archive_packages")
 	filter := bson.D{
@@ -86,7 +85,7 @@ func FindArchivePackage(
 	return aip, handleError(ctx, err)
 }
 
-func DeleteArchivePackagesForProcess(processID uuid.UUID) {
+func DeleteArchivePackagesForProcess(processID string) {
 	coll := mongoDatabase.Collection("archive_packages")
 	filter := bson.D{{"process_id", processID}}
 	_, err := coll.DeleteMany(context.Background(), filter)

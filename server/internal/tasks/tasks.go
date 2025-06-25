@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -129,7 +128,7 @@ func RegisterTaskHandler(taskType db.ProcessStepType, h HandlerTemplate, o Optio
 func Run(t *db.Task) {
 	go func() {
 		defer errors.HandlePanic("run task "+string(t.Type), &db.ProcessingError{
-			ProcessID:   t.ProcessID,
+			ProcessID:   &t.ProcessID,
 			ProcessStep: t.Type,
 		})
 		run(t)
@@ -253,7 +252,7 @@ ItemLoop:
 					<-th.ItemGuard
 				}()
 				defer errors.HandlePanic("process item for task "+string(t.Type), &db.ProcessingError{
-					ProcessID:   t.ProcessID,
+					ProcessID:   &t.ProcessID,
 					ProcessStep: t.Type,
 				}, func(e interface{}) {
 					t.Items[i].State = db.TaskStateFailed
@@ -386,11 +385,11 @@ func markFailed(t *db.Task, errMsg string) {
 	}
 	updateProgress(t)
 	e := db.ProcessingError{
-		ProcessID:   t.ProcessID,
+		ProcessID:   &t.ProcessID,
 		ProcessStep: t.Type,
 		Title:       getDisplayName(t.Type) + " fehlgeschlagen",
 		Info:        errMsg,
-		TaskID:      t.ID,
+		TaskID:      &t.ID,
 	}
 	errors.AddProcessingError(e)
 }
@@ -411,7 +410,7 @@ func getDisplayName(taskType db.ProcessStepType) string {
 //
 // If types is given, it cancels and deletes only the tasks matching the type.
 // Otherwise, it cancels and deletes all tasks for the process.
-func CancelAndDeleteTasksForProcess(processID uuid.UUID, types map[db.ProcessStepType]bool) {
+func CancelAndDeleteTasksForProcess(processID string, types map[db.ProcessStepType]bool) {
 	for _, r := range runningTasks {
 		if r.Task.ProcessID == processID {
 			if types == nil || types[r.Task.Type] {

@@ -121,7 +121,7 @@ func (h *VerificationHandler) AfterDone() {
 		errors.AddProcessingError(db.ProcessingError{
 			Title:       "Die Formatverifikation hat Probleme mit Primärdateien festgestellt",
 			Info:        strings.Join(h.invalidFiles, "\n"),
-			ProcessID:   h.message.MessageHead.ProcessID,
+			ProcessID:   &h.message.MessageHead.ProcessID,
 			MessageType: h.message.MessageType,
 			ProcessStep: db.ProcessStepFormatVerification,
 		})

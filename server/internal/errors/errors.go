@@ -21,8 +21,6 @@ import (
 	"log"
 	"runtime/debug"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // FromError create a minimal processing error from a standard return error.
@@ -61,8 +59,8 @@ func printableErrorInfo(e db.ProcessingError) string {
 	if e.Agency != nil {
 		i += "\n\tAgency: " + e.Agency.Name
 	}
-	if e.ProcessID != uuid.Nil {
-		i += "\n\tProcess ID: " + e.ProcessID.String()
+	if e.ProcessID != nil {
+		i += "\n\tProcess ID: " + *e.ProcessID
 	}
 	if e.Info != "" {
 		i += "\n\t" + e.Info
@@ -151,7 +149,7 @@ func withData(err error, data db.ProcessingError) db.ProcessingError {
 	if data.MessageType != "" {
 		e.MessageType = data.MessageType
 	}
-	if e.ProcessID == uuid.Nil && data.ProcessID != uuid.Nil {
+	if e.ProcessID == nil && data.ProcessID != nil {
 		e.ProcessID = data.ProcessID
 	}
 	if data.ProcessStep != "" {
@@ -166,14 +164,14 @@ func withData(err error, data db.ProcessingError) db.ProcessingError {
 // augmentProcessingError fills in missing values of the processing error where
 // possible.
 func augmentProcessingError(e db.ProcessingError) db.ProcessingError {
-	if e.Agency == nil && e.ProcessID != uuid.Nil {
-		process, found := db.TryFindProcess(context.Background(), e.ProcessID)
+	if e.Agency == nil && e.ProcessID != nil {
+		process, found := db.TryFindProcess(context.Background(), *e.ProcessID)
 		if found {
 			e.Agency = &process.Agency
 		}
 	}
-	if e.TransferPath == "" && e.ProcessID != uuid.Nil && e.MessageType != "" {
-		message, found := db.TryFindMessage(context.Background(), e.ProcessID, e.MessageType)
+	if e.TransferPath == "" && e.ProcessID != nil && e.MessageType != "" {
+		message, found := db.TryFindMessage(context.Background(), *e.ProcessID, e.MessageType)
 		if found {
 			e.TransferPath = message.TransferFile
 		}

@@ -28,7 +28,7 @@ export interface ProcessingError {
   errorType: string;
   stack: string;
   agency?: Agency;
-  processId: string;
+  processId: string | null;
   messageType: MessageType;
   processStep: string;
   transferPath: string;
