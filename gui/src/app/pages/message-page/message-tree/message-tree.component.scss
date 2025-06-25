@@ -96,6 +96,7 @@ mat-tree-node {
 }
 
 .appraisal-symbol {
+  flex-shrink: 0;
   font-weight: bold;
   width: 48px; // icon width for alignment
   text-align: center;
