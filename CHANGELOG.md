@@ -2,9 +2,13 @@
 
 ## Next
 
--   Fix: Erhalt der originalen Groß-/Kleinschreibung von UUIDs aus eingehenden Nachrichten
+-
+
+## v1.3.1
+
 -   Fix: Anzeige von Dokumenten innerhalb einer Akte
 -   Fix: Kleinere UI-Fixes
+-   Intern: Erhalt der originalen Groß-/Kleinschreibung von UUIDs aus eingehenden Nachrichten
 
 ## v1.3.0
 
