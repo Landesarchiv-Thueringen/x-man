@@ -30,7 +30,7 @@ func init() {
 var borgURL = os.Getenv("BORG_URL")
 var tr http.Transport = http.Transport{}
 var client http.Client = http.Client{
-	Timeout:   time.Second * 60,
+	Timeout:   time.Second * 180,
 	Transport: &tr,
 }
 

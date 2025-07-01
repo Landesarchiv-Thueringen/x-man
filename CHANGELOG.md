@@ -4,6 +4,10 @@
 
 -
 
+## v1.3.2
+
+-   Fix: Borg Timeout angepasst
+
 ## v1.3.1
 
 -   Fix: Anzeige von Dokumenten innerhalb einer Akte
