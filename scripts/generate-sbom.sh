@@ -9,6 +9,7 @@ tags=(
     report
 )
 
+mkdir -p docs/sbom
 docker compose -f compose.yml build --pull
 for tag in "${tags[@]}"; do
     docker scout sbom --format list "localhost/x-man/$tag" > "docs/sbom/sbom_x-man_$tag.txt"
