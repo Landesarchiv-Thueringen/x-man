@@ -54,6 +54,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#software-bill-of-materials-sbom">Software Bill of Materials (SBOM)</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#services">Services</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a>
@@ -118,6 +120,10 @@
 <li>NodeJS and PNPM (for frontend development)</li>
 </ul>
 <p>Testing on Windows is possible with a Linux virtual machine or using the <a href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux</a> version 2 (WSL 2).</p>
+<h2 id="software-bill-of-materials-sbom">Software Bill of Materials (SBOM)</h2>
+<p>This repository provides the Software Bill of Materials (SBOM) for the latest versions of all container images it builds.</p>
+<p>Both human-readable and CycloneDX formats are available in <code>docs/sbom</code>.</p>
+<p>If <a href="https://docs.docker.com/scout/">Docker Scout</a> is installed, SBOMs can be generated using the script at <code>scripts/generate-sbom.sh</code>.</p>
 <h2 id="services">Services</h2>
 <p>x-man is meant to be used in combination with some external services. For
 testing purposes, we provide configuration for dummy services (see <a href="#test-setup">Test Setup</a>). For production use, you should provide and configure these services (see <a href="#configuration">Configuration</a>).</p>
@@ -147,8 +153,12 @@ testing purposes, we provide configuration for dummy services (see <a href="#tes
 <td>1.1.0, 1.2.0, 1.3.0</td>
 </tr>
 <tr>
-<td>&gt;= 1.2.0</td>
-<td>&gt;= 1.4.0</td>
+<td>1.2.x</td>
+<td>1.4.x</td>
+</tr>
+<tr>
+<td>&gt;= 1.3.0</td>
+<td>&gt;= 2.1.0</td>
 </tr>
 </tbody>
 </table>
