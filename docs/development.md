@@ -28,6 +28,7 @@ Its web UI is available on [localhost:8081](http://localhost:8081).
 -   Update the version env in `compose.yml`.
 -   Push any changes to `main`.
 -   Draft a [new release](https://github.com/Landesarchiv-Thueringen/x-man/releases/new) on GitHub.
+    -   Include the release's section of `CHANGELOG.md` as description.
 
 ## Generating Documentation
 
