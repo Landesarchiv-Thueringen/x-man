@@ -4,7 +4,7 @@ services:
   gui:
     build:
       args:
-        - CONFIGURATION=development
+        CONFIGURATION: development
     restart: "no"
 
   mongo:
@@ -22,13 +22,13 @@ services:
     volumes:
       - ./debug-data:/debug-data
     environment:
-      - DEBUG_MODE=true
-      - GIN_MODE=debug
-      - INIT_TEST_SETUP=true
-      - TRANSFER_DIR_SCAN_INTERVAL_SECONDS=1
-      - WEBDAV_USERNAME=${WEBDAV_USERNAME}
-      - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
-      - NO_PROXY=${NO_PROXY},webdav
+      DEBUG_MODE: true
+      GIN_MODE: debug
+      INIT_TEST_SETUP: true
+      TRANSFER_DIR_SCAN_INTERVAL_SECONDS: 1
+      WEBDAV_USERNAME: ${WEBDAV_USERNAME}
+      WEBDAV_PASSWORD: ${WEBDAV_PASSWORD}
+      NO_PROXY: ${NO_PROXY},webdav
     ports:
       - 3000:80
     # This is only needed in case you want to connect to a service via a port
@@ -39,7 +39,7 @@ services:
 
   report:
     environment:
-      - GIN_MODE=debug
+      GIN_MODE: debug
     restart: "no"
 
   mongo-express:
@@ -87,9 +87,9 @@ services:
   mailhog-tls:
     image: docker.io/dweomer/stunnel
     environment:
-      - STUNNEL_SERVICE=smtps
-      - STUNNEL_ACCEPT=465
-      - STUNNEL_CONNECT=mailhog:1025
+      STUNNEL_SERVICE: smtps
+      STUNNEL_ACCEPT: 465
+      STUNNEL_CONNECT: mailhog:1025
     volumes:
       - ./data/tls/mailhog-tls.crt:/etc/stunnel/stunnel.pem:ro
       - ./data/tls/mailhog-tls.key:/etc/stunnel/stunnel.key:ro

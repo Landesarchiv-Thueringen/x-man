@@ -17,6 +17,14 @@ x-man runs on any Linux system that provides the following dependencies:
 
 Testing on Windows is possible with a Linux virtual machine or using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) version 2 (WSL 2).
 
+## Software Bill of Materials (SBOM)
+
+This repository provides the Software Bill of Materials (SBOM) for the latest versions of all container images it builds.
+
+Both human-readable and CycloneDX formats are available in `docs/sbom`.
+
+If [Docker Scout](https://docs.docker.com/scout/) is installed, SBOMs can be generated using the script at `scripts/generate-sbom.sh`.
+
 ## Services
 
 x-man is meant to be used in combination with some external services. For
@@ -37,7 +45,8 @@ See [Betriebshandbuch (de)](./betriebshandbuch.md) for further details.
 | ------------- | ------------------- |
 | 0.9.x         | 1.0.x               |
 | 1.0.0, 1.1.0  | 1.1.0, 1.2.0, 1.3.0 |
-| >= 1.2.0      | >= 1.4.0            |
+| 1.2.x         | 1.4.x               |
+| >= 1.3.0      | >= 2.1.0            |
 
 ## Getting Started
 

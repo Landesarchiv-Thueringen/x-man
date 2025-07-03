@@ -1,43 +1,16 @@
+x-env-version: &env-version
+  XMAN_VERSION: "1.3.2"
+
 services:
-  gui:
-    image: ${IMAGE_PREFIX}/gui:${IMAGE_VERSION}
-    build:
-      context: ./gui
-      args:
-        - http_proxy=${HTTP_PROXY}
-        - https_proxy=${HTTPS_PROXY}
-        - CONFIGURATION=production
-    depends_on:
-      server:
-        condition: service_started
-        restart: true
-    environment:
-      SERVER_API_URL: http://server/api/
-    ports:
-      - ${PORT}:80
-    restart: unless-stopped
-
-  mongo:
-    image: docker.io/mongo:8.0
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 3s
-      timeout: 1s
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-    volumes:
-      - ./data/mongo:/data/db
-    restart: unless-stopped
-
   server:
     image: ${IMAGE_PREFIX}/server:${IMAGE_VERSION}
     build:
       context: ./server
       args:
-        - http_proxy=${HTTP_PROXY}
-        - https_proxy=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
+        <<: *env-version
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
     depends_on:
       mongo:
         condition: service_healthy
@@ -46,45 +19,46 @@ services:
         condition: service_completed_successfully
         restart: true
     environment:
-      - PORT=80
-      - MONGODB_URL=mongodb://mongo:27017
-      - REPORT_URL=http://report
-      - GIN_MODE=release
-      - TZ=Europe/Berlin
-      - ORIGIN=${ORIGIN}
-      - LOGIN_TOKEN_LIFETIME_DAYS=${LOGIN_TOKEN_LIFETIME_DAYS}
-      - DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS=${DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS}
-      - DELETE_ERRORS_AFTER_DAYS=${DELETE_ERRORS_AFTER_DAYS}
-      - INSTITUTION_NAME=${INSTITUTION_NAME}
-      - INSTITUTION_ABBREVIATION=${INSTITUTION_ABBREVIATION}
-      - APPRAISAL_LEVEL=${APPRAISAL_LEVEL}
-      - MAX_RECORD_DEPTH=${MAX_RECORD_DEPTH}
-      - MONGODB_USER=${MONGODB_USER}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=${MONGODB_DB}
-      - LDAP_CONFIG=${LDAP_CONFIG}
-      - LDAP_URL=${LDAP_URL}
-      - LDAP_TLS_INSECURE_SKIP_VERIFY=${LDAP_TLS_INSECURE_SKIP_VERIFY}
-      - LDAP_BASE_DN=${LDAP_BASE_DN}
-      - LDAP_USER=${LDAP_USER}
-      - LDAP_PASSWORD=${LDAP_PASSWORD}
-      - LDAP_ACCESS_GROUP=${LDAP_ACCESS_GROUP}
-      - LDAP_ADMIN_GROUP=${LDAP_ADMIN_GROUP}
-      - SMTP_SERVER=${SMTP_SERVER}
-      - SMTP_TLS_MODE=${SMTP_TLS_MODE}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
-      - POST_OFFICE_EMAIL=${POST_OFFICE_EMAIL}
-      - BORG_URL=${BORG_URL}
-      - ARCHIVE_TARGET=${ARCHIVE_TARGET}
-      - DIMAG_SFTP_SERVER_URL=${DIMAG_SFTP_SERVER_URL}
-      - DIMAG_SFTP_DIR=${DIMAG_SFTP_DIR}
-      - DIMAG_SFTP_USER=${DIMAG_SFTP_USER}
-      - DIMAG_SFTP_PASSWORD=${DIMAG_SFTP_PASSWORD}
-      - DIMAG_CORE_SOAP_ENDPOINT=${DIMAG_CORE_SOAP_ENDPOINT}
-      - DIMAG_CORE_USER=${DIMAG_CORE_USER}
-      - DIMAG_CORE_PASSWORD=${DIMAG_CORE_PASSWORD}
+      <<: *env-version
+      PORT: "80"
+      MONGODB_URL: "mongodb://mongo:27017"
+      REPORT_URL: "http://report"
+      GIN_MODE: "release"
+      TZ: "Europe/Berlin"
+      ORIGIN: ${ORIGIN}
+      LOGIN_TOKEN_LIFETIME_DAYS: ${LOGIN_TOKEN_LIFETIME_DAYS}
+      DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS: ${DELETE_ARCHIVED_SUBMISSIONS_AFTER_DAYS}
+      DELETE_ERRORS_AFTER_DAYS: ${DELETE_ERRORS_AFTER_DAYS}
+      INSTITUTION_NAME: ${INSTITUTION_NAME}
+      INSTITUTION_ABBREVIATION: ${INSTITUTION_ABBREVIATION}
+      APPRAISAL_LEVEL: ${APPRAISAL_LEVEL}
+      MAX_RECORD_DEPTH: ${MAX_RECORD_DEPTH}
+      MONGODB_USER: ${MONGODB_USER}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGODB_DB: ${MONGODB_DB}
+      LDAP_CONFIG: ${LDAP_CONFIG}
+      LDAP_URL: ${LDAP_URL}
+      LDAP_TLS_INSECURE_SKIP_VERIFY: ${LDAP_TLS_INSECURE_SKIP_VERIFY}
+      LDAP_BASE_DN: ${LDAP_BASE_DN}
+      LDAP_USER: ${LDAP_USER}
+      LDAP_PASSWORD: ${LDAP_PASSWORD}
+      LDAP_ACCESS_GROUP: ${LDAP_ACCESS_GROUP}
+      LDAP_ADMIN_GROUP: ${LDAP_ADMIN_GROUP}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_TLS_MODE: ${SMTP_TLS_MODE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      POST_OFFICE_EMAIL: ${POST_OFFICE_EMAIL}
+      BORG_URL: ${BORG_URL}
+      ARCHIVE_TARGET: ${ARCHIVE_TARGET}
+      DIMAG_SFTP_SERVER_URL: ${DIMAG_SFTP_SERVER_URL}
+      DIMAG_SFTP_DIR: ${DIMAG_SFTP_DIR}
+      DIMAG_SFTP_USER: ${DIMAG_SFTP_USER}
+      DIMAG_SFTP_PASSWORD: ${DIMAG_SFTP_PASSWORD}
+      DIMAG_CORE_SOAP_ENDPOINT: ${DIMAG_CORE_SOAP_ENDPOINT}
+      DIMAG_CORE_USER: ${DIMAG_CORE_USER}
+      DIMAG_CORE_PASSWORD: ${DIMAG_CORE_PASSWORD}
     volumes:
       - certs:/etc/ssl/certs
       - ./data/message_store:/xman/message_store
@@ -100,17 +74,50 @@ services:
     command: >
       update-ca-certificates
 
+  mongo:
+    image: docker.io/mongo:8.0
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 3s
+      timeout: 1s
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    volumes:
+      - ./data/mongo:/data/db
+    restart: unless-stopped
+
   report:
     image: ${IMAGE_PREFIX}/report:${IMAGE_VERSION}
     build:
       context: ./report
       args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
+        <<: *env-version
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
     environment:
-      - PORT=80
-      - GIN_MODE=release
+      PORT: 80
+      GIN_MODE: release
+    restart: unless-stopped
+
+  gui:
+    image: ${IMAGE_PREFIX}/gui:${IMAGE_VERSION}
+    build:
+      context: ./gui
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
+        CONFIGURATION: "production"
+    depends_on:
+      server:
+        condition: service_started
+        restart: true
+    environment:
+      SERVER_API_URL: http://server/api/
+    ports:
+      - ${PORT}:80
     restart: unless-stopped
 
 volumes:

@@ -18,6 +18,8 @@
 !/LICENSE
 !/docs/*.md
 !/docs/img/*.png
+!/docs/sbom/*.txt
+!/docs/sbom/*.cdx
 
 # allow MkDocs
 !/mkdocs.yml

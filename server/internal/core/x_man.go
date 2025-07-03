@@ -1,9 +1,7 @@
 package core
 
-import "fmt"
+import (
+	"os"
+)
 
-const XMAN_MAJOR_VERSION = 1
-const XMAN_MINOR_VERSION = 3
-const XMAN_PATCH_VERSION = 2
-
-var XMAN_VERSION = fmt.Sprintf("%d.%d.%d", XMAN_MAJOR_VERSION, XMAN_MINOR_VERSION, XMAN_PATCH_VERSION)
+var XMAN_VERSION = os.Getenv("XMAN_VERSION")
