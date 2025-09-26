@@ -45,6 +45,7 @@ Die Anwendung wurde bisher nur mit generierten Testdaten geprüft. Ein Test mit 
 ## Roadmap
 
 - Unterstützung xdomea 4.0
+- Hashwertprüfung
 - AFIS-Schnittstelle für die automatische Bildung von Verzeichnungseinheiten bei der Archivierung
 
 ## Lizenz
