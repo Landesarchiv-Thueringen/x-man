@@ -36,6 +36,7 @@ func renderAppraisalReport(c *gin.Context) {
 		data,
 		func(path string, output string, err error) {
 			if err != nil {
+				fmt.Println(output)
 				c.String(
 					http.StatusUnprocessableEntity,
 					"Failed to compile template with the given data.\n\n"+string(output),
@@ -59,9 +60,10 @@ func renderSubmissionReport(c *gin.Context) {
 		jsonData,
 		func(path string, output string, err error) {
 			if err != nil {
+				fmt.Println(output)
 				c.String(
 					http.StatusUnprocessableEntity,
-					"Failed to compile template with the given data.\n\n"+string(output),
+					"Failed to compile template with the given data.\n\n"+output,
 				)
 				return
 			}

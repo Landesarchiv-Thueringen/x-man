@@ -67,7 +67,7 @@ services:
     restart: unless-stopped
 
   server-init:
-    image: docker.io/golang:1.23
+    image: docker.io/golang:1.25
     volumes:
       - certs:/etc/ssl/certs
       - ./data/ca-certificates:/usr/local/share/ca-certificates

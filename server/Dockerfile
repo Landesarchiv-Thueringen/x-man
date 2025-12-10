@@ -1,4 +1,4 @@
-FROM docker.io/golang:1.23 AS build
+FROM docker.io/golang:1.25 AS build
 ARG XMAN_VERSION=${XMAN_VERSION}
 RUN apt-get update && apt-get install -y libxml2-dev
 WORKDIR /build
