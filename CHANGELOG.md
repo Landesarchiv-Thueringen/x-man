@@ -3,6 +3,7 @@
 ## Next
 
 -   Dokumentation: SBOM für Container-Images bereitgestellt
+-   Intern: Abfangen von Schadsoftware durch NPM-Abhängigkeiten
 
 ## v1.3.2
 

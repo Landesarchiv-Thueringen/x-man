@@ -2,6 +2,7 @@
 !/angular.json
 !/pnpm-lock.yaml
 !/package.json
+!/pnpm-workspace.yaml
 !/README.md
 !/tsconfig.app.json
 !/tsconfig.json
