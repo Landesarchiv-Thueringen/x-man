@@ -86,7 +86,7 @@
     "Xdomea",
     "xman"
   ],
-  "typescript.preferences.importModuleSpecifier": "project-relative",
+  "js/ts.preferences.importModuleSpecifier": "project-relative",
   "gopls": {
     "analyses": {
       "composites": false // allow query syntax for mongodb driver
