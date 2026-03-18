@@ -1,0 +1,14 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
+    environment:
+      PORT: "80"
+      TZ: "Europe/Berlin"
+      ORIGIN: ${ORIGIN}
+    volumes:
+      - ./data/transfer:/app/data/transfer
