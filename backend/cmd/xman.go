@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	app.Init()
 	router := gin.Default()
 	router.GET("api", getDefaultResponse)
 	router.Run()

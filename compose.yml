@@ -1,5 +1,6 @@
 services:
   backend:
+    user: "${UID}:${GID}"
     build:
       context: ./backend
       args:
@@ -7,8 +8,22 @@ services:
         HTTPS_PROXY: ${HTTPS_PROXY}
         NO_PROXY: ${NO_PROXY}
     environment:
-      PORT: "80"
       TZ: "Europe/Berlin"
-      ORIGIN: ${ORIGIN}
+      MONGODB_URL: ${MONGODB_URL}
     volumes:
       - ./data/transfer:/app/data/transfer
+  
+  database:
+    image: docker.io/mongo:8.2.6
+    user: ${UID}:${GID}
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    volumes:
+      - ./data/db:/data/db
+    restart: unless-stopped

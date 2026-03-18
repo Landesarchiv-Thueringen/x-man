@@ -1,7 +1,12 @@
 package app
 
-import "fmt"
+import "lath/xman/internal/db"
 
-const XMAN_VERSION = "v1.4.0"
+const (
+	XMAN_VERSION    = "v1.4.0"
+	DefaultResponse = "x-man server " + XMAN_VERSION + " is running"
+)
 
-var DefaultResponse = fmt.Sprintf("x-man server %s is running", XMAN_VERSION)
+func Init() {
+	db.Init()
+}
