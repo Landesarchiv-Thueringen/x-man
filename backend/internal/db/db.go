@@ -15,7 +15,7 @@ var db *mongo.Database
 
 var ErrDbInit = errors.New("database initialization failed")
 
-// Init creates the client and context to access MongoDB.
+// Init creates the client to access MongoDB.
 func Init() error {
 	clientOpts := options.Client().
 		ApplyURI(os.Getenv("MONGODB_URL"))
