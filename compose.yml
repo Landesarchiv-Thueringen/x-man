@@ -10,6 +10,7 @@ services:
     environment:
       TZ: "Europe/Berlin"
       MONGODB_URL: ${MONGODB_URL}
+      MONGODB_DB: ${MONGODB_DB}
     volumes:
       - ./data/transfer:/app/data/transfer
   

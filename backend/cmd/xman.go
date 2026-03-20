@@ -2,13 +2,17 @@ package main
 
 import (
 	"lath/xman/internal/app"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	app.Init()
+	err := app.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
 	router := gin.Default()
 	router.GET("api", getDefaultResponse)
 	router.Run()

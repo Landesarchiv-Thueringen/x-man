@@ -1,12 +1,23 @@
 package app
 
-import "lath/xman/internal/db"
+import (
+	"errors"
+	"lath/xman/internal/db"
+	"log"
+)
 
 const (
 	XMAN_VERSION    = "v1.4.0"
 	DefaultResponse = "x-man server " + XMAN_VERSION + " is running"
 )
 
-func Init() {
-	db.Init()
+var ErrAppInit = errors.New("application initialization failed")
+
+func Init() error {
+	err := db.Init()
+	if err != nil {
+		log.Println(err)
+		return ErrAppInit
+	}
+	return nil
 }
