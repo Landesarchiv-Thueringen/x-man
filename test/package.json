@@ -9,9 +9,9 @@
   "description": "",
   "type": "module",
   "devDependencies": {
-    "@playwright/test": "^1.48.2",
-    "@types/node": "^22.9.0",
-    "dotenv": "^16.4.5",
-    "webdav": "^5.7.1"
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^22.19.17",
+    "dotenv": "^16.6.1",
+    "webdav": "^5.9.0"
   }
 }
