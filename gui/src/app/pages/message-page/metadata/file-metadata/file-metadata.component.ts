@@ -102,8 +102,8 @@ export class FileMetadataComponent {
    * selected choice.
    */
   private packagingStats = resource({
-    request: () => (this.packagingEnabled() ? this.recordId() : undefined),
-    loader: async ({ request: recordId }) =>
+    params: () => (this.packagingEnabled() ? this.recordId() : undefined),
+    loader: async ({ params: recordId }) =>
       this.packagingService.getPackagingStats(this.messagePage.process()!.processId, [recordId]),
   });
   /** Packaging choices enriched with stats values. */
