@@ -365,6 +365,37 @@ func makeRecordsMap(r db.RootRecords) recordsMap {
 	return m
 }
 
+// getContainedRecordsFromFileRecord returns all record IDs contained in the file record including
+// its own ID and all child IDs.
+func getContainedRecordsFromFileRecord(f *db.FileRecord) []string {
+	var recordIDs []string
+	recordIDs = append(recordIDs, f.RecordID)
+	for _, fileRecord := range f.Subfiles {
+		recordIDs = append(recordIDs, getContainedRecordsFromFileRecord(&fileRecord)...)
+	}
+	for _, processRecord := range f.Processes {
+		recordIDs = append(recordIDs, getContainedRecordsFromProcessRecord(&processRecord)...)
+	}
+	for _, documentRecord := range f.Documents {
+		recordIDs = append(recordIDs, documentRecord.RecordID)
+	}
+	return recordIDs
+}
+
+// getContainedRecordsFromProcessRecord returns all record IDs contained in the process record
+// including its own ID and all child IDs.
+func getContainedRecordsFromProcessRecord(p *db.ProcessRecord) []string {
+	var recordIDs []string
+	recordIDs = append(recordIDs, p.RecordID)
+	for _, processRecord := range p.Subprocesses {
+		recordIDs = append(recordIDs, getContainedRecordsFromProcessRecord(&processRecord)...)
+	}
+	for _, documentRecord := range p.Documents {
+		recordIDs = append(recordIDs, documentRecord.RecordID)
+	}
+	return recordIDs
+}
+
 // createAipFromFileRecord creates the archive package metadata from a file
 // record.
 func createAipFromFileRecord(
@@ -385,6 +416,7 @@ func createAipFromFileRecord(
 		REPTitle:         "Original",
 		PrimaryDocuments: primaryDocuments,
 		RecordIDs:        []string{f.RecordID},
+		RecordIDs0506:    getContainedRecordsFromFileRecord(&f),
 		RecordPath:       path,
 		CollectionID:     collectionID,
 	}
@@ -411,6 +443,7 @@ func createAipFromProcessRecord(
 		REPTitle:         "Original",
 		PrimaryDocuments: primaryDocuments,
 		RecordIDs:        []string{p.RecordID},
+		RecordIDs0506:    getContainedRecordsFromProcessRecord(&p),
 		RecordPath:       path,
 		CollectionID:     collectionID,
 	}
@@ -463,6 +496,7 @@ func createAipFromDocumentRecords(
 		REPTitle:         "Original",
 		PrimaryDocuments: primaryDocuments,
 		RecordIDs:        recordIDs,
+		RecordIDs0506:    append([]string(nil), recordIDs...),
 		RecordPath:       path,
 		CollectionID:     collectionID,
 	}

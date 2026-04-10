@@ -31,8 +31,11 @@ type ArchivePackage struct {
 	// All segments given by RecordPath must reference file or sub-file records.
 	RecordPath []string `bson:"record_path"`
 	// RecordIDs are the RecordIDs of all records contained in the archive
-	// package.
+	// package without their children records.
 	RecordIDs []string `bson:"record_ids"`
+	// RecordIDs0506 are the RecordIDs of all records contained in the archive package including
+	// all child records.
+	RecordIDs0506 []string `bson:"record_ids_0506"`
 	// PrimaryDocuments are all primary documents contained in the archive
 	// package.
 	PrimaryDocuments []PrimaryDocumentContext `bson:"primary_documents"`
