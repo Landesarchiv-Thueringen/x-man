@@ -242,11 +242,18 @@ func addMessage(
 	storeDir string,
 	transferDir string,
 ) (db.SubmissionProcess, db.Message, *db.RootRecords, error) {
-	messageName := getMessageName(processID, messageType)
+	// Check the path for xdomea versions before 4.0.0.
+	messageName := getMessageName(processID, messageType, true)
 	messagePath := path.Join(storeDir, messageName)
 	_, err := os.Stat(messagePath)
 	if err != nil {
-		panic("message doesn't exist: " + messagePath)
+		// Check the path for xdomea versions after 4.0.0.
+		messageName := getMessageName(processID, messageType, false)
+		messagePath := path.Join(storeDir, messageName)
+		_, err = os.Stat(messagePath)
+		if err != nil {
+			panic("message doesn't exist: " + messagePath)
+		}
 	}
 	storagePaths := db.StoragePaths{
 		TransferFile: transferDir,
@@ -481,7 +488,7 @@ func Send0502Message(agency db.Agency, message db.Message) error {
 		agency,
 		message.MessageHead.ProcessID,
 		messageXml,
-		Message0502MessageSuffix,
+		getMessageSuffix(db.MessageType0502, true),
 	)
 }
 
@@ -491,7 +498,7 @@ func Send0504Message(agency db.Agency, message db.Message) error {
 		agency,
 		message.MessageHead.ProcessID,
 		messageXml,
-		Message0504MessageSuffix,
+		getMessageSuffix(db.MessageType0504, true),
 	)
 }
 
@@ -502,7 +509,7 @@ func Send0506Message(process db.SubmissionProcess, message0503 db.Message) error
 		process.Agency,
 		message0503.MessageHead.ProcessID,
 		messageXml,
-		Message0506MessageSuffix,
+		getMessageSuffix(db.MessageType0506, true),
 	)
 }
 
@@ -515,7 +522,7 @@ func Send0507Message(agency db.Agency, message0503 db.Message) error {
 		agency,
 		message0503.MessageHead.ProcessID,
 		messageXml,
-		Message0507MessageSuffix,
+		getMessageSuffix(db.MessageType0507, true),
 	)
 }
 

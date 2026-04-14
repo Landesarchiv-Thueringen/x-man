@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"lath/xman/internal/auth"
-	"lath/xman/internal/core"
 	"lath/xman/internal/db"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -56,35 +55,43 @@ func entriesForCompletedSteps(process db.SubmissionProcess) []protocolEntry {
 	var entries []protocolEntry
 	s := process.ProcessState
 	if s.Receive0501.Complete {
+		message, _ :=
+			db.FindMessage(context.Background(), process.ProcessID, db.MessageType0501)
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0501.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID + core.Message0501MessageSuffix + ".zip",
+			Reference:   message.TransferFile,
 			Info:        "Anbietung empfangen",
 		})
 	}
 	if s.Appraisal.Complete {
+		message, _ :=
+			db.FindMessage(context.Background(), process.ProcessID, db.MessageType0501)
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Appraisal.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			CompletedBy: s.Appraisal.CompletedBy,
 			Action:      "Bewertung",
-			Reference:   process.ProcessID + core.Message0501MessageSuffix + ".zip",
+			Reference:   message.TransferFile,
 			Info:        "Anbietung bewerten",
 		})
 	}
 	if s.Receive0505.Complete {
+		message, _ :=
+			db.FindMessage(context.Background(), process.ProcessID, db.MessageType0505)
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0505.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID + core.Message0505MessageSuffix + ".zip",
+			Reference:   message.TransferFile,
 			Info:        "Empfangsbestätigung für Bewertung erhalten",
 		})
 	}
 	if s.Receive0503.Complete {
+		message, _ :=
+			db.FindMessage(context.Background(), process.ProcessID, db.MessageType0503)
 		entries = append(entries, protocolEntry{
 			CompletedAt: s.Receive0503.CompletedAt.Local().Format("2006-01-02 15:04:05"),
 			Action:      "Empfangen",
-			Reference:   process.ProcessID + core.Message0503MessageSuffix + ".zip",
+			Reference:   message.TransferFile,
 			Info:        "Abgabe empfangen",
 		})
 	}

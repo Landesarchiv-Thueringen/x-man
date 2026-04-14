@@ -8,19 +8,25 @@ import (
 )
 
 const uuidRegexString = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-const Message0501MessageSuffix = "_Aussonderung.Anbieteverzeichnis.0501"
-const Message0502MessageSuffix = "_Aussonderung.Bewertungsverzeichnis.0502"
-const Message0503MessageSuffix = "_Aussonderung.Aussonderung.0503"
-const Message0504MessageSuffix = "_Aussonderung.AnbietungEmpfangBestaetigen.0504"
-const Message0505MessageSuffix = "_Aussonderung.BewertungEmpfangBestaetigen.0505"
-const Message0506MessageSuffix = "_Aussonderung.AussonderungImportBestaetigen.0506"
-const Message0507MessageSuffix = "_Aussonderung.AussonderungEmpfangBestaetigen.0507"
 
+// MessageSuffixByType contains the suffix for messages before and after xdomea version 4.0.0 .
+var MessageSuffixByType = map[db.MessageType][2]string{
+	db.MessageType0501: {"_Aussonderung.Anbieteverzeichnis.0501", "_0501"},
+	db.MessageType0502: {"_Aussonderung.Bewertungsverzeichnis.0502", "_0502"},
+	db.MessageType0503: {"_Aussonderung.Aussonderung.0503", "_0503"},
+	db.MessageType0504: {"_Aussonderung.AnbietungEmpfangBestaetigen.0504", "_0504"},
+	db.MessageType0505: {"_Aussonderung.BewertungEmpfangBestaetigen.0505", "_0505"},
+	db.MessageType0506: {"_Aussonderung.AussonderungImportBestaetigen.0506", "_0506"},
+	db.MessageType0507: {"_Aussonderung.AussonderungEmpfangBestaetigen.0507", "_0507"},
+}
 var uuidRegex = regexp.MustCompile(uuidRegexString)
-var message0501Regex = regexp.MustCompile(uuidRegexString + Message0501MessageSuffix + ".zip")
-var message0503Regex = regexp.MustCompile(uuidRegexString + Message0503MessageSuffix + ".zip")
-var message0505Regex = regexp.MustCompile(uuidRegexString + Message0505MessageSuffix + ".zip")
-var namespaceRegex = regexp.MustCompile("^urn:xoev-de:xdomea:schema:([0-9].[0-9].[0=9])$")
+var message0501Regex = regexp.MustCompile(uuidRegexString +
+	`_(?:Aussonderung\.Anbieteverzeichnis\.)?0501\.(?:zip|xdomea)`)
+var message0503Regex = regexp.MustCompile(uuidRegexString +
+	`_(?:Aussonderung\.Aussonderung\.)?0503\.(?:zip|xdomea)`)
+var message0505Regex = regexp.MustCompile(uuidRegexString +
+	`_(?:Aussonderung\.BewertungEmpfangBestaetigen\.)?0505\.(?:zip|xdomea)`)
+var namespaceRegex = regexp.MustCompile(`^urn:xoev-de:xdomea:schema:([0-9]\.[0-9]\.[0-9])$`)
 
 func isMessage(path string) bool {
 	fileName := filepath.Base(path)
@@ -50,17 +56,17 @@ func getProcessID(path string) string {
 	return processID
 }
 
-func getMessageName(id string, messageType db.MessageType) string {
-	messageSuffix := ""
-	switch messageType {
-	case "0501":
-		messageSuffix = Message0501MessageSuffix
-	case "0503":
-		messageSuffix = Message0503MessageSuffix
-	case "0505":
-		messageSuffix = Message0505MessageSuffix
-	default:
-		panic("message type not supported: " + messageType)
+func getMessageName(id string, messageType db.MessageType, preV4 bool) string {
+	return id + getMessageSuffix(messageType, preV4) + ".xml"
+}
+
+func getMessageSuffix(messageType db.MessageType, preV4 bool) string {
+	messageSuffix, ok := MessageSuffixByType[messageType]
+	if !ok {
+		panic("unsupported message type: " + messageType)
 	}
-	return id + messageSuffix + ".xml"
+	if preV4 {
+		return messageSuffix[0]
+	}
+	return messageSuffix[1]
 }
