@@ -22,13 +22,14 @@ Its web UI is available on [localhost:8081](http://localhost:8081).
 
 ## Releasing a New Version
 
--   Choose a version tag based on semantic versioning.
-    In most cases, this means incrementing the minor version when there are new features and otherwise, incrementing the patch version.
--   Update `CHANGELOG.md` with the chosen version tag and any changes.
--   Update the version env in `compose.yml`.
--   Push any changes to `main`.
--   Draft a [new release](https://github.com/Landesarchiv-Thueringen/x-man/releases/new) on GitHub.
-    -   Include the release's section of `CHANGELOG.md` as description.
+- Choose a version tag based on semantic versioning.
+  In most cases, this means incrementing the minor version when there are new features and otherwise, incrementing the patch version.
+- Update `CHANGELOG.md` with the chosen version tag and any changes.
+- Update the version env in `compose.yml` and `gui/package.json`.
+- Generate the SBOM for all images with the script `scripts/generate-sbom.sh`.
+- Push any changes to `main`.
+- Draft a [new release](https://github.com/Landesarchiv-Thueringen/x-man/releases/new) on GitHub.
+    - Include the release's section of `CHANGELOG.md` as description.
 
 ## Generating Documentation
 
@@ -45,16 +46,16 @@ mkdocs gh-deploy
 
 ## Server Package Layout
 
--   `main` (cmd/server.go)  
-    Entry point. Not imported by any package.
--   `archive`, `report`, `routines`  
-    High-level packages. Only imported by the `main` package.
--   `xdomea`  
-    Main application logic. Imported by high-level packages and `main`.
--   `auth`, `errors`, `mail`, `tasks`, `verification`  
-    Low-level packages. Imported by higher packages. Depend only on `db` or each other.
--   `db`  
-    Database and types. Imported by all other packages. No dependencies to internal packages.
+- `main` (cmd/server.go)  
+  Entry point. Not imported by any package.
+- `archive`, `report`, `routines`  
+  High-level packages. Only imported by the `main` package.
+- `xdomea`  
+  Main application logic. Imported by high-level packages and `main`.
+- `auth`, `errors`, `mail`, `tasks`, `verification`  
+  Low-level packages. Imported by higher packages. Depend only on `db` or each other.
+- `db`  
+  Database and types. Imported by all other packages. No dependencies to internal packages.
 
 ## Error Handling
 
