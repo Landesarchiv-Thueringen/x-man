@@ -10,11 +10,11 @@ services:
     environment:
       TZ: "Europe/Berlin"
       MONGODB_URL: ${MONGODB_URL}
-      MONGODB_DB: ${MONGODB_DB}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
     volumes:
       - ./data/transfer:/app/data/transfer
   
-  database:
+  mongo:
     image: docker.io/mongo:8.2.6
     user: ${UID}:${GID}
     healthcheck:
@@ -28,3 +28,15 @@ services:
     volumes:
       - ./data/db:/data/db
     restart: unless-stopped
+
+  mongo-express:
+    image: docker.io/mongo-express
+    depends_on:
+      mongo:
+        condition: service_healthy
+        restart: true
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: ${MONGODB_URL}
+      ME_CONFIG_BASICAUTH: "false"

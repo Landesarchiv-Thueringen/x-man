@@ -19,5 +19,19 @@ func Init() error {
 		log.Println(err)
 		return ErrAppInit
 	}
+	initTestData()
+	go MonitorTransferDirectories()
 	return nil
+}
+
+func initTestData() {
+	sender := db.Sender{
+		Name:         "Thüringer Ministerium für Inneres und Kommunales",
+		Abbreviation: "TMIKL",
+		TransferDir: db.TransferDir{
+			TransferMode: db.Local,
+			Path:         "/tmikl",
+		},
+	}
+	db.InsertSender(sender)
 }

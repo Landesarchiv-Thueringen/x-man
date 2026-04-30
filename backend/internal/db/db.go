@@ -11,7 +11,11 @@ import (
 
 var db *mongo.Database
 
-var ErrDbInit = errors.New("database initialization failed")
+var (
+	ErrDbInit   = errors.New("database initialization failed")
+	ErrDbInsert = errors.New("database insert failed")
+	ErrDbFind   = errors.New("database find failed")
+)
 
 // Init creates the client to access MongoDB.
 func Init() error {
