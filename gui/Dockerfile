@@ -1,6 +1,7 @@
 FROM node:24-alpine3.23 AS build
 
-RUN corepack enable
+RUN npm i -g pnpm
+# RUN corepack enable
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /build

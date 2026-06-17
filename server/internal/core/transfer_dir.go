@@ -2,11 +2,13 @@ package core
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"io/fs"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -484,7 +486,16 @@ func connectWebDAV(transferDirURL *url.URL) (*gowebdav.Client, error) {
 	if !set {
 		password = ""
 	}
-	client := gowebdav.NewClient(root, user, password)
+	var client *gowebdav.Client
+	insecureTLS := os.Getenv("WEBDAV_TLS_INSECURE_SKIP_VERIFY") == "true"
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: insecureTLS,
+	}
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+	client = gowebdav.NewClient(root, user, password)
+	client.SetTransport(transport)
 	err := client.Connect()
 	return client, err
 }
