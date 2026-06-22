@@ -98,7 +98,7 @@ func MonitorTransferDirs() {
 		agencies := db.FindAgencies(context.Background())
 		for _, agency := range agencies {
 			errorData.Agency = &agency
-			transferDirURL, err := url.Parse(agency.TransferDirURL)
+			transferDirURL, err := url.Parse(agency.TransferDir.URL)
 			if err != nil {
 				panic(err)
 			}
@@ -285,69 +285,125 @@ func waitUntilStableWebDav(client *gowebdav.Client, file fs.FileInfo) {
 }
 
 // CopyMessageToTransferDirectory copies a file from the local filesystem to a transfer directory.
-func CopyMessageToTransferDirectory(agency db.Agency, processID *string, messagePath string) error {
-	transferDirURL, err := url.Parse(agency.TransferDirURL)
+func CopyMessageToTransferDirectory(
+	agency db.Agency,
+	processID *string,
+	tempMessagePath string,
+	messageType db.MessageType,
+) error {
+	transferDirURL, err := url.Parse(agency.TransferDir.URL)
 	if err != nil {
 		panic(err)
-	}
-	ok := db.InsertTransferFile(agency.ID, processID, filepath.Base(messagePath))
-	if !ok {
-		return errTransferFileExists
 	}
 	switch transferDirURL.Scheme {
 	case string(Local):
-		copyMessageToLocalFilesystem(transferDirURL, messagePath)
+		return copyMessageToLocalFilesystem(agency, processID, transferDirURL, tempMessagePath)
 	case string(WebDAV):
 		fallthrough
 	case string(WebDAVSec):
-		copyMessageToWebDAV(transferDirURL, messagePath)
+		return copyMessageToWebDAV(agency, processID, transferDirURL, tempMessagePath, messageType)
 	default:
 		panic("unknown transfer directory scheme")
 	}
-	return nil
 }
 
 // copyMessageToLocalFilesystem copies a file from the local filesystem to another path in the local filesystem.
-func copyMessageToLocalFilesystem(transferDirURL *url.URL, messagePath string) {
-	messageFilename := path.Base(messagePath)
-	messageFile, err := os.Open(messagePath)
+func copyMessageToLocalFilesystem(
+	agency db.Agency,
+	processID *string,
+	transferDirURL *url.URL,
+	tempMessagePath string,
+) error {
+	messageFilename := path.Base(tempMessagePath)
+	messageTransferDirPath := path.Join(transferDirURL.Path, messageFilename)
+	// mark message as known, so it will not be added to unknown files on the transfer directory
+	ok := db.InsertTransferFile(agency.ID, processID, messageFilename)
+	if !ok {
+		return errTransferFileExists
+	}
+	messageFile, err := os.Open(tempMessagePath)
 	if err != nil {
+		// the copy process for the message failed
+		// unmark the message as known, so it can be added in future
+		db.DeleteTransferFile(agency.ID, messageFilename)
 		panic(err)
 	}
 	defer messageFile.Close()
-	messageTransferDirPath := path.Join(transferDirURL.Path, messageFilename)
 	messageInTransferDir, err := os.Create(messageTransferDirPath)
 	if err != nil {
+		db.DeleteTransferFile(agency.ID, messageFilename)
 		panic(err)
 	}
 	defer messageInTransferDir.Close()
 	_, err = io.Copy(messageInTransferDir, messageFile)
 	if err != nil {
+		db.DeleteTransferFile(agency.ID, messageFilename)
 		panic(err)
 	}
+	return nil
 }
 
 // copyMessageToWebDAV copies a file from the local filesystem to a webDAV.
-func copyMessageToWebDAV(transferDirURL *url.URL, messagePath string) {
+func copyMessageToWebDAV(
+	agency db.Agency,
+	processID *string,
+	transferDirURL *url.URL,
+	tempMessagePath string,
+	messageType db.MessageType,
+) error {
 	client, err := connectWebDAV(transferDirURL)
 	if err != nil {
 		panic(err)
 	}
-	webdavFilePath := path.Base(messagePath)
-	messageFile, err := os.Open(messagePath)
+	messageDir := getRemoteMessageDir(agency, messageType)
+	webdavFilePath := path.Join(messageDir, path.Base(tempMessagePath))
+	// mark message as known, so it will not be added to unknown files on the transfer directory
+	ok := db.InsertTransferFile(agency.ID, processID, webdavFilePath)
+	if !ok {
+		return errTransferFileExists
+	}
+	messageFile, err := os.Open(tempMessagePath)
 	if err != nil {
+		// the copy process for the message failed
+		// unmark the message as known, so it can be added in future
+		db.DeleteTransferFile(agency.ID, webdavFilePath)
 		panic(err)
 	}
 	defer messageFile.Close()
 	err = client.WriteStream(webdavFilePath, messageFile, 0644)
 	if err != nil {
+		db.DeleteTransferFile(agency.ID, webdavFilePath)
 		panic(err)
 	}
+	return nil
+}
+
+func getRemoteMessageDir(agency db.Agency, messageType db.MessageType) string {
+	var messageDir string
+	switch messageType {
+	case db.MessageType0502:
+		if agency.TransferDir.Path0502 != nil {
+			messageDir = *agency.TransferDir.Path0502
+		}
+	case db.MessageType0504:
+		if agency.TransferDir.Path0504 != nil {
+			messageDir = *agency.TransferDir.Path0504
+		}
+	case db.MessageType0506:
+		if agency.TransferDir.Path0506 != nil {
+			messageDir = *agency.TransferDir.Path0506
+		}
+	case db.MessageType0507:
+		if agency.TransferDir.Path0507 != nil {
+			messageDir = *agency.TransferDir.Path0507
+		}
+	}
+	return path.Clean(messageDir)
 }
 
 // CopyMessageFromTransferDirectory copies a file from a transfer directory to a temporary directory.
 func CopyMessageFromTransferDirectory(agency db.Agency, messagePath string) string {
-	transferDirURL, err := url.Parse(agency.TransferDirURL)
+	transferDirURL, err := url.Parse(agency.TransferDir.URL)
 	if err != nil {
 		panic(err)
 	}
@@ -433,7 +489,7 @@ func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) st
 // RemoveFileFromTransferDir deletes a file on a transfer directory.
 func RemoveFileFromTransferDir(agency db.Agency, path string) {
 	log.Printf("Removing file from transfer dir for %s: %s\n", agency.Name, path)
-	transferDirURL, err := url.Parse(agency.TransferDirURL)
+	transferDirURL, err := url.Parse(agency.TransferDir.URL)
 	if err != nil {
 		panic(err)
 	}

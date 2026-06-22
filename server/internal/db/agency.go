@@ -24,13 +24,21 @@ type Agency struct {
 	Code string `json:"code"`
 	// ContactEmail is the e-mail address to use to contact the agency.
 	ContactEmail string `bson:"contact_email" json:"contactEmail"`
-	// TransferDirURL contains the protocol, host, username and password needed to access a file share.
-	// Possible values for the protocol are file, webdav, webdavs.
-	// The username and password are optional.
-	TransferDirURL string `json:"transferDirURL"`
 	// Users are users responsible for processes of this Agency.
 	Users        []string            `json:"users"`
 	CollectionID *primitive.ObjectID `bson:"collection_id" json:"collectionId"`
+	TransferDir  TransferDir         `json:"transferDir"`
+}
+
+type TransferDir struct {
+	// URL contains the protocol, host, username and password needed to access a file share.
+	// Possible values for the protocol are file, webdav, webdavs.
+	// The username and password are optional.
+	URL      string  `json:"URL"`
+	Path0502 *string `json:"path0502"`
+	Path0504 *string `json:"path0504"`
+	Path0506 *string `json:"path0506"`
+	Path0507 *string `json:"path0507"`
 }
 
 func FindAgencies(ctx context.Context) []Agency {

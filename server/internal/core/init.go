@@ -41,13 +41,17 @@ func InitTestSetup() {
 
 func initAgencies() {
 	db.InsertAgency(db.Agency{
-		Name:           "Thüringer Ministerium für Inneres und Kommunales",
-		Abbreviation:   "TMIK",
-		TransferDirURL: "file:///xman/transfer_dir",
+		Name:         "Thüringer Ministerium für Inneres und Kommunales",
+		Abbreviation: "TMIK",
+		TransferDir: db.TransferDir{
+			URL: "file:///xman/transfer_dir",
+		},
 	})
 	db.InsertAgency(db.Agency{
-		Name:           "Thüringer Staatskanzlei",
-		Abbreviation:   "TSK",
-		TransferDirURL: fmt.Sprintf("dav://%s:%s@webdav/", os.Getenv("WEBDAV_USERNAME"), os.Getenv("WEBDAV_PASSWORD")),
+		Name:         "Thüringer Staatskanzlei",
+		Abbreviation: "TSK",
+		TransferDir: db.TransferDir{
+			URL: fmt.Sprintf("dav://%s:%s@webdav/", os.Getenv("WEBDAV_USERNAME"), os.Getenv("WEBDAV_PASSWORD")),
+		},
 	})
 }

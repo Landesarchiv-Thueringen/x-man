@@ -9,9 +9,17 @@ export interface Agency {
   prefix: string;
   code: string;
   contactEmail: string;
-  transferDirURL: string;
   collectionId?: string;
   users: string[];
+  transferDir: TransferDir;
+}
+
+export interface TransferDir {
+  URL: string;
+  path0502?: string;
+  path0504?: string;
+  path0506?: string;
+  path0507?: string;
 }
 
 @Injectable({

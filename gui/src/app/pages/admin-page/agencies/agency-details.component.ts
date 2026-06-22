@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, TemplateRef, viewChild, inject } from '@angular/core';
+import { Component, ElementRef, TemplateRef, inject, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,23 +30,23 @@ import { TransferDirService } from './transfer-dir.service';
  * Shown in a dialog.
  */
 @Component({
-    selector: 'app-agency-details',
-    imports: [
-        CommonModule,
-        MatAutocompleteModule,
-        MatButtonModule,
-        MatChipsModule,
-        MatDialogModule,
-        MatExpansionModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        MatProgressSpinnerModule,
-        MatSelectModule,
-        ReactiveFormsModule,
-    ],
-    templateUrl: './agency-details.component.html',
-    styleUrl: './agency-details.component.scss'
+  selector: 'app-agency-details',
+  imports: [
+    CommonModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatDialogModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+  ],
+  templateUrl: './agency-details.component.html',
+  styleUrl: './agency-details.component.scss',
 })
 export class AgencyDetailsComponent {
   private dialogRef = inject<MatDialogRef<AgencyDetailsComponent>>(MatDialogRef);
@@ -81,6 +81,10 @@ export class AgencyDetailsComponent {
       path: new FormControl('', { validators: [Validators.required] }),
       username: new FormControl(''),
       password: new FormControl(''),
+      path0502: new FormControl(''),
+      path0504: new FormControl(''),
+      path0506: new FormControl(''),
+      path0507: new FormControl(''),
     }),
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
@@ -189,7 +193,13 @@ export class AgencyDetailsComponent {
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
           users: userIds,
-          transferDirURL: this.getTransferDirURI(),
+          transferDir: {
+            URL: this.getTransferDirURI(),
+            path0502: transferDir.path0502 ?? undefined,
+            path0504: transferDir.path0504 ?? undefined,
+            path0506: transferDir.path0506 ?? undefined,
+            path0507: transferDir.path0507 ?? undefined,
+          },
         };
         this.dialogRef.close(updateAgency);
       }
@@ -270,6 +280,10 @@ export class AgencyDetailsComponent {
         const host = this.form.get('transferDir')?.get('host');
         const username = this.form.get('transferDir')?.get('username');
         const password = this.form.get('transferDir')?.get('password');
+        const path0502 = this.form.get('transferDir')?.get('path0502');
+        const path0504 = this.form.get('transferDir')?.get('path0504');
+        const path0506 = this.form.get('transferDir')?.get('path0506');
+        const path0507 = this.form.get('transferDir')?.get('path0507');
         switch (value) {
           case 'file':
             path?.enable();
@@ -281,6 +295,14 @@ export class AgencyDetailsComponent {
             username?.setValue(null);
             password?.disable();
             password?.setValue(null);
+            path0502?.disable();
+            path0502?.setValue(null);
+            path0504?.disable();
+            path0504?.setValue(null);
+            path0506?.disable();
+            path0506?.setValue(null);
+            path0507?.disable();
+            path0507?.setValue(null);
             break;
           case 'dav':
           case 'davs':
@@ -290,13 +312,17 @@ export class AgencyDetailsComponent {
             host?.setValidators(Validators.required);
             username?.enable();
             password?.enable();
+            path0502?.enable();
+            path0504?.enable();
+            path0506?.enable();
+            path0507?.enable();
             break;
         }
         host?.updateValueAndValidity();
       });
     // Populate fields with initial values from the database
-    if (this.agency.transferDirURL) {
-      const [protocol, rest] = this.agency.transferDirURL.split('://');
+    if (this.agency.transferDir.URL) {
+      const [protocol, rest] = this.agency.transferDir.URL.split('://');
       try {
         // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
         const dummyProtocol = protocol?.startsWith('dav') ? 'http' : protocol;
@@ -307,8 +333,12 @@ export class AgencyDetailsComponent {
         formGroup.get('password')?.setValue(url.password);
         formGroup.get('host')?.setValue(url.host);
         formGroup.get('path')?.setValue(url.pathname.replace(/^\//, '')); // trim leading slash
+        formGroup.get('path0502')?.setValue(this.agency.transferDir.path0502 ?? null);
+        formGroup.get('path0504')?.setValue(this.agency.transferDir.path0504 ?? null);
+        formGroup.get('path0506')?.setValue(this.agency.transferDir.path0506 ?? null);
+        formGroup.get('path0507')?.setValue(this.agency.transferDir.path0507 ?? null);
       } catch (e) {
-        console.warn('Failed to parse transfer-dir URI', this.agency.transferDirURL, e);
+        console.warn('Failed to parse transfer-dir URI', this.agency.transferDir.URL, e);
       }
     }
   }

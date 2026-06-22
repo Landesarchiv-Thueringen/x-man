@@ -488,7 +488,7 @@ func Send0502Message(agency db.Agency, message db.Message) error {
 		agency,
 		message.MessageHead.ProcessID,
 		messageXml,
-		getMessageSuffix(db.MessageType0502, true),
+		db.MessageType0502,
 	)
 }
 
@@ -498,7 +498,7 @@ func Send0504Message(agency db.Agency, message db.Message) error {
 		agency,
 		message.MessageHead.ProcessID,
 		messageXml,
-		getMessageSuffix(db.MessageType0504, true),
+		db.MessageType0504,
 	)
 }
 
@@ -509,7 +509,7 @@ func Send0506Message(process db.SubmissionProcess, message0503 db.Message) error
 		process.Agency,
 		message0503.MessageHead.ProcessID,
 		messageXml,
-		getMessageSuffix(db.MessageType0506, true),
+		db.MessageType0506,
 	)
 }
 
@@ -522,7 +522,7 @@ func Send0507Message(agency db.Agency, message0503 db.Message) error {
 		agency,
 		message0503.MessageHead.ProcessID,
 		messageXml,
-		getMessageSuffix(db.MessageType0507, true),
+		db.MessageType0507,
 	)
 }
 
@@ -532,8 +532,9 @@ func sendMessage(
 	agency db.Agency,
 	processID string,
 	messageXml string,
-	messageSuffix string,
+	messageType db.MessageType,
 ) error {
+	messageSuffix := getMessageSuffix(messageType, true)
 	// Create temporary directory. The name of the directory ist the message ID.
 	tempDir, err := os.MkdirTemp("", processID)
 	if err != nil {
@@ -541,9 +542,9 @@ func sendMessage(
 	}
 	defer os.RemoveAll(tempDir)
 	xmlName := processID + messageSuffix + ".xml"
-	messageName := processID + messageSuffix + ".zip"
-	messagePath := path.Join(tempDir, messageName)
-	messageArchive, err := os.Create(messagePath)
+	archiveName := processID + messageSuffix + ".zip"
+	tempMessagePath := path.Join(tempDir, archiveName)
+	messageArchive, err := os.Create(tempMessagePath)
 	if err != nil {
 		panic(err)
 	}
@@ -562,7 +563,7 @@ func sendMessage(
 	// important close zip writer and message archive so it can be written on disk
 	zipWriter.Close()
 	messageArchive.Close()
-	return CopyMessageToTransferDirectory(agency, &processID, messagePath)
+	return CopyMessageToTransferDirectory(agency, &processID, tempMessagePath, messageType)
 }
 
 // getMaxRecordDepth returns the nesting level of the deepest nesting within the

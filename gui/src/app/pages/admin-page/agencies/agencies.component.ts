@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, effect, viewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, effect, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -15,17 +15,17 @@ import { ArchiveCollection, CollectionsService } from '../collections/collection
 import { AgencyDetailsComponent } from './agency-details.component';
 
 @Component({
-    selector: 'app-agencies',
-    imports: [
-        CommonModule,
-        MatButtonModule,
-        MatDialogModule,
-        MatIconModule,
-        MatSortModule,
-        MatTableModule,
-    ],
-    templateUrl: './agencies.component.html',
-    styleUrl: './agencies.component.scss'
+  selector: 'app-agencies',
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatSortModule,
+    MatTableModule,
+  ],
+  templateUrl: './agencies.component.html',
+  styleUrl: './agencies.component.scss',
 })
 export class AgenciesComponent implements AfterViewInit {
   private agenciesService = inject(AgenciesService);
@@ -93,7 +93,9 @@ export class AgenciesComponent implements AfterViewInit {
     this.openDetails({
       name: 'Neue Abgebende Stelle',
       abbreviation: '',
-      transferDirURL: '',
+      transferDir: {
+        URL: '',
+      },
     });
   }
 }
