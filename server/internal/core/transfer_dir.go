@@ -3,13 +3,13 @@ package core
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
 	"lath/xman/internal/db"
 	"lath/xman/internal/errors"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,15 +19,6 @@ import (
 
 	"github.com/studio-b12/gowebdav"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-)
-
-// all possible URL protocol schemes for transfer directories
-type URLScheme string
-
-const (
-	Local     URLScheme = "file"
-	WebDAV    URLScheme = "dav"
-	WebDAVSec URLScheme = "davs"
 )
 
 // control of the watch loop for the transfer directories
@@ -40,32 +31,26 @@ func (err unknownFilesError) Error() string {
 }
 
 // TestTransferDir checks if an transfer directory configuration is works.
-func TestTransferDir(testURL string) bool {
-	transferDirURL, err := url.Parse(testURL)
-	if err != nil {
-		return false
-	}
-	switch transferDirURL.Scheme {
-	case string(Local):
-		return testLocalFilesystem(transferDirURL)
-	case string(WebDAV):
-		fallthrough
-	case string(WebDAVSec):
-		return testWebDAV(transferDirURL)
+func TestTransferDir(transferDir db.TransferDir) bool {
+	switch transferDir.Protocol {
+	case db.ProtocolFile:
+		return testLocalFilesystem(transferDir)
+	case db.ProtocolWebDAV, db.ProtocolWebDAVSecure:
+		return testWebDAV(transferDir)
 	default:
 		panic("unknown transfer directory scheme")
 	}
 }
 
 // testLocalFilesystem checks if an transfer directory configuration for a local filesystem works.
-func testLocalFilesystem(transferDirURL *url.URL) bool {
-	_, err := os.ReadDir(transferDirURL.Path)
+func testLocalFilesystem(transferDir db.TransferDir) bool {
+	_, err := os.ReadDir(filepath.Join("/", *transferDir.Path))
 	return err == nil
 }
 
 // testWebDAV checks if an transfer directory configuration for a webDAV works.
-func testWebDAV(transferDirURL *url.URL) bool {
-	_, err := connectWebDAV(transferDirURL)
+func testWebDAV(transferDir db.TransferDir) bool {
+	_, err := connectWebDAV(transferDir)
 	return err == nil
 }
 
@@ -97,16 +82,13 @@ func MonitorTransferDirs() {
 		accessErrors := getAccessErrors()
 		agencies := db.FindAgencies(context.Background())
 		for _, agency := range agencies {
+			var err error
 			errorData.Agency = &agency
-			transferDirURL, err := url.Parse(agency.TransferDir.URL)
-			if err != nil {
-				panic(err)
-			}
-			switch transferDirURL.Scheme {
-			case string(Local):
-				err = readMessagesFromFilesystem(agency, transferDirURL)
-			case string(WebDAV), string(WebDAVSec):
-				err = readMessagesFromWebDAV(agency, transferDirURL)
+			switch agency.TransferDir.Protocol {
+			case db.ProtocolFile:
+				err = readMessagesFromFilesystem(agency)
+			case db.ProtocolWebDAV, db.ProtocolWebDAVSecure:
+				err = readMessagesFromWebDAV(agency)
 			default:
 				panic("unknown transfer directory scheme")
 			}
@@ -181,8 +163,8 @@ func getProcessedTransferFiles(agencyID primitive.ObjectID) map[string]bool {
 }
 
 // readMessagesFromFilesystem checks if new messages exist for a local filesystem.
-func readMessagesFromFilesystem(agency db.Agency, transferDirURL *url.URL) error {
-	rootDir := filepath.Join(transferDirURL.Path)
+func readMessagesFromFilesystem(agency db.Agency) error {
+	rootDir := filepath.Join("/", *agency.TransferDir.Path)
 	files, err := os.ReadDir(rootDir)
 	if err != nil {
 		return err
@@ -232,8 +214,8 @@ func waitUntilStable(file fs.DirEntry) {
 }
 
 // readMessagesFromWebDAV checks if new messages exist for a webDAV.
-func readMessagesFromWebDAV(agency db.Agency, transferDirURL *url.URL) error {
-	client, err := connectWebDAV(transferDirURL)
+func readMessagesFromWebDAV(agency db.Agency) error {
+	client, err := connectWebDAV(agency.TransferDir)
 	if err != nil {
 		return err
 	}
@@ -291,17 +273,11 @@ func CopyMessageToTransferDirectory(
 	tempMessagePath string,
 	messageType db.MessageType,
 ) error {
-	transferDirURL, err := url.Parse(agency.TransferDir.URL)
-	if err != nil {
-		panic(err)
-	}
-	switch transferDirURL.Scheme {
-	case string(Local):
-		return copyMessageToLocalFilesystem(agency, processID, transferDirURL, tempMessagePath)
-	case string(WebDAV):
-		fallthrough
-	case string(WebDAVSec):
-		return copyMessageToWebDAV(agency, processID, transferDirURL, tempMessagePath, messageType)
+	switch agency.TransferDir.Protocol {
+	case db.ProtocolFile:
+		return copyMessageToLocalFilesystem(agency, processID, tempMessagePath)
+	case db.ProtocolWebDAV, db.ProtocolWebDAVSecure:
+		return copyMessageToWebDAV(agency, processID, tempMessagePath, messageType)
 	default:
 		panic("unknown transfer directory scheme")
 	}
@@ -311,11 +287,10 @@ func CopyMessageToTransferDirectory(
 func copyMessageToLocalFilesystem(
 	agency db.Agency,
 	processID *string,
-	transferDirURL *url.URL,
 	tempMessagePath string,
 ) error {
 	messageFilename := path.Base(tempMessagePath)
-	messageTransferDirPath := path.Join(transferDirURL.Path, messageFilename)
+	messageTransferDirPath := path.Join("/", *agency.TransferDir.Path, messageFilename)
 	// mark message as known, so it will not be added to unknown files on the transfer directory
 	ok := db.InsertTransferFile(agency.ID, processID, messageFilename)
 	if !ok {
@@ -347,18 +322,17 @@ func copyMessageToLocalFilesystem(
 func copyMessageToWebDAV(
 	agency db.Agency,
 	processID *string,
-	transferDirURL *url.URL,
 	tempMessagePath string,
 	messageType db.MessageType,
 ) error {
-	client, err := connectWebDAV(transferDirURL)
+	client, err := connectWebDAV(agency.TransferDir)
 	if err != nil {
 		panic(err)
 	}
 	messageDir := getRemoteMessageDir(agency, messageType)
-	webdavFilePath := path.Join(messageDir, path.Base(tempMessagePath))
+	webDAVFilePath := path.Join(messageDir, path.Base(tempMessagePath))
 	// mark message as known, so it will not be added to unknown files on the transfer directory
-	ok := db.InsertTransferFile(agency.ID, processID, webdavFilePath)
+	ok := db.InsertTransferFile(agency.ID, processID, webDAVFilePath)
 	if !ok {
 		return errTransferFileExists
 	}
@@ -366,13 +340,13 @@ func copyMessageToWebDAV(
 	if err != nil {
 		// the copy process for the message failed
 		// unmark the message as known, so it can be added in future
-		db.DeleteTransferFile(agency.ID, webdavFilePath)
+		db.DeleteTransferFile(agency.ID, webDAVFilePath)
 		panic(err)
 	}
 	defer messageFile.Close()
-	err = client.WriteStream(webdavFilePath, messageFile, 0644)
+	err = client.WriteStream(webDAVFilePath, messageFile, 0644)
 	if err != nil {
-		db.DeleteTransferFile(agency.ID, webdavFilePath)
+		db.DeleteTransferFile(agency.ID, webDAVFilePath)
 		panic(err)
 	}
 	return nil
@@ -403,17 +377,11 @@ func getRemoteMessageDir(agency db.Agency, messageType db.MessageType) string {
 
 // CopyMessageFromTransferDirectory copies a file from a transfer directory to a temporary directory.
 func CopyMessageFromTransferDirectory(agency db.Agency, messagePath string) string {
-	transferDirURL, err := url.Parse(agency.TransferDir.URL)
-	if err != nil {
-		panic(err)
-	}
-	switch transferDirURL.Scheme {
-	case string(Local):
-		return copyFileFromLocalFilesystem(transferDirURL, messagePath)
-	case string(WebDAV):
-		fallthrough
-	case string(WebDAVSec):
-		return copMessageFromWebDAV(transferDirURL, messagePath)
+	switch agency.TransferDir.Protocol {
+	case db.ProtocolFile:
+		return copyFileFromLocalFilesystem(agency.TransferDir, messagePath)
+	case db.ProtocolWebDAV, db.ProtocolWebDAVSecure:
+		return copMessageFromWebDAV(agency.TransferDir, messagePath)
 	default:
 		panic("unknown transfer directory scheme")
 	}
@@ -424,8 +392,8 @@ func CopyMessageFromTransferDirectory(agency db.Agency, messagePath string) stri
 // The caller of this function should remove the temporary directory.
 //
 // Returns the local path of the copied file.
-func copMessageFromWebDAV(transferDirURL *url.URL, webDAVFilePath string) string {
-	client, err := connectWebDAV(transferDirURL)
+func copMessageFromWebDAV(transferDir db.TransferDir, webDAVFilePath string) string {
+	client, err := connectWebDAV(transferDir)
 	if err != nil {
 		panic(err)
 	}
@@ -456,7 +424,7 @@ func copMessageFromWebDAV(transferDirURL *url.URL, webDAVFilePath string) string
 // The caller of this function should remove the temporary directory.
 //
 // Returns the local path of the copied file.
-func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) string {
+func copyFileFromLocalFilesystem(transferDir db.TransferDir, messagePath string) string {
 	processID := getProcessID(messagePath)
 	messageName := filepath.Base(messagePath)
 	// Create temporary directory. The name of the directory contains the message ID.
@@ -464,7 +432,7 @@ func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) st
 	if err != nil {
 		panic(err)
 	}
-	transferDirPath := filepath.Join(transferDirURL.Path, messagePath)
+	transferDirPath := filepath.Join("/", *transferDir.Path, messagePath)
 	// Open the original messageFile in the transfer directory.
 	messageFile, err := os.Open(transferDirPath)
 	if err != nil {
@@ -489,15 +457,11 @@ func copyFileFromLocalFilesystem(transferDirURL *url.URL, messagePath string) st
 // RemoveFileFromTransferDir deletes a file on a transfer directory.
 func RemoveFileFromTransferDir(agency db.Agency, path string) {
 	log.Printf("Removing file from transfer dir for %s: %s\n", agency.Name, path)
-	transferDirURL, err := url.Parse(agency.TransferDir.URL)
-	if err != nil {
-		panic(err)
-	}
-	switch transferDirURL.Scheme {
-	case string(Local):
-		RemoveFileFromLocalFilesystem(transferDirURL, path)
-	case string(WebDAV), string(WebDAVSec):
-		RemoveFileFromWebDAV(transferDirURL, path)
+	switch agency.TransferDir.Protocol {
+	case db.ProtocolFile:
+		RemoveFileFromLocalFilesystem(agency.TransferDir, path)
+	case db.ProtocolWebDAV, db.ProtocolWebDAVSecure:
+		RemoveFileFromWebDAV(agency.TransferDir, path)
 	default:
 		panic("unknown transfer directory scheme")
 	}
@@ -505,8 +469,8 @@ func RemoveFileFromTransferDir(agency db.Agency, path string) {
 }
 
 // RemoveFileFromLocalFilesystem deletes a file on a local filesystem.
-func RemoveFileFromLocalFilesystem(transferDirURL *url.URL, path string) {
-	fullPath := filepath.Join(transferDirURL.Path, path)
+func RemoveFileFromLocalFilesystem(transferDir db.TransferDir, path string) {
+	fullPath := filepath.Join("/", *transferDir.Path, path)
 	err := os.RemoveAll(fullPath)
 	if err != nil {
 		panic(err)
@@ -514,8 +478,8 @@ func RemoveFileFromLocalFilesystem(transferDirURL *url.URL, path string) {
 }
 
 // RemoveFileFromWebDAV deletes a file on a webDAV.
-func RemoveFileFromWebDAV(transferDirURL *url.URL, path string) {
-	client, err := connectWebDAV(transferDirURL)
+func RemoveFileFromWebDAV(transferDir db.TransferDir, path string) {
+	client, err := connectWebDAV(transferDir)
 	if err != nil {
 		panic(err)
 	}
@@ -527,30 +491,34 @@ func RemoveFileFromWebDAV(transferDirURL *url.URL, path string) {
 
 // connectWebDAV creates a client from an parsed transfer directory URL.
 // Checks if a connection with the transfer directory with the given configuration is possible.
-func connectWebDAV(transferDirURL *url.URL) (*gowebdav.Client, error) {
-	var root string
-	switch transferDirURL.Scheme {
-	case string(WebDAV):
-		root = "http://" + transferDirURL.Host + "/" + transferDirURL.Path
-	case string(WebDAVSec):
-		root = "https://" + transferDirURL.Host + "/" + transferDirURL.Path
+func connectWebDAV(transferDir db.TransferDir) (*gowebdav.Client, error) {
+	var url string
+	var protocol string
+	switch transferDir.Protocol {
+	case db.ProtocolWebDAV:
+		protocol = "http://"
+	case db.ProtocolWebDAVSecure:
+		protocol = "https://"
 	default:
-		panic("unknown transfer directory scheme")
+		return nil, fmt.Errorf("unknown transfer directory protocol %s", transferDir.Protocol)
 	}
-	user := transferDirURL.User.Username()
-	password, set := transferDirURL.User.Password()
-	if !set {
-		password = ""
+	webDAVPath := ""
+	if transferDir.Path != nil {
+		webDAVPath = *transferDir.Path
 	}
+	url = protocol + path.Join(*transferDir.Host, webDAVPath)
 	var client *gowebdav.Client
-	insecureTLS := os.Getenv("WEBDAV_TLS_INSECURE_SKIP_VERIFY") == "true"
+	insecureTLS := false
+	if transferDir.AllowInsecureTLS != nil && *transferDir.AllowInsecureTLS {
+		insecureTLS = true
+	}
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: insecureTLS,
 	}
 	transport := &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}
-	client = gowebdav.NewClient(root, user, password)
+	client = gowebdav.NewClient(url, *transferDir.User, *transferDir.Password)
 	client.SetTransport(transport)
 	err := client.Connect()
 	return client, err

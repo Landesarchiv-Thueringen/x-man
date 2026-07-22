@@ -30,15 +30,25 @@ type Agency struct {
 	TransferDir  TransferDir         `json:"transferDir"`
 }
 
+type TransferProtocol string
+
+const (
+	ProtocolFile         TransferProtocol = "file"
+	ProtocolWebDAV       TransferProtocol = "dav"
+	ProtocolWebDAVSecure TransferProtocol = "davs"
+)
+
 type TransferDir struct {
-	// URL contains the protocol, host, username and password needed to access a file share.
-	// Possible values for the protocol are file, webdav, webdavs.
-	// The username and password are optional.
-	URL      string  `json:"URL"`
-	Path0502 *string `json:"path0502"`
-	Path0504 *string `json:"path0504"`
-	Path0506 *string `json:"path0506"`
-	Path0507 *string `json:"path0507"`
+	Protocol         TransferProtocol `json:"protocol"`
+	Host             *string          `json:"host"`
+	Path             *string          `json:"path"`
+	User             *string          `json:"user"`
+	Password         *string          `json:"password"`
+	Path0502         *string          `json:"path0502"`
+	Path0504         *string          `json:"path0504"`
+	Path0506         *string          `json:"path0506"`
+	Path0507         *string          `json:"path0507"`
+	AllowInsecureTLS *bool            `json:"allowInsecureTLS"`
 }
 
 func FindAgencies(ctx context.Context) []Agency {

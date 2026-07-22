@@ -812,11 +812,13 @@ func deleteCollection(c *gin.Context) {
 }
 
 func testTransferDir(c *gin.Context) {
-	body, err := io.ReadAll(c.Request.Body)
+	var transferDir db.TransferDir
+	err := c.Bind(&transferDir)
 	if err != nil {
-		panic(err)
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
-	success := core.TestTransferDir(string(body))
+	success := core.TestTransferDir(transferDir)
 	if success {
 		c.JSON(http.StatusOK, gin.H{"result": "success"})
 	} else {

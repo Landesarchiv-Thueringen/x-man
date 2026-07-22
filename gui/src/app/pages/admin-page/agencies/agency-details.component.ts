@@ -18,7 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable, firstValueFrom, map, startWith, switchMap, take } from 'rxjs';
-import { AgenciesService, Agency } from '../../../services/agencies.service';
+import { AgenciesService, Agency, TransferProtocol } from '../../../services/agencies.service';
 import { ConfigService } from '../../../services/config.service';
 import { User, UsersService } from '../../../services/users.service';
 import { CollectionsService } from '../collections/collections.service';
@@ -73,18 +73,18 @@ export class AgencyDetailsComponent {
     code: new FormControl(this.agency.code, { nonNullable: true }),
     contactEmail: new FormControl(this.agency.contactEmail, { nonNullable: true }),
     transferDir: new FormGroup({
-      protocol: new FormControl('', {
+      protocol: new FormControl<TransferProtocol>('file', {
         nonNullable: true,
         validators: Validators.required,
       }),
-      host: new FormControl('', { validators: [Validators.required] }),
-      path: new FormControl('', { validators: [Validators.required] }),
-      username: new FormControl(''),
-      password: new FormControl(''),
-      path0502: new FormControl(''),
-      path0504: new FormControl(''),
-      path0506: new FormControl(''),
-      path0507: new FormControl(''),
+      host: new FormControl<string|null>(null, { validators: [Validators.required] }),
+      path: new FormControl<string|null>(null, { validators: [Validators.required] }),
+      user: new FormControl<string|null>(null),
+      password: new FormControl<string|null>(null),
+      path0502: new FormControl<string|null>(null),
+      path0504: new FormControl<string|null>(null),
+      path0506: new FormControl<string|null>(null),
+      path0507: new FormControl<string|null>(null),
     }),
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
@@ -142,7 +142,7 @@ export class AgencyDetailsComponent {
     this.transferDirPanel().open();
     if (this.form.get('transferDir')?.valid && !this.loadingTestResult) {
       this.loadingTestResult = true;
-      const observable = this.transferDirectoryService.testTransferDir(this.getTransferDirURI());
+      const observable = this.transferDirectoryService.testTransferDir(this.form.getRawValue().transferDir);
       try {
         const testResult = await firstValueFrom(observable);
         this.testResult = testResult.result;
@@ -193,13 +193,7 @@ export class AgencyDetailsComponent {
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
           users: userIds,
-          transferDir: {
-            URL: this.getTransferDirURI(),
-            path0502: transferDir.path0502 ?? undefined,
-            path0504: transferDir.path0504 ?? undefined,
-            path0506: transferDir.path0506 ?? undefined,
-            path0507: transferDir.path0507 ?? undefined,
-          },
+          transferDir: transferDir,
         };
         this.dialogRef.close(updateAgency);
       }
@@ -249,19 +243,6 @@ export class AgencyDetailsComponent {
     transferDir?.get('path')?.setValue(path);
   }
 
-  /** Combines information from the transfer-dir form group to a URI string. */
-  private getTransferDirURI(): string {
-    const transferDir = this.form.get('transferDir')!.value;
-    // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
-    const dummyProtocol = transferDir.protocol?.startsWith('dav') ? 'http' : transferDir.protocol;
-    const transferDirURL = new URL(
-      dummyProtocol + '://' + (transferDir.host ?? '') + '/' + transferDir.path,
-    );
-    transferDirURL.username = transferDir.username ?? '';
-    transferDirURL.password = transferDir.password ?? '';
-    return transferDirURL.href.replace(/^http/, transferDir.protocol!);
-  }
-
   /**
    * Initial setup for the transfer-dir form group.
    *
@@ -278,7 +259,7 @@ export class AgencyDetailsComponent {
       ?.valueChanges.subscribe((value) => {
         const path = this.form.get('transferDir')?.get('path');
         const host = this.form.get('transferDir')?.get('host');
-        const username = this.form.get('transferDir')?.get('username');
+        const user = this.form.get('transferDir')?.get('user');
         const password = this.form.get('transferDir')?.get('password');
         const path0502 = this.form.get('transferDir')?.get('path0502');
         const path0504 = this.form.get('transferDir')?.get('path0504');
@@ -291,8 +272,8 @@ export class AgencyDetailsComponent {
             host?.disable();
             host?.clearValidators();
             host?.setValue(null);
-            username?.disable();
-            username?.setValue(null);
+            user?.disable();
+            user?.setValue(null);
             password?.disable();
             password?.setValue(null);
             path0502?.disable();
@@ -310,7 +291,7 @@ export class AgencyDetailsComponent {
             path?.clearValidators();
             host?.enable();
             host?.setValidators(Validators.required);
-            username?.enable();
+            user?.enable();
             password?.enable();
             path0502?.enable();
             path0504?.enable();
@@ -321,26 +302,26 @@ export class AgencyDetailsComponent {
         host?.updateValueAndValidity();
       });
     // Populate fields with initial values from the database
-    if (this.agency.transferDir.URL) {
-      const [protocol, rest] = this.agency.transferDir.URL.split('://');
-      try {
-        // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
-        const dummyProtocol = protocol?.startsWith('dav') ? 'http' : protocol;
-        const url = new URL(dummyProtocol + '://' + rest);
+    // if (this.agency.transferDir.URL) {
+    //   const [protocol, rest] = this.agency.transferDir.URL.split('://');
+    //   try {
+    //     // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
+    //     const dummyProtocol = protocol?.startsWith('dav') ? 'http' : protocol;
+    //     const url = new URL(dummyProtocol + '://' + rest);
         const formGroup = this.form.get('transferDir')!;
-        formGroup.get('protocol')?.setValue(protocol);
-        formGroup.get('username')?.setValue(url.username);
-        formGroup.get('password')?.setValue(url.password);
-        formGroup.get('host')?.setValue(url.host);
-        formGroup.get('path')?.setValue(url.pathname.replace(/^\//, '')); // trim leading slash
-        formGroup.get('path0502')?.setValue(this.agency.transferDir.path0502 ?? null);
-        formGroup.get('path0504')?.setValue(this.agency.transferDir.path0504 ?? null);
-        formGroup.get('path0506')?.setValue(this.agency.transferDir.path0506 ?? null);
-        formGroup.get('path0507')?.setValue(this.agency.transferDir.path0507 ?? null);
-      } catch (e) {
-        console.warn('Failed to parse transfer-dir URI', this.agency.transferDir.URL, e);
-      }
-    }
+        formGroup.get('protocol')?.setValue(this.agency.transferDir.protocol);
+        formGroup.get('user')?.setValue(this.agency.transferDir.user);
+        formGroup.get('password')?.setValue(this.agency.transferDir.password);
+        formGroup.get('host')?.setValue(this.agency.transferDir.host);
+        formGroup.get('path')?.setValue(this.agency.transferDir.path ? this.agency.transferDir.path!.replace(/^\//, '') : null); // trim leading slash
+        formGroup.get('path0502')?.setValue(this.agency.transferDir.path0502);
+        formGroup.get('path0504')?.setValue(this.agency.transferDir.path0504);
+        formGroup.get('path0506')?.setValue(this.agency.transferDir.path0506);
+        formGroup.get('path0507')?.setValue(this.agency.transferDir.path0507);
+    //   } catch (e) {
+    //     console.warn('Failed to parse transfer-dir URI', this.agency.transferDir.URL, e);
+    //   }
+    // }
   }
 
   private scrollToBottom(): void {

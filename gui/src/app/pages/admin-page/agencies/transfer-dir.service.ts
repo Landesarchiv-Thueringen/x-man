@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { TransferDir } from '../../../services/agencies.service';
 
 interface TestResult {
   result: 'success' | 'failed';
@@ -16,7 +17,7 @@ export class TransferDirService {
    * Resolves to `result: 'success'` if the given transfer directory can be
    * reached and is successfully tested for read/write access.
    */
-  testTransferDir(transferDir: string): Observable<TestResult> {
+  testTransferDir(transferDir: TransferDir): Observable<TestResult> {
     return this.httpClient.post<TestResult>('/api/test-transfer-dir', transferDir);
   }
 }

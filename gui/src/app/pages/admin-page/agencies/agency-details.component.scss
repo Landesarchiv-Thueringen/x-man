@@ -28,6 +28,10 @@ mat-form-field {
   flex-grow: 0;
 }
 
+.sub-section-heading {
+    font: var(--mat-sys-title-small);
+}
+
 .test-button {
   width: 100%;
   ::ng-deep .mdc-button__label {
