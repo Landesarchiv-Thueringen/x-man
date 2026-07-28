@@ -18,15 +18,15 @@ export type TransferProtocol = "file" | "dav" | "davs";
 
 export interface TransferDir {
   protocol: TransferProtocol;
-  host: string|null;
-  path: string|null;
-  user: string|null;
-  password: string|null;
-  path0502: string|null;
-  path0504: string|null;
-  path0506: string|null;
-  path0507: string|null;
-  allowInsecureTLS?: boolean|null;
+  host: string;
+  path: string;
+  user: string;
+  password: string;
+  path0502: string;
+  path0504: string;
+  path0506: string;
+  path0507: string;
+  allowInsecureTLS: boolean;
 }
 
 @Injectable({

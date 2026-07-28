@@ -39,26 +39,22 @@ func InitTestSetup() {
 }
 
 func initAgencies() {
-	path := "/xman/transfer_dir"
 	db.InsertAgency(db.Agency{
 		Name:         "Thüringer Ministerium für Inneres und Kommunales",
 		Abbreviation: "TMIK",
 		TransferDir: db.TransferDir{
 			Protocol: db.ProtocolFile,
-			Path:     &path,
+			Path:     "xman/transfer_dir",
 		},
 	})
-	user := os.Getenv("WEBDAV_USERNAME")
-	password := os.Getenv("WEBDAV_PASSWORD")
-	host := "webdav"
 	db.InsertAgency(db.Agency{
 		Name:         "Thüringer Staatskanzlei",
 		Abbreviation: "TSK",
 		TransferDir: db.TransferDir{
 			Protocol: db.ProtocolWebDAV,
-			Host:     &host,
-			User:     &user,
-			Password: &password,
+			Host:     "webdav",
+			User:     os.Getenv("WEBDAV_USERNAME"),
+			Password: os.Getenv("WEBDAV_PASSWORD"),
 		},
 	})
 }

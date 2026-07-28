@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, TemplateRef, inject, viewChild } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -18,11 +18,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable, firstValueFrom, map, startWith, switchMap, take } from 'rxjs';
-import { AgenciesService, Agency, TransferProtocol } from '../../../services/agencies.service';
+import { AgenciesService, Agency, TransferDir, TransferProtocol } from '../../../services/agencies.service';
 import { ConfigService } from '../../../services/config.service';
 import { User, UsersService } from '../../../services/users.service';
 import { CollectionsService } from '../collections/collections.service';
-import { TransferDirService } from './transfer-dir.service';
+import { TestResult, TransferDirService } from './transfer-dir.service';
 
 /**
  * Agency metadata and associations.
@@ -77,14 +77,15 @@ export class AgencyDetailsComponent {
         nonNullable: true,
         validators: Validators.required,
       }),
-      host: new FormControl<string|null>(null, { validators: [Validators.required] }),
-      path: new FormControl<string|null>(null, { validators: [Validators.required] }),
-      user: new FormControl<string|null>(null),
-      password: new FormControl<string|null>(null),
-      path0502: new FormControl<string|null>(null),
-      path0504: new FormControl<string|null>(null),
-      path0506: new FormControl<string|null>(null),
-      path0507: new FormControl<string|null>(null),
+      host: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+      path: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+      user: new FormControl<string>('', { nonNullable: true }),
+      password: new FormControl<string>('', { nonNullable: true }),
+      allowInsecureTLS: new FormControl<boolean>(false, { nonNullable: true }),
+      path0502: new FormControl<string>('', { nonNullable: true, validators: [this.testResultValidator('path0502Exists')] }),
+      path0504: new FormControl<string>('', { nonNullable: true, validators: [this.testResultValidator('path0504Exists')] }),
+      path0506: new FormControl<string>('', { nonNullable: true, validators: [this.testResultValidator('path0506Exists')] }),
+      path0507: new FormControl<string>('', { nonNullable: true, validators: [this.testResultValidator('path0507Exists')] }),
     }),
     collectionId: new FormControl(this.agency.collectionId, {
       nonNullable: true,
@@ -97,6 +98,7 @@ export class AgencyDetailsComponent {
   users = this.usersService.getUsers();
   collections = this.collectionsService.getCollections();
   config = this.configService.config;
+
   /**
    * The result of testing the configuration of the transfer-directory.
    *
@@ -107,13 +109,36 @@ export class AgencyDetailsComponent {
    * - 'not-tested': the configuration has changed since opening the dialog and
    *   the test was not yet run
    */
-  testResult: 'success' | 'failed' | 'not-tested' | 'unchanged' = 'unchanged';
+  testState: 'success' | 'failed' | 'not-tested' | 'unchanged' = 'unchanged';
+  testResult?: TestResult;
   loadingTestResult = false;
   isNew = this.agency.id == null;
 
+  testResultValidator(resultKey: keyof TestResult): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value || this.testState === 'not-tested' || !this.testResult) {
+        return null;
+      }
+      return this.testResult[resultKey] != undefined && this.testResult[resultKey]
+        ? null
+        : { pathNotFound: true };
+    };
+  }
+
   constructor() {
     // Reset 'testResult' when the value of 'transferDir' changes
-    this.form.get('transferDir')?.valueChanges.subscribe(() => (this.testResult = 'not-tested'));
+    this.form.get('transferDir')?.valueChanges.subscribe(() => {
+      this.testState = 'not-tested'
+    });
+    ['path0502', 'path0504', 'path0506', 'path0507'].forEach(config => {
+      this.form.get('transferDir')?.get(config)?.valueChanges.subscribe(() => {
+        this.testState = 'not-tested'
+        this.form.get('transferDir')?.get(config)?.updateValueAndValidity({
+          onlySelf: true,
+          emitEvent: false
+        })
+      });
+    })
     this.initTransferDirGroup();
     // Disable close on backdrop click as soon as the user modifies any value
     this.form.valueChanges.pipe(take(1)).subscribe(() => (this.dialogRef.disableClose = true));
@@ -138,21 +163,33 @@ export class AgencyDetailsComponent {
    * Sets `loadingTestResult` to true while running.
    */
   async testTransferDirectory() {
-    this.fixupTransferDirInputs();
+    this.trimTransferDirInputs();
     this.transferDirPanel().open();
-    if (this.form.get('transferDir')?.valid && !this.loadingTestResult) {
+    if (this.isTransferDirConfigTestable() && !this.loadingTestResult) {
       this.loadingTestResult = true;
       const observable = this.transferDirectoryService.testTransferDir(this.form.getRawValue().transferDir);
       try {
-        const testResult = await firstValueFrom(observable);
-        this.testResult = testResult.result;
+        this.testResult = await firstValueFrom(observable);
+        this.testState = this.testResult?.success ? 'success' : 'failed';
+        ['path0502', 'path0504', 'path0506', 'path0507'].forEach(config => {
+          this.form.get('transferDir')?.get(config)?.updateValueAndValidity({
+            onlySelf: true,
+            emitEvent: false
+          })
+        });
       } catch {
-        this.testResult = 'failed';
+        this.testState = 'failed';
       } finally {
         this.loadingTestResult = false;
       }
       this.scrollToBottom();
     }
+  }
+
+  isTransferDirConfigTestable(): boolean {
+    const transferDirFormGroup = this.form.get('transferDir') as FormGroup
+    return !Object.values(transferDirFormGroup.controls)
+      .some(control => control.hasError('required'));
   }
 
   /**
@@ -185,10 +222,10 @@ export class AgencyDetailsComponent {
    */
   async save() {
     if (this.form.valid) {
-      if (this.testResult === 'not-tested') {
+      if (this.testState === 'not-tested') {
         await this.testTransferDirectory();
       }
-      if (this.testResult !== 'failed') {
+      if (this.testState !== 'failed') {
         const { userIds, transferDir, ...agency } = this.form.getRawValue();
         const updateAgency: Omit<Agency, 'id'> = {
           ...agency,
@@ -232,15 +269,21 @@ export class AgencyDetailsComponent {
   }
 
   /** Trims and removes superfluous characters likely to be inserted by users. */
-  fixupTransferDirInputs(): void {
+  trimTransferDirInputs(): void {
     const transferDir = this.form.get('transferDir');
     let host = transferDir?.getRawValue().host;
     host = host?.trim();
     transferDir?.get('host')?.setValue(host);
-    let path = transferDir?.getRawValue().path;
-    path = path?.trim();
-    path = path?.replace(/^\/|\/$/g, ''); // trim leading and trailing slashes
-    transferDir?.get('path')?.setValue(path);
+    transferDir?.get('path')?.setValue(this.trimPath(transferDir?.getRawValue().path));
+    transferDir?.get('path0502')?.setValue(this.trimPath(transferDir?.getRawValue().path0502));
+    transferDir?.get('path0504')?.setValue(this.trimPath(transferDir?.getRawValue().path0504));
+    transferDir?.get('path0506')?.setValue(this.trimPath(transferDir?.getRawValue().path0506));
+    transferDir?.get('path0507')?.setValue(this.trimPath(transferDir?.getRawValue().path0507));
+  }
+
+  /** Trims leading and trailing slashes and whitespaces from a path. */
+  trimPath(path: string | null) {
+    return path ? path.trim().replace(/^\/|\/$/g, '') : ''
   }
 
   /**
@@ -261,29 +304,17 @@ export class AgencyDetailsComponent {
         const host = this.form.get('transferDir')?.get('host');
         const user = this.form.get('transferDir')?.get('user');
         const password = this.form.get('transferDir')?.get('password');
-        const path0502 = this.form.get('transferDir')?.get('path0502');
-        const path0504 = this.form.get('transferDir')?.get('path0504');
-        const path0506 = this.form.get('transferDir')?.get('path0506');
-        const path0507 = this.form.get('transferDir')?.get('path0507');
         switch (value) {
           case 'file':
             path?.enable();
             path?.setValidators(Validators.required);
             host?.disable();
             host?.clearValidators();
-            host?.setValue(null);
+            host?.setValue('');
             user?.disable();
-            user?.setValue(null);
+            user?.setValue('');
             password?.disable();
-            password?.setValue(null);
-            path0502?.disable();
-            path0502?.setValue(null);
-            path0504?.disable();
-            path0504?.setValue(null);
-            path0506?.disable();
-            path0506?.setValue(null);
-            path0507?.disable();
-            path0507?.setValue(null);
+            password?.setValue('');
             break;
           case 'dav':
           case 'davs':
@@ -293,35 +324,26 @@ export class AgencyDetailsComponent {
             host?.setValidators(Validators.required);
             user?.enable();
             password?.enable();
-            path0502?.enable();
-            path0504?.enable();
-            path0506?.enable();
-            path0507?.enable();
+            // remove the prefilled default root dir when switching to webDAV
+            if (path?.value === this.transferDirectoryService.getDefaultRootDir()) {
+              path?.patchValue('')
+            }
             break;
         }
         host?.updateValueAndValidity();
       });
     // Populate fields with initial values from the database
-    // if (this.agency.transferDir.URL) {
-    //   const [protocol, rest] = this.agency.transferDir.URL.split('://');
-    //   try {
-    //     // Create the URL as 'http' instead of 'dav' since URL will not behave correctly with 'dav'.
-    //     const dummyProtocol = protocol?.startsWith('dav') ? 'http' : protocol;
-    //     const url = new URL(dummyProtocol + '://' + rest);
-        const formGroup = this.form.get('transferDir')!;
-        formGroup.get('protocol')?.setValue(this.agency.transferDir.protocol);
-        formGroup.get('user')?.setValue(this.agency.transferDir.user);
-        formGroup.get('password')?.setValue(this.agency.transferDir.password);
-        formGroup.get('host')?.setValue(this.agency.transferDir.host);
-        formGroup.get('path')?.setValue(this.agency.transferDir.path ? this.agency.transferDir.path!.replace(/^\//, '') : null); // trim leading slash
-        formGroup.get('path0502')?.setValue(this.agency.transferDir.path0502);
-        formGroup.get('path0504')?.setValue(this.agency.transferDir.path0504);
-        formGroup.get('path0506')?.setValue(this.agency.transferDir.path0506);
-        formGroup.get('path0507')?.setValue(this.agency.transferDir.path0507);
-    //   } catch (e) {
-    //     console.warn('Failed to parse transfer-dir URI', this.agency.transferDir.URL, e);
-    //   }
-    // }
+    const formGroup = this.form.get('transferDir')!;
+    formGroup.get('protocol')?.setValue(this.agency.transferDir.protocol);
+    formGroup.get('user')?.setValue(this.agency.transferDir.user);
+    formGroup.get('password')?.setValue(this.agency.transferDir.password);
+    formGroup.get('host')?.setValue(this.agency.transferDir.host);
+    formGroup.get('path')?.setValue(this.trimPath(this.agency.transferDir.path));
+    formGroup.get('allowInsecureTLS')?.setValue(this.agency.transferDir.allowInsecureTLS);
+    formGroup.get('path0502')?.setValue(this.agency.transferDir.path0502);
+    formGroup.get('path0504')?.setValue(this.agency.transferDir.path0504);
+    formGroup.get('path0506')?.setValue(this.agency.transferDir.path0506);
+    formGroup.get('path0507')?.setValue(this.agency.transferDir.path0507);
   }
 
   private scrollToBottom(): void {

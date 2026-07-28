@@ -3,8 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TransferDir } from '../../../services/agencies.service';
 
-interface TestResult {
-  result: 'success' | 'failed';
+export interface TestResult {
+  success: boolean;
+  connectionSuccess: boolean;
+  path0502Exists: boolean;
+  path0504Exists: boolean;
+  path0506Exists: boolean;
+  path0507Exists: boolean;
 }
 
 @Injectable({
@@ -19,5 +24,9 @@ export class TransferDirService {
    */
   testTransferDir(transferDir: TransferDir): Observable<TestResult> {
     return this.httpClient.post<TestResult>('/api/test-transfer-dir', transferDir);
+  }
+
+  getDefaultRootDir(): string {
+    return 'xman/transfer_dir'
   }
 }

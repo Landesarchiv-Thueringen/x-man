@@ -818,12 +818,7 @@ func testTransferDir(c *gin.Context) {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
-	success := core.TestTransferDir(transferDir)
-	if success {
-		c.JSON(http.StatusOK, gin.H{"result": "success"})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"result": "failed"})
-	}
+	c.JSON(200, core.TestTransferDir(transferDir))
 }
 
 func getTask(c *gin.Context) {

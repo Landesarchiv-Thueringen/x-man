@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/studio-b12/gowebdav"
@@ -31,7 +32,7 @@ func (err unknownFilesError) Error() string {
 }
 
 // TestTransferDir checks if an transfer directory configuration is works.
-func TestTransferDir(transferDir db.TransferDir) bool {
+func TestTransferDir(transferDir db.TransferDir) TestResult {
 	switch transferDir.Protocol {
 	case db.ProtocolFile:
 		return testLocalFilesystem(transferDir)
@@ -42,16 +43,83 @@ func TestTransferDir(transferDir db.TransferDir) bool {
 	}
 }
 
+type TestResult struct {
+	Success           bool `json:"success"`
+	ConnectionSuccess bool `json:"connectionSuccess"`
+	Path0502Exists    bool `json:"path0502Exists"`
+	Path0504Exists    bool `json:"path0504Exists"`
+	Path0506Exists    bool `json:"path0506Exists"`
+	Path0507Exists    bool `json:"path0507Exists"`
+}
+
 // testLocalFilesystem checks if an transfer directory configuration for a local filesystem works.
-func testLocalFilesystem(transferDir db.TransferDir) bool {
-	_, err := os.ReadDir(filepath.Join("/", *transferDir.Path))
-	return err == nil
+func testLocalFilesystem(transferDir db.TransferDir) TestResult {
+	result := TestResult{}
+	root := filepath.Join("/", transferDir.Path)
+	_, err := os.ReadDir(root)
+	result.ConnectionSuccess = err == nil
+	_, err = os.Stat(filepath.Join(root, transferDir.Path0502))
+	result.Path0502Exists = err == nil
+	_, err = os.Stat(filepath.Join(root, transferDir.Path0504))
+	result.Path0504Exists = err == nil
+	_, err = os.Stat(filepath.Join(root, transferDir.Path0506))
+	result.Path0506Exists = err == nil
+	_, err = os.Stat(filepath.Join(root, transferDir.Path0507))
+	result.Path0507Exists = err == nil
+	result.Success = result.ConnectionSuccess &&
+		result.Path0502Exists &&
+		result.Path0504Exists &&
+		result.Path0506Exists &&
+		result.Path0507Exists
+	return result
 }
 
 // testWebDAV checks if an transfer directory configuration for a webDAV works.
-func testWebDAV(transferDir db.TransferDir) bool {
-	_, err := connectWebDAV(transferDir)
+func testWebDAV(transferDir db.TransferDir) TestResult {
+	result := TestResult{
+		Path0502Exists: true,
+		Path0504Exists: true,
+		Path0506Exists: true,
+		Path0507Exists: true,
+	}
+	client, err := connectWebDAV(transferDir)
+	result.ConnectionSuccess = err == nil
+	if !result.ConnectionSuccess {
+		return result
+	}
+	if transferDir.Path0502 != "" {
+		result.Path0502Exists = existsDir(client, transferDir.Path0502)
+	}
+	if transferDir.Path0504 != "" {
+		result.Path0504Exists = existsDir(client, transferDir.Path0504)
+	}
+	if transferDir.Path0506 != "" {
+		result.Path0506Exists = existsDir(client, transferDir.Path0506)
+	}
+	if transferDir.Path0507 != "" {
+		result.Path0507Exists = existsDir(client, transferDir.Path0507)
+	}
+	result.Success = result.ConnectionSuccess &&
+		result.Path0502Exists &&
+		result.Path0504Exists &&
+		result.Path0506Exists &&
+		result.Path0507Exists
+	return result
+}
+
+// existsDir checks if a directory exists on given webDAV client
+func existsDir(client *gowebdav.Client, dir string) bool {
+	_, err := client.Stat(getWebDAVPath(dir))
 	return err == nil
+}
+
+// getWebDAVPath adds a trailing / to a directory path.
+// The webDAV standard expects a trailing / for directories.
+func getWebDAVPath(messageDir string) string {
+	if !strings.HasSuffix(messageDir, "/") {
+		return messageDir + "/"
+	}
+	return messageDir
 }
 
 // MonitorTransferDirs starts the watch loop to process the contents of the transfer directories.
@@ -67,7 +135,6 @@ func MonitorTransferDirs() {
 		interval = time.Second * time.Duration(intervalSeconds)
 	}
 	ticker = *time.NewTicker(interval)
-
 	errorData := db.ProcessingError{
 		Title:     "Fehler beim Lesen des Transferverzeichnisses",
 		ErrorType: "access-transfer-dir",
@@ -164,7 +231,7 @@ func getProcessedTransferFiles(agencyID primitive.ObjectID) map[string]bool {
 
 // readMessagesFromFilesystem checks if new messages exist for a local filesystem.
 func readMessagesFromFilesystem(agency db.Agency) error {
-	rootDir := filepath.Join("/", *agency.TransferDir.Path)
+	rootDir := filepath.Join("/", agency.TransferDir.Path)
 	files, err := os.ReadDir(rootDir)
 	if err != nil {
 		return err
@@ -172,9 +239,17 @@ func readMessagesFromFilesystem(agency db.Agency) error {
 	processedPaths := getProcessedTransferFiles(agency.ID)
 	var unknownFiles []string
 	for _, file := range files {
-		if processedPaths[file.Name()] || file.Name() == ".gitkeep" {
+		fileInfo, err := file.Info()
+		if err != nil {
+			return err
+		}
+		// ignored files
+		if processedPaths[file.Name()] ||
+			file.Name() == ".gitkeep" ||
+			isMessagePath(agency.TransferDir, fileInfo) {
 			continue
 		}
+		// unknown files
 		if file.IsDir() || !isMessage(file.Name()) {
 			unknownFiles = append(unknownFiles, file.Name())
 			continue
@@ -194,6 +269,14 @@ func readMessagesFromFilesystem(agency db.Agency) error {
 		return unknownFilesError(unknownFiles)
 	}
 	return nil
+}
+
+// isMessagePath returns true if the directory is a configured path for messages
+func isMessagePath(transferDir db.TransferDir, dir fs.FileInfo) bool {
+	return dir.IsDir() && (dir.Name() == transferDir.Path0502 ||
+		dir.Name() == transferDir.Path0504 ||
+		dir.Name() == transferDir.Path0506 ||
+		dir.Name() == transferDir.Path0507)
 }
 
 // waitUntilStable regularly inspects the given file's stats for changes and
@@ -226,7 +309,7 @@ func readMessagesFromWebDAV(agency db.Agency) error {
 	processedPaths := getProcessedTransferFiles(agency.ID)
 	var unknownFiles []string
 	for _, file := range files {
-		if processedPaths[file.Name()] {
+		if processedPaths[file.Name()] || isMessagePath(agency.TransferDir, file) {
 			continue
 		}
 		if file.IsDir() || !isMessage(file.Name()) {
@@ -275,7 +358,7 @@ func CopyMessageToTransferDirectory(
 ) error {
 	switch agency.TransferDir.Protocol {
 	case db.ProtocolFile:
-		return copyMessageToLocalFilesystem(agency, processID, tempMessagePath)
+		return copyMessageToLocalFilesystem(agency, processID, tempMessagePath, messageType)
 	case db.ProtocolWebDAV, db.ProtocolWebDAVSecure:
 		return copyMessageToWebDAV(agency, processID, tempMessagePath, messageType)
 	default:
@@ -288,11 +371,15 @@ func copyMessageToLocalFilesystem(
 	agency db.Agency,
 	processID *string,
 	tempMessagePath string,
+	messageType db.MessageType,
 ) error {
+	rootDir := filepath.Join("/", agency.TransferDir.Path)
+	messageDir := getRemoteMessageDir(agency, messageType)
 	messageFilename := path.Base(tempMessagePath)
-	messageTransferDirPath := path.Join("/", *agency.TransferDir.Path, messageFilename)
+	relMessagePath := filepath.Join(messageDir, messageFilename)
+	absMessagePath := path.Join(rootDir, relMessagePath)
 	// mark message as known, so it will not be added to unknown files on the transfer directory
-	ok := db.InsertTransferFile(agency.ID, processID, messageFilename)
+	ok := db.InsertTransferFile(agency.ID, processID, relMessagePath)
 	if !ok {
 		return errTransferFileExists
 	}
@@ -300,19 +387,19 @@ func copyMessageToLocalFilesystem(
 	if err != nil {
 		// the copy process for the message failed
 		// unmark the message as known, so it can be added in future
-		db.DeleteTransferFile(agency.ID, messageFilename)
+		db.DeleteTransferFile(agency.ID, relMessagePath)
 		panic(err)
 	}
 	defer messageFile.Close()
-	messageInTransferDir, err := os.Create(messageTransferDirPath)
+	messageInTransferDir, err := os.Create(absMessagePath)
 	if err != nil {
-		db.DeleteTransferFile(agency.ID, messageFilename)
+		db.DeleteTransferFile(agency.ID, relMessagePath)
 		panic(err)
 	}
 	defer messageInTransferDir.Close()
 	_, err = io.Copy(messageInTransferDir, messageFile)
 	if err != nil {
-		db.DeleteTransferFile(agency.ID, messageFilename)
+		db.DeleteTransferFile(agency.ID, relMessagePath)
 		panic(err)
 	}
 	return nil
@@ -352,25 +439,18 @@ func copyMessageToWebDAV(
 	return nil
 }
 
+// getRemoteMessageDir returns the configured message path for message type
 func getRemoteMessageDir(agency db.Agency, messageType db.MessageType) string {
 	var messageDir string
 	switch messageType {
 	case db.MessageType0502:
-		if agency.TransferDir.Path0502 != nil {
-			messageDir = *agency.TransferDir.Path0502
-		}
+		return agency.TransferDir.Path0502
 	case db.MessageType0504:
-		if agency.TransferDir.Path0504 != nil {
-			messageDir = *agency.TransferDir.Path0504
-		}
+		return agency.TransferDir.Path0504
 	case db.MessageType0506:
-		if agency.TransferDir.Path0506 != nil {
-			messageDir = *agency.TransferDir.Path0506
-		}
+		messageDir = agency.TransferDir.Path0506
 	case db.MessageType0507:
-		if agency.TransferDir.Path0507 != nil {
-			messageDir = *agency.TransferDir.Path0507
-		}
+		messageDir = agency.TransferDir.Path0507
 	}
 	return path.Clean(messageDir)
 }
@@ -432,7 +512,7 @@ func copyFileFromLocalFilesystem(transferDir db.TransferDir, messagePath string)
 	if err != nil {
 		panic(err)
 	}
-	transferDirPath := filepath.Join("/", *transferDir.Path, messagePath)
+	transferDirPath := filepath.Join("/", transferDir.Path, messagePath)
 	// Open the original messageFile in the transfer directory.
 	messageFile, err := os.Open(transferDirPath)
 	if err != nil {
@@ -470,7 +550,7 @@ func RemoveFileFromTransferDir(agency db.Agency, path string) {
 
 // RemoveFileFromLocalFilesystem deletes a file on a local filesystem.
 func RemoveFileFromLocalFilesystem(transferDir db.TransferDir, path string) {
-	fullPath := filepath.Join("/", *transferDir.Path, path)
+	fullPath := filepath.Join("/", transferDir.Path, path)
 	err := os.RemoveAll(fullPath)
 	if err != nil {
 		panic(err)
@@ -502,23 +582,15 @@ func connectWebDAV(transferDir db.TransferDir) (*gowebdav.Client, error) {
 	default:
 		return nil, fmt.Errorf("unknown transfer directory protocol %s", transferDir.Protocol)
 	}
-	webDAVPath := ""
-	if transferDir.Path != nil {
-		webDAVPath = *transferDir.Path
-	}
-	url = protocol + path.Join(*transferDir.Host, webDAVPath)
+	url = protocol + path.Join(transferDir.Host, transferDir.Path)
 	var client *gowebdav.Client
-	insecureTLS := false
-	if transferDir.AllowInsecureTLS != nil && *transferDir.AllowInsecureTLS {
-		insecureTLS = true
-	}
 	tlsConfig := &tls.Config{
-		InsecureSkipVerify: insecureTLS,
+		InsecureSkipVerify: transferDir.AllowInsecureTLS,
 	}
 	transport := &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}
-	client = gowebdav.NewClient(url, *transferDir.User, *transferDir.Password)
+	client = gowebdav.NewClient(url, transferDir.User, transferDir.Password)
 	client.SetTransport(transport)
 	err := client.Connect()
 	return client, err

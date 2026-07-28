@@ -38,17 +38,20 @@ const (
 	ProtocolWebDAVSecure TransferProtocol = "davs"
 )
 
+// TransferDir contains all information to receive and send messages to the transfer directory.
+// All paths should be stored without trailing or leading slashes.
+// File systems and webDAVs have different requirements for the paths.
 type TransferDir struct {
 	Protocol         TransferProtocol `json:"protocol"`
-	Host             *string          `json:"host"`
-	Path             *string          `json:"path"`
-	User             *string          `json:"user"`
-	Password         *string          `json:"password"`
-	Path0502         *string          `json:"path0502"`
-	Path0504         *string          `json:"path0504"`
-	Path0506         *string          `json:"path0506"`
-	Path0507         *string          `json:"path0507"`
-	AllowInsecureTLS *bool            `json:"allowInsecureTLS"`
+	Host             string           `json:"host"`
+	Path             string           `json:"path"`
+	User             string           `json:"user"`
+	Password         string           `json:"password"`
+	Path0502         string           `json:"path0502"`
+	Path0504         string           `json:"path0504"`
+	Path0506         string           `json:"path0506"`
+	Path0507         string           `json:"path0507"`
+	AllowInsecureTLS bool             `json:"allowInsecureTLS"`
 }
 
 func FindAgencies(ctx context.Context) []Agency {

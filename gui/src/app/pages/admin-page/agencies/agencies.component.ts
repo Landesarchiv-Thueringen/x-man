@@ -13,6 +13,7 @@ import { ConfigService } from '../../../services/config.service';
 import { UsersService } from '../../../services/users.service';
 import { ArchiveCollection, CollectionsService } from '../collections/collections.service';
 import { AgencyDetailsComponent } from './agency-details.component';
+import { TransferDirService } from './transfer-dir.service';
 
 @Component({
   selector: 'app-agencies',
@@ -33,6 +34,7 @@ export class AgenciesComponent implements AfterViewInit {
   private usersService = inject(UsersService);
   private collectionsService = inject(CollectionsService);
   private configService = inject(ConfigService);
+  private transferDirService = inject(TransferDirService);
 
   readonly sort = viewChild.required(MatSort);
 
@@ -93,6 +95,18 @@ export class AgenciesComponent implements AfterViewInit {
     this.openDetails({
       name: 'Neue Abgebende Stelle',
       abbreviation: '',
+      transferDir: {
+        protocol: 'file',
+        host: '',
+        path: this.transferDirService.getDefaultRootDir(),
+        user: '',
+        password: '',
+        path0502: '',
+        path0504: '',
+        path0506: '',
+        path0507: '',
+        allowInsecureTLS: false,
+      }
     });
   }
 }

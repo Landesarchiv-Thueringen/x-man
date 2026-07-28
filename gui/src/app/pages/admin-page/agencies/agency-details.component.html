@@ -115,7 +115,7 @@
               matInput
               formControlName="host"
               type="url"
-              (blur)="fixupTransferDirInputs()"
+              (blur)="trimTransferDirInputs()"
               placeholder="adresse.zum.host[:port]"
             />
           </mat-form-field>
@@ -126,7 +126,7 @@
               matInput
               formControlName="path"
               type="url"
-              (blur)="fixupTransferDirInputs()"
+              (blur)="trimTransferDirInputs()"
               placeholder="pfad/zum/verzeichnis"
             />
           </mat-form-field>
@@ -142,46 +142,59 @@
               <input matInput formControlName="password" />
             </mat-form-field>
           </div>
-          <h3 class="sub-section-heading">DMS-spezifische Einstellungen</h3>
-          <div class="row">
-            <mat-form-field>
-              <mat-label>Unterpfad 0502-Nachricht</mat-label>
-              <input matInput formControlName="path0502" />
-            </mat-form-field>
-            <mat-form-field>
-              <mat-label>Unterpfad 0504-Nachricht</mat-label>
-              <input matInput formControlName="path0504" />
-            </mat-form-field>
-          </div>
-          <div class="row">
-            <mat-form-field>
-              <mat-label>Unterpfad 0506-Nachricht</mat-label>
-              <input matInput formControlName="path0506" />
-            </mat-form-field>
-            <mat-form-field>
-              <mat-label>Unterpfad 0507-Nachricht</mat-label>
-              <input matInput formControlName="path0507" />
-            </mat-form-field>
-          </div>
         }
+        <h3 class="sub-section-heading">DMS-spezifische Einstellungen</h3>
+        <div class="row row-with-errors">
+          <mat-form-field>
+            <mat-label>Unterpfad 0502-Nachricht</mat-label>
+            <input matInput formControlName="path0502" />
+            @if (form.get('transferDir')?.get('path0502')?.hasError('pathNotFound')) {
+              <mat-error>Pfad existiert nicht</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Unterpfad 0504-Nachricht</mat-label>
+            <input matInput formControlName="path0504" />
+            @if (form.get('transferDir')?.get('path0504')?.hasError('pathNotFound')) {
+              <mat-error>Pfad existiert nicht</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="row row-with-errors">
+          <mat-form-field>
+            <mat-label>Unterpfad 0506-Nachricht</mat-label>
+            <input matInput formControlName="path0506" />
+            @if (form.get('transferDir')?.get('path0506')?.hasError('pathNotFound')) {
+              <mat-error>Pfad existiert nicht</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Unterpfad 0507-Nachricht</mat-label>
+            <input matInput formControlName="path0507" />
+            @if (form.get('transferDir')?.get('path0507')?.hasError('pathNotFound')) {
+              <mat-error>Pfad existiert nicht</mat-error>
+            }
+          </mat-form-field>
+        </div>
         <button
           class="test-button"
           mat-button
           type="button"
           (click)="testTransferDirectory()"
-          [disabled]="!form.get('transferDir')?.valid || loadingTestResult"
+          [disabled]="!isTransferDirConfigTestable() || loadingTestResult"
         >
           <mat-spinner *ngIf="loadingTestResult" diameter="16"></mat-spinner>
           Transferverzeichnis testen
         </button>
-        @if (testResult === "success") {
+        @if (testState === "success") {
           <p class="message message-success">
             <mat-icon>check</mat-icon>Das Transferverzeichnis ist erreichbar und mit korrekten
             Rechten konfiguriert.
           </p>
-        } @else if (testResult === "failed") {
+        } @else if (testState === "failed") {
           <p class="message message-failed">
-            <mat-icon>error</mat-icon>Das Transferverzeichnis ist konnte nicht erreicht werden oder
+            <mat-icon>error</mat-icon>
+            Das Transferverzeichnis ist konnte nicht erreicht werden oder
             ist nicht korrekt konfiguriert.
           </p>
         }
@@ -194,7 +207,7 @@
     Löschen
   </button>
   <button mat-button mat-dialog-close>Abbrechen</button>
-  <button mat-flat-button [disabled]="!form.valid || testResult === 'failed'" (click)="save()">
+  <button mat-flat-button [disabled]="!form.valid || testState === 'failed'" (click)="save()">
     Speichern
   </button>
 </div>
