@@ -3,6 +3,7 @@ import { Component, ElementRef, TemplateRef, inject, signal, viewChild } from '@
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import {
   MAT_DIALOG_DATA,
@@ -17,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable, firstValueFrom, map, startWith, switchMap, take } from 'rxjs';
 import { AgenciesService, Agency, TransferDir, TransferProtocol } from '../../../services/agencies.service';
 import { ConfigService } from '../../../services/config.service';
@@ -35,6 +37,7 @@ import { TestResult, TransferDirService } from './transfer-dir.service';
     CommonModule,
     MatAutocompleteModule,
     MatButtonModule,
+    MatCheckboxModule,
     MatChipsModule,
     MatDialogModule,
     MatExpansionModule,
@@ -43,6 +46,7 @@ import { TestResult, TransferDirService } from './transfer-dir.service';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatTooltipModule,
     ReactiveFormsModule,
   ],
   templateUrl: './agency-details.component.html',
@@ -337,6 +341,7 @@ export class AgencyDetailsComponent {
             break;
         }
         host?.updateValueAndValidity();
+        this.form.get('transferDir')?.get('allowInsecureTLS')?.patchValue(false)
       });
     // Populate fields with initial values from the database
     const formGroup = this.form.get('transferDir')!;

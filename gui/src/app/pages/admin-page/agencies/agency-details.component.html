@@ -152,6 +152,13 @@
             </mat-form-field>
           </div>
         }
+        @if (form.get("transferDir")?.get("protocol")?.value === "davs") {
+          <mat-checkbox
+            formControlName="allowInsecureTLS"
+            matTooltip="Ermöglicht Verbindungen zu Servern mit selbstsignierten oder nicht vertrauenswürdigen Zertifikaten. Die Zertifikatsprüfung wird dadurch eingeschränkt und sollte nur aktiviert werden, wenn dem Zielserver vertraut wird.">
+            TLS-Zertifikatsprüfung deaktivieren (unsicher)
+          </mat-checkbox>
+        }
         <h3 class="sub-section-heading">DMS-spezifische Einstellungen</h3>
         <div class="row row-with-errors">
           <mat-form-field>
