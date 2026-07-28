@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, TemplateRef, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, TemplateRef, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -98,6 +98,12 @@ export class AgencyDetailsComponent {
   users = this.usersService.getUsers();
   collections = this.collectionsService.getCollections();
   config = this.configService.config;
+
+  showPassword = signal(false);
+  togglePasswordVisibility(event: MouseEvent) {
+    this.showPassword.set(!this.showPassword());
+    event.stopPropagation();
+  }
 
   /**
    * The result of testing the configuration of the transfer-directory.
