@@ -18,6 +18,7 @@ type ldapConfiguration struct {
 	UsernameAttribute    string
 	EmailAttribute       string
 	DisplayNameAttribute string
+	UserObjectClass      string
 }
 
 // authorizationPredicate represents the outcome of a user authorization
@@ -69,7 +70,6 @@ func TestConnection() {
 	LDAP_ADMIN_GROUP_CN = os.Getenv("LDAP_ADMIN_GROUP")
 	LDAP_ACCESS_GROUP_DN = getGroupDN(l, LDAP_ACCESS_GROUP_CN)
 	LDAP_ADMIN_GROUP_DN = getGroupDN(l, LDAP_ADMIN_GROUP_CN)
-	getGroupMembers(l, LDAP_ACCESS_GROUP_CN)
 }
 
 func GetDisplayName(userID string) string {
@@ -103,32 +103,27 @@ func GetMailAddress(userID string) (string, error) {
 func authorizeUser(username string, password string) authorizationResult {
 	l := connectReadonly()
 	defer l.Close()
-
 	// Search for the given username
 	filter := getUserNameFilter(username)
 	user := getLdapUserEntry(l, filter)
 	if user == nil {
 		return authorizationResult{Predicate: INVALID}
 	}
-
 	// Bind as the user to verify their password
 	err := l.Bind(user.DN, password)
 	if err != nil {
 		return authorizationResult{Predicate: INVALID}
 	}
-
 	// Rebind as the read only user for any further queries
 	if err = l.Bind(os.Getenv("LDAP_USER"), os.Getenv("LDAP_PASSWORD")); err != nil {
 		panic(err)
 	}
-
 	// Check basic access rights
 	isAccessMember := isGroupMember(l, user.DN, LDAP_ACCESS_GROUP_CN)
 	isAdminMember := isGroupMember(l, user.DN, LDAP_ADMIN_GROUP_CN)
 	if !isAccessMember && !isAdminMember {
 		return authorizationResult{Predicate: DENIED}
 	}
-
 	// At this point, the user has proven basic access authorization (i.e.: Predicate: GRANTED)
 	//
 	// Check further permissions
@@ -140,7 +135,6 @@ func authorizeUser(username string, password string) authorizationResult {
 		DisplayName: getDisplayName(user),
 		Permissions: &permissions,
 	}
-
 	return authorizationResult{
 		Predicate: GRANTED,
 		UserEntry: &userEntry,
@@ -151,23 +145,22 @@ func authorizeUser(username string, password string) authorizationResult {
 func ListUsers() []userEntry {
 	l := connectReadonly()
 	defer l.Close()
-	accessUserDns, err := getGroupMembersRecursive(l, LDAP_ACCESS_GROUP_DN, make(map[string]bool))
+	accessUser, err := getGroupMembersRecursive(l, LDAP_ACCESS_GROUP_DN, make(map[string]bool))
 	if err != nil {
 		panic(err)
 	}
-	adminUserDns, err := getGroupMembersRecursive(l, LDAP_ADMIN_GROUP_DN, make(map[string]bool))
+	adminUser, err := getGroupMembersRecursive(l, LDAP_ADMIN_GROUP_DN, make(map[string]bool))
 	if err != nil {
 		panic(err)
 	}
-	var filteredAccessUserDns []string
-	for _, userDN := range accessUserDns {
-		if !slices.Contains(adminUserDns, userDN) {
-			filteredAccessUserDns = append(filteredAccessUserDns, userDN)
+	var filteredAccessUser []*ldap.Entry
+	for _, userDN := range accessUser {
+		if !slices.Contains(adminUser, userDN) {
+			filteredAccessUser = append(filteredAccessUser, userDN)
 		}
 	}
-	accessUsers := getUserEntries(l, filteredAccessUserDns)
 	userEntries := make([]userEntry, 0)
-	for _, user := range accessUsers {
+	for _, user := range filteredAccessUser {
 		permissions := permissions{
 			Admin: false,
 		}
@@ -178,8 +171,7 @@ func ListUsers() []userEntry {
 		}
 		userEntries = append(userEntries, userEntry)
 	}
-	adminUsers := getUserEntries(l, adminUserDns)
-	for _, user := range adminUsers {
+	for _, user := range adminUser {
 		permissions := permissions{
 			Admin: true,
 		}
@@ -193,25 +185,7 @@ func ListUsers() []userEntry {
 	return userEntries
 }
 
-func getGroupMembers(l *ldap.Conn, groupCn string) []string {
-	searchRequest := ldap.NewSearchRequest(
-		LDAP_BASE_DN,
-		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(cn=%s)(objectClass=group))", ldap.EscapeFilter(groupCn)),
-		[]string{"member"},
-		nil,
-	)
-	sr, err := l.Search(searchRequest)
-	if err != nil {
-		panic(err)
-	}
-	if len(sr.Entries) != 1 {
-		panic("ldap group not found: " + groupCn)
-	}
-	return sr.Entries[0].GetAttributeValues("member")
-}
-
-func getGroupMembersRecursive(l *ldap.Conn, groupDN string, visited map[string]bool) ([]string, error) {
+func getGroupMembersRecursive(l *ldap.Conn, groupDN string, visited map[string]bool) ([]*ldap.Entry, error) {
 	// prevent infinite loops
 	if visited[groupDN] {
 		return nil, nil
@@ -230,7 +204,7 @@ func getGroupMembersRecursive(l *ldap.Conn, groupDN string, visited map[string]b
 	if err != nil || len(result.Entries) == 0 {
 		return nil, err
 	}
-	var allMembers []string
+	var allMembers []*ldap.Entry
 	members := result.Entries[0].GetAttributeValues("member")
 	for _, dn := range members {
 		// Lookup this DN to see if it's a user or a group
@@ -242,20 +216,22 @@ func getGroupMembersRecursive(l *ldap.Conn, groupDN string, visited map[string]b
 			nestedMembers, _ := getGroupMembersRecursive(l, dn, visited)
 			allMembers = append(allMembers, nestedMembers...)
 		} else {
-			allMembers = append(allMembers, dn)
+			allMembers = append(allMembers, entry)
 		}
 	}
 	return allMembers, nil
 }
 
 func getEntryByDN(l *ldap.Conn, dn string) (*ldap.Entry, error) {
+	config := getConfiguration()
+	attributes := []string{config.IDAttribute, config.DisplayNameAttribute, "objectClass"}
 	searchRequest := ldap.NewSearchRequest(
 		dn,
 		ldap.ScopeBaseObject,
 		ldap.NeverDerefAliases,
 		0, 0, false,
 		"(objectClass=*)",
-		[]string{"objectClass"},
+		attributes,
 		nil,
 	)
 	result, err := l.Search(searchRequest)
@@ -274,35 +250,6 @@ func isGroup(entry *ldap.Entry) bool {
 	return false
 }
 
-func getUserEntries(l *ldap.Conn, userDnList []string) []*ldap.Entry {
-	var filters []string
-	for _, dn := range userDnList {
-		filters = append(
-			filters,
-			fmt.Sprintf(
-				"(&(objectClass=organizationalPerson)(distinguishedName=%s))",
-				ldap.EscapeFilter(dn)),
-		)
-	}
-	filter := fmt.Sprintf("(|%s)", strings.Join(filters, ""))
-	config := getConfiguration()
-	attributes := []string{"dn", config.IDAttribute, config.DisplayNameAttribute}
-	searchRequest := ldap.NewSearchRequest(
-		LDAP_BASE_DN,
-		ldap.ScopeWholeSubtree,
-		ldap.NeverDerefAliases,
-		0, 0, false,
-		filter,
-		attributes,
-		nil,
-	)
-	sr, err := l.Search(searchRequest)
-	if err != nil {
-		panic(err)
-	}
-	return sr.Entries
-}
-
 // connectReadonly connects to the LDAP server and binds with readonly
 // credentials.
 //
@@ -317,7 +264,6 @@ func connectReadonly() *ldap.Conn {
 	if err != nil {
 		panic(err)
 	}
-
 	if cs, ok := l.TLSConnectionState(); !ok || !cs.HandshakeComplete {
 		// Reconnect with TLS
 		serverName := strings.TrimPrefix(url, "ldap://")
@@ -328,7 +274,6 @@ func connectReadonly() *ldap.Conn {
 			panic(err)
 		}
 	}
-
 	// First bind with a read only user
 	if err := l.Bind(os.Getenv("LDAP_USER"), os.Getenv("LDAP_PASSWORD")); err != nil {
 		l.Close()
@@ -344,7 +289,11 @@ func isGroupMember(l *ldap.Conn, userDn string, groupCn string) bool {
 	searchRequest := ldap.NewSearchRequest(
 		LDAP_BASE_DN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(member=%s)(objectClass=group)(cn=%s))", ldap.EscapeFilter(userDn), ldap.EscapeFilter(groupCn)),
+		fmt.Sprintf(
+			"(&(member=%s)(objectClass=group)(cn=%s))",
+			ldap.EscapeFilter(userDn),
+			ldap.EscapeFilter(groupCn),
+		),
 		[]string{},
 		nil,
 	)
@@ -375,6 +324,8 @@ func getLdapUserEntry(l *ldap.Conn, filter string) *ldap.Entry {
 //
 // Returns nil when the user could not be found.
 func getLdapUserEntryWithAttributes(l *ldap.Conn, filter string, attributes []string) *ldap.Entry {
+	// organizationalPerson should work for Active Directory and OpenLDAP.
+	// inetOrgPerson extends organizationalPerson.
 	searchRequest := ldap.NewSearchRequest(
 		LDAP_BASE_DN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 1, 0, false,
@@ -397,7 +348,7 @@ func getGroupDN(l *ldap.Conn, groupCn string) string {
 		LDAP_BASE_DN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 1, 0, false,
 		fmt.Sprintf("(&(objectClass=group)(cn=%s))", groupCn),
-		[]string{"distinguishedName"},
+		[]string{},
 		nil,
 	)
 	searchResult, err := l.Search(searchRequest)
