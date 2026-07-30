@@ -21,19 +21,19 @@ var MessageSuffixByType = map[db.MessageType][2]string{
 }
 var uuidRegex = regexp.MustCompile(uuidRegexString)
 var message0501Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.Anbieteverzeichnis\.)?0501\.(?:zip|xdomea)`)
+	`_(Aussonderung\.Anbieteverzeichnis\.)?0501\.(zip|xdomea)`)
 var message0502Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.Bewertungsverzeichnis\.)?0502\.(?:zip|xdomea)`)
+	`_(Aussonderung\.Bewertungsverzeichnis\.)?0502\.(zip|xdomea)`)
 var message0503Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.Aussonderung\.)?0503\.(?:zip|xdomea)`)
+	`_(Aussonderung\.Aussonderung\.)?0503\.(zip|xdomea)`)
 var message0504Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.AnbietungEmpfangBestaetigen.\.)?0504\.(?:zip|xdomea)`)
+	`_(Aussonderung\.AnbietungEmpfangBestaetigen.\.)?0504\.(zip|xdomea)`)
 var message0505Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.BewertungEmpfangBestaetigen\.)?0505\.(?:zip|xdomea)`)
+	`_(Aussonderung\.BewertungEmpfangBestaetigen\.)?0505\.(zip|xdomea)`)
 var message0506Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.AussonderungImportBestaetigen.\.)?0506\.(?:zip|xdomea)`)
+	`_(Aussonderung\.AussonderungImportBestaetigen.\.)?0506\.(zip|xdomea)`)
 var message0507Regex = regexp.MustCompile(uuidRegexString +
-	`_(?:Aussonderung\.AussonderungEmpfangBestaetigen.\.)?0507\.(?:zip|xdomea)`)
+	`_(Aussonderung\.AussonderungEmpfangBestaetigen.\.)?0507\.(zip|xdomea)`)
 var namespaceRegex = regexp.MustCompile(`^urn:xoev-de:xdomea:schema:([0-9]\.[0-9]\.[0-9])$`)
 
 func isMessage(path string) bool {

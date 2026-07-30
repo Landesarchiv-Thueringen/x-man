@@ -534,7 +534,31 @@ func sendMessage(
 	messageXml string,
 	messageType db.MessageType,
 ) error {
-	messageSuffix := getMessageSuffix(messageType, true)
+	var predecessorMessageType db.MessageType
+	if messageType == db.MessageType0502 || messageType == db.MessageType0504 {
+		predecessorMessageType = db.MessageType0501
+	} else {
+		predecessorMessageType = db.MessageType0503
+	}
+	// Match the message name and extension convention of the received messages.
+	preV4 := true
+	extension := ".zip"
+	message, ok := db.TryFindMessage(context.Background(), processID, predecessorMessageType)
+	if ok {
+		var matches []string
+		if predecessorMessageType == db.MessageType0501 {
+			matches = message0501Regex.FindStringSubmatch(message.TransferFile)
+		} else {
+			matches = message0503Regex.FindStringSubmatch(message.TransferFile)
+		}
+		if matches != nil && matches[1] == "" {
+			preV4 = false
+		}
+		if matches != nil && matches[2] == "xdomea" {
+			extension = ".xdomea"
+		}
+	}
+	messageSuffix := getMessageSuffix(messageType, preV4)
 	// Create temporary directory. The name of the directory ist the message ID.
 	tempDir, err := os.MkdirTemp("", processID)
 	if err != nil {
@@ -542,7 +566,7 @@ func sendMessage(
 	}
 	defer os.RemoveAll(tempDir)
 	xmlName := processID + messageSuffix + ".xml"
-	archiveName := processID + messageSuffix + ".zip"
+	archiveName := processID + messageSuffix + extension
 	tempMessagePath := path.Join(tempDir, archiveName)
 	messageArchive, err := os.Create(tempMessagePath)
 	if err != nil {
