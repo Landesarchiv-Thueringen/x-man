@@ -146,13 +146,13 @@ func confirmMessageReceipt(agency db.Agency, processID string, messageType db.Me
 	// Send e-mail notification to users.
 	errorData.Title = "Fehler beim Versenden einer E-Mail-Benachrichtigung"
 	for _, user := range agency.Users {
-		address, err := auth.GetMailAddress(user)
-		if err != nil {
-			errors.AddProcessingErrorWithData(err, errorData)
-			continue
-		}
 		preferences := db.FindUserPreferencesWithDefault(context.Background(), user)
 		if preferences.MessageEmailNotifications {
+			address, err := auth.GetMailAddress(user)
+			if err != nil {
+				errors.AddProcessingErrorWithData(err, errorData)
+				continue
+			}
 			err = mail.SendMailNewMessageNotification(address, agency.Name, message)
 			if err != nil {
 				errors.AddProcessingErrorWithData(err, errorData)
