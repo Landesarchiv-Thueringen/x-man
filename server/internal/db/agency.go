@@ -78,6 +78,7 @@ func findAgencies(ctx context.Context, filter bson.D) []Agency {
 }
 
 func InsertAgency(agency Agency) (id primitive.ObjectID) {
+	agency.SchemaVersion = 2
 	coll := mongoDatabase.Collection("agencies")
 	result, err := coll.InsertOne(context.Background(), agency)
 	if err != nil {
@@ -87,6 +88,7 @@ func InsertAgency(agency Agency) (id primitive.ObjectID) {
 }
 
 func ReplaceAgency(agency Agency) (ok bool) {
+	agency.SchemaVersion = 2
 	coll := mongoDatabase.Collection("agencies")
 	filter := bson.D{{"_id", agency.ID}}
 	result, err := coll.ReplaceOne(context.Background(), filter, agency)
