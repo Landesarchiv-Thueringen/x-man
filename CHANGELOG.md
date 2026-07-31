@@ -4,6 +4,16 @@
 
 -
 
+## v1.4.0
+
+- Feature: Konfigurierbare Unterverzeichnisse für gesendete Nachrichten
+- Feature: Option für das ignorieren von unsicheren TLS-Zertifikaten für WebDAV hinzugefügt
+- Feature: automatische Anpassung des xdomea-Namensschemas an empfangene Nachrichten
+- Fix: Speicherung von WebDAV-Passwörtern mit Sonderzeichen
+- Fix: Anzeige Passwortfeld für das Transferverzeichnis
+- Fix: LDAP-Anfrage für Gruppenzugehörigkeit
+- Fix: Anmeldung mit Nutzer ohne hinterlegte E-Mail-Adresse
+
 ## v1.3.3
 
 - Feature: Einlesen von Nachrichten mit verkürzten Namensschema

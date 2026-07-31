@@ -50,7 +50,7 @@ mkdocs gh-deploy
   Entry point. Not imported by any package.
 - `archive`, `report`, `routines`  
   High-level packages. Only imported by the `main` package.
-- `xdomea`  
+- `core`  
   Main application logic. Imported by high-level packages and `main`.
 - `auth`, `errors`, `mail`, `tasks`, `verification`  
   Low-level packages. Imported by higher packages. Depend only on `db` or each other.
