@@ -63,7 +63,7 @@
  crossbeam-deque          │ 0.8.6             │ cargo  
  crossbeam-epoch          │ 0.9.18            │ cargo  
  crossbeam-utils          │ 0.8.21            │ cargo  
- crypto                   │ 0.50.0            │ golang 
+ crypto                   │ 0.54.0            │ golang 
  csv                      │ 1.3.1             │ cargo  
  csv-core                 │ 0.1.11            │ cargo  
  data-url                 │ 0.3.1             │ cargo  
@@ -108,8 +108,8 @@
  gif                      │ 0.13.1            │ cargo  
  gin                      │ 1.12.0            │ golang 
  glidesort                │ 0.1.2             │ cargo  
- go-isatty                │ 0.0.21            │ golang 
- go-urn                   │ 1.4.0             │ golang 
+ go-isatty                │ 0.0.24            │ golang 
+ go-urn                   │ 1.5.0             │ golang 
  go-yaml                  │ 1.19.2            │ golang 
  half                     │ 2.4.1             │ cargo  
  hashbrown                │ 0.16.1            │ cargo  
@@ -174,7 +174,7 @@
  log                      │ 0.4.25            │ cargo  
  memchr                   │ 2.7.4             │ cargo  
  memmap2                  │ 0.9.5             │ cargo  
- mimetype                 │ 1.4.13            │ golang 
+ mimetype                 │ 1.4.15            │ golang 
  miniz_oxide              │ 0.8.5             │ cargo  
  mio                      │ 1.0.4             │ cargo  
  moxcms                   │ 0.7.5             │ cargo  
@@ -182,7 +182,7 @@
  musl-utils               │ 1.2.5-r23         │ apk    
  mutate_once              │ 0.1.1             │ cargo  
  native-tls               │ 0.2.13            │ cargo  
- net                      │ 0.53.0            │ golang 
+ net                      │ 0.57.0            │ golang 
  notify                   │ 8.0.0             │ cargo  
  notify-types             │ 2.0.0             │ cargo  
  num-bigint               │ 0.4.6             │ cargo  
@@ -221,7 +221,7 @@
  pxfm                     │ 0.1.24            │ cargo  
  qcms                     │ 0.3.0             │ cargo  
  qpack                    │ 0.6.0             │ golang 
- quic-go                  │ 0.59.0            │ golang 
+ quic-go                  │ 0.61.0            │ golang 
  quick-error              │ 2.0.1             │ cargo  
  quick-xml                │ 0.32.0            │ cargo  
  quick-xml                │ 0.38.3            │ cargo  
@@ -276,12 +276,12 @@
  syn                      │ 2.0.98            │ cargo  
  synstructure             │ 0.13.1            │ cargo  
  syntect                  │ 5.3.0             │ cargo  
- sys                      │ 0.43.0            │ golang 
+ sys                      │ 0.47.0            │ golang 
  tar                      │ 0.4.43            │ cargo  
  tempfile                 │ 3.16.0            │ cargo  
  termcolor                │ 1.4.1             │ cargo  
  terminal_size            │ 0.4.1             │ cargo  
- text                     │ 0.36.0            │ golang 
+ text                     │ 0.40.0            │ golang 
  thin-vec                 │ 0.2.13            │ cargo  
  thiserror                │ 2.0.16            │ cargo  
  time                     │ 0.3.37            │ cargo  
@@ -338,9 +338,9 @@
  utf16_iter               │ 1.0.5             │ cargo  
  utf8_iter                │ 1.0.4             │ cargo  
  utf8parse                │ 0.2.2             │ cargo  
- v10                      │ 10.30.2           │ golang 
- v2                       │ 2.3.0             │ golang 
- v2                       │ 2.5.0             │ golang 
+ v10                      │ 10.30.3           │ golang 
+ v2                       │ 2.4.3             │ golang 
+ v2                       │ 2.8.0             │ golang 
  walkdir                  │ 2.5.0             │ cargo  
  wasmi                    │ 0.51.5            │ cargo  
  wasmi_collections        │ 0.51.5            │ cargo  
