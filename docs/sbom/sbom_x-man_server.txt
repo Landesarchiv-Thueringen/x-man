@@ -7,9 +7,9 @@
  asn1-ber               │ 1.5.8-0.20250403174932-29230038a667 │ golang 
  attr                   │ 1:2.5.1-4                           │ deb    
  audit                  │ 1:3.0.9-1                           │ deb    
- base-files             │ 12.4+deb12u13                       │ deb    
+ base-files             │ 12.4+deb12u15                       │ deb    
  base-passwd            │ 3.6.1                               │ deb    
- bash                   │ 5.2.15-2+b10                        │ deb    
+ bash                   │ 5.2.15-2+b13                        │ deb    
  bsdutils               │ 1:2.38.1-5+deb12u3                  │ deb    
  bzip2                  │ 1.0.8-5                             │ deb    
  cdebconf               │ 0.270                               │ deb    
@@ -23,7 +23,7 @@
  debian-archive-keyring │ 2023.3+deb12u2                      │ deb    
  debianutils            │ 5.7-0.5~deb12u1                     │ deb    
  diffutils              │ 1:3.8-4                             │ deb    
- dpkg                   │ 1.21.22                             │ deb    
+ dpkg                   │ 1.21.23                             │ deb    
  e2fsprogs              │ 1.47.0-2                            │ deb    
  e2fsprogs              │ 1.47.0-2+b2                         │ deb    
  errors                 │ 0.9.1                               │ golang 
@@ -33,10 +33,10 @@
  gcc-12                 │ 12.2.0-14+deb12u1                   │ deb    
  gcc-12-base            │ 12.2.0-14+deb12u1                   │ deb    
  gin                    │ 1.12.0                              │ golang 
- glibc                  │ 2.36-9+deb12u13                     │ deb    
+ glibc                  │ 2.36-9+deb12u14                     │ deb    
  gmp                    │ 2:6.2.1+dfsg1-1.1                   │ deb    
  gnupg2                 │ 2.2.40-1.1+deb12u2                  │ deb    
- gnutls28               │ 3.7.9-2+deb12u6                     │ deb    
+ gnutls28               │ 3.7.9-2+deb12u7                     │ deb    
  go-isatty              │ 0.0.21                              │ golang 
  go-ntlmssp             │ 0.1.0                               │ golang 
  go-urn                 │ 1.4.0                               │ golang 
@@ -55,11 +55,11 @@
  libaudit1              │ 1:3.0.9-1                           │ deb    
  libblkid1              │ 2.38.1-5+deb12u3                    │ deb    
  libbz2-1.0             │ 1.0.8-5+b1                          │ deb    
- libc-bin               │ 2.36-9+deb12u13                     │ deb    
- libc6                  │ 2.36-9+deb12u13                     │ deb    
+ libc-bin               │ 2.36-9+deb12u14                     │ deb    
+ libc6                  │ 2.36-9+deb12u14                     │ deb    
  libcap-ng              │ 0.8.3-1                             │ deb    
  libcap-ng0             │ 0.8.3-1+b3                          │ deb    
- libcap2                │ 1:2.66-4+deb12u2+b2                 │ deb    
+ libcap2                │ 1:2.66-4+deb12u3+b1                 │ deb    
  libcom-err2            │ 1.47.0-2+b2                         │ deb    
  libcrypt1              │ 1:4.4.33-2                          │ deb    
  libdb5.3               │ 5.3.28+dfsg2-1                      │ deb    
@@ -68,9 +68,9 @@
  libffi                 │ 3.4.4-1                             │ deb    
  libffi8                │ 3.4.4-1                             │ deb    
  libgcc-s1              │ 12.2.0-14+deb12u1                   │ deb    
- libgcrypt20            │ 1.10.1-3                            │ deb    
+ libgcrypt20            │ 1.10.1-3+deb12u1                    │ deb    
  libgmp10               │ 2:6.2.1+dfsg1-1.1                   │ deb    
- libgnutls30            │ 3.7.9-2+deb12u6                     │ deb    
+ libgnutls30            │ 3.7.9-2+deb12u7                     │ deb    
  libgpg-error           │ 1.46-1                              │ deb    
  libgpg-error0          │ 1.46-1                              │ deb    
  libhogweed6            │ 3.8.1-2                             │ deb    
@@ -78,7 +78,7 @@
  libidn2                │ 2.3.3-1                             │ deb    
  libidn2-0              │ 2.3.3-1+b1                          │ deb    
  liblz4-1               │ 1.9.4-1                             │ deb    
- liblzma5               │ 5.4.1-1                             │ deb    
+ liblzma5               │ 5.4.1-1+deb12u1                     │ deb    
  libmd                  │ 1.0.4-2                             │ deb    
  libmd0                 │ 1.0.4-2                             │ deb    
  libmount1              │ 2.38.1-5+deb12u3                    │ deb    
@@ -101,15 +101,15 @@
  libsmartcols1          │ 2.38.1-5+deb12u3                    │ deb    
  libss2                 │ 1.47.0-2+b2                         │ deb    
  libstdc++6             │ 12.2.0-14+deb12u1                   │ deb    
- libsystemd0            │ 252.39-1~deb12u1                    │ deb    
+ libsystemd0            │ 252.39-1~deb12u2                    │ deb    
  libtasn1-6             │ 4.19.0-2+deb12u1                    │ deb    
  libtinfo6              │ 6.4-4                               │ deb    
- libudev1               │ 252.39-1~deb12u1                    │ deb    
+ libudev1               │ 252.39-1~deb12u2                    │ deb    
  libunistring           │ 1.0-2                               │ deb    
  libunistring2          │ 1.0-2                               │ deb    
  libuuid1               │ 2.38.1-5+deb12u3                    │ deb    
  libxcrypt              │ 1:4.4.33-2                          │ deb    
- libxml2                │ 2.9.14+dfsg-1.3~deb12u5             │ deb    
+ libxml2                │ 2.9.14+dfsg-1.3~deb12u6             │ deb    
  libxml2                │ 0.0.0-20260304224138-bb3877930cf7   │ golang 
  libxxhash0             │ 0.8.1-1                             │ deb    
  libzstd                │ 1.5.4+dfsg2-5                       │ deb    
@@ -138,22 +138,22 @@
  qpack                  │ 0.6.0                               │ golang 
  quic-go                │ 0.59.0                              │ golang 
  scram                  │ 1.2.0                               │ golang 
- sed                    │ 4.9-1                               │ deb    
+ sed                    │ 4.9-1+deb12u1                       │ deb    
  sftp                   │ 1.13.10                             │ golang 
  shadow                 │ 1:4.13+dfsg1-1+deb12u2              │ deb    
  snappy                 │ 1.0.0                               │ golang 
  sse                    │ 1.1.1                               │ golang 
  stats                  │ 0.9.0                               │ golang 
- stdlib                 │ 1.25.9                              │ golang 
+ stdlib                 │ 1.25.12                             │ golang 
  stringprep             │ 1.0.4                               │ golang 
  sync                   │ 0.20.0                              │ golang 
  sys                    │ 0.43.0                              │ golang 
- systemd                │ 252.39-1~deb12u1                    │ deb    
+ systemd                │ 252.39-1~deb12u2                    │ deb    
  sysvinit               │ 3.06-4                              │ deb    
  sysvinit-utils         │ 3.06-4                              │ deb    
  tar                    │ 1.34+dfsg-1.2+deb12u1               │ deb    
  text                   │ 0.36.0                              │ golang 
- tzdata                 │ 2025b-0+deb12u2                     │ deb    
+ tzdata                 │ 2026b-0+deb12u1                     │ deb    
  universal-translator   │ 0.18.1                              │ golang 
  usr-is-merged          │ 37~deb12u1                          │ deb    
  usrmerge               │ 37~deb12u1                          │ deb    
@@ -165,8 +165,8 @@
  v2                     │ 2.3.0                               │ golang 
  v3                     │ 3.4.13                              │ golang 
  v5                     │ 5.3.1                               │ golang 
- xman                   │ 1.3.3                               │ golang 
+ xman                   │ 1.4.0                               │ golang 
  xxhash                 │ 0.8.1-1                             │ deb    
- xz-utils               │ 5.4.1-1                             │ deb    
+ xz-utils               │ 5.4.1-1+deb12u1                     │ deb    
  zlib                   │ 1:1.2.13.dfsg-1                     │ deb    
  zlib1g                 │ 1:1.2.13.dfsg-1                     │ deb    
