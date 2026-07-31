@@ -6,7 +6,7 @@
     </a>
     @if (loginInformation | async; as login) {
       <a
-        *ngIf="login.user.permissions?.admin"
+        *ngIf="login.user.permissions.admin"
         mat-button
         routerLink="steuerungsstelle"
         [routerLinkActive]="['active']"
@@ -14,7 +14,7 @@
         >Steuerungsstelle
       </a>
       <a
-        *ngIf="login.user.permissions?.admin"
+        *ngIf="login.user.permissions.admin"
         mat-button
         routerLink="administration"
         [routerLinkActive]="['active']"
