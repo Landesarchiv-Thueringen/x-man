@@ -94,6 +94,7 @@ func migrateAgencyV1(agencyV1 AgencyV1) (Agency, error) {
 	}
 	transferDir.Protocol = TransferProtocol(url.Scheme)
 	transferDir.Host = url.Host
+	transferDir.Path = url.Path
 	if url.User != nil {
 		transferDir.User = url.User.Username()
 		password, ok := url.User.Password()
