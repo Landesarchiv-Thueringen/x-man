@@ -9,10 +9,11 @@
 - Feature: Konfigurierbare Unterverzeichnisse für gesendete Nachrichten
 - Feature: Option für das ignorieren von unsicheren TLS-Zertifikaten für WebDAV hinzugefügt
 - Feature: automatische Anpassung des xdomea-Namensschemas an empfangene Nachrichten
-- Fix: Speicherung von WebDAV-Passwörtern mit Sonderzeichen
-- Fix: Anzeige Passwortfeld für das Transferverzeichnis
-- Fix: LDAP-Anfrage für Gruppenzugehörigkeit
-- Fix: Anmeldung mit Nutzer ohne hinterlegte E-Mail-Adresse
+- Fix: Speicherung von WebDAV-Passwörtern mit Sonderzeichen korrigiert
+- Fix: Anzeige Passwortfeld für das Transferverzeichnis angepasst
+- Fix: LDAP-Anfrage zur Ermittlung von Gruppenzugehörigkeiten korrigiert
+- Fix: Anmeldung mit Nutzer ohne hinterlegte E-Mail-Adresse ermöglicht
+- Intern: Frontend auf Angular v22 aktualisiert
 
 ## v1.3.3
 
