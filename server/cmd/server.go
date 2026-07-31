@@ -113,6 +113,10 @@ func migrateData() {
 		log.Printf("Database is up do date with X-Man version %s\n", core.XMAN_VERSION)
 	}
 	db.UpsertServerStateXmanVersion(core.XMAN_VERSION)
+	err := db.MigrateAgencies(context.Background())
+	if err != nil {
+		log.Printf("agency migration failed: %v", err)
+	}
 }
 
 func testConfiguration() {

@@ -15,9 +15,10 @@ import (
 // considered to belong the the configured institution, ignoring the content of
 // the "sender" field.
 type Agency struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name         string             `json:"name"`
-	Abbreviation string             `json:"abbreviation"`
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	SchemaVersion int                `bson:"schema_version" json:"_"`
+	Name          string             `json:"name"`
+	Abbreviation  string             `json:"abbreviation"`
 	// Prefix is the agency prefix as by xdomea.
 	Prefix string `json:"prefix"`
 	// Code is the agency code as by xdomea.
