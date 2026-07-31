@@ -1,1 +1,7 @@
-minimumReleaseAge: 4320 # 3 days
+minimumReleaseAge: 4320
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+  - lmdb
+  - msgpackr-extract
