@@ -1,5 +1,5 @@
 x-env-version: &env-version
-  XMAN_VERSION: "1.4.0"
+  XMAN_VERSION: "1.4.1"
 
 services:
   server:
