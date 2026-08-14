@@ -2,8 +2,11 @@
 
 ## Next
 
-- Fix: lange Wartezeit bei Test des Transferverzeichnisses
-- Fix: ewiger Lade-Spinner bei Abschluss der Bewertung
+-
+
+## v1.4.1
+
+- Fix: Anzeige der Lade-Indikatoren (Spinner) beim Test des Transferverzeichnisses und Abschluss der Bewertung
 
 ## v1.4.0
 
