@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -10,17 +10,17 @@ export interface DialogData {
 }
 
 @Component({
-    selector: 'app-finalize-appraisal-dialog',
-    templateUrl: './finalize-appraisal-dialog.component.html',
-    styleUrls: ['./finalize-appraisal-dialog.component.scss'],
-    imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressSpinnerModule]
+  selector: 'app-finalize-appraisal-dialog',
+  templateUrl: './finalize-appraisal-dialog.component.html',
+  styleUrls: ['./finalize-appraisal-dialog.component.scss'],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressSpinnerModule]
 })
 export class FinalizeAppraisalDialogComponent {
   data = inject<DialogData>(MAT_DIALOG_DATA);
   private dialogRef = inject<MatDialogRef<FinalizeAppraisalDialogComponent>>(MatDialogRef);
   private messageService = inject(MessageService);
 
-  loading = true;
+  loading = signal(true);
   appraisalComplete?: boolean;
 
   constructor() {
@@ -29,7 +29,7 @@ export class FinalizeAppraisalDialogComponent {
     this.messageService
       .areAllRecordObjectsAppraised(data.processId)
       .subscribe((appraisalComplete) => {
-        this.loading = false;
+        this.loading.set(false);
         this.appraisalComplete = appraisalComplete;
       });
   }

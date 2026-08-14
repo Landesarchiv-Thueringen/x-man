@@ -3,6 +3,7 @@
 ## Next
 
 - Fix: lange Wartezeit bei Test des Transferverzeichnisses
+- Fix: ewiger Lade-Spinner bei Abschluss der Bewertung
 
 ## v1.4.0
 

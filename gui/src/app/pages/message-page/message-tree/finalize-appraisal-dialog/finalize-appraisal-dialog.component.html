@@ -1,7 +1,7 @@
 <h1 mat-dialog-title>Bewertung abschließen und senden</h1>
 
 <mat-dialog-content>
-  @if (loading) {
+  @if (loading()) {
     <mat-spinner class="secondary-progress-spinner" diameter="32"></mat-spinner>
   } @else {
     <p>
@@ -24,7 +24,7 @@
     mat-flat-button
     class="tertiary-button"
     (click)="sendAppraisalMessage()"
-    [disabled]="loading"
+    [disabled]="loading()"
   >
     Bewertung senden
   </button>
