@@ -267,7 +267,7 @@
  ssl_client               │ 1.37.0-r30        │ apk    
  stable_deref_trait       │ 1.2.0             │ cargo  
  stacker                  │ 0.1.21            │ cargo  
- stdlib                   │ 1.26.5            │ golang 
+ stdlib                   │ 1.26.6            │ golang 
  strict-num               │ 0.1.1             │ cargo  
  strsim                   │ 0.11.1            │ cargo  
  strum                    │ 0.27.2            │ cargo  
@@ -353,7 +353,7 @@
  write16                  │ 1.0.0             │ cargo  
  writeable                │ 0.5.5             │ cargo  
  xattr                    │ 1.4.0             │ cargo  
- xman-report              │ 1.4.0             │ golang 
+ xman-report              │ 1.4.1             │ golang 
  xmlparser                │ 0.13.6            │ cargo  
  xmlwriter                │ 0.1.0             │ cargo  
  xmp-writer               │ 0.3.2             │ cargo  

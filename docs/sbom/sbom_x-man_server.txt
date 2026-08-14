@@ -144,7 +144,7 @@
  snappy                 │ 1.0.0                             │ golang 
  sse                    │ 1.1.1                             │ golang 
  stats                  │ 0.12.2                            │ golang 
- stdlib                 │ 1.25.12                           │ golang 
+ stdlib                 │ 1.25.13                           │ golang 
  stringprep             │ 1.0.4                             │ golang 
  sync                   │ 0.22.0                            │ golang 
  sys                    │ 0.47.0                            │ golang 
@@ -165,7 +165,7 @@
  v2                     │ 2.4.3                             │ golang 
  v3                     │ 3.4.14                            │ golang 
  v5                     │ 5.3.1                             │ golang 
- xman                   │ 1.4.0                             │ golang 
+ xman                   │ 1.4.1                             │ golang 
  xxhash                 │ 0.8.1-1                           │ deb    
  xz-utils               │ 5.4.1-1+deb12u1                   │ deb    
  zlib                   │ 1:1.2.13.dfsg-1                   │ deb    
