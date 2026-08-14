@@ -2,7 +2,7 @@
 
 ## Next
 
--
+- Fix: lange Wartezeit bei Test des Transferverzeichnisses
 
 ## v1.4.0
 

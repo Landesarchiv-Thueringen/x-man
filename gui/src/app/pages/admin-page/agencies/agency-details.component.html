@@ -197,9 +197,11 @@
           mat-button
           type="button"
           (click)="testTransferDirectory()"
-          [disabled]="!isTransferDirConfigTestable() || loadingTestResult"
+          [disabled]="!isTransferDirConfigTestable() || loadingTestResult()"
         >
-          <mat-spinner *ngIf="loadingTestResult" diameter="16"></mat-spinner>
+          @if (loadingTestResult()) {
+            <mat-spinner diameter="16"></mat-spinner>
+          }
           Transferverzeichnis testen
         </button>
         @if (testState === "success") {

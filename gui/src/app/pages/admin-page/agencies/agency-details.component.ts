@@ -121,7 +121,7 @@ export class AgencyDetailsComponent {
    */
   testState: 'success' | 'failed' | 'not-tested' | 'unchanged' = 'unchanged';
   testResult?: TestResult;
-  loadingTestResult = false;
+  loadingTestResult = signal(false);
   isNew = this.agency.id == null;
 
   testResultValidator(resultKey: keyof TestResult): ValidatorFn {
@@ -175,8 +175,8 @@ export class AgencyDetailsComponent {
   async testTransferDirectory() {
     this.trimTransferDirInputs();
     this.transferDirPanel().open();
-    if (this.isTransferDirConfigTestable() && !this.loadingTestResult) {
-      this.loadingTestResult = true;
+    if (this.isTransferDirConfigTestable() && !this.loadingTestResult()) {
+      this.loadingTestResult.set(true);
       const observable = this.transferDirectoryService.testTransferDir(this.form.getRawValue().transferDir);
       try {
         this.testResult = await firstValueFrom(observable);
@@ -190,7 +190,7 @@ export class AgencyDetailsComponent {
       } catch {
         this.testState = 'failed';
       } finally {
-        this.loadingTestResult = false;
+        this.loadingTestResult.set(false);
       }
       this.scrollToBottom();
     }
