@@ -2,7 +2,7 @@
 
 ## Next
 
--
+- Fix: Verzögerung bei der Anzeige der Formatverifikation
 
 ## v1.4.1
 

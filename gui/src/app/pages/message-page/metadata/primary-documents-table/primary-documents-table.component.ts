@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, WritableSignal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FileResultsComponent } from '../../../../features/file-analysis/file-results/file-results.component';
 import { FeatureValue, FileResult } from '../../../../features/file-analysis/results';
@@ -17,7 +17,7 @@ export class PrimaryDocumentsTableComponent {
   private messagePage = inject(MessagePageService);
 
   processId = this.messagePage.processId;
-  results?: FileResult[];
+  results: WritableSignal<FileResult[] | undefined> = signal(undefined);
   getDetails = async (id: string) => {
     const data = await firstValueFrom(
       this.messageService.getPrimaryDocumentData(this.processId, id),
@@ -28,7 +28,7 @@ export class PrimaryDocumentsTableComponent {
   constructor() {
     this.messageService.getPrimaryDocumentsInfo(this.processId).subscribe((info) => {
       const mapping = primaryDocumentToFileResult.bind(null, this.processId);
-      this.results = info.map(mapping).filter(notNull);
+      this.results.set(info.map(mapping).filter(notNull));
     });
   }
 }
