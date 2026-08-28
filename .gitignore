@@ -5,6 +5,7 @@
 # allow visual studio code config
 !.vscode/settings.json
 !.vscode/extensions.json
+!.zed/settings.json
 
 # allow gitginore files
 !.gitignore

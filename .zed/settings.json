@@ -1,0 +1,13 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "lsp": {
+    "angular": {
+      "initialization_options": {
+        "angular_language_server_path": "gui/node_modules/@angular/language-server",
+      },
+    },
+  }
+}
