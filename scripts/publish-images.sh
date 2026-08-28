@@ -15,6 +15,10 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source "$SCRIPT_DIR/../.env"
 
+# temporary bugfix for GitLab
+# source: https://forum.gitlab.com/t/started-yesterday-docker-push-error-from-registry-blob-unknown-to-registry/134733
+export BUILDX_NO_DEFAULT_ATTESTATIONS=1
+
 tags=(
     gui
     server
