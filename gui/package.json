@@ -33,6 +33,8 @@
     "@angular/build": "^22.1.2",
     "@angular/cli": "^22.1.2",
     "@angular/compiler-cli": "^22.1.0",
+    "@angular/language-service": "^22.1.3",
+    "@angular/language-server": "^22.1.3",
     "@types/jasmine": "~5.1.5",
     "jasmine-core": "~5.5.0",
     "karma": "~6.4.4",
