@@ -129,7 +129,7 @@ func InitConnection() (Connection, error) {
 				"If the server's SSH keys were changed, manually reset the \"dimag\" entry in the xman database in collection server_state")
 		},
 	}
-	addr := fmt.Sprintf("%s:%d", url.Host, sftpPort)
+	addr := net.JoinHostPort(url.Hostname(), sftpPort)
 	sshClient, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
 		return Connection{}, err
