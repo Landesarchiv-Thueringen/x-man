@@ -18,8 +18,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const sftpPort uint = 22
-
 type Connection struct {
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
@@ -40,6 +38,10 @@ func TestConnection() error {
 }
 
 func InitConnection() (Connection, error) {
+	sftpPort := os.Getenv("DIMAG_SFTP_SERVER_PORT")
+	if sftpPort == "" {
+		sftpPort = "22"
+	}
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
 		return Connection{}, fmt.Errorf("missing env variable DIMAG_SFTP_SERVER_URL")
