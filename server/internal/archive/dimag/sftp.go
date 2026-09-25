@@ -18,8 +18,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const sftpPort uint = 22
-
 type Connection struct {
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
@@ -40,6 +38,10 @@ func TestConnection() error {
 }
 
 func InitConnection() (Connection, error) {
+	sftpPort := os.Getenv("DIMAG_SFTP_SERVER_PORT")
+	if sftpPort == "" {
+		sftpPort = "22"
+	}
 	urlString := os.Getenv("DIMAG_SFTP_SERVER_URL")
 	if urlString == "" {
 		return Connection{}, fmt.Errorf("missing env variable DIMAG_SFTP_SERVER_URL")
@@ -52,12 +54,55 @@ func InitConnection() (Connection, error) {
 	if sftpUser == "" {
 		return Connection{}, fmt.Errorf("missing env variable DIMAG_SFTP_USER")
 	}
-	// empty password is possible
-	sftpPassword := os.Getenv("DIMAG_SFTP_PASSWORD")
+
 	var auths []ssh.AuthMethod
-	if sftpPassword != "" {
-		auths = append(auths, ssh.Password(sftpPassword))
+
+	// check if there is a private key that we could use
+	var sftpPrivateKey []byte
+
+	// first check if it was set as a path inside the container
+	sftpPrivateKeyPath := os.Getenv("DIMAG_SFTP_PRIVATE_KEY_PATH")
+	if sftpPrivateKeyPath != "" {
+		sftpPrivateKey, err = os.ReadFile(sftpPrivateKeyPath)
+		if err != nil {
+			log.Fatal("unable to read private key from given path", err)
+		}
+	} else {
+		// otherwise check if it is supplied as env var and use that
+		sftpPrivateKeyString := os.Getenv("DIMAG_SFTP_PRIVATE_KEY")
+		if sftpPrivateKeyString != "" {
+			sftpPrivateKey = []byte(sftpPrivateKeyString)
+		}
 	}
+
+	if sftpPrivateKey != nil {
+		// there is a private key, use it
+		var signer ssh.Signer
+		sftpPrivateKeyPassphrase := os.Getenv("DIMAG_SFTP_PRIVATE_KEY_PASSPHRASE")
+		if sftpPrivateKeyPassphrase == "" {
+			// there is no passphrase, use the key as is
+			signer, err = ssh.ParsePrivateKey(sftpPrivateKey)
+			if err != nil {
+				log.Fatal("unable to parse unencrypted private key", err)
+			}
+		} else {
+			// there is a passphrase, so we use it to decrypt the private key
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(sftpPrivateKey, []byte(sftpPrivateKeyPassphrase))
+			if err != nil {
+				log.Fatal("unable to parse encrypted private key with passphrase", err)
+			}
+		}
+		// either way we should have a private key by now
+		auths = append(auths, ssh.PublicKeys(signer))
+	} else {
+		// there is no key, try if a password has been supplied
+		sftpPassword := os.Getenv("DIMAG_SFTP_PASSWORD")
+		// empty password is possible
+		if sftpPassword != "" {
+			auths = append(auths, ssh.Password(sftpPassword))
+		}
+	}
+
 	var sftpHostKey string
 	serverState, ok := db.FindServerStateDIMAG()
 	if ok {
@@ -84,7 +129,7 @@ func InitConnection() (Connection, error) {
 				"If the server's SSH keys were changed, manually reset the \"dimag\" entry in the xman database in collection server_state")
 		},
 	}
-	addr := fmt.Sprintf("%s:%d", url.Host, sftpPort)
+	addr := net.JoinHostPort(url.Hostname(), sftpPort)
 	sshClient, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
 		return Connection{}, err
