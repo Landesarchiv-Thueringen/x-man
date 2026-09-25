@@ -78,7 +78,7 @@
  libidn2                │ 2.3.3-1                           │ deb    
  libidn2-0              │ 2.3.3-1+b1                        │ deb    
  liblz4-1               │ 1.9.4-1                           │ deb    
- liblzma5               │ 5.4.1-1+deb12u1                   │ deb    
+ liblzma5               │ 5.4.1-1+deb12u2                   │ deb    
  libmd                  │ 1.0.4-2                           │ deb    
  libmd0                 │ 1.0.4-2                           │ deb    
  libmount1              │ 2.38.1-5+deb12u3                  │ deb    
@@ -88,7 +88,7 @@
  libpam-modules-bin     │ 1.5.2-6+deb12u2                   │ deb    
  libpam-runtime         │ 1.5.2-6+deb12u2                   │ deb    
  libpam0g               │ 1.5.2-6+deb12u2                   │ deb    
- libpcre2-8-0           │ 10.42-1                           │ deb    
+ libpcre2-8-0           │ 10.42-1+deb12u1                   │ deb    
  libseccomp             │ 2.5.4-1+deb12u1                   │ deb    
  libseccomp2            │ 2.5.4-1+deb12u1                   │ deb    
  libselinux             │ 3.4-1                             │ deb    
@@ -130,7 +130,7 @@
  p11-kit                │ 0.24.1-2                          │ deb    
  pam                    │ 1.5.2-6+deb12u2                   │ deb    
  passwd                 │ 1:4.13+dfsg1-1+deb12u2            │ deb    
- pcre2                  │ 10.42-1                           │ deb    
+ pcre2                  │ 10.42-1+deb12u1                   │ deb    
  perl                   │ 5.36.0-7+deb12u3                  │ deb    
  perl-base              │ 5.36.0-7+deb12u3                  │ deb    
  pkcs8                  │ 0.0.0-20240726163527-a2c0da244d78 │ golang 
@@ -144,7 +144,7 @@
  snappy                 │ 1.0.0                             │ golang 
  sse                    │ 1.1.1                             │ golang 
  stats                  │ 0.12.2                            │ golang 
- stdlib                 │ 1.25.13                           │ golang 
+ stdlib                 │ 1.25.14                           │ golang 
  stringprep             │ 1.0.4                             │ golang 
  sync                   │ 0.22.0                            │ golang 
  sys                    │ 0.47.0                            │ golang 
@@ -165,8 +165,8 @@
  v2                     │ 2.4.3                             │ golang 
  v3                     │ 3.4.14                            │ golang 
  v5                     │ 5.3.1                             │ golang 
- xman                   │ 1.4.1                             │ golang 
+ xman                   │ 1.5.0                             │ golang 
  xxhash                 │ 0.8.1-1                           │ deb    
- xz-utils               │ 5.4.1-1+deb12u1                   │ deb    
+ xz-utils               │ 5.4.1-1+deb12u2                   │ deb    
  zlib                   │ 1:1.2.13.dfsg-1                   │ deb    
  zlib1g                 │ 1:1.2.13.dfsg-1                   │ deb    

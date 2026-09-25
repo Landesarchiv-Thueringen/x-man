@@ -2,6 +2,11 @@
 
 ## Next
 
+- 
+
+## 1.5.0
+
+- Feature: SSH-Schlüssel-Authentifizierung für SFTP ([#3](https://github.com/Landesarchiv-Thueringen/x-man/pull/3), danke [@weihmann](https://github.com/weihmann))
 - Fix: Verzögerung bei der Anzeige der Formatverifikation
 
 ## v1.4.1
